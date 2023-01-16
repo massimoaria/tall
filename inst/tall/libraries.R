@@ -23,13 +23,13 @@ customTheme <- function(){
   ,warningFontColor = "rgb(0,0,0)"
   ,dangerFontColor = "rgb(0,0,0)"
   ,bodyBackColor = "rgb(255,255,255)"
-  ,logoBackColor = "rgb(88,101,185)"
+  ,logoBackColor = "#4F7942"#"rgb(88,101,185)"
 
-  ,headerButtonBackColor = "rgb(88,101,185)"
+  ,headerButtonBackColor = "#4F7942"#"rgb(88,101,185)"
   ,headerButtonIconColor = "rgb(248,248,248)"
   ,headerButtonBackColorHover = "rgb(75,90,179)"
   ,headerButtonIconColorHover = "rgb(248,248,248)"
-  ,headerBackColor = "rgb(88,101,185)"
+  ,headerBackColor = "#4F7942"#"rgb(88,101,185)"
   ,headerBoxShadowColor = "rgb(210,210,210)"
   ,headerBoxShadowSize = "2px 2px 2px"
 
@@ -58,7 +58,7 @@ customTheme <- function(){
     ,colorMiddlePos = 75
     ,colorEndPos = 100)
   ,sidebarSearchIconColor = "rgb(255,255,255)"
-  ,sidebarSearchBorderColor = "rgb(29,143,225)"
+  ,sidebarSearchBorderColor = "#6CC283"#"rgb(29,143,225)"
   ,sidebarTabTextColor = "rgb(255,255,255)"
   ,sidebarTabTextSize = 15
   ,sidebarTabBorderStyle = "none none solid none"
@@ -66,9 +66,9 @@ customTheme <- function(){
   ,sidebarTabBorderWidth = 1
   ,sidebarTabBackColorSelected = cssGradientThreeColors(
     direction = "right"
-    ,colorStart = "rgb(34,220,253)"
-    ,colorMiddle = "rgb(29,143,225)"
-    ,colorEnd = "rgb(88,101,185)"
+    ,colorStart = "#9ED69C"#"rgb(34,220,253)"
+    ,colorMiddle = "#6CC283"#"rgb(29,143,225)"
+    ,colorEnd = "#4F7942"#"rgb(88,101,185)"
     ,colorStartPos = 0
     ,colorMiddlePos = 75
     ,colorEndPos = 100)
@@ -103,9 +103,9 @@ customTheme <- function(){
 
   ,buttonBackColor = cssGradientThreeColors(
     direction = "right"
-    ,colorStart = "rgb(34,220,253)"
-    ,colorMiddle = "rgb(29,143,225)"
-    ,colorEnd = "rgb(88,101,185)"
+    ,colorStart = "#9ED69C"#"rgb(34,220,253)"
+    ,colorMiddle = "#6CC283"#"rgb(29,143,225)"
+    ,colorEnd = "#4F7942"#"rgb(88,101,185)"
     ,colorStartPos = 0
     ,colorMiddlePos = 55
     ,colorEndPos = 100)
