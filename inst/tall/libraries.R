@@ -16,7 +16,7 @@ libraries <- function(){
 customTheme <- function(){
   shinyDashboardThemeDIY(
   appFontFamily = "Helvetica"
-  ,appFontColor = "rgb(0,0,0)" 
+  ,appFontColor = "rgb(0,0,0)"
   ,primaryFontColor = "rgb(0,0,0)"
   ,infoFontColor = "rgb(0,0,0)"
   ,successFontColor = "rgb(0,0,0)"
@@ -24,20 +24,20 @@ customTheme <- function(){
   ,dangerFontColor = "rgb(0,0,0)"
   ,bodyBackColor = "rgb(255,255,255)"
   ,logoBackColor = "rgb(88,101,185)"
-  
+
   ,headerButtonBackColor = "rgb(88,101,185)"
   ,headerButtonIconColor = "rgb(248,248,248)"
   ,headerButtonBackColorHover = "rgb(75,90,179)"
-  ,headerButtonIconColorHover = "rgb(248,248,248)" 
+  ,headerButtonIconColorHover = "rgb(248,248,248)"
   ,headerBackColor = "rgb(88,101,185)"
   ,headerBoxShadowColor = "rgb(210,210,210)"
   ,headerBoxShadowSize = "2px 2px 2px"
-  
+
   ,sidebarBackColor = cssGradientThreeColors(
     direction = "down"
-    ,colorStart = "rgb(88,101,185)"
-    ,colorMiddle = "rgb(29,143,225)"
-    ,colorEnd = "rgb(34,220,253)"
+    ,colorStart = "#4F7942"#"rgb(88,101,185)"
+    ,colorMiddle = "#6CC283"#"rgb(29,143,225)"
+    ,colorEnd = "#9ED69C"#"rgb(34,220,253)"
     ,colorStartPos = 0
     ,colorMiddlePos = 55
     ,colorEndPos = 100
@@ -51,9 +51,9 @@ customTheme <- function(){
   ,sidebarUserTextColor = "rgb(255,255,255)"
   ,sidebarSearchBackColor = cssGradientThreeColors(
     direction = "right"
-    ,colorStart = "rgb(34,220,253)"
-    ,colorMiddle = "rgb(29,143,225)"
-    ,colorEnd = "rgb(88,101,185)"
+    ,colorStart = "#9ED69C"#"rgb(34,220,253)"
+    ,colorMiddle = "#6CC283"#"rgb(29,143,225)"
+    ,colorEnd ="#4F7942"#"rgb(88,101,185)"
     ,colorStartPos = 0
     ,colorMiddlePos = 75
     ,colorEndPos = 100)
@@ -80,7 +80,7 @@ customTheme <- function(){
   ,sidebarTabBorderColorHover = "rgb(75,126,151)"
   ,sidebarTabBorderWidthHover = 1
   ,sidebarTabRadiusHover = "0px 0px 0px 0px"
-  
+
   ,boxBackColor = "rgb(255,255,255)"
   ,boxBorderRadius = 5
   ,boxShadowSize = "0px 0px 0px"
@@ -92,7 +92,7 @@ customTheme <- function(){
   ,boxSuccessColor = "rgb(88,101,185)"
   ,boxWarningColor = "rgb(244,156,104)"
   ,boxDangerColor = "rgb(255,88,55)"
-  
+
   ,tabBoxTabColor = "rgb(255,255,255)"
   ,tabBoxTabTextSize = 14
   ,tabBoxTabTextColor = "rgb(0,0,0)"
@@ -100,7 +100,7 @@ customTheme <- function(){
   ,tabBoxBackColor = "rgb(255,255,255)"
   ,tabBoxHighlightColor = "rgba(44,222,235,1)"
   ,tabBoxBorderRadius = 5
-  
+
   ,buttonBackColor = cssGradientThreeColors(
     direction = "right"
     ,colorStart = "rgb(34,220,253)"
@@ -115,13 +115,13 @@ customTheme <- function(){
   ,buttonBackColorHover = "rgb(255,255,255)"
   ,buttonTextColorHover = "rgb(0,0,0)"
   ,buttonBorderColorHover = "rgb(200,200,200)"
-  
+
   ,textboxBackColor = "rgb(255,255,255)"
   ,textboxBorderColor = "rgb(200,200,200)"
   ,textboxBorderRadius = 5
   ,textboxBackColorSelect = "rgb(255,255,255)"
   ,textboxBorderColorSelect = "rgb(200,200,200)"
-  
+
   ,tableBackColor = "rgb(255,255,255)"
   ,tableBorderColor = "rgb(240,240,240)"
   ,tableBorderTopSize = 1
@@ -149,7 +149,7 @@ shinyDashboardThemeDIY <- function(
     primaryFontColor = "auto", successFontColor = "auto", warningFontColor = "auto", dangerFontColor = "auto",
     infoFontColor = "auto", boxInfoColor = "auto"
 ) {
-  
+
   cssCode <- paste0(
     '
     /* font */
@@ -678,11 +678,11 @@ shinyDashboardThemeDIY <- function(
 
     '
   )
-  
+
   # removing new line symbols and formatting spacing
   cssCode <- gsub(pattern = "\n", replacement = "", x = cssCode)
   cssCode <- gsub(pattern = "[[:space:]]{2,3}", replacement = "", x = cssCode)
-  
+
   htmlCode <- htmltools::tags$head(
     htmltools::tags$style(
       htmltools::HTML(
@@ -690,7 +690,7 @@ shinyDashboardThemeDIY <- function(
       )
     )
   )
-  
+
   return(htmlCode)
 }
 
@@ -699,7 +699,7 @@ cssGradientThreeColors <- function(
     direction = "down", colorStart, colorMiddle, colorEnd, colorStartPos = 0,
     colorMiddlePos = 50, colorEndPos = 100
 ) {
-  
+
   # handling direction types
   if (direction == "down") {
     colorStartSide <- "top"
@@ -714,7 +714,7 @@ cssGradientThreeColors <- function(
   } else {
     stop("The chosen direction isn't supported.")
   }
-  
+
   # building up css code
   cssCode <- paste0(
     colorStart, ';
@@ -739,11 +739,11 @@ cssGradientThreeColors <- function(
     colorDirection, ', ', colorStart, " ", colorStartPos, '%, ', colorMiddle, " ",
     colorMiddlePos, '%, ', colorEnd, " ", colorEndPos, '%)'
   )
-  
+
   # removing new line symbols and formatting spacing
   cssCode <- gsub(pattern = "\n", replacement = "", x = cssCode)
   cssCode <- gsub(pattern = "[[:space:]]{2,3}", replacement = "", x = cssCode)
-  
+
   return(cssCode)
 }
 
