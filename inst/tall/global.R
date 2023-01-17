@@ -79,7 +79,7 @@ choose.dir.windows <- function(default = NA, caption = NA, useNew = TRUE) {
   if(useNew){
     ## uses a powershell script rather than the bat version, gives a nicer interface
     ## and allows setting of the default directory and the caption
-    whereisutils <- system.file("utils", 'newFolderDialog.ps1', package = "shinyDirectoryInput")
+    whereisutils <- system.file("utils", 'newFolderDialog.ps1', package = "tall")
     command = 'powershell'
     args = paste('-NoProfile -ExecutionPolicy Bypass -File',normalizePath(whereisutils))
     if (!is.null(default) && !is.na(default) && nzchar(default)) {
@@ -93,8 +93,8 @@ choose.dir.windows <- function(default = NA, caption = NA, useNew = TRUE) {
     suppressWarnings({
       path = system2(command, args = args, stdout = TRUE)
     })
-  } else {
-    whereisutils <- system.file("utils", 'choose_dir.bat', package = "shinyDirectoryInput")
+   } else {
+    whereisutils <- system.file("utils", 'choose_dir.bat', package = "tall")
     command = normalizePath(whereisutils)
     args = if (is.na(caption)) '' else sprintf('"%s"', caption)
     suppressWarnings({
@@ -109,17 +109,17 @@ directoryInput = function(inputId, label, value = NULL) {
   if (!is.null(value) && !is.na(value)) {
     value = path.expand(value)
   }
-  version <- as.character(packageVersion("shinyDirectoryInput")[[1]])
+  version <- 1 #as.character(packageVersion("shinyDirectoryInput")[[1]])
   dep <- htmltools::htmlDependency(
-    name = "shinyDirectoryInput-assets", version = version,
-    package = "shinyDirectoryInput",
+    name = "tall-assets", version = version,
+    package = "tall",
     src = "assets",
     script = "js/directory_input_binding.js"
   )
   tagList(
     shiny::div(
       class = 'form-group directory-input-container',
-      shinyDirectoryInput:::`%AND%`(label, tags$label(label)),
+      `%AND%`(label, tags$label(label)),
       shiny::div(
         shiny::span(
           class = 'col-xs-9 col-md-11',
@@ -173,8 +173,9 @@ readDirectoryInput = function(session, inputId) {
 }
 
 # IMPORT TEXT FUNCTIONS ----
-txtImport <- function(folder){
+txtImport <- function(folder, sep="__"){
   obj <- readtext::readtext(paste0(folder,"*"),
-                            docvarsfrom = "filepaths")
+                            docvarsfrom = "filepaths",
+                            dvsep = sep)
 }
 
