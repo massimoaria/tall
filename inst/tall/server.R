@@ -27,6 +27,7 @@ server <- function(input, output, session){
 
   DATAloading<- eventReactive(input$load,{
     if (!is.null(values$path)){
+
       txt <- txtImport(values$path, sep="__-__")
 
       txt <- txt %>%
@@ -34,6 +35,7 @@ server <- function(input, output, session){
         mutate(docvar1 = gsub(doc_id,"",docvar1)) %>%
         rename(folder = docvar1)
       #save(txt, file="/Users/massimoaria/Rpackages/tall/txt.rdata")
+
       values$txt <- txt
     }
 
@@ -41,7 +43,10 @@ server <- function(input, output, session){
 
   output$dataImported <- DT::renderDT({
     DATAloading()
-    #values$txt
+    # txt <- values$txt %>%
+    #   mutate(docvar1 = gsub(.data$doc_id,"",paste0(.data$docvar1,.data$docvar2)))
+    values$txt
+
   })
 
 
