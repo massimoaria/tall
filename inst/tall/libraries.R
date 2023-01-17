@@ -6,11 +6,11 @@ libraries <- function(){
   if (!require(shinydashboard)){install.packages("shinydashboard"); require(shinydashboard, quietly=TRUE)}
   if (!require(shinydashboardPlus)){install.packages("shinydashboardPlus"); require(shinydashboardPlus, quietly=TRUE)}
   if (!require(shinyWidgets)){install.packages("shinyWidgets"); require(shinyWidgets, quietly=TRUE)}
-  #if (!require(dashboardthemes)){install.packages("dashboardthemes"); require(dashboardthemes, quietly=TRUE)}
+  if (!require(shinycssloaders)){install.packages("shinycssloaders"); require(shinycssloaders, quietly=TRUE)}
   if (!require(fontawesome)){install.packages("fontawesome"); require(fontawesome, quietly=TRUE)}
   if (!require(shinyjs)){install.packages("shinyjs"); require(shinyjs, quietly=TRUE)}
   if (!require(tidyverse)){install.packages("tidyverse"); require(tidyverse, quietly=TRUE)}
-  #if (!require(shinyDirectoryInput)){install.packages("shinyDirectoryInput"); require(shinyDirectoryInput, quietly=TRUE)}
+  if (!require(DT)){install.packages("DT"); require(DT, quietly=TRUE)}
 }
 
 # Custom Theme ----
@@ -28,7 +28,7 @@ customTheme <- function(){
 
   ,headerButtonBackColor = "#4F7942"#"rgb(88,101,185)"
   ,headerButtonIconColor = "rgb(248,248,248)"
-  ,headerButtonBackColorHover = "rgb(75,90,179)"
+  ,headerButtonBackColorHover = "#4F7942"#"rgb(75,90,179)"
   ,headerButtonIconColorHover = "rgb(248,248,248)"
   ,headerBackColor = "#4F7942"#"rgb(88,101,185)"
   ,headerBoxShadowColor = "rgb(210,210,210)"
@@ -82,11 +82,11 @@ customTheme <- function(){
   ,sidebarTabBorderWidthHover = 1
   ,sidebarTabRadiusHover = "0px 0px 0px 0px"
 
-  ,boxBackColor = "rgb(255,255,255)"
+  ,boxBackColor = "#dee2e6" #"rgb(255,255,255)"
   ,boxBorderRadius = 5
   ,boxShadowSize = "0px 0px 0px"
   ,boxShadowColor = "rgba(0,0,0,.1)"
-  ,boxTitleSize = 16
+  ,boxTitleSize = 1
   ,boxDefaultColor = "rgb(210,214,220)"
   ,boxPrimaryColor = "rgba(44,222,235,1)"
   ,boxInfoColor = "rgb(210,214,220)"
