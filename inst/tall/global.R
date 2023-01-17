@@ -109,7 +109,7 @@ directoryInput = function(inputId, label, value = NULL) {
   if (!is.null(value) && !is.na(value)) {
     value = path.expand(value)
   }
-  version <- 1 #as.character(packageVersion("shinyDirectoryInput")[[1]])
+  version <- as.character(packageVersion("tall")[[1]])
   dep <- htmltools::htmlDependency(
     name = "tall-assets", version = version,
     package = "tall",
