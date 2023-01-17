@@ -27,13 +27,22 @@ server <- function(input, output, session){
 
   DATAloading<- eventReactive(input$load,{
     if (!is.null(values$path)){
-      values$txt <- txtImport(values$path)
+      txt <- txtImport(values$path)
+      txt <- txt %>%
+        group_by(doc_id) %>%
+        mutate(docvar1 = gsub(doc_id,"", paste0(docvar1,"_",docvar2)))
+      save(txt, file="/Users/massimoaria/Rpackages/tall/txt.rdata")
+      values$txt <- txt
     }
+
   })
 
   output$dataImported <- DT::renderDT({
     DATAloading()
-    #values$txt
+    # txt <- values$txt %>%
+    #   mutate(docvar1 = gsub(.data$doc_id,"",paste0(.data$docvar1,.data$docvar2)))
+    values$txt
+
   })
 
 
