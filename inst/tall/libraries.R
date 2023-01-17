@@ -10,6 +10,7 @@ libraries <- function(){
   if (!require(fontawesome)){install.packages("fontawesome"); require(fontawesome, quietly=TRUE)}
   if (!require(shinyjs)){install.packages("shinyjs"); require(shinyjs, quietly=TRUE)}
   if (!require(tidyverse)){install.packages("tidyverse"); require(tidyverse, quietly=TRUE)}
+  if (!require(shinyFiles)){install.packages("shinyFiles"); require(shinyFiles, quietly=TRUE)}
 }
 
 # Custom Theme ----

@@ -107,7 +107,15 @@ body <- dashboardBody(
             ),
 
     ### FILTER ----
-    tabItem(tabName = "filters"
+    tabItem(tabName = "filters",
+            fluidPage(
+              fluidRow(
+                directoryInput('directory', label = 'selected directory', value = getwd()),#'~'
+              actionBttn(inputId="load", label="import")
+            ),
+            fluidRow(
+              DT::DTOutput("dataImported"))
+            )
     ),
 
     ### TOKENIZATION & CLEANING ----
