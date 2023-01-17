@@ -27,11 +27,15 @@ server <- function(input, output, session){
 
   DATAloading<- eventReactive(input$load,{
     if (!is.null(values$path)){
-      txt <- txtImport(values$path)
+
+      txt <- txtImport(values$path, sep="__-__")
+
       txt <- txt %>%
         group_by(doc_id) %>%
-        mutate(docvar1 = gsub(doc_id,"", paste0(docvar1,"_",docvar2)))
-      save(txt, file="/Users/massimoaria/Rpackages/tall/txt.rdata")
+        mutate(docvar1 = gsub(doc_id,"",docvar1)) %>%
+        rename(folder = docvar1)
+      #save(txt, file="/Users/massimoaria/Rpackages/tall/txt.rdata")
+
       values$txt <- txt
     }
 

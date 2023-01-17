@@ -103,8 +103,12 @@ body <- dashboardBody(
             )
     ),
     ### IMPORT TEXT ----
-    tabItem(tabName = "import"
+    tabItem(tabName = "import_tx"
             ),
+
+    ### ADD METADATA ----
+    tabItem(tabName = "add_meta"
+    ),
 
     ### FILTER ----
     tabItem(tabName = "filters",
