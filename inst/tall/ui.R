@@ -1,7 +1,9 @@
 # UI
 #  Function source ----
-source("libraries.R")
+source("libraries.R", local=TRUE)
+source("tallFunctions.R", local=TRUE)
 libraries()
+
 
 ## HEADER ----
 
@@ -21,7 +23,9 @@ sidebar <- dashboardSidebar(
   sidebarMenu(id="sidebarmenu",
               #style = "position: relative; overflow: visible;",
               menuItem("TALL", tabName = "tall", icon = icon("text-size", lib = "glyphicon")),
-              menuItem("Import text", tabName = "import", icon = fa_i(name = "file-import")),
+              menuItem("Data", tabName = "data", icon = fa_i(name = "file-import"),
+                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
+                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right"))),
               menuItem("Filters", tabName = "filters", icon = fa_i(name ="filter")),
               menuItem("Tokenization & Cleaning", tabName = "tok_cl", icon = icon("indent-right", lib = "glyphicon"),
                        menuSubItem("Parsing", tabName = "parsing", icon = icon("chevron-right")),
@@ -84,6 +88,7 @@ body <- dashboardBody(
       '
     )),
 
+
   tabItems(
 
     ### TALL PAGE ----
@@ -91,7 +96,7 @@ body <- dashboardBody(
             fluidRow(
               h1(strong("TALL"), align="center"),
               br(),
-              h3("Text Mining for ALL",align = "center"),
+              h3("Text Analysis for ALL",align = "center"),
               br(),
               div(p("Powered by ",
                     em(a("K-Synth",
@@ -100,11 +105,84 @@ body <- dashboardBody(
             )
     ),
     ### IMPORT TEXT ----
-    tabItem(tabName = "import"
-            ),
+    tabItem(tabName = "import_tx",
+            fluidPage(
+              fluidRow(
+                column(8,
+                       shinycssloaders::withSpinner(DT::DTOutput("dataImported"))
+                ),
+                column(4,
+                       fluidRow(
+                         box(
+
+                           width = 12,
+                           h3(strong("Import or Load ")),
+                           selectInput("load", "Please, choose what to do",
+                                       choices = c(
+                                         " "= "null",
+                                         "Import a directory that contains the files"="import",
+                                         "Load a Tall file(s)"="load_ex",
+                                         "Use a sample collection"="demo"
+                                       ),
+                                       selected = "null"
+                           ),
+                           conditionalPanel(
+                             condition="input.load == 'import'",
+                             directoryInput('directory', label = 'Select the directory that contains the files', value = NULL),
+                           ),
+                           conditionalPanel(
+                             condition="input.load=='demo'",
+                             helpText(h4("This is a sample collection ...."))
+                           ),
+                           conditionalPanel(
+                             condition = "input.load == 'load_ex'",
+                             conditionalPanel(
+                               condition = "input.load == 'load_ex'",
+                               helpText(em("Load a collection in XLSX or R format previously exported from Tall")
+                               )),
+                             fileInput(
+                               "file1",
+                               "Choose a file",
+                               multiple = FALSE,
+                               accept = c(
+                                 ".csv",
+                                 ".txt",
+                                 ".ciw",
+                                 ".bib",
+                                 ".xlsx",
+                                 ".zip",
+                                 ".xls",
+                                 ".rdata",
+                                 ".rda",
+                                 ".rds"
+                               )
+                             )
+                           ),
+                           conditionalPanel(condition = "input.load != 'null'",
+                                            fluidRow(column(12,
+                                                            div(#style ="border-radius: 5px; border-width: 3px; font-size: 15px;",
+                                                              align = "center",
+                                                              width=12,
+                                                              actionBttn(inputId="runImport", label=strong("Start"), icon=icon(name="play", lib="glyphicon"),
+                                                                         width=12, style="pill", color="warning"
+                                                              )
+                                                            )
+                                            )
+                                            )
+                           )
+                         )
+                       )
+                )
+              )
+            )
+    ),
+
+    ### ADD METADATA ----
+    tabItem(tabName = "add_meta"
+    ),
 
     ### FILTER ----
-    tabItem(tabName = "filters"
+    tabItem(tabName = "filters",
     ),
 
     ### TOKENIZATION & CLEANING ----
