@@ -134,7 +134,7 @@ directoryInput = function(inputId, label, value = NULL) {
           style =  'width:100% ',
           tags$button(
             id = inputId,
-            style =  'height:39px; width:100% ', #'padding-left: 30px; padding-right: 30px;
+            style =  'height:40px; width:100% ', #'padding-left: 30px; padding-right: 30px;
             title="Browse", # Tips
             class = 'btn btn-default directory-input',icon('folder-open', lib="glyphicon")
             #)

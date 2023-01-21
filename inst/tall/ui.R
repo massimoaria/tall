@@ -8,6 +8,7 @@ libraries()
 
 #style_opt <- "height: 45px; width: 45px; border-radius: 50%; border: 3px; margin-top: 15px"
 style_opt <-  "border-radius: 15px; border-width: 3px; font-size: 15px; margin-top: 15px;" # (option button)
+style_start <-  "border-radius: 15px; border-width: 3px; font-size: 15px; width:100% " # (start button)
 #style_bttn <- "border-radius: 15px; border-width: 3px; font-size: 15px; margin-top: 15px;" # (action buttons)
 t_report  <-  "Add Results to the Report"
 t_export  <-  "Export Plot as PNG"
@@ -185,7 +186,7 @@ body <- dashboardBody(
                                column(5,
                                       div(
                                         h6((htmlOutput("folder"))),
-                                        style="margin-top: -6px;"
+                                        style="margin-top: -5px;"
                                       ),
                                ),
                                column(4,
@@ -199,8 +200,6 @@ body <- dashboardBody(
                                         onStatus = "success",
                                         offStatus = "danger",
                                         width="100%",
-                                        #handleWidth = 10,
-                                        #labelWidth = 4,
                                         inline = T,
                                       )#, style= "margin-top: 3px; "
                                       )
@@ -262,29 +261,33 @@ body <- dashboardBody(
                              )
                            ),
                            conditionalPanel(condition = "input.load != 'null'",
-                                            fluidRow(column(12,
-                                                            div(#style ="border-radius: 5px; border-width: 3px; font-size: 15px;",
-                                                              align = "center",
-                                                              width=12,
-                                                              actionBttn(inputId="runImport", label=strong("Start"), icon=icon(name="play", lib="glyphicon"),
-                                                                         width=12, style="pill", color="warning"
-                                                              )
-                                                            )
-                                            )
+                                            fluidRow(
+                                              column(12,
+                                                     div(
+                                                       align = "center",
+                                                       width=12,
+                                                       actionButton(inputId="runImport",
+                                                                    label = strong("Start"),
+                                                                    icon = icon(name="play", lib="glyphicon"),
+                                                                    style ="border-radius: 25px; border-width: 1px; font-size: 24px;
+                                                                    text-align: center; color: #ffff; padding-left: 40px; padding-right: 40px"
+                                                                    ))
+                                              )
                                             )
                            ),
                            conditionalPanel(condition="input.load != 'null'",
                                             tags$hr(),
                                             fluidRow(
-                                              column(8,
-                                                     h4(strong(
-                                                       "Convert Raw Data in Excel"
-                                                     ))
-                                              ),
-                                              column(4,
-                                                     downloadBttn(outputId = "collection.save", label = NULL,
-                                                                  #width = "100%",
-                                                                  style = "pill", color = "warning")
+                                              column(12,
+                                                     div(
+                                                       align = "center",
+                                                       width=12,
+                                                       downloadButton(outputId="collection.save",
+                                                                    label = strong("Convert Raw Data in Excel"),
+                                                                    #icon = icon(name="play", lib="glyphicon"),
+                                                                    style ="border-radius: 15px; border-width: 1px; font-size: 20px;
+                                                                    text-align: center; color: #ffff; "
+                                                       ))
                                               )
                                             )
                            )
