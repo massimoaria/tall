@@ -187,11 +187,6 @@ readDirectoryInput = function(session, inputId) {
 }
 
 # IMPORT TEXT FUNCTIONS ----
-# txtImport <- function(folder, sep="__"){
-#   obj <- readtext::readtext(paste0(folder,"*"),
-#                             docvarsfrom = "filepaths",
-#                             dvsep = sep)
-# }
 
 read_files <- function(path, ext=c("txt","csv", "xlsx"), subfolder=TRUE){
 
@@ -237,7 +232,17 @@ shortpath <- function(path){
   } else {NULL}
 }
 
-##
+
+
+### QUANTEDA CORPUS FUNTIONS
+
+corpus2df <- function(obj){
+  df <- tibble(doc_id=rep(names(obj), lengths(obj)), text=unlist(obj))
+  docvars <- attr(obj, "docvars")
+  df <- df %>% left_join(docvars, by = c("doc_id" = "docid_"))
+}
+
+
 
 ### Excel report functions
 addDataWb <- function(list_df, wb, sheetname){
