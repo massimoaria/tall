@@ -11,6 +11,11 @@ libraries <- function(){
   if (!require(shinyjs)){install.packages("shinyjs"); require(shinyjs, quietly=TRUE)}
   if (!require(tidyverse)){install.packages("tidyverse"); require(tidyverse, quietly=TRUE)}
   if (!require(DT)){install.packages("DT"); require(DT, quietly=TRUE)}
+  if (!require(plotly)){install.packages("plotly"); require(plotly, quietly=TRUE)}
+  if (!require(openxlsx)){install.packages("openxlsx"); require(openxlsx, quietly=TRUE)}
+  if (!require(readxl)){install.packages("readxl"); require(readxl, quietly=TRUE)}
+
+
 }
 
 # Custom Theme ----
@@ -82,7 +87,7 @@ customTheme <- function(){
   ,sidebarTabBorderWidthHover = 1
   ,sidebarTabRadiusHover = "0px 0px 0px 0px"
 
-  ,boxBackColor = "#dee2e6" #"rgb(255,255,255)"
+  ,boxBackColor = "#F5F5F5" #"rgb(255,255,255)"
   ,boxBorderRadius = 5
   ,boxShadowSize = "0px 0px 0px"
   ,boxShadowColor = "rgba(0,0,0,.1)"
@@ -110,10 +115,10 @@ customTheme <- function(){
     ,colorStartPos = 0
     ,colorMiddlePos = 55
     ,colorEndPos = 100)
-  ,buttonTextColor = "rgb(255,255,255)"
+  ,buttonTextColor = "#4F7942" #rgb(255,255,255)"
   ,buttonBorderColor = "rgb(200,200,200)"
   ,buttonBorderRadius = 5
-  ,buttonBackColorHover = "rgb(255,255,255)"
+  ,buttonBackColorHover = "#4F7942"# "rgb(255,255,255)"
   ,buttonTextColorHover = "rgb(0,0,0)"
   ,buttonBorderColorHover = "rgb(200,200,200)"
 
