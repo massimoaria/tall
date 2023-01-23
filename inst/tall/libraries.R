@@ -15,7 +15,7 @@ libraries <- function(){
   if (!require(openxlsx)){install.packages("openxlsx"); require(openxlsx, quietly=TRUE)}
   if (!require(readxl)){install.packages("readxl"); require(readxl, quietly=TRUE)}
   if (!require(wordcloud2)){install.packages("wordcloud2"); require(wordcloud2, quietly=TRUE)}
-  if (!require(DT)){install.packages("DT"); require(DT, quietly=TRUE)}
+  if (!require(quanteda)){install.packages("quanteda"); require(quanteda, quietly=TRUE)}
 
 
 }
