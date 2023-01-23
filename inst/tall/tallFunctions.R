@@ -234,8 +234,9 @@ shortpath <- function(path){
 
 
 
-### QUANTEDA CORPUS FUNTIONS
+### QUANTEDA CORPUS FUNTIONS ----
 
+## convert a corpus obj into a tibble
 corpus2df <- function(obj){
   df <- tibble(doc_id=rep(names(obj), lengths(obj)), text=unlist(obj))
   docvars <- attr(obj, "docvars")
@@ -243,8 +244,16 @@ corpus2df <- function(obj){
 }
 
 
+## calculate frequency distribution for wordcloud, etc.
+distrib <- function(obj){
+  obj %>%
+    corpus2df() %>%
+    count(text) %>%
+    arrange(desc(n))
+}
 
-### Excel report functions
+
+### Excel report functions ----
 addDataWb <- function(list_df, wb, sheetname){
   l <- length(list_df)
   startRow <- 1
