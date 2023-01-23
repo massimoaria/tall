@@ -245,11 +245,21 @@ corpus2df <- function(obj){
 
 
 ## calculate frequency distribution for wordcloud, etc.
-distrib <- function(obj){
-  obj %>%
+distrib <- function(obj, scale="identity"){
+  obj <- obj %>%
     corpus2df() %>%
     count(text) %>%
     arrange(desc(n))
+
+  switch(scale,
+         identity={
+           obj$scale <- obj$n
+         },
+         log={
+           obj$scale <- log(obj$n)
+         }
+  )
+  return(obj)
 }
 
 

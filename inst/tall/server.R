@@ -5,7 +5,7 @@ server <- function(input, output, session){
   session$onSessionEnded(stopApp)
 
   ### Initial values ----
-
+  load("data/sampleData.rdata")
   values <- reactiveValues()
   values$path <- NULL
   values$txt <- data.frame()
@@ -13,6 +13,9 @@ server <- function(input, output, session){
   values$wb <-  openxlsx::createWorkbook()
   values$dfLabel <- dfLabel()
   values$myChoices <- "Empty Report"
+  values$token <- token
+  values$df <- df
+
 
   ### Import directory ----
   observeEvent(
@@ -131,7 +134,33 @@ server <- function(input, output, session){
 
   ## OVERVIEW ----
 
-  #overview <- eventReactive(input$overviewApply){}
+  wordcloud <- eventReactive(input$overviewApply,{
+    # INPUT DA AGGIUNGERE
+    # n <-  input$wcN numer of words
+    # size <-  input$wcSize
+    # scale <- input$wcScale scale transformation (log, etc.)
+    n <- 100
+    size <- 2
+    scale <- "identity"
+
+    values$wcDf <- distrib(values$token, scale=scale) %>%
+      slice_head(n=n) %>%
+      rename(word = text,
+             freq = n)
+    wordcloud2(values$wcDf,
+               size = size,
+               color = "random-light",
+               backgroundColor = "transparent")
+  })
+
+  output$overviewPlot <- renderWordcloud2({
+    wordcloud()
+  })
+
+  output$overviewTable <- renderDT({
+    wordcloud()
+    values$wcDf
+  })
 
   ## POLARITY DETECTION ----
 

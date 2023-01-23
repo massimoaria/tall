@@ -731,7 +731,7 @@ body <- dashboardBody(
               fluidRow(
                 tabsetPanel(type = "tabs",
                             tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "overviewPlot", height = "75vh",width ="98.9%"),
+                                     shinycssloaders::withSpinner(wordcloud2Output(outputId = "overviewPlot", height = "75vh",width ="98.9%"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
                             tabPanel("Table",
