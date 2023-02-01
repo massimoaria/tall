@@ -238,7 +238,7 @@ shortpath <- function(path){
 ### PRE_PROCESSING ----
 
 ### 1. TOKENIZATION ----
-loadLanguageModel <- function(language, model_version="-ewt-ud-2.5", model_repo = "jwijffels/udpipe.models.ud.2.5"){
+loadLanguageModel <- function(language, model_version="-ud-2.5", model_repo = "jwijffels/udpipe.models.ud.2.5"){
   switch(Sys.info()[['sysname']],
          Windows= {home <- Sys.getenv('R_USER')},
          Linux  = {home <- Sys.getenv('HOME')},
@@ -268,7 +268,19 @@ loadLanguageModel <- function(language, model_version="-ewt-ud-2.5", model_repo 
   return(udmodel_lang)
 }
 
+## Custom Lists merging
+mergeCustomLists <- function(df,custom_lists){
 
+  ## merge term custom lists
+  df %>%
+    mutate(lemma_original = lemma) %>%
+    #mutate(lemma_norm = ifelse(upos!="PROPN", tolower(lemma), lemma)) %>%
+    left_join(custom_lists, by = c("lemma" = "lemma")) %>%
+    mutate(upos.x = ifelse(!is.na(upos.y),toupper(upos.y),upos.x)) %>%
+    select(-upos.y) %>%
+    rename(upos = upos.x)
+
+}
 
 
 
@@ -478,11 +490,11 @@ popUp <- function(title=NULL, type="success", btn_labels="OK"){
 ### UTILITY FUNCTIONS ----
 
 # DATA TABLE FORMAT ----
-DTformat <- function(df){
+DTformat <- function(df, nrow=10){
   # da completare
   DT::datatable(df,escape = FALSE,rownames = FALSE, extensions = c("Buttons"),
                 options = list(
-                  pageLength = 10,
+                  pageLength = nrow,
                   autoWidth = FALSE, scrollX = TRUE,
                   dom = 'Bfrtip',
                   buttons = list(list(extend = 'pageLength'),
@@ -494,5 +506,11 @@ DTformat <- function(df){
                   ))
                 ),
                 class = 'cell-border compact stripe'
-  )
+  ) %>%
+    DT::formatStyle(
+      names(df),
+      backgroundColor = 'white',
+      textAlign = 'center',
+      fontSize = '85%'
+    )
 }

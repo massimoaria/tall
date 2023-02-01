@@ -9,7 +9,6 @@ server <- function(input, output, session){
   session$onSessionEnded(stopApp)
 
   ### Initial values ----
-  load("data/sampleData.rdata")
   values <- reactiveValues()
   values$path <- NULL
   values$menu <- 0
@@ -19,8 +18,11 @@ server <- function(input, output, session){
   values$wb <-  openxlsx::createWorkbook()
   values$dfLabel <- dfLabel()
   values$myChoices <- "Empty Report"
-  values$token <- token
+  #values$token <- token
   values$df <- df
+  label_lang <- languages$repo
+  names(label_lang) <- languages$short
+  values$label_lang <- label_lang
 
 ### DATA ----
 
@@ -46,43 +48,33 @@ server <- function(input, output, session){
 
   ### dataImported ----
   DATAloading<- eventReactive(input$runImport,{
-    if (!is.null(values$path)){
+    switch(input$load,
+           import={
+             if (!is.null(values$path)){
 
-      txt <- read_files(values$path,ext=input$ext, subfolder=input$include_subfolder)
-
-      values$txt <- txt
-    }
-
+               txt <- read_files(values$path,ext=input$ext, subfolder=input$include_subfolder)
+               values$menu <- 0
+               values$custom_lists <- NULL
+               values$txt <- txt
+             }
+           },
+           load_tall={
+             file_tall <- input$file1
+              load(file_tall$datapath)
+              values$menu <- menu
+              values$dfTag <- dfTag
+              values$custom_lists <- custom_lists
+              if (values$menu==1) updateTabItems(session, "sidebarmenu", "custTermList")
+              if (values$menu==2) updateTabItems(session, "sidebarmenu", "posTagSelect")
+           }
+    )
   })
 
   output$dataImported <- DT::renderDT({
     DATAloading()
-    # txt <- values$txt %>%
-    #   mutate(docvar1 = gsub(.data$doc_id,"",paste0(.data$docvar1,.data$docvar2)))
-    values$txt
-
-    DT::datatable(values$txt,escape = FALSE,rownames = FALSE, extensions = c("Buttons"),
-                  options = list(
-                    pageLength = 5,
-                    autoWidth = FALSE, scrollX = TRUE,
-                    dom = 'Bfrtip',
-                    buttons = list(list(extend = 'pageLength'),
-                                   list(extend = 'print')),
-                    lengthMenu = list(c(10, 25, 50, -1),
-                                      c('10 rows', '25 rows', '50 rows', 'Show all')),
-                    columnDefs = list(list(
-                      className = 'dt-center', targets = 0:(length(names(values$txt)) - 1)
-                    ))
-                  ),
-                  class = 'cell-border compact stripe'
-    )  %>%
-      DT::formatStyle(
-        names(values$txt),
-        backgroundColor = 'white',
-        textAlign = 'center',
-        fontSize = '70%'
-      )
-
+    if (values$menu==0){
+      DTformat(values$txt, nrow=5)
+    }
   })
 ### shortpath for folder path ----
   output$folder <-  renderUI({
@@ -104,49 +96,25 @@ server <- function(input, output, session){
 
   ### PRE-PROCESSING ----
 
-  ## Tokenization & PoS Tagging ----
+  ## 1. Tokenization & PoS Tagging ----
 
-  output$language_model <- renderUI({
-    label_lang <- languages$repo
-    names(label_lang) <- languages$short
-    selectizeInput(
-      'language', label="Language Model", choices = label_lang,
-      multiple=FALSE,
-      # options = list(
-      #   onInitialize = I('function() { this.setValue(""); }')
-      # ),
-      tags$style("height: 50px")
+  output$optionsTokenization <- renderUI({
+    fluidRow(
+      #column(6,
+               selectInput(
+                 inputId = 'language_model', label="Language Model", choices = values$label_lang,
+                 multiple=FALSE,
+                 tags$style("height: 50px")
+             )
+      #)
     )
   })
 
-  #custom_lists <-
-    observeEvent(
-    ignoreNULL = TRUE,
-    eventExpr = {
-      input$custom_lists
-    },
-    handlerExpr = {
-      file <- input$custom_lists
-        req(file$datapath[1])
-        custom_lists <- lapply(file$datapath,function(x){
-          read_excel(x)
-        })
-      custom_lists <- do.call(rbind,custom_lists)
-        values$custom_lists <- custom_lists
-    }
-  )
-
-    output$customListsData<- DT::renderDT({
-      if (is.null(values$custom_lists)){
-        DTformat(data.frame(term=NULL,pos=NULL))
-      } else {
-        DTformat(values$custom_lists)
-      }
-    })
-
-    posTagging <- eventReactive(input$tokPosRun,{
+    posTagging <- eventReactive({
+      input$tokPosRun
+    },{
         ## download and load model language
-        udmodel_lang <- loadLanguageModel(language = input$language)
+        udmodel_lang <- loadLanguageModel(language = input$language_model)
 
         ## set cores for parallel computing
         ncores <- max(1,parallel::detectCores()-1)
@@ -158,15 +126,15 @@ server <- function(input, output, session){
         }
 
         values$dfTag <- udpipe(object=udmodel_lang, x = values$txt , parallel.cores=ncores)
+        values$menu <- 1
 
-        ### aggiungere controllo se operazione va a buon fine
-
-      }
+    }
     )
 
     output$tokPosTagData<- DT::renderDT({
       posTagging()
-      #if (!is.null(values$dfTag)){
+
+      if(!is.null(values$dfTag)){
       DTformat(values$dfTag%>% select(doc_id, sentence_id,sentence,token,lemma, upos) %>%
                  rename(D_id=doc_id,
                         S_id=sentence_id,
@@ -175,8 +143,68 @@ server <- function(input, output, session){
                         Lemma=lemma,
                         POSTag=upos)
       )
-      #}
+      }
     })
+
+  ## 2. Custom Term List Merging ----
+
+    observeEvent(
+      ignoreNULL = TRUE,
+      eventExpr = {
+        input$custom_lists
+      },
+      handlerExpr = {
+        file <- input$custom_lists
+        req(file$datapath[1])
+        custom_lists <- lapply(file$datapath,function(x){
+          x <- read_excel(x) %>% select(c(1,2))
+          names(x) <- c("lemma", "upos")
+          return(x)
+        })
+        custom_lists <- do.call(rbind,custom_lists)
+        values$custom_lists <- custom_lists
+        print(values$custom_lists)
+      }
+    )
+
+    customListMerging <- eventReactive({
+      input$custTermListRun
+    },{
+      if (!is.null(values$custom_lists)){
+        values$dfTag <- mergeCustomLists(values$dfTag,values$custom_lists)
+        values$menu <- 2
+      }
+    })
+
+    output$customPosTagData<- DT::renderDT({
+      customListMerging()
+
+      if(!is.null(values$dfTag)){
+        DTformat(values$dfTag%>% select(doc_id, sentence_id,sentence,token,lemma, upos) %>%
+                   rename(D_id=doc_id,
+                          S_id=sentence_id,
+                          Sentence=sentence,
+                          Token=token,
+                          Lemma=lemma,
+                          POSTag=upos)
+        )
+      }
+    })
+
+    output$customListData<- DT::renderDT({
+      customListMerging()
+
+      if (is.null(values$custom_lists)){
+        DTformat(data.frame(Lemma=NULL,POSTag=NULL), n=1)
+      } else {
+        DTformat(values$custom_lists %>% rename(
+          Lemma = lemma,
+          POSTag = upos))
+      }
+    })
+
+
+
 
   ## PoS Tag Selection ----
 
