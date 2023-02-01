@@ -16,6 +16,7 @@ libraries <- function(){
   if (!require(readxl)){install.packages("readxl"); require(readxl, quietly=TRUE)}
   if (!require(wordcloud2)){install.packages("wordcloud2"); require(wordcloud2, quietly=TRUE)}
   if (!require(quanteda)){install.packages("quanteda"); require(quanteda, quietly=TRUE)}
+  if (!require(udpipe)){install.packages("udpipe"); require(udpipe, quietly=TRUE)}
 
 
 }

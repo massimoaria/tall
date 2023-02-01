@@ -32,7 +32,7 @@ export_bttn <- list(
 )
 save_bttn <- list(
   label=NULL,
-  style ="display:block; height: 45px; width: 45px; border-radius: 50%; border: 3px; ",
+  style ="display:block; height: 45px; width: 45px; border-radius: 50%; border: 3px; margin-top: 15px",
   icon = icon(name ="floppy-save", lib="glyphicon")
 )
 
@@ -58,32 +58,29 @@ sidebar <- dashboardSidebar(
                        menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
                        menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                        menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
-              #menuItem("Filters", tabName = "filters", icon = fa_i(name ="filter")),
-              menuItem("Vocabulary Construction", tabName = "voc_con", icon = icon("indent-right", lib = "glyphicon"),
-                       menuSubItem("Tokenization & Cleaning", tabName = "tok_cl", icon = icon("chevron-right")),
-                       menuSubItem("Normalization", tabName = "normalization", icon = icon("chevron-right"))),
-              menuItem("Vocabulary Reduction", tabName = "vocab_red", icon = icon("font", lib="glyphicon"),
-                       menuSubItem("Filtering", tabName = "filtering", icon = icon("chevron-right")),
-                       menuSubItem("Morphological", tabName = "morph", icon = icon("chevron-right")),
-                       menuSubItem("Lexical", tabName = "lexical", icon = icon("chevron-right"))),
-              menuItem("Explore", tabName = "explore", icon = icon("search", lib = "glyphicon"),
-                       menuSubItem("Overview", tabName = "overview", icon = icon("chevron-right")),
-                       menuSubItem("Peculiar language analysis", tabName = "pec_lan", icon = icon("chevron-right")),
-                       menuSubItem("Polarity detection", tabName = "polarity_det", icon = icon("chevron-right")),
-                       menuSubItem("Keywords in Context", tabName = "keywords_context", icon = icon("chevron-right"))),
-              menuItem("Organize",tabName = "organize", icon = icon("list-alt", lib = "glyphicon"),
-                       "Unsupervised approaches",
-                       menuSubItem("Clustering", tabName = "clustering", icon = icon("chevron-right")),
-                       menuSubItem("Factorial analysis", tabName = "factorial", icon = icon("chevron-right")),
-                       menuSubItem("Network analysis", tabName = "network", icon = icon("chevron-right")),
-                       menuSubItem("Topic modeling", tabName = "topic_model", icon = icon("chevron-right")),
-                       "Supervised",
-                       menuSubItem("Classification", tabName = "classification", icon = icon("chevron-right"))),
-              menuItem("Summarize",tabName = "synth", icon = icon("comment", lib = "glyphicon"),
-                       menuSubItem("Extractive Summarization", tabName = "extractive", icon = icon("chevron-right")),
-                       menuSubItem("Abstractive Summarization", tabName = "abstractive", icon = icon("chevron-right"))
-              ),
-              menuItem("Report",tabName = "report", icon = fa_i(name ="list-alt")
+              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib = "glyphicon"),
+                       menuSubItem(". Tokenization & PoS Tagging", tabName = "tokPos", icon = fa_i(name ="1")),
+                       menuSubItem(". PoS Tag Selection", tabName = "posTagSelect", icon = fa_i(name ="2"))),
+              menuItem("Overview", tabName = "overview", icon = icon("search", lib="glyphicon")),
+              menuItem("Words", tabName = "words", icon = icon("font", lib = "glyphicon"),
+                       menuSubItem("Frequency List", tabName = "freqList", icon = icon("chevron-right")),
+                       menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),
+                       menuSubItem("Correspondence Analysis", tabName = "ca", icon = icon("chevron-right")),
+                       menuSubItem("Network", tabName = "w_network", icon = icon("chevron-right"))),
+              menuItem("Documents",tabName = "documents", icon = fa_i(name="layer-group"),
+                       menuSubItem("Topic Modeling", tabName = "d_topicMod", icon = icon("chevron-right")),
+                       menuSubItem("Clustering", tabName = "d_clustering", icon = icon("chevron-right")),
+                       menuSubItem("Network", tabName = "d_network", icon = icon("chevron-right")),
+                       menuSubItem("Summarization", tabName = "d_summarization", icon = icon("chevron-right")),
+                       menuSubItem("Polarity Detection", tabName = "d_polDet", icon = icon("chevron-right"))),
+              menuItem("Groups",tabName = "groups", icon = fa_i(name ="spinner"),
+                       menuSubItem("Topic Modeling", tabName = "g_topicMod", icon = icon("chevron-right")),
+                       menuSubItem("Clustering", tabName = "g_clustering", icon = icon("chevron-right")),
+                       menuSubItem("Network", tabName = "g_network", icon = icon("chevron-right")),
+                       menuSubItem("Summarization", tabName = "g_summarization", icon = icon("chevron-right")),
+                       menuSubItem("Polarity Detection", tabName = "g_polDet", icon = icon("chevron-right"))),
+              menuItem("Report",tabName = "report", icon = fa_i(name ="list-alt")),
+              menuItem("Settings",tabName = "settings", icon = fa_i(name ="sliders")
               )
   )
 )
@@ -367,334 +364,168 @@ body <- dashboardBody(
             )
     ),
 
-    ### VOCABULARY CONSTRUCTION ----
+    ### PRE-PROCESSING ----
 
-    ### Tokenization & Cleaning ----
-    tabItem(tabName = "tok_cl",
-            fluidPage(
-              fluidRow(
-                column(7,
-                       h3(strong("Tokenization & Cleaning"), align = "center")),
-                div(#style=style_bttn,
-                  title = t_run,
-                  column(1,
-                         do.call("actionButton", c(run_bttn, list(
-                           inputId = "tok_clApply")
-                         ))
-                  )),
+    ## Tokenization & PoS Tagging -----
 
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "tok_clReport")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "tok_clExport")
-                         )),
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                ),
-                div(#style=style_bttn,
-                  title = t_save,
-                  column(1,
-                         do.call("downloadButton", c(save_bttn, list(
-                           outputId = "tok_clSave")
-                         ))
-                  ))
-                ),
-              fluidRow(
-                tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "tok_clPlot", height = "75vh",width ="98.9%"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            ),
-                            tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("tok_clTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            )
-                )
-              )
-            )
-
-    ),
-
-    ### Normalization----
-    tabItem(tabName = "normalization",
-            fluidPage(
-              fluidRow(
-                column(7,
-                       h3(strong("Normalization"), align = "center")),
-                div(#style=style_bttn,
-                  title = t_run,
-                  column(1,
-                         do.call("actionButton", c(run_bttn, list(
-                           inputId = "normalizationApply")
-                         ))
-                  )),
-
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "normalizationReport")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "normalizationExport")
-                         )),
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                ),
-                div(#style=style_bttn,
-                  title = t_save,
-                  column(1,
-                         do.call("downloadButton", c(save_bttn, list(
-                           outputId = "normalizationSave")
-                         ))
-                  ))
-              ),
-              fluidRow(
-                tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "normalizationPlot", height = "75vh",width ="98.9%"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            ),
-                            tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("normalizationTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            )
-                )
-              )
-            )
-    ),
-
-    ### VOCABULARY REDUCTION ----
-
-    ## Filtering----
-    tabItem(tabName = "filtering",
-            fluidRow(
-              column(9,DT::DTOutput("Filtered")),
-              column(3,
-                     box(
-                       width = 12,
-                       h3(strong("Filtering")),
-                       br(),
-                       fluidRow(column(12,
-                                       div(style ="border-radius: 10px; border-width: 3px; font-size: 15px;",
-                                           align = "center",
-                                           width=12,
-                                           actionBttn(inputId = "applyFiltering", label = strong("Apply Filters"),
-                                                      width = 12, style = "pill", color = "primary"))))#,
-                       # h5(" "),
-                       # box(h6(htmlOutput("textDim")),
-                       #     width = "100%"),
-                       # br(),
-                       # uiOutput("selectLA"),
-                       # uiOutput("sliderPY"),
-                       # uiOutput("selectType"),
-                       # uiOutput("sliderTCpY"),
-                       # selectInput("bradfordSources",
-                       #             label = "Source by Bradford Law Zones",
-                       #             choices = c("Core Sources"="core",
-                       #                         "Core + Zone 2 Sources"="zone2",
-                       #                         "All Sources"="all"),
-                       #             selected = "all")
-                     )
-              )
-            )
-    ),
-
-    ### Morphological----
-    tabItem(tabName = "morph",
-            fluidPage(
-              fluidRow(
-                column(7,
-                       h3(strong("Morphological"), align = "center")),
-                div(#style=style_bttn,
-                  title = t_run,
-                  column(1,
-                         do.call("actionButton", c(run_bttn, list(
-                           inputId = "morphologicalApply")
-                         ))
-                  )),
-
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "morphologicalReport")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "morphologicalExport")
-                         )),
-
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                ),
-                div(#style=style_bttn,
-                  title = t_save,
-                  column(1,
-                         do.call("downloadButton", c(save_bttn, list(
-                           outputId = "morphologicalSave")
-                         ))
-                  ))
-              ),
-              fluidRow(
-                tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "morphologicalPlot", height = "75vh",width ="98.9%"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            ),
-                            tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("morphologicalTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            )
-                )
-              )
-            )
-    ),
-    ### Lexical ----
-    tabItem(tabName = "lexical",
-            fluidPage(
-              fluidRow(
-                column(7,
-                       h3(strong("Lexical"), align = "center")),
-                div(#style=style_bttn,
-                  title = t_run,
-                  column(1,
-                         do.call("actionButton", c(run_bttn, list(
-                           inputId = "lexicalApply")
-                         ))
-                  )),
-
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "lexicalReport")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "lexicalExport")
-                         )),
-
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                ),
-                div(#style=style_bttn,
-                  title = t_save,
-                  column(1,
-                         do.call("downloadButton", c(save_bttn, list(
-                           outputId = "lexicalSave")
-                         ))
-                  ))
-              ),
-              fluidRow(
-                tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "lexicalPlot", height = "75vh",width ="98.9%"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            ),
-                            tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("lexicalTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            )
-                )
-              )
-            )
-    ),
-
-    ### EXPLORE ----
-
-    ### Overview ----
-    tabItem(tabName = "overview",
+    tabItem(tabName = "tokPos",
             fluidPage(
               fluidRow(
                 column(8,
-                       h3(strong("Overview"), align = "center")),
+                       h3(strong("Tokenization & PoS Tagging"), align = "center")),
                 div(#style=style_bttn,
                   title = t_run,
                   column(1,
                          do.call("actionButton", c(run_bttn, list(
-                           inputId = "overviewApply")
+                           inputId = "tokPosApply")
                          ))
                   )),
 
+                div(#style=style_bttn,
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "tokPosReport")
+                         ))
+                  )),
+                div(#style=style_bttn,
+                  title = t_export,
+                  column(1,
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "tokPosExport")
+                         )),
+                  )),
+                div(#style=style_bttn,
+                  title = t_save,
+                  column(1,
+                         do.call("downloadButton", c(save_bttn, list(
+                           outputId = "tokPosSave")
+                         ))
+                  ))
+                ),
+              br(),
+              br(),
+              fluidRow(column(8,DT::DTOutput("tokPosTag")),
+                       column(4,
+                              box(
+                                width = 12,
+                                #h3(strong("Pre-processing")),
+                                br(),
+                                fluidRow(column(12,
+                                                div(
+                                                  align = "center",
+                                                  width=12,
+                                                  actionButton(inputId="tokPosRun",
+                                                               label = strong("Apply"),
+                                                               icon = icon(name="play", lib="glyphicon"),
+                                                               style ="border-radius: 25px; border-width: 1px; font-size: 24px;
+                                                                    text-align: center; color: #ffff; padding-left: 40px; padding-right: 40px"
+                                                  ))
+                                                ))#,
+                                # h5(" "),
+                                # box(h6(htmlOutput("textDim")),
+                                #     width = "100%"),
+                                # br(),
+                                # uiOutput("selectLA"),
+                                # uiOutput("sliderPY"),
+                                # uiOutput("selectType"),
+                                # uiOutput("sliderTCpY"),
+                                # selectInput("bradfordSources",
+                                #             label = "Source by Bradford Law Zones",
+                                #             choices = c("Core Sources"="core",
+                                #                         "Core + Zone 2 Sources"="zone2",
+                                #                         "All Sources"="all"),
+                                #             selected = "all")
+                              )
+                       )
+              )
+            )
+
+    ),
+
+    ## PoS Tag Selection -----
+
+    tabItem(tabName = "posTagSelect",
+            fluidPage(
+              fluidRow(
+                column(8,
+                       h3(strong("PoS Tag Selection"), align = "center")),
+                div(#style=style_bttn,
+                  title = t_run,
+                  column(1,
+                         do.call("actionButton", c(run_bttn, list(
+                           inputId = "posTagSelectApply")
+                         ))
+                  )),
+
+                div(#style=style_bttn,
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "posTagSelectReport")
+                         ))
+                  )),
+                div(#style=style_bttn,
+                  title = t_export,
+                  column(1,
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "posTagSelectExport")
+                         )),
+                  )),
+                div(#style=style_bttn,
+                  title = t_save,
+                  column(1,
+                         do.call("downloadButton", c(save_bttn, list(
+                           outputId = "posTagSelectSave")
+                         ))
+                  ))
+              ),
+              br(),
+              br(),
+              fluidRow(column(8,DT::DTOutput("posTagSelectTab")),
+                       column(4,
+                              box(
+                                width = 12,
+                                #h3(strong("Pre-processing")),
+                                br(),
+                                fluidRow(column(12,
+                                                div(
+                                                  align = "center",
+                                                  width=12,
+                                                  actionButton(inputId="posTagSelectRun",
+                                                               label = strong("Apply"),
+                                                               icon = icon(name="play", lib="glyphicon"),
+                                                               style ="border-radius: 25px; border-width: 1px; font-size: 24px;
+                                                                    text-align: center; color: #ffff; padding-left: 40px; padding-right: 40px"
+                                                  ))
+                                ))#,
+                                # h5(" "),
+                                # box(h6(htmlOutput("textDim")),
+                                #     width = "100%"),
+                                # br(),
+                                # uiOutput("selectLA"),
+                                # uiOutput("sliderPY"),
+                                # uiOutput("selectType"),
+                                # uiOutput("sliderTCpY"),
+                                # selectInput("bradfordSources",
+                                #             label = "Source by Bradford Law Zones",
+                                #             choices = c("Core Sources"="core",
+                                #                         "Core + Zone 2 Sources"="zone2",
+                                #                         "All Sources"="all"),
+                                #             selected = "all")
+                              )
+                       )
+              )
+            )
+
+    ),
+
+    ### OVERVIEW ----
+    tabItem(tabName = "overview",
+            fluidPage(
+              fluidRow(
+                column(7,
+                       h3(strong("Overview"), align = "center")),
                 div(#style=style_bttn,
                   title = t_report,
                   column(1,
@@ -702,58 +533,25 @@ body <- dashboardBody(
                            inputId = "overviewReport")
                          ))
                   )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "overviewExport")
-                         )),
 
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
                 )
-              ),
-              fluidRow(
-                tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
-                                     shinycssloaders::withSpinner(wordcloud2Output(outputId = "overviewPlot", height = "75vh",width ="98.9%"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            ),
-                            tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("overviewTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            )
-                )
+              ##VALUES BOXS HERE!
               )
-            )
-
     ),
-    ### Term Frequency ----
-    tabItem(tabName = "termfrequency",
+
+    ### WORDS ----
+
+    ## Frequency List----
+    tabItem(tabName = "freqList",
             fluidPage(
               fluidRow(
-                column(8,
-                       h3(strong("Term Frequency"), align = "center")),
+                column(7,
+                       h3(strong("Frequency List"), align = "center")),
                 div(#style=style_bttn,
                   title = t_run,
                   column(1,
                          do.call("actionButton", c(run_bttn, list(
-                           inputId = "termfrequencyApply")
+                           inputId = "freqListApply")
                          ))
                   )),
 
@@ -761,14 +559,14 @@ body <- dashboardBody(
                   title = t_report,
                   column(1,
                          do.call("actionButton", c(report_bttn, list(
-                           inputId = "termfrequencyReport")
+                           inputId = "freqListReport")
                          ))
                   )),
                 div(#style=style_bttn,
                   title = t_export,
                   column(1,
                          do.call("downloadButton", c(export_bttn, list(
-                           outputId = "termfrequencyExport")
+                           outputId = "freqListExport")
                          )),
 
                   )),
@@ -788,138 +586,23 @@ body <- dashboardBody(
                            ),
                 ),
                 style = style_opt
-                )
-              ),
-              fluidRow(
-                tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "termfrequencyPlot", height = "75vh",width ="98.9%"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            ),
-                            tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("termfrequencyTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            )
-                )
-              )
-            )
-    ),
-    ### Polarity detection ----
-    tabItem(tabName = "polarity_det",
-            fluidPage(
-              fluidRow(
-                column(8,
-                       h3(strong("Polarity Detection"), align = "center")),
-                div(#style=style_bttn,
-                  title = t_run,
-                  column(1,
-                         do.call("actionButton", c(run_bttn, list(
-                           inputId = "polarity_detApply")
-                         ))
-                  )),
-
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "polarity_detReport")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "polarity_detExport")
-                         )),
-
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
                 ),
-                style = style_opt
-                )
+                div(#style=style_bttn,
+                  title = t_save,
+                  column(1,
+                         do.call("downloadButton", c(save_bttn, list(
+                           outputId = "freqListSave")
+                         ))
+                  ))
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
                             tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "polarity_detPlot", height = "75vh",width ="98.9%"),
+                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "freqListPlot", height = "75vh",width ="98.9%"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
                             tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("polarity_detTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            )
-                )
-              )
-            )
-    ),
-    ### Keywords in context ----
-    tabItem(tabName = "keywords_context",
-            fluidPage(
-              fluidRow(
-                column(8,
-                       h3(strong("Keywords Context"), align = "center")),
-                div(#style=style_bttn,
-                  title = t_run,
-                  column(1,
-                         do.call("actionButton", c(run_bttn, list(
-                           inputId = "keywords_contextApply")
-                         ))
-                  )),
-
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "keywords_contextReport")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "keywords_contextExport")
-                         )),
-
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                )
-              ),
-              fluidRow(
-                tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "keywords_contextPlot", height = "75vh",width ="98.9%"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            ),
-                            tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("keywords_contextTable"),
+                                     shinycssloaders::withSpinner(DT::DTOutput("freqListTable"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             )
                 )
@@ -927,20 +610,17 @@ body <- dashboardBody(
             )
     ),
 
-    ### ORGANIZE ----
-
-    ## Unsupervised
-    ### Clustering ----
-    tabItem(tabName = "clustering",
+    ### Clustering----
+    tabItem(tabName = "w_clustering",
             fluidPage(
               fluidRow(
-                column(8,
+                column(7,
                        h3(strong("Clustering"), align = "center")),
                 div(#style=style_bttn,
                   title = t_run,
                   column(1,
                          do.call("actionButton", c(run_bttn, list(
-                           inputId = "clusteringApply")
+                           inputId = "w_clusteringApply")
                          ))
                   )),
 
@@ -948,14 +628,14 @@ body <- dashboardBody(
                   title = t_report,
                   column(1,
                          do.call("actionButton", c(report_bttn, list(
-                           inputId = "clusteringReport")
+                           inputId = "w_clusteringReport")
                          ))
                   )),
                 div(#style=style_bttn,
                   title = t_export,
                   column(1,
                          do.call("downloadButton", c(export_bttn, list(
-                           outputId = "clusteringExport")
+                           outputId = "w_clusteringExport")
                          )),
 
                   )),
@@ -975,392 +655,871 @@ body <- dashboardBody(
                            ),
                 ),
                 style = style_opt
-                )
-              ),
-              fluidRow(
-                tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "clusteringPlot", height = "75vh",width ="98.9%"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            ),
-                            tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("clusteringTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            )
-                )
-              )
-            )
-    ),
-    ### Factorial analysis ----
-    tabItem(tabName = "factorial",
-            fluidPage(
-              fluidRow(
-                column(8,
-                       h3(strong("Factorial analysis"), align = "center")),
-                div(#style=style_bttn,
-                  title = t_run,
-                  column(1,
-                         do.call("actionButton", c(run_bttn, list(
-                           inputId = "factorialApply")
-                         ))
-                  )),
-
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "factorialReport")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "factorialExport")
-                         )),
-
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
                 ),
-                style = style_opt
-                )
+                div(#style=style_bttn,
+                  title = t_save,
+                  column(1,
+                         do.call("downloadButton", c(save_bttn, list(
+                           outputId = "w_clusteringSave")
+                         ))
+                  ))
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
                             tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "factorialPlot", height = "75vh",width ="98.9%"),
+                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "w_clusteringPlot", height = "75vh",width ="98.9%"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
                             tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("factorialTable"),
+                                     shinycssloaders::withSpinner(DT::DTOutput("w_clusteringTable"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             )
                 )
               )
             )
     ),
-    ### Network analysis ----
-    tabItem(tabName = "network",
-            fluidPage(
-              fluidRow(
-                column(8,
-                       h3(strong("Network analysis"), align = "center")),
-                div(#style=style_bttn,
-                  title = t_run,
-                  column(1,
-                         do.call("actionButton", c(run_bttn, list(
-                           inputId = "networkApply")
-                         ))
-                  )),
 
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "networkReport")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "networkExport")
-                         )),
+    ### Correspondence Analysis ----
+    tabItem(tabName = "ca",
+             fluidPage(
+               fluidRow(
+                 column(7,
+                        h3(strong("Correspondence Analysis"), align = "center")),
+                 div(#style=style_bttn,
+                   title = t_run,
+                   column(1,
+                          do.call("actionButton", c(run_bttn, list(
+                            inputId = "caApply")
+                          ))
+                   )),
 
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
+                 div(#style=style_bttn,
+                   title = t_report,
+                   column(1,
+                          do.call("actionButton", c(report_bttn, list(
+                            inputId = "caReport")
+                          ))
+                   )),
+                 div(#style=style_bttn,
+                   title = t_export,
+                   column(1,
+                          do.call("downloadButton", c(export_bttn, list(
+                            outputId = "caExport")
+                          )),
 
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                )
-              ),
-              fluidRow(
-                tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "networkPlot", height = "75vh",width ="98.9%"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                   )),
+                 div(column(1,
+                            dropdown(
+                              h4(strong("Options: ")),
+                              br(),
+                              ### elenco opzioni (bottono, input, ecc)
+
+                              right = TRUE, animate = TRUE, #circle = TRUE,
+                              #style = "gradient",
+                              #style = "unite",
+                              tooltip = tooltipOptions(title = "Options"),
+                              color = "default",
+                              icon = icon("cog", lib="glyphicon")#,
+                              #width = "200px"
                             ),
-                            tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("networkTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            )
-                )
-              )
-            )
+                 ),
+                 style = style_opt
+                 ),
+                 div(#style=style_bttn,
+                   title = t_save,
+                   column(1,
+                          do.call("downloadButton", c(save_bttn, list(
+                            outputId = "caSave")
+                          ))
+                   ))
+               ),
+               fluidRow(
+                 tabsetPanel(type = "tabs",
+                             tabPanel("Plot",
+                                      shinycssloaders::withSpinner(plotlyOutput(outputId = "caPlot", height = "75vh",width ="98.9%"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                             ),
+                             tabPanel("Table",
+                                      shinycssloaders::withSpinner(DT::DTOutput("caTable"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                             )
+                 )
+               )
+             )
     ),
+
+    ### Network ----
+
+    tabItem(tabName = "w_network",
+             fluidPage(
+               fluidRow(
+                 column(7,
+                        h3(strong("Network"), align = "center")),
+                 div(#style=style_bttn,
+                   title = t_run,
+                   column(1,
+                          do.call("actionButton", c(run_bttn, list(
+                            inputId = "w_networkApply")
+                          ))
+                   )),
+
+                 div(#style=style_bttn,
+                   title = t_report,
+                   column(1,
+                          do.call("actionButton", c(report_bttn, list(
+                            inputId = "w_networkReport")
+                          ))
+                   )),
+                 div(#style=style_bttn,
+                   title = t_export,
+                   column(1,
+                          do.call("downloadButton", c(export_bttn, list(
+                            outputId = "w_networkExport")
+                          )),
+
+                   )),
+                 div(column(1,
+                            dropdown(
+                              h4(strong("Options: ")),
+                              br(),
+                              ### elenco opzioni (bottono, input, ecc)
+
+                              right = TRUE, animate = TRUE, #circle = TRUE,
+                              #style = "gradient",
+                              #style = "unite",
+                              tooltip = tooltipOptions(title = "Options"),
+                              color = "default",
+                              icon = icon("cog", lib="glyphicon")#,
+                              #width = "200px"
+                            ),
+                 ),
+                 style = style_opt
+                 ),
+                 div(#style=style_bttn,
+                   title = t_save,
+                   column(1,
+                          do.call("downloadButton", c(save_bttn, list(
+                            outputId = "w_networkSave")
+                          ))
+                   ))
+               ),
+               fluidRow(
+                 tabsetPanel(type = "tabs",
+                             tabPanel("Plot",
+                                      shinycssloaders::withSpinner(plotlyOutput(outputId = "w_networkPlot", height = "75vh",width ="98.9%"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                             ),
+                             tabPanel("Table",
+                                      shinycssloaders::withSpinner(DT::DTOutput("w_networkTable"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                             )
+                 )
+               )
+             )
+    ),
+
+    ### DOCUMENTS ----
+
     ### Topic Modeling ----
-    tabItem(tabName = "topic_model",
-            fluidPage(
-              fluidRow(
-                column(8,
-                       h3(strong("Topic Model"), align = "center")),
-                div(#style=style_bttn,
-                  title = t_run,
-                  column(1,
-                         do.call("actionButton", c(run_bttn, list(
-                           inputId = "topic_modelApply")
-                         ))
-                  )),
 
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "topic_modelReport")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "topic_modelExport")
-                         )),
+    tabItem(tabName = "d_topicMod",
+             fluidPage(
+               fluidRow(
+                 column(7,
+                        h3(strong("Topic Modeling"), align = "center")),
+                 div(#style=style_bttn,
+                   title = t_run,
+                   column(1,
+                          do.call("actionButton", c(run_bttn, list(
+                            inputId = "d_topicModApply")
+                          ))
+                   )),
 
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
+                 div(#style=style_bttn,
+                   title = t_report,
+                   column(1,
+                          do.call("actionButton", c(report_bttn, list(
+                            inputId = "d_topicModReport")
+                          ))
+                   )),
+                 div(#style=style_bttn,
+                   title = t_export,
+                   column(1,
+                          do.call("downloadButton", c(export_bttn, list(
+                            outputId = "d_topicModExport")
+                          )),
 
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                )
-              ),
-              fluidRow(
-                tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "topic_modelPlot", height = "75vh",width ="98.9%"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                   )),
+                 div(column(1,
+                            dropdown(
+                              h4(strong("Options: ")),
+                              br(),
+                              ### elenco opzioni (bottono, input, ecc)
+
+                              right = TRUE, animate = TRUE, #circle = TRUE,
+                              #style = "gradient",
+                              #style = "unite",
+                              tooltip = tooltipOptions(title = "Options"),
+                              color = "default",
+                              icon = icon("cog", lib="glyphicon")#,
+                              #width = "200px"
                             ),
-                            tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("topic_modelTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            )
-                )
-              )
-            )
+                 ),
+                 style = style_opt
+                 ),
+                 div(#style=style_bttn,
+                   title = t_save,
+                   column(1,
+                          do.call("downloadButton", c(save_bttn, list(
+                            outputId = "d_topicModSave")
+                          ))
+                   ))
+               ),
+               fluidRow(
+                 tabsetPanel(type = "tabs",
+                             tabPanel("Plot",
+                                      shinycssloaders::withSpinner(plotlyOutput(outputId = "d_topicModPlot", height = "75vh",width ="98.9%"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                             ),
+                             tabPanel("Table",
+                                      shinycssloaders::withSpinner(DT::DTOutput("d_topicModTable"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                             )
+                 )
+               )
+             )
     ),
 
-    ##Supervised
-    ### Classification ----
-    tabItem(tabName = "classification",
-            fluidPage(
-              fluidRow(
-                column(8,
-                       h3(strong("Classification"), align = "center")),
-                div(#style=style_bttn,
-                  title = t_run,
-                  column(1,
-                         do.call("actionButton", c(run_bttn, list(
-                           inputId = "classificationApply")
-                         ))
-                  )),
+    ### Clustering ----
 
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "classificationReport")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "classificationExport")
-                         )),
+    tabItem(tabName = "d_clustering",
+             fluidPage(
+               fluidRow(
+                 column(7,
+                        h3(strong("Clustering"), align = "center")),
+                 div(#style=style_bttn,
+                   title = t_run,
+                   column(1,
+                          do.call("actionButton", c(run_bttn, list(
+                            inputId = "d_clusteringApply")
+                          ))
+                   )),
 
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
+                 div(#style=style_bttn,
+                   title = t_report,
+                   column(1,
+                          do.call("actionButton", c(report_bttn, list(
+                            inputId = "d_clusteringReport")
+                          ))
+                   )),
+                 div(#style=style_bttn,
+                   title = t_export,
+                   column(1,
+                          do.call("downloadButton", c(export_bttn, list(
+                            outputId = "d_clusteringExport")
+                          )),
 
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                )
-              ),
-              fluidRow(
-                tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "classificationPlot", height = "75vh",width ="98.9%"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                   )),
+                 div(column(1,
+                            dropdown(
+                              h4(strong("Options: ")),
+                              br(),
+                              ### elenco opzioni (bottono, input, ecc)
+
+                              right = TRUE, animate = TRUE, #circle = TRUE,
+                              #style = "gradient",
+                              #style = "unite",
+                              tooltip = tooltipOptions(title = "Options"),
+                              color = "default",
+                              icon = icon("cog", lib="glyphicon")#,
+                              #width = "200px"
                             ),
-                            tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("classificationTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            )
-                )
-              )
-            )
+                 ),
+                 style = style_opt
+                 ),
+                 div(#style=style_bttn,
+                   title = t_save,
+                   column(1,
+                          do.call("downloadButton", c(save_bttn, list(
+                            outputId = "d_clusteringSave")
+                          ))
+                   ))
+               ),
+               fluidRow(
+                 tabsetPanel(type = "tabs",
+                             tabPanel("Plot",
+                                      shinycssloaders::withSpinner(plotlyOutput(outputId = "d_clusteringPlot", height = "75vh",width ="98.9%"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                             ),
+                             tabPanel("Table",
+                                      shinycssloaders::withSpinner(DT::DTOutput("d_clusteringTable"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                             )
+                 )
+               )
+             )
     ),
 
-    ### SYNTHETIZE ----
+    ### Network ----
 
-    ### Extractive Summarization ----
-    tabItem(tabName = "extractive",
-            fluidPage(
-              fluidRow(
-                column(8,
-                       h3(strong("Extractive Summarization"), align = "center")),
-                div(#style=style_bttn,
-                  title = t_run,
-                  column(1,
-                         do.call("actionButton", c(run_bttn, list(
-                           inputId = "extractiveApply")
-                         ))
-                  )),
+    tabItem(tabName = "d_network",
+             fluidPage(
+               fluidRow(
+                 column(7,
+                        h3(strong("Network"), align = "center")),
+                 div(#style=style_bttn,
+                   title = t_run,
+                   column(1,
+                          do.call("actionButton", c(run_bttn, list(
+                            inputId = "d_networkApply")
+                          ))
+                   )),
 
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "extractiveReport")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "extractiveExport")
-                         )),
+                 div(#style=style_bttn,
+                   title = t_report,
+                   column(1,
+                          do.call("actionButton", c(report_bttn, list(
+                            inputId = "d_networkReport")
+                          ))
+                   )),
+                 div(#style=style_bttn,
+                   title = t_export,
+                   column(1,
+                          do.call("downloadButton", c(export_bttn, list(
+                            outputId = "d_networkExport")
+                          )),
 
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
+                   )),
+                 div(column(1,
+                            dropdown(
+                              h4(strong("Options: ")),
+                              br(),
+                              ### elenco opzioni (bottono, input, ecc)
 
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                )
-              ),
-              fluidRow(
-                tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "extractivePlot", height = "75vh",width ="98.9%"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                              right = TRUE, animate = TRUE, #circle = TRUE,
+                              #style = "gradient",
+                              #style = "unite",
+                              tooltip = tooltipOptions(title = "Options"),
+                              color = "default",
+                              icon = icon("cog", lib="glyphicon")#,
+                              #width = "200px"
                             ),
-                            tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("extractiveTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            )
-                )
-              )
-            )
+                 ),
+                 style = style_opt
+                 ),
+                 div(#style=style_bttn,
+                   title = t_save,
+                   column(1,
+                          do.call("downloadButton", c(save_bttn, list(
+                            outputId = "d_networkSave")
+                          ))
+                   ))
+               ),
+               fluidRow(
+                 tabsetPanel(type = "tabs",
+                             tabPanel("Plot",
+                                      shinycssloaders::withSpinner(plotlyOutput(outputId = "d_networkPlot", height = "75vh",width ="98.9%"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                             ),
+                             tabPanel("Table",
+                                      shinycssloaders::withSpinner(DT::DTOutput("d_networkTable"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                             )
+                 )
+               )
+             )
     ),
-    ### Abstractive Summarization ----
-    tabItem(tabName = "abstractive",
-            fluidPage(
-              fluidRow(
-                column(8,
-                       h3(strong("Abstractive Summarization"), align = "center")),
-                div(#style=style_bttn,
-                  title = t_run,
-                  column(1,
-                         do.call("actionButton", c(run_bttn, list(
-                           inputId = "abstractiveApply")
-                         ))
-                  )),
 
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "abstractiveReport")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "abstractiveExport")
-                         )),
+    ### Summarization ----
 
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
+    tabItem(tabName = "d_summarization",
+             fluidPage(
+               fluidRow(
+                 column(7,
+                        h3(strong("Summarization"), align = "center")),
+                 div(#style=style_bttn,
+                   title = t_run,
+                   column(1,
+                          do.call("actionButton", c(run_bttn, list(
+                            inputId = "d_summarizationApply")
+                          ))
+                   )),
 
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                )
-              ),
-              fluidRow(
-                tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "abstractivePlot", height = "75vh",width ="98.9%"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                 div(#style=style_bttn,
+                   title = t_report,
+                   column(1,
+                          do.call("actionButton", c(report_bttn, list(
+                            inputId = "d_summarizationReport")
+                          ))
+                   )),
+                 div(#style=style_bttn,
+                   title = t_export,
+                   column(1,
+                          do.call("downloadButton", c(export_bttn, list(
+                            outputId = "d_summarizationExport")
+                          )),
+
+                   )),
+                 div(column(1,
+                            dropdown(
+                              h4(strong("Options: ")),
+                              br(),
+                              ### elenco opzioni (bottono, input, ecc)
+
+                              right = TRUE, animate = TRUE, #circle = TRUE,
+                              #style = "gradient",
+                              #style = "unite",
+                              tooltip = tooltipOptions(title = "Options"),
+                              color = "default",
+                              icon = icon("cog", lib="glyphicon")#,
+                              #width = "200px"
                             ),
-                            tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("abstractiveTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            )
-                )
-              )
-            )
+                 ),
+                 style = style_opt
+                 ),
+                 div(#style=style_bttn,
+                   title = t_save,
+                   column(1,
+                          do.call("downloadButton", c(save_bttn, list(
+                            outputId = "d_summarizationSave")
+                          ))
+                   ))
+               ),
+               fluidRow(
+                 tabsetPanel(type = "tabs",
+                             tabPanel("Plot",
+                                      shinycssloaders::withSpinner(plotlyOutput(outputId = "d_summarizationPlot", height = "75vh",width ="98.9%"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                             ),
+                             tabPanel("Table",
+                                      shinycssloaders::withSpinner(DT::DTOutput("d_summarizationTable"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                             )
+                 )
+               )
+             )
+    ),
+
+    ### Polarity detection ----
+
+    tabItem(tabName = "d_polDet",
+             fluidPage(
+               fluidRow(
+                 column(7,
+                        h3(strong("Polarity Detection"), align = "center")),
+                 div(#style=style_bttn,
+                   title = t_run,
+                   column(1,
+                          do.call("actionButton", c(run_bttn, list(
+                            inputId = "d_polDetApply")
+                          ))
+                   )),
+
+                 div(#style=style_bttn,
+                   title = t_report,
+                   column(1,
+                          do.call("actionButton", c(report_bttn, list(
+                            inputId = "d_polDetReport")
+                          ))
+                   )),
+                 div(#style=style_bttn,
+                   title = t_export,
+                   column(1,
+                          do.call("downloadButton", c(export_bttn, list(
+                            outputId = "d_polDetExport")
+                          )),
+
+                   )),
+                 div(column(1,
+                            dropdown(
+                              h4(strong("Options: ")),
+                              br(),
+                              ### elenco opzioni (bottono, input, ecc)
+
+                              right = TRUE, animate = TRUE, #circle = TRUE,
+                              #style = "gradient",
+                              #style = "unite",
+                              tooltip = tooltipOptions(title = "Options"),
+                              color = "default",
+                              icon = icon("cog", lib="glyphicon")#,
+                              #width = "200px"
+                            ),
+                 ),
+                 style = style_opt
+                 ),
+                 div(#style=style_bttn,
+                   title = t_save,
+                   column(1,
+                          do.call("downloadButton", c(save_bttn, list(
+                            outputId = "d_polDetSave")
+                          ))
+                   ))
+               ),
+               fluidRow(
+                 tabsetPanel(type = "tabs",
+                             tabPanel("Plot",
+                                      shinycssloaders::withSpinner(plotlyOutput(outputId = "d_polDetPlot", height = "75vh",width ="98.9%"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                             ),
+                             tabPanel("Table",
+                                      shinycssloaders::withSpinner(DT::DTOutput("d_polDetTable"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                             )
+                 )
+               )
+             )
+    ),
+
+    ### GROUPS ----
+
+    ### Topic Modeling ----
+
+    tabItem(tabName = "g_topicMod",
+             fluidPage(
+               fluidRow(
+                 column(7,
+                        h3(strong("Topic Modeling"), align = "center")),
+                 div(#style=style_bttn,
+                   title = t_run,
+                   column(1,
+                          do.call("actionButton", c(run_bttn, list(
+                            inputId = "g_topicModApply")
+                          ))
+                   )),
+
+                 div(#style=style_bttn,
+                   title = t_report,
+                   column(1,
+                          do.call("actionButton", c(report_bttn, list(
+                            inputId = "g_topicModReport")
+                          ))
+                   )),
+                 div(#style=style_bttn,
+                   title = t_export,
+                   column(1,
+                          do.call("downloadButton", c(export_bttn, list(
+                            outputId = "g_topicModExport")
+                          )),
+
+                   )),
+                 div(column(1,
+                            dropdown(
+                              h4(strong("Options: ")),
+                              br(),
+                              ### elenco opzioni (bottono, input, ecc)
+
+                              right = TRUE, animate = TRUE, #circle = TRUE,
+                              #style = "gradient",
+                              #style = "unite",
+                              tooltip = tooltipOptions(title = "Options"),
+                              color = "default",
+                              icon = icon("cog", lib="glyphicon")#,
+                              #width = "200px"
+                            ),
+                 ),
+                 style = style_opt
+                 ),
+                 div(#style=style_bttn,
+                   title = t_save,
+                   column(1,
+                          do.call("downloadButton", c(save_bttn, list(
+                            outputId = "g_topicModSave")
+                          ))
+                   ))
+               ),
+               fluidRow(
+                 tabsetPanel(type = "tabs",
+                             tabPanel("Plot",
+                                      shinycssloaders::withSpinner(plotlyOutput(outputId = "g_topicModPlot", height = "75vh",width ="98.9%"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                             ),
+                             tabPanel("Table",
+                                      shinycssloaders::withSpinner(DT::DTOutput("g_topicModTable"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                             )
+                 )
+               )
+             )
+    ),
+
+    ### Clustering ----
+
+    tabItem(tabName = "g_clustering",
+             fluidPage(
+               fluidRow(
+                 column(7,
+                        h3(strong("Clustering"), align = "center")),
+                 div(#style=style_bttn,
+                   title = t_run,
+                   column(1,
+                          do.call("actionButton", c(run_bttn, list(
+                            inputId = "g_clusteringApply")
+                          ))
+                   )),
+
+                 div(#style=style_bttn,
+                   title = t_report,
+                   column(1,
+                          do.call("actionButton", c(report_bttn, list(
+                            inputId = "g_clusteringReport")
+                          ))
+                   )),
+                 div(#style=style_bttn,
+                   title = t_export,
+                   column(1,
+                          do.call("downloadButton", c(export_bttn, list(
+                            outputId = "g_clusteringExport")
+                          )),
+
+                   )),
+                 div(column(1,
+                            dropdown(
+                              h4(strong("Options: ")),
+                              br(),
+                              ### elenco opzioni (bottono, input, ecc)
+
+                              right = TRUE, animate = TRUE, #circle = TRUE,
+                              #style = "gradient",
+                              #style = "unite",
+                              tooltip = tooltipOptions(title = "Options"),
+                              color = "default",
+                              icon = icon("cog", lib="glyphicon")#,
+                              #width = "200px"
+                            ),
+                 ),
+                 style = style_opt
+                 ),
+                 div(#style=style_bttn,
+                   title = t_save,
+                   column(1,
+                          do.call("downloadButton", c(save_bttn, list(
+                            outputId = "g_clusteringSave")
+                          ))
+                   ))
+               ),
+               fluidRow(
+                 tabsetPanel(type = "tabs",
+                             tabPanel("Plot",
+                                      shinycssloaders::withSpinner(plotlyOutput(outputId = "g_clusteringPlot", height = "75vh",width ="98.9%"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                             ),
+                             tabPanel("Table",
+                                      shinycssloaders::withSpinner(DT::DTOutput("g_clusteringTable"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                             )
+                 )
+               )
+             )
+    ),
+
+    ### Network ----
+
+    tabItem(tabName = "g_network",
+             fluidPage(
+               fluidRow(
+                 column(7,
+                        h3(strong("Network"), align = "center")),
+                 div(#style=style_bttn,
+                   title = t_run,
+                   column(1,
+                          do.call("actionButton", c(run_bttn, list(
+                            inputId = "g_networkApply")
+                          ))
+                   )),
+
+                 div(#style=style_bttn,
+                   title = t_report,
+                   column(1,
+                          do.call("actionButton", c(report_bttn, list(
+                            inputId = "g_networkReport")
+                          ))
+                   )),
+                 div(#style=style_bttn,
+                   title = t_export,
+                   column(1,
+                          do.call("downloadButton", c(export_bttn, list(
+                            outputId = "g_networkExport")
+                          )),
+
+                   )),
+                 div(column(1,
+                            dropdown(
+                              h4(strong("Options: ")),
+                              br(),
+                              ### elenco opzioni (bottono, input, ecc)
+
+                              right = TRUE, animate = TRUE, #circle = TRUE,
+                              #style = "gradient",
+                              #style = "unite",
+                              tooltip = tooltipOptions(title = "Options"),
+                              color = "default",
+                              icon = icon("cog", lib="glyphicon")#,
+                              #width = "200px"
+                            ),
+                 ),
+                 style = style_opt
+                 ),
+                 div(#style=style_bttn,
+                   title = t_save,
+                   column(1,
+                          do.call("downloadButton", c(save_bttn, list(
+                            outputId = "g_networkSave")
+                          ))
+                   ))
+               ),
+               fluidRow(
+                 tabsetPanel(type = "tabs",
+                             tabPanel("Plot",
+                                      shinycssloaders::withSpinner(plotlyOutput(outputId = "g_networkPlot", height = "75vh",width ="98.9%"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                             ),
+                             tabPanel("Table",
+                                      shinycssloaders::withSpinner(DT::DTOutput("g_networkTable"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                             )
+                 )
+               )
+             )
+    ),
+
+    ### Summarization ----
+
+    tabItem(tabName = "g_summarization",
+             fluidPage(
+               fluidRow(
+                 column(7,
+                        h3(strong("Summarization"), align = "center")),
+                 div(#style=style_bttn,
+                   title = t_run,
+                   column(1,
+                          do.call("actionButton", c(run_bttn, list(
+                            inputId = "g_summarizationApply")
+                          ))
+                   )),
+
+                 div(#style=style_bttn,
+                   title = t_report,
+                   column(1,
+                          do.call("actionButton", c(report_bttn, list(
+                            inputId = "g_summarizationReport")
+                          ))
+                   )),
+                 div(#style=style_bttn,
+                   title = t_export,
+                   column(1,
+                          do.call("downloadButton", c(export_bttn, list(
+                            outputId = "g_summarizationExport")
+                          )),
+
+                   )),
+                 div(column(1,
+                            dropdown(
+                              h4(strong("Options: ")),
+                              br(),
+                              ### elenco opzioni (bottono, input, ecc)
+
+                              right = TRUE, animate = TRUE, #circle = TRUE,
+                              #style = "gradient",
+                              #style = "unite",
+                              tooltip = tooltipOptions(title = "Options"),
+                              color = "default",
+                              icon = icon("cog", lib="glyphicon")#,
+                              #width = "200px"
+                            ),
+                 ),
+                 style = style_opt
+                 ),
+                 div(#style=style_bttn,
+                   title = t_save,
+                   column(1,
+                          do.call("downloadButton", c(save_bttn, list(
+                            outputId = "g_summarizationSave")
+                          ))
+                   ))
+               ),
+               fluidRow(
+                 tabsetPanel(type = "tabs",
+                             tabPanel("Plot",
+                                      shinycssloaders::withSpinner(plotlyOutput(outputId = "g_summarizationPlot", height = "75vh",width ="98.9%"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                             ),
+                             tabPanel("Table",
+                                      shinycssloaders::withSpinner(DT::DTOutput("g_summarizationTable"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                             )
+                 )
+               )
+             )
+    ),
+
+    ### Polarity detection ----
+
+    tabItem(tabName = "g_polDet",
+             fluidPage(
+               fluidRow(
+                 column(7,
+                        h3(strong("Polarity Detection"), align = "center")),
+                 div(#style=style_bttn,
+                   title = t_run,
+                   column(1,
+                          do.call("actionButton", c(run_bttn, list(
+                            inputId = "g_polDetApply")
+                          ))
+                   )),
+
+                 div(#style=style_bttn,
+                   title = t_report,
+                   column(1,
+                          do.call("actionButton", c(report_bttn, list(
+                            inputId = "g_polDetReport")
+                          ))
+                   )),
+                 div(#style=style_bttn,
+                   title = t_export,
+                   column(1,
+                          do.call("downloadButton", c(export_bttn, list(
+                            outputId = "g_polDetExport")
+                          )),
+
+                   )),
+                 div(column(1,
+                            dropdown(
+                              h4(strong("Options: ")),
+                              br(),
+                              ### elenco opzioni (bottono, input, ecc)
+
+                              right = TRUE, animate = TRUE, #circle = TRUE,
+                              #style = "gradient",
+                              #style = "unite",
+                              tooltip = tooltipOptions(title = "Options"),
+                              color = "default",
+                              icon = icon("cog", lib="glyphicon")#,
+                              #width = "200px"
+                            ),
+                 ),
+                 style = style_opt
+                 ),
+                 div(#style=style_bttn,
+                   title = t_save,
+                   column(1,
+                          do.call("downloadButton", c(save_bttn, list(
+                            outputId = "g_polDetSave")
+                          ))
+                   ))
+               ),
+               fluidRow(
+                 tabsetPanel(type = "tabs",
+                             tabPanel("Plot",
+                                      shinycssloaders::withSpinner(plotlyOutput(outputId = "g_polDetPlot", height = "75vh",width ="98.9%"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                             ),
+                             tabPanel("Table",
+                                      shinycssloaders::withSpinner(DT::DTOutput("g_polDetTable"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                             )
+                 )
+               )
+             )
     ),
 
     ### REPORT ----
@@ -1434,6 +1593,16 @@ body <- dashboardBody(
               )
 
 
+            )
+    ),
+
+    ### SETTINGS ----
+    tabItem(tabName = "settings",
+            fluidPage(
+              fluidRow(
+                h3(strong("Settings"), align="center"),
+                br(),
+              )
             )
     )
 

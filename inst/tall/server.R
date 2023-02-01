@@ -16,6 +16,7 @@ server <- function(input, output, session){
   values$token <- token
   values$df <- df
 
+### DATA ----
 
   ### Import directory ----
   observeEvent(
@@ -94,10 +95,17 @@ server <- function(input, output, session){
     }, contentType = "xlsx"
   )
 
+
+  ### PRE-PROCESSING ----
+
+  ## Tokenization % PoS Tagging ----
+
+  ## PoS Tag Selection ----
+
   ###Export Tall analysis in Rdata
 
-  ## Tokenization & Cleaning - export functions ----
-  output$tok_clSave <- downloadHandler(
+  ## Pre-processing - export function ----
+  output$preProSave <- downloadHandler(
     filename = function() {
       paste("TallAnalysis-Export-File-", Sys.Date(), ".rdata" , sep="")
     },
@@ -109,30 +117,12 @@ server <- function(input, output, session){
     }, contentType = "rdata"
   )
 
-  ## FILTERING
-
-
-  ## TOKENIZATION & CLEANING ---
-
-  #tok_cl <- eventReactive(input$tok_clApply){}
-
-  ## NORMALIZATION ---
-
-  #normalization <- eventReactive(input$normalizationApply){}
-
-  ## FILTERING
-
-  #filtering <- eventReactive(input$applyFiltering){}
-
-  ## MORPHOLOGICAL ---
-
-  #morphological <- eventReactive(input$morphologicalApply){}
-
-  ## LEXICAL ----
-
-  #morphological <- eventReactive(input$lexicalApply){}
 
   ## OVERVIEW ----
+
+
+  ### WORDS ----
+  ## Frequency List ----
 
   wordcloud <- eventReactive(input$overviewApply,{
     # INPUT DA AGGIUNGERE
@@ -162,41 +152,39 @@ server <- function(input, output, session){
     values$wcDf
   })
 
-  ## POLARITY DETECTION ----
+  ## Clustering ----
 
-  #polarity_det <- eventReactive(input$polarity_detApply){}
+  ## Correspondence Analysis ----
 
-  ## KEYWORDS CONTEXT ----
+  ## Network ----
 
-  #keywords_context <- eventReactive(input$keywords_contextApply)
 
-  ## CLUSTERING ----
+  ## DOCUMENTS ----
 
-  #clustering <- eventReactive(input$clusteringApply)
+  ## Topic Modeling ----
 
-  ## FACTORIAL ----
+  ## Clustering ----
 
-  #factorial <- eventReactive(input$factorialApply)
+  ## Network ----
 
-  ## NETWORK ----
+  ## Summarization ----
 
-  #network <- eventReactive(input$networkApply)
+  ## Polarity detection ----
 
-  ## TOPIC MODEL ----
 
-  #topic_model <- eventReactive(input$topic_modelApply)
+  ## GROUPS ----
 
-  ## CLASSIFICATION ----
+  ## Topic Modeling ----
 
-  #classification <- eventReactive(input$classificationApply)
+  ## Clustering ----
 
-  ## EXTRACTIVE SUMMARIZATION ----
+  ## Network ----
 
-  #extractive <- eventReactive(input$extractiveApply)
+  ## Summarization ----
 
-  ## ABSTRACTIVE SUMMARIZATION ----
+  ## Polarity detection ----
 
-  #abstractive <- eventReactive(input$abstractiveApply)
+
 
   ## REPORT ----
   ### Report Save xlsx ----
@@ -282,5 +270,10 @@ server <- function(input, output, session){
     }
   }, ignoreNULL = TRUE
   )
+
+
+  ## SETTINGS ----
+
+
 
 } # END SERVER

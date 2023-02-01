@@ -186,6 +186,8 @@ readDirectoryInput = function(session, inputId) {
   return(NULL)
 }
 
+
+
 # IMPORT TEXT FUNCTIONS ----
 
 read_files <- function(path, ext=c("txt","csv", "xlsx"), subfolder=TRUE){
