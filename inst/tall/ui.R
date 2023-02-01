@@ -405,12 +405,35 @@ body <- dashboardBody(
                 ),
               br(),
               br(),
-              fluidRow(column(8,DT::DTOutput("tokPosTag")),
+              fluidRow(column(8,
+                              tabsetPanel(type = "tabs",
+                                          tabPanel("Tokens",
+                                                   shinycssloaders::withSpinner(DT::DTOutput("tokPosTagData"),
+                                                                                color = getOption("spinner.color", default = "#4F7942"))
+                                          ),
+                                          tabPanel("Term Custom List",
+                                                   shinycssloaders::withSpinner(DT::DTOutput("customListsData"),
+                                                                                color = getOption("spinner.color", default = "#4F7942"))
+                                          )
+                              )
+                              ),
                        column(4,
                               box(
                                 width = 12,
                                 #h3(strong("Pre-processing")),
                                 br(),
+                                fluidRow(
+                                  column(6,
+                                         uiOutput("language_model")
+                                  ),
+                                  column(6,
+                                         fileInput("custom_lists", "Term Custom Lists",
+                                                   multiple = TRUE,
+                                                   accept = c(".csv",
+                                                              ".xls",
+                                                              ".xlsx"))
+                                         )
+                                ),
                                 fluidRow(column(12,
                                                 div(
                                                   align = "center",
@@ -421,21 +444,7 @@ body <- dashboardBody(
                                                                style ="border-radius: 25px; border-width: 1px; font-size: 24px;
                                                                     text-align: center; color: #ffff; padding-left: 40px; padding-right: 40px"
                                                   ))
-                                                ))#,
-                                # h5(" "),
-                                # box(h6(htmlOutput("textDim")),
-                                #     width = "100%"),
-                                # br(),
-                                # uiOutput("selectLA"),
-                                # uiOutput("sliderPY"),
-                                # uiOutput("selectType"),
-                                # uiOutput("sliderTCpY"),
-                                # selectInput("bradfordSources",
-                                #             label = "Source by Bradford Law Zones",
-                                #             choices = c("Core Sources"="core",
-                                #                         "Core + Zone 2 Sources"="zone2",
-                                #                         "All Sources"="all"),
-                                #             selected = "all")
+                                                ))
                               )
                        )
               )

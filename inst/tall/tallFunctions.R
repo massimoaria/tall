@@ -235,6 +235,42 @@ shortpath <- function(path){
 }
 
 
+### PRE_PROCESSING ----
+
+### 1. TOKENIZATION ----
+loadLanguageModel <- function(language, model_version="-ewt-ud-2.5", model_repo = "jwijffels/udpipe.models.ud.2.5"){
+  switch(Sys.info()[['sysname']],
+         Windows= {home <- Sys.getenv('R_USER')},
+         Linux  = {home <- Sys.getenv('HOME')},
+         Darwin = {home <- Sys.getenv('HOME')})
+
+  # setting up the main directory
+  path_tall <- file.path(home,"tall")
+  path_language_model <- file.path(path_tall, "language_models")
+  # check if sub directory exists
+  if (file.exists(path_tall)){
+    if (!file.exists(path_language_model)) dir.create(path_language_model)
+  } else {
+    dir.create(path_tall)
+    dir.create(path_language_model)
+  }
+
+  #check if the file model already exists
+  file_model <- dir(path_language_model,pattern=paste0(language,model_version))[1]
+
+  if (is.na(file_model)){
+    lang_file <- udpipe_download_model(language = language, udpipe_model_repo = model_repo, model_dir=path_language_model)
+    udmodel_lang <- udpipe_load_model(file = lang_file$file_model)
+  } else {
+    udmodel_lang <- udpipe_load_model(file = paste0(path_language_model,"/",file_model))
+  }
+
+  return(udmodel_lang)
+}
+
+
+
+
 
 ### QUANTEDA CORPUS FUNTIONS ----
 
@@ -264,8 +300,7 @@ distrib <- function(obj, scale="identity"){
   return(obj)
 }
 
-
-### Excel report functions ----
+### EXCEL REPORT FUNCTIONS ----
 addDataWb <- function(list_df, wb, sheetname){
   l <- length(list_df)
   startRow <- 1
@@ -436,5 +471,28 @@ popUp <- function(title=NULL, type="success", btn_labels="OK"){
     timer = timer,
     imageUrl = "",
     animation = TRUE
+  )
+}
+
+
+### UTILITY FUNCTIONS ----
+
+# DATA TABLE FORMAT ----
+DTformat <- function(df){
+  # da completare
+  DT::datatable(df,escape = FALSE,rownames = FALSE, extensions = c("Buttons"),
+                options = list(
+                  pageLength = 10,
+                  autoWidth = FALSE, scrollX = TRUE,
+                  dom = 'Bfrtip',
+                  buttons = list(list(extend = 'pageLength'),
+                                 list(extend = 'print')),
+                  lengthMenu = list(c(10, 25, 50, -1),
+                                    c('10 rows', '25 rows', '50 rows', 'Show all')),
+                  columnDefs = list(list(
+                    className = 'dt-center', targets = 0:(length(names(df)) - 1)
+                  ))
+                ),
+                class = 'cell-border compact stripe'
   )
 }

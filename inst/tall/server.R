@@ -1,6 +1,10 @@
 ##  Server ####
 source("tallFunctions.R", local=TRUE)
 
+### da rimuovere alla fine
+library(tall)
+###
+
 server <- function(input, output, session){
   session$onSessionEnded(stopApp)
 
@@ -8,6 +12,8 @@ server <- function(input, output, session){
   load("data/sampleData.rdata")
   values <- reactiveValues()
   values$path <- NULL
+  values$menu <- 0
+  values$custom_lists <- NULL
   values$txt <- data.frame()
   values$list_file <- data.frame(sheet=NULL,file=NULL,n=NULL)
   values$wb <-  openxlsx::createWorkbook()
@@ -98,13 +104,86 @@ server <- function(input, output, session){
 
   ### PRE-PROCESSING ----
 
-  ## Tokenization % PoS Tagging ----
+  ## Tokenization & PoS Tagging ----
+
+  output$language_model <- renderUI({
+    label_lang <- languages$repo
+    names(label_lang) <- languages$short
+    selectizeInput(
+      'language', label="Language Model", choices = label_lang,
+      multiple=FALSE,
+      # options = list(
+      #   onInitialize = I('function() { this.setValue(""); }')
+      # ),
+      tags$style("height: 50px")
+    )
+  })
+
+  #custom_lists <-
+    observeEvent(
+    ignoreNULL = TRUE,
+    eventExpr = {
+      input$custom_lists
+    },
+    handlerExpr = {
+      file <- input$custom_lists
+        req(file$datapath[1])
+        custom_lists <- lapply(file$datapath,function(x){
+          read_excel(x)
+        })
+      custom_lists <- do.call(rbind,custom_lists)
+        values$custom_lists <- custom_lists
+    }
+  )
+
+    output$customListsData<- DT::renderDT({
+      if (is.null(values$custom_lists)){
+        DTformat(data.frame(term=NULL,pos=NULL))
+      } else {
+        DTformat(values$custom_lists)
+      }
+    })
+
+    posTagging <- eventReactive(input$tokPosRun,{
+        ## download and load model language
+        udmodel_lang <- loadLanguageModel(language = input$language)
+
+        ## set cores for parallel computing
+        ncores <- max(1,parallel::detectCores()-1)
+
+        ## set cores for windows machines
+        if (Sys.info()[["sysname"]]=="Windows") {
+          cl <- parallel::makeCluster(ncores)
+          registerDoParallel(cl)
+        }
+
+        values$dfTag <- udpipe(object=udmodel_lang, x = values$txt , parallel.cores=ncores)
+
+        ### aggiungere controllo se operazione va a buon fine
+
+      }
+    )
+
+    output$tokPosTagData<- DT::renderDT({
+      posTagging()
+      #if (!is.null(values$dfTag)){
+      DTformat(values$dfTag%>% select(doc_id, sentence_id,sentence,token,lemma, upos) %>%
+                 rename(D_id=doc_id,
+                        S_id=sentence_id,
+                        Sentence=sentence,
+                        Token=token,
+                        Lemma=lemma,
+                        POSTag=upos)
+      )
+      #}
+    })
 
   ## PoS Tag Selection ----
 
   ###Export Tall analysis in Rdata
 
   ## Pre-processing - export function ----
+
   output$preProSave <- downloadHandler(
     filename = function() {
       paste("TallAnalysis-Export-File-", Sys.Date(), ".rdata" , sep="")

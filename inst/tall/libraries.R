@@ -18,7 +18,6 @@ libraries <- function(){
   if (!require(quanteda)){install.packages("quanteda"); require(quanteda, quietly=TRUE)}
   if (!require(udpipe)){install.packages("udpipe"); require(udpipe, quietly=TRUE)}
 
-
 }
 
 # Custom Theme ----
