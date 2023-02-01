@@ -98,6 +98,10 @@ server <- function(input, output, session){
 
   ### PRE-PROCESSING ----
 
+  ## Tokenization % PoS Tagging ----
+
+  ## PoS Tag Selection ----
+
   ###Export Tall analysis in Rdata
 
   ## Pre-processing - export function ----
@@ -116,8 +120,6 @@ server <- function(input, output, session){
 
   ## OVERVIEW ----
 
-
-  #morphological <- eventReactive(input$lexicalApply){}
 
   ### WORDS ----
   ## Frequency List ----

@@ -58,7 +58,9 @@ sidebar <- dashboardSidebar(
                        menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
                        menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                        menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
-              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib = "glyphicon")),
+              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib = "glyphicon"),
+                       menuSubItem(". Tokenization & PoS Tagging", tabName = "tokPos", icon = fa_i(name ="1")),
+                       menuSubItem(". PoS Tag Selection", tabName = "posTagSelect", icon = fa_i(name ="2"))),
               menuItem("Overview", tabName = "overview", icon = icon("search", lib="glyphicon")),
               menuItem("Words", tabName = "words", icon = icon("font", lib = "glyphicon"),
                        menuSubItem("Frequency List", tabName = "freqList", icon = icon("chevron-right")),
@@ -364,16 +366,18 @@ body <- dashboardBody(
 
     ### PRE-PROCESSING ----
 
-    tabItem(tabName = "prePro",
+    ## Tokenization & PoS Tagging -----
+
+    tabItem(tabName = "tokPos",
             fluidPage(
               fluidRow(
                 column(8,
-                       h3(strong("Pre-processing"), align = "center")),
+                       h3(strong("Tokenization & PoS Tagging"), align = "center")),
                 div(#style=style_bttn,
                   title = t_run,
                   column(1,
                          do.call("actionButton", c(run_bttn, list(
-                           inputId = "preProApply")
+                           inputId = "tokPosApply")
                          ))
                   )),
 
@@ -381,27 +385,27 @@ body <- dashboardBody(
                   title = t_report,
                   column(1,
                          do.call("actionButton", c(report_bttn, list(
-                           inputId = "preProReport")
+                           inputId = "tokPosReport")
                          ))
                   )),
                 div(#style=style_bttn,
                   title = t_export,
                   column(1,
                          do.call("downloadButton", c(export_bttn, list(
-                           outputId = "preProExport")
+                           outputId = "tokPosExport")
                          )),
                   )),
                 div(#style=style_bttn,
                   title = t_save,
                   column(1,
                          do.call("downloadButton", c(save_bttn, list(
-                           outputId = "preProSave")
+                           outputId = "tokPosSave")
                          ))
                   ))
                 ),
               br(),
               br(),
-              fluidRow(column(8,DT::DTOutput("preProccessing")),
+              fluidRow(column(8,DT::DTOutput("tokPosTag")),
                        column(4,
                               box(
                                 width = 12,
@@ -411,13 +415,90 @@ body <- dashboardBody(
                                                 div(
                                                   align = "center",
                                                   width=12,
-                                                  actionButton(inputId="preProRun",
+                                                  actionButton(inputId="tokPosRun",
                                                                label = strong("Apply"),
                                                                icon = icon(name="play", lib="glyphicon"),
                                                                style ="border-radius: 25px; border-width: 1px; font-size: 24px;
                                                                     text-align: center; color: #ffff; padding-left: 40px; padding-right: 40px"
                                                   ))
                                                 ))#,
+                                # h5(" "),
+                                # box(h6(htmlOutput("textDim")),
+                                #     width = "100%"),
+                                # br(),
+                                # uiOutput("selectLA"),
+                                # uiOutput("sliderPY"),
+                                # uiOutput("selectType"),
+                                # uiOutput("sliderTCpY"),
+                                # selectInput("bradfordSources",
+                                #             label = "Source by Bradford Law Zones",
+                                #             choices = c("Core Sources"="core",
+                                #                         "Core + Zone 2 Sources"="zone2",
+                                #                         "All Sources"="all"),
+                                #             selected = "all")
+                              )
+                       )
+              )
+            )
+
+    ),
+
+    ## PoS Tag Selection -----
+
+    tabItem(tabName = "posTagSelect",
+            fluidPage(
+              fluidRow(
+                column(8,
+                       h3(strong("PoS Tag Selection"), align = "center")),
+                div(#style=style_bttn,
+                  title = t_run,
+                  column(1,
+                         do.call("actionButton", c(run_bttn, list(
+                           inputId = "posTagSelectApply")
+                         ))
+                  )),
+
+                div(#style=style_bttn,
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "posTagSelectReport")
+                         ))
+                  )),
+                div(#style=style_bttn,
+                  title = t_export,
+                  column(1,
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "posTagSelectExport")
+                         )),
+                  )),
+                div(#style=style_bttn,
+                  title = t_save,
+                  column(1,
+                         do.call("downloadButton", c(save_bttn, list(
+                           outputId = "posTagSelectSave")
+                         ))
+                  ))
+              ),
+              br(),
+              br(),
+              fluidRow(column(8,DT::DTOutput("posTagSelectTab")),
+                       column(4,
+                              box(
+                                width = 12,
+                                #h3(strong("Pre-processing")),
+                                br(),
+                                fluidRow(column(12,
+                                                div(
+                                                  align = "center",
+                                                  width=12,
+                                                  actionButton(inputId="posTagSelectRun",
+                                                               label = strong("Apply"),
+                                                               icon = icon(name="play", lib="glyphicon"),
+                                                               style ="border-radius: 25px; border-width: 1px; font-size: 24px;
+                                                                    text-align: center; color: #ffff; padding-left: 40px; padding-right: 40px"
+                                                  ))
+                                ))#,
                                 # h5(" "),
                                 # box(h6(htmlOutput("textDim")),
                                 #     width = "100%"),
