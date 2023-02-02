@@ -125,7 +125,13 @@ server <- function(input, output, session){
           registerDoParallel(cl)
         }
 
+        #Lemmatization and POS Tagging
         values$dfTag <- udpipe(object=udmodel_lang, x = values$txt , parallel.cores=ncores)
+
+        # Merge metadata from the original txt object
+        values$dfTag <- values$dfTag %>%
+          left_join(values$txt %>% select(-text), by = "doc_id")
+
         values$menu <- 1
 
     }
