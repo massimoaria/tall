@@ -99,14 +99,10 @@ server <- function(input, output, session){
   ## 1. Tokenization & PoS Tagging ----
 
   output$optionsTokenization <- renderUI({
-    fluidRow(
-      #column(6,
-               selectInput(
-                 inputId = 'language_model', label="Language Model", choices = values$label_lang,
-                 multiple=FALSE,
-                 tags$style("height: 50px")
-             )
-      #)
+      selectInput(
+        inputId = 'language_model', label="Select language", choices = values$label_lang,
+        multiple=FALSE,
+        width = "100%"
     )
   })
 
@@ -210,9 +206,19 @@ server <- function(input, output, session){
     })
 
 
+  ## 3. PoS Tag Selection ----
+
+    output$posTagLists <- renderUI({
 
 
-  ## PoS Tag Selection ----
+
+
+    })
+
+
+
+
+
 
   ###Export Tall analysis in Rdata
 

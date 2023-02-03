@@ -6,7 +6,7 @@ libraries()
 
 ## button style and contents
 
-style_bttn <- "border-radius: 25px; border-width: 1px; font-size: 20px; text-align: center; color: #ffff; padding-left: 40px; padding-right: 40px"
+style_bttn <- "border-radius: 20px; border-width: 1px; font-size: 17px; text-align: center; color: #ffff; padding-left: 20px; padding-right: 20px"
 style_opt <-  "border-radius: 15px; border-width: 3px; font-size: 15px; margin-top: 15px;" # (option button)
 style_start <-  "border-radius: 15px; border-width: 3px; font-size: 15px; width:100% " # (start button)
 #style_bttn <- "border-radius: 15px; border-width: 3px; font-size: 15px; margin-top: 15px;" # (action buttons)
@@ -32,7 +32,7 @@ export_bttn <- list(
 )
 save_bttn <- list(
   label=NULL,
-  style ="display:block; height: 45px; width: 45px; border-radius: 50%; border: 3px; margin-top: 15px",
+  style ="display:block; height: 43px; width: 43px; border-radius: 50%; border: 1px;",# margin-top: 15px",
   icon = icon(name ="floppy-save", lib="glyphicon")
 )
 
@@ -59,9 +59,9 @@ sidebar <- dashboardSidebar(
                        menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                        menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
               menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib = "glyphicon"),
-                       menuSubItem(". Tokenization & PoS Tagging", tabName = "tokPos", icon = fa_i(name ="1")),
-                       menuSubItem(". Custom Term Lists", tabName = "custTermList", icon = fa_i(name ="2")),
-                       menuSubItem(". PoS Tag Selection", tabName = "posTagSelect", icon = fa_i(name ="3"))),
+                       menuSubItem("1. Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
+                       menuSubItem("2. Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right")),
+                       menuSubItem("3. PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right"))),
               menuItem("Overview", tabName = "overview", icon = icon("search", lib="glyphicon")),
               menuItem("Words", tabName = "words", icon = icon("font", lib = "glyphicon"),
                        menuSubItem("Frequency List", tabName = "freqList", icon = icon("chevron-right")),
@@ -95,7 +95,8 @@ body <- dashboardBody(
   tags$style(".glyphicon-play {color:#ffffff; font-size: 24px; align: center}"),
   tags$style(".glyphicon-plus {color:#ffffff; font-size: 24px;align: center; margin-left: -0.5px}"),
   tags$style(".glyphicon-cog {color:#ffffff; font-size: 28px; margin-top: 2px; margin-left: -2px}"),
-  tags$style(".glyphicon-floppy-save {color:#ffffff; font-size: 25px; margin-top: 4px; }"),
+  tags$style(".glyphicon-floppy-save {color:#ffffff; font-size: 23px; text-align:center; padding-right: -10px;
+             margin-top: 1px;}"),#margin-top: 4px; margin-down: 22px; margin-right: 25px}"),
 
   tags$style(".glyphicon-folder-open {color:#ffffff; font-size: 17px}"),
 
@@ -155,14 +156,14 @@ body <- dashboardBody(
     tabItem(tabName = "import_tx",
             fluidPage(
               fluidRow(
-                column(8,
+                column(9,
                        shinycssloaders::withSpinner(DT::DTOutput("dataImported"),color = getOption("spinner.color", default = "#4F7942"))
                 ),
-                column(4,
+                column(3,
                        fluidRow(
                          box(
                            width = 12,
-                           h3(strong("Import texts")),
+                           h3(strong(em("Import texts"))),
                            selectInput("load", "Please, choose what to do",
                                        choices = c(
                                          " "= "null",
@@ -176,47 +177,46 @@ body <- dashboardBody(
                              condition="input.load == 'import'",
                              h5(strong('Select the folder that contains the files')),
                              fluidRow(
-                               column(3,
+                               column(5,
                                       div(
                                         directoryInput('directory', label = NULL, value = NULL),
                                         style="margin-top: 5px;"
                                       )),
-                               column(5,
+                               column(7,
                                       div(
                                         h6((htmlOutput("folder"))),
                                         style="margin-top: -5px;"
                                       ),
-                               ),
-                               column(4,
-                                      (switchInput(
-                                        inputId = "include_subfolder",
-                                        label = "Include subfolders",
-                                        labelWidth = "100px",
-                                        onLabel = "YES",
-                                        offLabel = "NO",
-                                        size = "small",
-                                        onStatus = "success",
-                                        offStatus = "danger",
-                                        width="100%",
-                                        inline = T,
-                                      )#, style= "margin-top: 3px; "
-                                      )
                                )
-                             ),
-                             fluidRow(
-                               column(6,
+                               ),
+                               fluidRow(
+                                 column(5,
+                                        (div(style= "margin-top: 11px; ",
+                                             switchInput(
+                                               inputId = "include_subfolder",
+                                               label = "Include subfolders",
+                                               labelWidth = "100px",
+                                               onLabel = "YES",
+                                               offLabel = "NO",
+                                               size = "small",
+                                               onStatus = "success",
+                                               offStatus = "danger",
+                                               width="100%",
+                                               inline = T,
+                                             )
+                                        )
+                                        )
+                                        ),
+                               column(7,
                                       selectizeInput(
-                                        'ext', label=NULL,choices = c(
+                                        'ext', label="File format",choices = c(
                                           "TXT"="txt",
                                           "CSV"="csv",
                                           "EXCEL"="xlsx"),
-                                        options = list(
-                                          placeholder = 'File format',
-                                          onInitialize = I('function() { this.setValue(""); }')
-                                        ), tags$style("height: 50px")
+                                        tags$style("height: 50px")
                                       )
                                )
-                           )
+                             )
                          ),
                          conditionalPanel(
                            condition="input.load=='demo'",
@@ -224,7 +224,6 @@ body <- dashboardBody(
                          ),
                          conditionalPanel(
                            condition = "input.load == 'load_tall'",
-
                            helpText(em("Load a collection previously exported from Tall")),
                            fileInput(
                              "file1",
@@ -241,9 +240,10 @@ body <- dashboardBody(
                                                    div(
                                                      align = "center",
                                                      width=12,
+                                                     br(),
                                                      actionButton(inputId="runImport",
-                                                                  label = strong("Start"),
-                                                                  icon = icon(name="play", lib="glyphicon"),
+                                                                  label = strong("START"),
+                                                                  icon = icon(name="play",lib = "font-awesome"),
                                                                   style = style_bttn
                                                      ))
                                             )
@@ -257,9 +257,9 @@ body <- dashboardBody(
                                                      align = "center",
                                                      width=12,
                                                      downloadButton(outputId="collection.save",
-                                                                    label = strong("Convert Raw Data in Excel"),
-                                                                    #icon = icon(name="play", lib="glyphicon"),
-                                                                    style ="border-radius: 15px; border-width: 1px; font-size: 20px;
+                                                                    label = strong("Export Raw Texts in Excel"),
+                                                                    icon = icon(name="download", lib = "font-awesome"),
+                                                                    style ="border-radius: 15px; border-width: 1px; font-size: 17px;
                                                                     text-align: center; color: #ffff; "
                                                      ))
                                             )
@@ -320,47 +320,62 @@ body <- dashboardBody(
   tabItem(tabName = "tokPos",
           fluidPage(
             fluidRow(
-              column(11,
-                     h3(strong("Tokenization & PoS Tagging"), align = "center")),
-              div(#style=style_bttn,
-                title = t_save,
-                column(1,
-                       do.call("downloadButton", c(save_bttn, list(
-                         outputId = "tokPosSave")
-                       ))
-                ))
+              column(12,
+                     h3(strong("1. Tokenization & PoS Tagging"), align = "center"))
+              )#,
+              # div(#style=style_bttn,
+              #   title = t_save,
+              #   column(1,
+              #          do.call("downloadButton", c(save_bttn, list(
+              #            outputId = "tokPosSave")
+              #          ))
+              #   ))
             ),
             br(),
             br(),
-            fluidRow(column(9,
-                            tabsetPanel(type = "tabs",
-                                        tabPanel("Tokens",
-                                                 shinycssloaders::withSpinner(DT::DTOutput("tokPosTagData"),
-                                                                              color = getOption("spinner.color", default = "#4F7942"))
-                                        )
-                            )
-            ),
-            column(3,
-                   box(
-                     width = 12,
-                     #h3(strong("Pre-processing")),
-                     br(),
-                     uiOutput("optionsTokenization"),
-                     fluidRow(column(12,
-                                     div(
-                                       align = "center",
-                                       width=12,
-                                       actionButton(inputId="tokPosRun",
-                                                    label = strong("Apply"),
-                                                    icon = icon(name="play", lib="glyphicon"),
-                                                    style = style_bttn
+            fluidRow(
+              column(9,
+                     tabsetPanel(type = "tabs",
+                                 tabPanel("Tokens",
+                                          shinycssloaders::withSpinner(DT::DTOutput("tokPosTagData"),
+                                                                       color = getOption("spinner.color", default = "#4F7942"))
+                                 )
+                     )
+              ),
+              column(3,
+                     box(title="",
+                       width = 12,
+                       label=h3(strong(em("Language model"))),
+                       tags$hr(),
+                       helpText(h5("Before beginning the annotation process (i.e., tokenization, tagging, and lemmatization), a language model must be downloaded."),
+                                h5("TALL utilizes pre-trained models provided by Universal Dependencies treebanks."),
+                                h5("When using a language model for the first time, it will be downloaded from UDT and saved on your computer. In this case, an active internet connection is required.")),
+                       style="text-align: left; text-color: #989898",
+                       br(),
+                         uiOutput("optionsTokenization"),
+                       fluidRow(column(6,
+                                       div(
+                                         align = "left",
+                                         width=12,
+                                         actionButton(inputId="tokPosRun",
+                                                      label = strong("APPLY"),
+                                                      icon = icon(name="play", lib = "font-awesome"),
+                                                      style = style_bttn
+                                         ))
+                       ),
+                       column(6,
+                              div(#style=style_bttn,
+                                title = t_save,
+                                       div(align="center",
+                                       do.call("downloadButton", c(save_bttn, list(
+                                         outputId = "tokPosSave")
                                        ))
-                     ))
-                   )
+                                ))
+                              )
+                       )
+                     )
+              )
             )
-            )
-          )
-
   ),
 
   ## 2. Custom Term Lists -----
@@ -368,59 +383,72 @@ body <- dashboardBody(
   tabItem(tabName = "custTermList",
           fluidPage(
             fluidRow(
-              column(11,
-                     h3(strong("Custom Term List Loading and Merging"), align = "center")),
-              div(#style=style_bttn,
-                title = t_save,
-                column(1,
-                       do.call("downloadButton", c(save_bttn, list(
-                         outputId = "custTermListSave")
-                       ))
-                ))
-            ),
+              column(12,
+                     h3(strong("2. Custom Term List Loading and Merging"), align = "center"))),
+            #   div(#style=style_bttn,
+            #     title = t_save,
+            #     column(1,
+            #            do.call("downloadButton", c(save_bttn, list(
+            #              outputId = "custTermListSave")
+            #            ))
+            #     ))
+            # ),
             br(),
             br(),
-            fluidRow(column(9,
-                            tabsetPanel(type = "tabs",
-                                        tabPanel("Pos Tagging with custom lists",
-                                                 shinycssloaders::withSpinner(DT::DTOutput("customPosTagData"),
-                                                                              color = getOption("spinner.color", default = "#4F7942"))
-                                        ),
-                                        tabPanel("TermC ustom List",
-                                                 shinycssloaders::withSpinner(DT::DTOutput("customListData"),
-                                                                              color = getOption("spinner.color", default = "#4F7942"))
-                                        )
-                            )
-            ),
-            column(3,
-                   box(
-                     width = 12,
-                     #h3(strong("Pre-processing")),
-                     br(),
-                     fluidRow(
-                       #column(6,
-                              fileInput("custom_lists", "Term Custom Lists",
-                                        multiple = TRUE,
-                                        accept = c(".csv",
-                                                   ".xls",
-                                                   ".xlsx"))
-                       #)
-                     ),
-                     fluidRow(column(12,
-                                     div(
-                                       align = "center",
-                                       width=12,
-                                       actionButton(inputId="custTermListRun",
-                                                    label = strong("Apply"),
-                                                    icon = icon(name="play", lib="glyphicon"),
-                                                    style = style_bttn
-                                       ))
-                     ))
-                   )
-            )
+            fluidRow(
+              column(9,
+                     tabsetPanel(type = "tabs",
+                                 tabPanel("Pos Tagging with Custom Lists",
+                                          shinycssloaders::withSpinner(DT::DTOutput("customPosTagData"),
+                                                                       color = getOption("spinner.color", default = "#4F7942"))
+                                 ),
+                                 tabPanel("Term Custom List",
+                                          shinycssloaders::withSpinner(DT::DTOutput("customListData"),
+                                                                       color = getOption("spinner.color", default = "#4F7942"))
+                                 )
+                     )
+              ),
+              column(3,
+                     box(title = "",
+                         width = 12,
+                         label=h3(strong(em("Custom Lists"))),
+                         tags$hr(),
+                         helpText(h5("Before........")),
+                         br(),
+                         fluidRow(column(12,
+                                         fileInput("custom_lists", label="Import Term Custom Lists",
+                                                   multiple = TRUE,
+                                                   accept = c(".csv",
+                                                              ".xls",
+                                                              ".xlsx"))
+                         )),
+                         fluidRow(column(6,
+                                         div(
+                                           align = "center",
+                                           width=12,
+                                           actionButton(inputId="custTermListRun",
+                                                        label = strong("APPLY"),
+                                                        icon = icon(name="play", lib = "font-awesome"),
+                                                        style = style_bttn
+                                           ))
+                         ),
+                         column(6,
+                                div(#style=style_bttn,
+                                  title = t_save,
+                                  div(align="center",
+                                      do.call("downloadButton", c(save_bttn, list(
+                                        outputId = "custTermSave")
+
+                                      ))
+                                  )
+                                )
+                         )
+                         )
+                     )
+              )
+
             )
           )
-
   ),
 
   ## 3. PoS Tag Selection -----
@@ -428,75 +456,60 @@ body <- dashboardBody(
   tabItem(tabName = "posTagSelect",
           fluidPage(
             fluidRow(
-              column(8,
-                     h3(strong("PoS Tag Selection"), align = "center")),
-              div(#style=style_bttn,
-                title = t_run,
-                column(1,
-                       do.call("actionButton", c(run_bttn, list(
-                         inputId = "posTagSelectApply")
-                       ))
-                )),
-
-              div(#style=style_bttn,
-                title = t_report,
-                column(1,
-                       do.call("actionButton", c(report_bttn, list(
-                         inputId = "posTagSelectReport")
-                       ))
-                )),
-              div(#style=style_bttn,
-                title = t_export,
-                column(1,
-                       do.call("downloadButton", c(export_bttn, list(
-                         outputId = "posTagSelectExport")
-                       )),
-                )),
-              div(#style=style_bttn,
-                title = t_save,
-                column(1,
-                       do.call("downloadButton", c(save_bttn, list(
-                         outputId = "posTagSelectSave")
-                       ))
-                ))
-            ),
+              column(12,
+                     h3(strong("3. PoS Tag Selection"), align = "center"))),
             br(),
             br(),
-            fluidRow(column(8,DT::DTOutput("posTagSelectTab")),
-                     column(4,
-                            box(
-                              width = 12,
-                              #h3(strong("Pre-processing")),
-                              br(),
-                              fluidRow(column(12,
-                                              div(
-                                                align = "center",
-                                                width=12,
-                                                actionButton(inputId="posTagSelectRun",
-                                                             label = strong("Apply"),
-                                                             icon = icon(name="play", lib="glyphicon"),
-                                                             style = style_bttn
-                                                ))
-                              ))#,
-                              # h5(" "),
-                              # box(h6(htmlOutput("textDim")),
-                              #     width = "100%"),
-                              # br(),
-                              # uiOutput("selectLA"),
-                              # uiOutput("sliderPY"),
-                              # uiOutput("selectType"),
-                              # uiOutput("sliderTCpY"),
-                              # selectInput("bradfordSources",
-                              #             label = "Source by Bradford Law Zones",
-                              #             choices = c("Core Sources"="core",
-                              #                         "Core + Zone 2 Sources"="zone2",
-                              #                         "All Sources"="all"),
-                              #             selected = "all")
-                            )
+            fluidRow(
+              column(9,
+                     tabsetPanel(type = "tabs",
+                                 tabPanel("Annotated Text with PoS Tag",
+                                          shinycssloaders::withSpinner(DT::DTOutput("posTagSelectData"),
+                                                                       color = getOption("spinner.color", default = "#4F7942"))
+                                 ),
+                                 # tabPanel("Term Custom List",
+                                 #          shinycssloaders::withSpinner(DT::DTOutput("customListData"),
+                                 #                                       color = getOption("spinner.color", default = "#4F7942"))
+                                 # )
                      )
+              ),
+              column(3,
+                     box(title = "",
+                         width = 12,
+                         label=h3(strong(em("PoS Tag Selection"))),
+                         tags$hr(),
+                         helpText(h5("Below the list of PoS Tag of your text:")),
+                         br(),
+                         fluidRow(column(12,
+                                         uiOutput("posTagLists")
+                         )),
+                         fluidRow(column(6,
+                                         div(
+                                           align = "center",
+                                           width=12,
+                                           actionButton(inputId="posTagSelectRun",
+                                                        label = strong("APPLY"),
+                                                        icon = icon(name="play", lib = "font-awesome"),
+                                                        style = style_bttn
+                                           ))
+                         ),
+                         column(6,
+                                div(#style=style_bttn,
+                                  title = t_save,
+                                  div(align="center",
+                                      do.call("downloadButton", c(save_bttn, list(
+                                        outputId = "posTagSelectSave")
+
+                                      ))
+                                  )
+                                )
+                         )
+                         )
+                     )
+              )
+
             )
           )
-
   ),
 
   ### OVERVIEW ----
