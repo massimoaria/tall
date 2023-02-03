@@ -276,7 +276,8 @@ mergeCustomLists <- function(df,custom_lists){
     mutate(lemma_original = lemma) %>%
     #mutate(lemma_norm = ifelse(upos!="PROPN", tolower(lemma), lemma)) %>%
     left_join(custom_lists, by = c("lemma" = "lemma")) %>%
-    mutate(upos.x = ifelse(!is.na(upos.y),toupper(upos.y),upos.x)) %>%
+    mutate(upos.x = ifelse(!is.na(upos.y),toupper(upos.y),upos.x),
+           POSSelected = ifelse(upos.x %in% c("ADJ","NOUN","PROPN", "VERB"), TRUE, FALSE)) %>%
     select(-upos.y) %>%
     rename(upos = upos.x)
 
@@ -319,32 +320,15 @@ posTagAll <- function(df){
                                         'Subord. Conjunction',
                                         'Symbol',
                                         'Verb',
-                                        'Other'),
-                          selected=c(TRUE,
-                                     FALSE,
-                                     FALSE,
-                                     FALSE,
-                                     FALSE,
-                                     FALSE,
-                                     FALSE,
-                                     TRUE,
-                                     FALSE,
-                                     FALSE,
-                                     FALSE,
-                                     TRUE,
-                                     FALSE,
-                                     FALSE,
-                                     FALSE,
-                                     TRUE,
-                                     FALSE))
+                                        'Other'))
 
-  pos <- sort(unique(df$upos))
-  additionalPos <- setdiff(pos, posLegend$pos)
-  ordinaryPos <- pos[!pos %in% additionalPos]
+  pos <- unique(df$upos)
+  additionalPos <- sort(setdiff(pos, posLegend$pos))
+  ordinaryPos <- sort(pos[!pos %in% additionalPos])
+  pos <- c(ordinaryPos,additionalPos)
   description <- c(posLegend$description[posLegend$pos %in% pos], rep("Custom PoS", length(additionalPos)))
-  description <- paste(c(ordinaryPos, additionalPos),description,sep=": ")
-  selected <- c(posLegend$selected[posLegend$pos %in% pos], rep(FALSE, length(additionalPos)))
-  obj <- data.frame(pos=pos, description=description, selected=selected)
+  description <- paste(pos, description,sep=": ")
+  obj <- data.frame(pos=pos, description=description)
   return(obj)
 }
 

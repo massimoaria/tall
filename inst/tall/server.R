@@ -128,7 +128,7 @@ server <- function(input, output, session){
         # Merge metadata from the original txt object
         values$dfTag <- values$dfTag %>%
           left_join(values$txt %>% select(-text), by = "doc_id") %>%
-          mutate(POSSelected = ifelse(upos %in% c("ADJ","NOUN","PROPN", "VERB")))
+          mutate(POSSelected = ifelse(upos %in% c("ADJ","NOUN","PROPN", "VERB"), TRUE, FALSE))
 
         values$menu <- 1
 
@@ -221,9 +221,8 @@ server <- function(input, output, session){
     PosFilterData <- eventReactive({
       input$posTagSelectRun
     },{
-
       #selected <- (posTagAll(values$dfTag) %>% dplyr::filter(selected==TRUE))$pos
-      selected <- (posTagAll(values$dfTag) %>% dplyr::filter(description %in% req(input$posTagLists)))$pos
+      selected <- (posTagAll(values$dfTag) %>% dplyr::filter(description %in% (input$posTagLists)))$pos
       values$dfTag$POSSelected <- ifelse(values$dfTag$upos %in% selected, TRUE, FALSE)
 
     })
