@@ -15,6 +15,7 @@ server <- function(input, output, session){
   values$custom_lists <- NULL
   values$txt <- data.frame()
   values$list_file <- data.frame(sheet=NULL,file=NULL,n=NULL)
+  values$POSTagSelected <- ""
   values$wb <-  openxlsx::createWorkbook()
   values$dfLabel <- dfLabel()
   values$myChoices <- "Empty Report"
@@ -126,7 +127,8 @@ server <- function(input, output, session){
 
         # Merge metadata from the original txt object
         values$dfTag <- values$dfTag %>%
-          left_join(values$txt %>% select(-text), by = "doc_id")
+          left_join(values$txt %>% select(-text), by = "doc_id") %>%
+          mutate(POSSelected = ifelse(upos %in% c("ADJ","NOUN","PROPN", "VERB")))
 
         values$menu <- 1
 
@@ -207,12 +209,39 @@ server <- function(input, output, session){
 
 
   ## 3. PoS Tag Selection ----
+    observe({
+      output$posTagLists <- renderUI({
+        checkboxGroupInput("posTagLists", "Select POS Tag:",
+                           choices = posTagAll(values$dfTag)$description,
+                           selected = (posTagAll(values$dfTag %>% dplyr::filter(POSSelected)))$description
+        )
+      })
+    })
 
-    output$posTagLists <- renderUI({
+    PosFilterData <- eventReactive({
+      input$posTagSelectRun
+    },{
 
+      #selected <- (posTagAll(values$dfTag) %>% dplyr::filter(selected==TRUE))$pos
+      selected <- (posTagAll(values$dfTag) %>% dplyr::filter(description %in% req(input$posTagLists)))$pos
+      values$dfTag$POSSelected <- ifelse(values$dfTag$upos %in% selected, TRUE, FALSE)
 
+    })
 
-
+    output$posTagSelectData <- renderDT({
+      PosFilterData()
+      #DTformat(values$dfTag)
+      DTformat(values$dfTag %>% dplyr::filter(POSSelected) %>%
+                 group_by(doc_id,sentence_id) %>%
+                 mutate(SentenceByPos = paste(lemma, collapse=" ")) %>%
+                 select(doc_id, sentence_id,sentence,SentenceByPos,token,lemma, upos) %>%
+                 rename(D_id=doc_id,
+                        S_id=sentence_id,
+                        Sentence=sentence,
+                        Token=token,
+                        Lemma=lemma,
+                        POSTag=upos)
+      )
     })
 
 

@@ -282,35 +282,73 @@ mergeCustomLists <- function(df,custom_lists){
 
 }
 
+### 3. POS TAG SELECTION ----
 
+# create description for pos tag check box ----
+posTagAll <- function(df){
+  posLegend <- data.frame(pos=c('ADJ',
+                                'ADP',
+                                'ADV',
+                                'AUX',
+                                'CCONJ',
+                                'DET',
+                                'INTJ',
+                                'NOUN',
+                                'NUM',
+                                'PART',
+                                'PRON',
+                                'PROPN',
+                                'PUNCT',
+                                'SCONJ',
+                                'SYM',
+                                'VERB',
+                                'X'),
+                          description=c('Adjective',
+                                        'Adposition',
+                                        'Adverb',
+                                        'Auxiliary',
+                                        'Coord. Conjunction',
+                                        'Determiner',
+                                        'Interjection',
+                                        'Noun',
+                                        'Numeral',
+                                        'Particle',
+                                        'Pronoun',
+                                        'Proper Noun',
+                                        'Punctuation',
+                                        'Subord. Conjunction',
+                                        'Symbol',
+                                        'Verb',
+                                        'Other'),
+                          selected=c(TRUE,
+                                     FALSE,
+                                     FALSE,
+                                     FALSE,
+                                     FALSE,
+                                     FALSE,
+                                     FALSE,
+                                     TRUE,
+                                     FALSE,
+                                     FALSE,
+                                     FALSE,
+                                     TRUE,
+                                     FALSE,
+                                     FALSE,
+                                     FALSE,
+                                     TRUE,
+                                     FALSE))
 
-### QUANTEDA CORPUS FUNTIONS ----
-
-## convert a corpus obj into a tibble
-corpus2df <- function(obj){
-  df <- tibble(doc_id=rep(names(obj), lengths(obj)), text=unlist(obj))
-  docvars <- attr(obj, "docvars")
-  df <- df %>% left_join(docvars, by = c("doc_id" = "docid_"))
-}
-
-
-## calculate frequency distribution for wordcloud, etc.
-distrib <- function(obj, scale="identity"){
-  obj <- obj %>%
-    corpus2df() %>%
-    count(text) %>%
-    arrange(desc(n))
-
-  switch(scale,
-         identity={
-           obj$scale <- obj$n
-         },
-         log={
-           obj$scale <- log(obj$n)
-         }
-  )
+  pos <- sort(unique(df$upos))
+  additionalPos <- setdiff(pos, posLegend$pos)
+  ordinaryPos <- pos[!pos %in% additionalPos]
+  description <- c(posLegend$description[posLegend$pos %in% pos], rep("Custom PoS", length(additionalPos)))
+  description <- paste(c(ordinaryPos, additionalPos),description,sep=": ")
+  selected <- c(posLegend$selected[posLegend$pos %in% pos], rep(FALSE, length(additionalPos)))
+  obj <- data.frame(pos=pos, description=description, selected=selected)
   return(obj)
 }
+
+
 
 ### EXCEL REPORT FUNCTIONS ----
 addDataWb <- function(list_df, wb, sheetname){
@@ -513,4 +551,45 @@ DTformat <- function(df, nrow=10){
       textAlign = 'center',
       fontSize = '85%'
     )
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### QUANTEDA CORPUS FUNTIONS ----
+
+## convert a corpus obj into a tibble ----
+corpus2df <- function(obj){
+  df <- tibble(doc_id=rep(names(obj), lengths(obj)), text=unlist(obj))
+  docvars <- attr(obj, "docvars")
+  df <- df %>% left_join(docvars, by = c("doc_id" = "docid_"))
+}
+
+
+## calculate frequency distribution for wordcloud, etc. ----
+distrib <- function(obj, scale="identity"){
+  obj <- obj %>%
+    corpus2df() %>%
+    count(text) %>%
+    arrange(desc(n))
+
+  switch(scale,
+         identity={
+           obj$scale <- obj$n
+         },
+         log={
+           obj$scale <- log(obj$n)
+         }
+  )
+  return(obj)
 }

@@ -336,7 +336,7 @@ body <- dashboardBody(
             fluidRow(
               column(9,
                      tabsetPanel(type = "tabs",
-                                 tabPanel("Tokens",
+                                 tabPanel("Annotated Text Table",
                                           shinycssloaders::withSpinner(DT::DTOutput("tokPosTagData"),
                                                                        color = getOption("spinner.color", default = "#4F7942"))
                                  )
