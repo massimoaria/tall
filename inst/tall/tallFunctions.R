@@ -511,6 +511,90 @@ popUp <- function(title=NULL, type="success", btn_labels="OK"){
 
 ### UTILITY FUNCTIONS ----
 
+# SIDEBARMENU DYNAMIC ----
+menuList <- function(menu){
+
+  switch(as.character(menu),
+         "0"={
+           list(
+             menuItem("Data", tabName = "data", icon = fa_i(name = "file-import"),
+                      menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
+                      menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
+                      menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
+             menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib = "glyphicon"), startExpanded = TRUE,
+                      menuSubItem("1. Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right"), selected = TRUE)
+             )
+           )
+         },
+         "1"={
+           list(
+             menuItem("Data", tabName = "data", icon = fa_i(name = "file-import"),
+                      menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
+                      menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
+                      menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
+             menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib = "glyphicon"), startExpanded = TRUE,
+                      menuSubItem("1. Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
+                      menuSubItem("2. Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right"), selected = TRUE),
+                      menuSubItem("3. PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right"))
+             )
+           )
+         },
+         "2"={
+           list(
+             menuItem("Data", tabName = "data", icon = fa_i(name = "file-import"),
+                      menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
+                      menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
+                      menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
+             menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib = "glyphicon"), startExpanded = TRUE,
+                      menuSubItem("1. Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
+                      menuSubItem("2. Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right")),
+                      menuSubItem("3. PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right"), selected = TRUE)
+                      )
+           )
+         },
+         "3"={
+           list(
+             menuItem("Data", tabName = "data", icon = fa_i(name = "file-import"),
+                      menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
+                      menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
+                      menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
+             menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib = "glyphicon"), startExpanded = TRUE,
+                      menuSubItem("1. Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
+                      menuSubItem("2. Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right")),
+                      menuSubItem("3. PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right"))),
+             menuItem("Overview", tabName = "overview", icon = icon("search", lib="glyphicon")),
+             menuItem("Words", tabName = "words", icon = icon("font", lib = "glyphicon"),
+                      menuSubItem("Frequency List", tabName = "freqList", icon = icon("chevron-right")),
+                      menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),
+                      menuSubItem("Correspondence Analysis", tabName = "ca", icon = icon("chevron-right")),
+                      menuSubItem("Network", tabName = "w_network", icon = icon("chevron-right"))),
+             menuItem("Documents",tabName = "documents", icon = fa_i(name="layer-group"),
+                      menuSubItem("Topic Modeling", tabName = "d_topicMod", icon = icon("chevron-right")),
+                      menuSubItem("Clustering", tabName = "d_clustering", icon = icon("chevron-right")),
+                      menuSubItem("Network", tabName = "d_network", icon = icon("chevron-right")),
+                      menuSubItem("Summarization", tabName = "d_summarization", icon = icon("chevron-right")),
+                      menuSubItem("Polarity Detection", tabName = "d_polDet", icon = icon("chevron-right"))),
+             menuItem("Groups",tabName = "groups", icon = fa_i(name ="spinner"),
+                      menuSubItem("Topic Modeling", tabName = "g_topicMod", icon = icon("chevron-right")),
+                      menuSubItem("Clustering", tabName = "g_clustering", icon = icon("chevron-right")),
+                      menuSubItem("Network", tabName = "g_network", icon = icon("chevron-right")),
+                      menuSubItem("Summarization", tabName = "g_summarization", icon = icon("chevron-right")),
+                      menuSubItem("Polarity Detection", tabName = "g_polDet", icon = icon("chevron-right"))),
+             menuItem("Report",tabName = "report", icon = fa_i(name ="list-alt")),
+             menuItem("Settings",tabName = "settings", icon = fa_i(name ="sliders"))
+           )
+         },
+         {
+           list(
+             menuItem("Data", tabName = "data", icon = fa_i(name = "file-import"),
+                      menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
+                      menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
+                      menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right")))
+           )
+           }
+  )
+}
+
 # DATA TABLE FORMAT ----
 DTformat <- function(df, nrow=10){
   # da completare

@@ -36,6 +36,7 @@ save_bttn <- list(
   icon = icon(name ="floppy-save", lib="glyphicon")
 )
 
+
 ## HEADER ----
 
 title_tall <- tags$link(tags$a(href = 'https://www.unina.it/',target="_blank",
@@ -54,42 +55,17 @@ sidebar <- dashboardSidebar(
   sidebarMenu(id="sidebarmenu",
               #style = "position: relative; overflow: visible;",
               menuItem("TALL", tabName = "tall", icon = icon("text-size", lib = "glyphicon")),
-              menuItem("Data", tabName = "data", icon = fa_i(name = "file-import"),
-                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
-                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
-                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
-              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib = "glyphicon"),
-                       menuSubItem("1. Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
-                       menuSubItem("2. Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right")),
-                       menuSubItem("3. PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right"))),
-              menuItem("Overview", tabName = "overview", icon = icon("search", lib="glyphicon")),
-              menuItem("Words", tabName = "words", icon = icon("font", lib = "glyphicon"),
-                       menuSubItem("Frequency List", tabName = "freqList", icon = icon("chevron-right")),
-                       menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),
-                       menuSubItem("Correspondence Analysis", tabName = "ca", icon = icon("chevron-right")),
-                       menuSubItem("Network", tabName = "w_network", icon = icon("chevron-right"))),
-              menuItem("Documents",tabName = "documents", icon = fa_i(name="layer-group"),
-                       menuSubItem("Topic Modeling", tabName = "d_topicMod", icon = icon("chevron-right")),
-                       menuSubItem("Clustering", tabName = "d_clustering", icon = icon("chevron-right")),
-                       menuSubItem("Network", tabName = "d_network", icon = icon("chevron-right")),
-                       menuSubItem("Summarization", tabName = "d_summarization", icon = icon("chevron-right")),
-                       menuSubItem("Polarity Detection", tabName = "d_polDet", icon = icon("chevron-right"))),
-              menuItem("Groups",tabName = "groups", icon = fa_i(name ="spinner"),
-                       menuSubItem("Topic Modeling", tabName = "g_topicMod", icon = icon("chevron-right")),
-                       menuSubItem("Clustering", tabName = "g_clustering", icon = icon("chevron-right")),
-                       menuSubItem("Network", tabName = "g_network", icon = icon("chevron-right")),
-                       menuSubItem("Summarization", tabName = "g_summarization", icon = icon("chevron-right")),
-                       menuSubItem("Polarity Detection", tabName = "g_polDet", icon = icon("chevron-right"))),
-              menuItem("Report",tabName = "report", icon = fa_i(name ="list-alt")),
-              menuItem("Settings",tabName = "settings", icon = fa_i(name ="sliders")
-              )
+              # menuItem("Data", tabName = "data", icon = fa_i(name = "file-import"),
+              #          menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
+              #          menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
+              #          menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
+              menuItemOutput ("rest_of_sidebar")
   )
 )
 
 ## BODY ----
 
 body <- dashboardBody(
-  #shinyDashboardThemes(theme = "blue_gradient"),
   customTheme(),
   tags$style(".glyphicon-download-alt {color:#ffffff; font-size: 24px; align: center; margin-left: -2.5px}"),
   tags$style(".glyphicon-play {color:#ffffff; font-size: 24px; align: center}"),
@@ -99,15 +75,6 @@ body <- dashboardBody(
              margin-top: 1px;}"),#margin-top: 4px; margin-down: 22px; margin-right: 25px}"),
 
   tags$style(".glyphicon-folder-open {color:#ffffff; font-size: 17px}"),
-
-  # tags$style(
-  #   '.bootstrap-switch .bootstrap-switch-handle-on,
-  #   .bootstrap-switch .bootstrap-switch-handle-off,
-  #   .bootstrap-switch .bootstrap-switch-label {
-  #     display: inline-block;
-  #     vertical-align: baseline; width:100%;
-  #   }'),
-
   tags$head(
     tags$style(".fa-envelope {color:#FF0000; font-size: 20px}"),
     tags$style(".fa-envelope-open {font-size: 20px}"),
@@ -116,26 +83,26 @@ body <- dashboardBody(
     tags$style(".fa-comment-dollar {font-size: 20px}"),
     tags$style(".fa-bars {font-size: 20px}"),
     tags$style(".sidebar-toggle {font-size: 15px}"),
-    tags$script(
-      'var dimension = [0, 0];
-              $(document).on("shiny:connected", function(e) {
-                  dimension[0] = window.innerWidth;
-                  dimension[1] = window.innerHeight;
-                  Shiny.onInputChange("dimension", dimension);
-              });
-              $(window).resize(function(e) {
-                  dimension[0] = window.innerWidth;
-                  dimension[1] = window.innerHeight;
-                  Shiny.onInputChange("dimension", dimension);
-              });
-              $(document).ready(function(){
-                  $("a[data-toggle=tab]").on("show.bs.tab", function(e){
-                    Shiny.setInputValue("activeTab", $(this).attr("data-value"));
-                   });
-            });
-      '
-    )),
-
+    # tags$script(
+    #   'var dimension = [0, 0];
+    #           $(document).on("shiny:connected", function(e) {
+    #               dimension[0] = window.innerWidth;
+    #               dimension[1] = window.innerHeight;
+    #               Shiny.onInputChange("dimension", dimension);
+    #           });
+    #           $(window).resize(function(e) {
+    #               dimension[0] = window.innerWidth;
+    #               dimension[1] = window.innerHeight;
+    #               Shiny.onInputChange("dimension", dimension);
+    #           });
+    #           $(document).ready(function(){
+    #               $("a[data-toggle=tab]").on("show.bs.tab", function(e){
+    #                 Shiny.setInputValue("activeTab", $(this).attr("data-value"));
+    #                });
+    #         });
+    #   '
+    # )
+    ),
 
   tabItems(
 

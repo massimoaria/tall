@@ -11,7 +11,7 @@ server <- function(input, output, session){
   ### Initial values ----
   values <- reactiveValues()
   values$path <- NULL
-  values$menu <- 0
+  values$menu <- -1
   values$custom_lists <- NULL
   values$txt <- data.frame()
   values$list_file <- data.frame(sheet=NULL,file=NULL,n=NULL)
@@ -24,6 +24,34 @@ server <- function(input, output, session){
   label_lang <- languages$repo
   names(label_lang) <- languages$short
   values$label_lang <- label_lang
+
+
+
+  ### SIDEBARMENU ----
+  output$rest_of_sidebar <- renderMenu({
+    sidebarMenu(.list=menuList(values$menu))
+  })
+
+  observeEvent(input$runImport, {
+    updateTabItems(session, "sidebarmenu", "import_tx")
+  })
+
+  observeEvent(input$tokPosRun, {
+    updateTabItems(session, "sidebarmenu", "tokPos")
+  })
+
+  observeEvent(input$custTermListRun, {
+    updateTabItems(session, "sidebarmenu", "custTermList")
+  })
+
+  observeEvent(input$posTagSelectRun, {
+    updateTabItems(session, "sidebarmenu", "posTagSelect")
+  })
+
+  # observeEvent(input$custTermListRun, {
+  #   updateTabItems(session, "sidebarmenu", "custTermList")
+  # })
+
 
 ### DATA ----
 
@@ -224,7 +252,7 @@ server <- function(input, output, session){
       #selected <- (posTagAll(values$dfTag) %>% dplyr::filter(selected==TRUE))$pos
       selected <- (posTagAll(values$dfTag) %>% dplyr::filter(description %in% (input$posTagLists)))$pos
       values$dfTag$POSSelected <- ifelse(values$dfTag$upos %in% selected, TRUE, FALSE)
-
+      values$menu <- 3
     })
 
     output$posTagSelectData <- renderDT({
