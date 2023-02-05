@@ -479,6 +479,69 @@ body <- dashboardBody(
           )
   ),
 
+
+  ## 4. Multi-Word Creation -----
+
+  tabItem(tabName = "multiwordCreat",
+          fluidPage(
+            fluidRow(
+              column(12,
+                     h3(strong("4. Multi-Word Creation"), align = "center"))),
+            br(),
+            br(),
+            fluidRow(
+              column(9,
+                     tabsetPanel(type = "tabs",
+                                 tabPanel("Annotated Text with Multi-Words",
+                                          shinycssloaders::withSpinner(DT::DTOutput("multiwordData"),
+                                                                       color = getOption("spinner.color", default = "#4F7942"))
+                                 ),
+                                 tabPanel("Multi-Word List",
+                                          shinycssloaders::withSpinner(DT::DTOutput("multiwordList"),
+                                                                       color = getOption("spinner.color", default = "#4F7942"))
+                                 )
+                     )
+              ),
+              column(3,
+                     box(title = "",
+                         width = 12,
+                         label=h3(strong(em("Multi-Word Creation"))),
+                         tags$hr(),
+                         # helpText(h5("Below the list of PoS Tag of your text:")),
+                         # br(),
+                         # fluidRow(column(12,
+                         #                 uiOutput("posTagLists")
+                         # )),
+                         fluidRow(column(6,
+                                         div(
+                                           align = "center",
+                                           width=12,
+                                           actionButton(inputId="multiwordCreatRun",
+                                                        label = strong("APPLY"),
+                                                        icon = icon(name="play", lib = "font-awesome"),
+                                                        style = style_bttn
+                                           ))
+                         ),
+                         column(6,
+                                div(#style=style_bttn,
+                                  title = t_save,
+                                  div(align="center",
+                                      do.call("downloadButton", c(save_bttn, list(
+                                        outputId = "multiwordCreatSave")
+
+                                      ))
+                                  )
+                                )
+                         )
+                         )
+                     )
+              )
+
+            )
+          )
+  ),
+
+
   ### OVERVIEW ----
   tabItem(tabName = "overview",
           fluidPage(
