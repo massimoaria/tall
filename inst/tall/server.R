@@ -290,7 +290,7 @@ server <- function(input, output, session){
       multiwordPosSel <- c("PROPN", "NOUN", "ADJ", "VERB")
       rake.min <- 2
 
-      obj <- rake(x, term = term, group = group, ngram_max=ngram_max, relevant = multiwordPosSel, rake.min=rake.min)
+      obj <- rake(values$dfTag, term = term, group = group, ngram_max=ngram_max, relevant = multiwordPosSel, rake.min=rake.min)
 
       values$dfTag <- obj$dfTag
       values$multiwords <- obj$multiwords

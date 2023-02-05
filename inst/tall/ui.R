@@ -507,6 +507,8 @@ body <- dashboardBody(
                          width = 12,
                          label=h3(strong(em("Multi-Word Creation"))),
                          tags$hr(),
+                         helpText(h5("QUI BISOGNA AGGIUNGERE LE OPZIONI.
+                                     ORA FUNZIONA CON UN SET DI VALORI DI DEFAULT CHE HO FISSATO IN SERVER")),
                          # helpText(h5("Below the list of PoS Tag of your text:")),
                          # br(),
                          # fluidRow(column(12,
