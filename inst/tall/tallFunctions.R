@@ -375,6 +375,71 @@ rake <- function(x, term = "lemma", group = "doc_id", ngram_max=5, relevant = c(
 }
 
 
+### OVERVIEW ----
+valueBoxesIndices <- function(x){
+
+  # LA PUNTEGGIATURA E I NUMERI DEVONO ESSERE ELIMINATI PRIMA DEL CONTEGGIO???????
+
+  # 1. # of documents
+  nDoc <- length(unique(x$doc_id))
+
+  # 2. # of tokens
+  nTokens <- nrow(x)
+
+  # 3. Dictionary: # di termini differenti senza ripetizione
+  nDictionary <- length(unique(x$token))
+
+  # 4. # of lemmas
+  nLemmas <- length(unique(x$lemma))
+
+  # 5. # of sentences
+  nSentences <- x %>% group_by(doc_id) %>%
+    summarize(nSent = max(sentence_id)) %>%
+    ungroup() %>% select(nSent) %>%
+    summarize(nSent = sum(nSent)) %>%
+    as.numeric()
+
+  # 6. # avg document length
+  avgDocLength <- x %>% group_by(doc_id) %>%
+    select(doc_id,sentence) %>%
+    summarize(nTokens = n(),
+              nChars = nchar(paste(sentence, collapse=" "))) %>%
+    ungroup() %>%
+    summarize(avgChars = mean(nChars),
+              avgTokens = mean(nTokens))
+
+  # 7. # avg length sentence
+  avgSentLength <- x %>% group_by(doc_id,sentence_id) %>%
+    summarize(sentLength = n()) %>%
+    ungroup() %>%
+    summarize(avg = mean(sentLength)) %>%
+    as.numeric()
+
+  # 8. TTR: il rapporto tra la varietà del dizionario (Dictionary) e il numero totale di token in una raccolta testuale (# terms); in altre parole, misura la diversità lessicale in un corpus
+  TTR = nDictionary/nTokens
+
+  # HAPAX SU TOKEN O LEMMA?????????
+
+  # 9.  %hapax
+  hapax <- x %>% group_by(token) %>%
+    count() %>%
+    filter(n==1) %>%
+    ungroup() %>%
+    summarize(n=sum(n)) %>%
+    as.numeric()
+
+  obj <- list(nDoc=nDoc,
+              nTokens=nTokens,
+              nDictionary=nDictionary,
+              nLemmas=nLemmas,
+              nSentences=nSentences,
+              avgDocLengthChars=avgDocLength$avgChars,
+              avgDocLengthTokens=avgDocLength$avgTokens,
+              avgSentLength=avgSentLength,
+              TTR=TTR,
+              hapax=hapax
+  )
+}
 
 ### EXCEL REPORT FUNCTIONS ----
 addDataWb <- function(list_df, wb, sheetname){
