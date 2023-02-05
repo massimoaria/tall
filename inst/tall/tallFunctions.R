@@ -564,7 +564,7 @@ menuList <- function(menu){
                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib = "glyphicon"), startExpanded = TRUE,
-                      menuSubItem("1. Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right"), selected = TRUE)
+                      menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right"), selected = TRUE)
              )
            )
          },
@@ -575,9 +575,9 @@ menuList <- function(menu){
                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib = "glyphicon"), startExpanded = TRUE,
-                      menuSubItem("1. Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
-                      menuSubItem("2. Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right"), selected = TRUE),
-                      menuSubItem("3. PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right"))
+                      menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
+                      menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right"), selected = TRUE),
+                      menuSubItem("PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right"))
              )
            )
          },
@@ -588,9 +588,9 @@ menuList <- function(menu){
                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib = "glyphicon"), startExpanded = TRUE,
-                      menuSubItem("1. Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
-                      menuSubItem("2. Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right")),
-                      menuSubItem("3. PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right"), selected = TRUE)
+                      menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
+                      menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right")),
+                      menuSubItem("PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right"), selected = TRUE)
                       )
            )
          },
@@ -601,10 +601,10 @@ menuList <- function(menu){
                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib = "glyphicon"), startExpanded = TRUE,
-                      menuSubItem("1. Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
-                      menuSubItem("2. Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right")),
-                      menuSubItem("3. PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right")),
-                      menuSubItem("4. Multi-Word Creation", tabName = "multiwordCreat",icon = icon("chevron-right"), selected = TRUE)
+                      menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
+                      menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right")),
+                      menuSubItem("PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right")),
+                      menuSubItem("Multi-Word Creation", tabName = "multiwordCreat",icon = icon("chevron-right"), selected = TRUE)
                       )
            )
          },
@@ -615,10 +615,10 @@ menuList <- function(menu){
                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib = "glyphicon"), startExpanded = TRUE,
-                      menuSubItem("1. Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
-                      menuSubItem("2. Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right")),
-                      menuSubItem("3. PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right")),
-                      menuSubItem("4. Multi-Word Creation", tabName = "multiwordCreat",icon = icon("chevron-right"))),
+                      menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
+                      menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right")),
+                      menuSubItem("PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right")),
+                      menuSubItem("Multi-Word Creation", tabName = "multiwordCreat",icon = icon("chevron-right"))),
              menuItem("Overview", tabName = "overview", icon = icon("search", lib="glyphicon")),
              menuItem("Words", tabName = "words", icon = icon("font", lib = "glyphicon"),
                       menuSubItem("Frequency List", tabName = "freqList", icon = icon("chevron-right")),

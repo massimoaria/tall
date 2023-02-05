@@ -130,7 +130,8 @@ body <- dashboardBody(
                        fluidRow(
                          box(
                            width = 12,
-                           h3(strong(em("Import texts"))),
+                           div(h3(strong(em("Import texts"))), style="margin-top:-57px"),
+                           hr(),
                            selectInput("load", "Please, choose what to do",
                                        choices = c(
                                          " "= "null",
@@ -282,13 +283,13 @@ body <- dashboardBody(
 
   ### PRE-PROCESSING ----
 
-  ## 1. Tokenization & PoS Tagging -----
+  ## Tokenization & PoS Tagging -----
 
   tabItem(tabName = "tokPos",
           fluidPage(
             fluidRow(
               column(12,
-                     h3(strong("1. Tokenization & PoS Tagging"), align = "center"))
+                     h3(strong("Tokenization & PoS Tagging"), align = "center"))
               )#,
               # div(#style=style_bttn,
               #   title = t_save,
@@ -310,9 +311,10 @@ body <- dashboardBody(
                      )
               ),
               column(3,
-                     box(title="",
+                     div(
+                       box(
                        width = 12,
-                       label=h3(strong(em("Language model"))),
+                       div(h3(strong(em("Language model"))), style="margin-top:-57px"),
                        tags$hr(),
                        helpText(h5("Before beginning the annotation process (i.e., tokenization, tagging, and lemmatization), a language model must be downloaded."),
                                 h5("TALL utilizes pre-trained models provided by Universal Dependencies treebanks."),
@@ -331,7 +333,7 @@ body <- dashboardBody(
                                          ))
                        ),
                        column(6,
-                              div(#style=style_bttn,
+                              div(
                                 title = t_save,
                                        div(align="center",
                                        do.call("downloadButton", c(save_bttn, list(
@@ -340,18 +342,19 @@ body <- dashboardBody(
                                 ))
                               )
                        )
+                     ),style="margin-top:40px"
                      )
               )
             )
   ),
 
-  ## 2. Custom Term Lists -----
+  ## Custom Term Lists -----
 
   tabItem(tabName = "custTermList",
           fluidPage(
             fluidRow(
               column(12,
-                     h3(strong("2. Custom Term List Loading and Merging"), align = "center"))),
+                     h3(strong("Custom Term List Loading and Merging"), align = "center"))),
             #   div(#style=style_bttn,
             #     title = t_save,
             #     column(1,
@@ -376,9 +379,10 @@ body <- dashboardBody(
                      )
               ),
               column(3,
-                     box(title = "",
+                     div(
+                       box(
                          width = 12,
-                         label=h3(strong(em("Custom Lists"))),
+                         div(h3(strong(em("Custom Lists"))), style="margin-top:-57px"),
                          tags$hr(),
                          helpText(h5("Before........")),
                          br(),
@@ -400,7 +404,7 @@ body <- dashboardBody(
                                            ))
                          ),
                          column(6,
-                                div(#style=style_bttn,
+                                div(
                                   title = t_save,
                                   div(align="center",
                                       do.call("downloadButton", c(save_bttn, list(
@@ -411,6 +415,7 @@ body <- dashboardBody(
                                 )
                          )
                          )
+                     ),style="margin-top:40px"
                      )
               )
 
@@ -424,7 +429,7 @@ body <- dashboardBody(
           fluidPage(
             fluidRow(
               column(12,
-                     h3(strong("3. PoS Tag Selection"), align = "center"))),
+                     h3(strong("PoS Tag Selection"), align = "center"))),
             br(),
             br(),
             fluidRow(
@@ -441,9 +446,10 @@ body <- dashboardBody(
                      )
               ),
               column(3,
-                     box(title = "",
+                     div(
+                       box(
                          width = 12,
-                         label=h3(strong(em("PoS Tag Selection"))),
+                         div(h3(strong(em("PoS Tag Selection"))), style="margin-top:-57px"),
                          tags$hr(),
                          helpText(h5("Below the list of PoS Tag of your text:")),
                          br(),
@@ -461,7 +467,7 @@ body <- dashboardBody(
                                            ))
                          ),
                          column(6,
-                                div(#style=style_bttn,
+                                div(
                                   title = t_save,
                                   div(align="center",
                                       do.call("downloadButton", c(save_bttn, list(
@@ -472,6 +478,7 @@ body <- dashboardBody(
                                 )
                          )
                          )
+                     ), style="margin-top:40px"
                      )
               )
 
@@ -480,13 +487,13 @@ body <- dashboardBody(
   ),
 
 
-  ## 4. Multi-Word Creation -----
+  ## Multi-Word Creation -----
 
   tabItem(tabName = "multiwordCreat",
           fluidPage(
             fluidRow(
               column(12,
-                     h3(strong("4. Multi-Word Creation"), align = "center"))),
+                     h3(strong("Multi-Word Creation"), align = "center"))),
             br(),
             br(),
             fluidRow(
@@ -503,9 +510,10 @@ body <- dashboardBody(
                      )
               ),
               column(3,
-                     box(title = "",
+                     div(
+                       box(
                          width = 12,
-                         label=h3(strong(em("Multi-Word Creation"))),
+                         div(h3(strong(em("Multi-Word Creation"))), style="margin-top:-57px"),
                          tags$hr(),
                          helpText(h5("QUI BISOGNA AGGIUNGERE LE OPZIONI.
                                      ORA FUNZIONA CON UN SET DI VALORI DI DEFAULT CHE HO FISSATO IN SERVER")),
@@ -536,6 +544,7 @@ body <- dashboardBody(
                                 )
                          )
                          )
+                     ), style="margin-top:40px"
                      )
               )
 
