@@ -48,9 +48,9 @@ server <- function(input, output, session){
     updateTabItems(session, "sidebarmenu", "posTagSelect")
   })
 
-  # observeEvent(input$custTermListRun, {
-  #   updateTabItems(session, "sidebarmenu", "custTermList")
-  # })
+  observeEvent(input$multiwordCreatRun, {
+    updateTabItems(session, "sidebarmenu", "multiwordCreat")
+  })
 
 
 ### DATA ----
@@ -297,7 +297,7 @@ server <- function(input, output, session){
       values$menu <- 4
     })
 
-    output$multiwordCreatData <- renderDT({
+    output$multiwordData <- renderDT({
       multiword()
       DTformat(values$dfTag %>% dplyr::filter(POSSelected) %>%
                  group_by(doc_id,sentence_id) %>%
@@ -310,6 +310,11 @@ server <- function(input, output, session){
                         Lemma=lemma,
                         POSTag=upos)
       )
+    })
+
+    output$multiwordList <- renderDT({
+      multiword()
+      DTformat(values$multiwords)
     })
 
 
