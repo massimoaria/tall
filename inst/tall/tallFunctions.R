@@ -332,6 +332,48 @@ posTagAll <- function(df){
   return(obj)
 }
 
+### 4. MULTI-WORD CREATION ----
+
+# rake function to create multi-words
+rake <- function(x, term = "lemma", group = "doc_id", ngram_max=5, relevant = c("PROPN", "NOUN", "ADJ", "VERB"), rake.min=2){
+
+  # rake multi-word creation
+  stats <- keywords_rake(x = x, term = term, group = group, ngram_max = ngram_max,
+                         relevant = x$upos %in% relevant)
+
+  # identify ngrams>1 with reka index>reka.min
+  stats <- stats %>%
+    dplyr::filter(rake>rake.min & ngram>1)
+
+  # filter original token df removing POS excluded in reka
+  x2 <- x %>% filter(upos %in% relevant)
+
+  # combine lemmas into multi-words
+  x2$multiword <- txt_recode_ngram(x2$lemma, compound=stats$keyword, ngram=stats$ngram, sep = " ")
+
+  # assign new POS tags "MULTIWORD" for combined lemmas and "NGRAM_MERGED" for lemmas to be removed because combined
+  x2 <- x2 %>%
+    mutate(upos_multiword = ifelse(lemma==multiword,upos,"MULTIWORD"),
+           upos_multiword =ifelse(is.na(multiword), "NGRAM_MERGED",upos_multiword))
+
+  # rebuild the original tokenized df
+  x <- x %>%
+    left_join(x2 %>% select(doc_id,term_id,multiword,upos_multiword), by = c("doc_id","term_id")) %>%
+    mutate(multiword = ifelse(is.na(multiword),lemma,multiword),
+           upos_multiword = ifelse(is.na(upos_multiword),upos,upos_multiword),
+           POSSelected = ifelse(upos_multiword == "MULTIWORD", TRUE, POSSelected),
+           POSSelected = ifelse(upos_multiword == "NGRAM_MERGED", FALSE, POSSelected)) %>%
+    rename(upos_original = upos,
+           upos = upos_multiword)
+
+  names(x)[names(x) == term] <- "original"
+  names(x)[names(x) == "multiword"] <- term
+
+
+  obj <- list(dfTag=x, multiwords=stats)
+
+}
+
 
 
 ### EXCEL REPORT FUNCTIONS ----

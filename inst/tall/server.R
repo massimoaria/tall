@@ -271,7 +271,46 @@ server <- function(input, output, session){
       )
     })
 
+    ## 4. Multi-Word Creation ----
 
+    multiword <- eventReactive({
+      input$multiwordCreatRun
+    },{
+      ### REKA Algorithm ####
+
+      # to replace with input values
+      # term = input$term
+      # group = input$group
+      # ngram_max = input$ngram_max
+      # multiwordPosSel <- input$multiwordPosSel
+      # rake.min <- input$rake.min
+      term <- "lemma"
+      group <- "doc_id"
+      ngram_max <- 4
+      multiwordPosSel <- c("PROPN", "NOUN", "ADJ", "VERB")
+      rake.min <- 2
+
+      obj <- rake(x, term = term, group = group, ngram_max=ngram_max, relevant = multiwordPosSel, rake.min=rake.min)
+
+      values$dfTag <- obj$dfTag
+      values$multiwords <- obj$multiwords
+      values$menu <- 4
+    })
+
+    output$multiwordCreatData <- renderDT({
+      multiword()
+      DTformat(values$dfTag %>% dplyr::filter(POSSelected) %>%
+                 group_by(doc_id,sentence_id) %>%
+                 mutate(SentenceByPos = paste(lemma, collapse=" ")) %>%
+                 select(doc_id, sentence_id,sentence,SentenceByPos,token,lemma, upos) %>%
+                 rename(D_id=doc_id,
+                        S_id=sentence_id,
+                        Sentence=sentence,
+                        Token=token,
+                        Lemma=lemma,
+                        POSTag=upos)
+      )
+    })
 
 
 
