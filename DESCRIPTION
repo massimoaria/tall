@@ -14,6 +14,7 @@ BugReports: https://github.com/massimoaria/tall/issues
 Imports: 
     graphics,
     stats,
+    shiny,
     udpipe
 Depends: 
     R (>= 2.10)

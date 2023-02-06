@@ -1,5 +1,6 @@
 #' @import stats
 #' @import graphics
+#' @import shiny
 #' @import udpipe
 
 .onAttach<-function(...){
