@@ -126,7 +126,7 @@ server <- function(input, output, session){
 
   ### PRE-PROCESSING ----
 
-  ## 1. Tokenization & PoS Tagging ----
+  ## Tokenization & PoS Tagging ----
 
   output$optionsTokenization <- renderUI({
       selectInput(
@@ -180,7 +180,7 @@ server <- function(input, output, session){
       }
     })
 
-  ## 2. Custom Term List Merging ----
+  ## Custom Term List Merging ----
 
     observeEvent(
       ignoreNULL = TRUE,
@@ -236,43 +236,7 @@ server <- function(input, output, session){
       }
     })
 
-
-  ## 3. PoS Tag Selection ----
-    observe({
-      output$posTagLists <- renderUI({
-        checkboxGroupInput("posTagLists", label=NULL,
-                           choices = posTagAll(values$dfTag)$description,
-                           selected = (posTagAll(values$dfTag %>% dplyr::filter(POSSelected)))$description
-        )
-      })
-    })
-
-    PosFilterData <- eventReactive({
-      input$posTagSelectRun
-    },{
-      #selected <- (posTagAll(values$dfTag) %>% dplyr::filter(selected==TRUE))$pos
-      selected <- (posTagAll(values$dfTag) %>% dplyr::filter(description %in% (input$posTagLists)))$pos
-      values$dfTag <- posSel(values$dfTag, pos=selected)#ifelse(values$dfTag$upos %in% selected, TRUE, FALSE)
-      values$menu <- 2
-    })
-
-    output$posTagSelectData <- renderDT({
-      PosFilterData()
-      #DTformat(values$dfTag)
-      DTformat(values$dfTag %>% dplyr::filter(POSSelected) %>%
-                 group_by(doc_id,sentence_id) %>%
-                 mutate(SentenceByPos = paste(lemma, collapse=" ")) %>%
-                 select(doc_id, sentence_id,sentence,SentenceByPos,token,lemma, upos) %>%
-                 rename(D_id=doc_id,
-                        S_id=sentence_id,
-                        Sentence=sentence,
-                        Token=token,
-                        Lemma=lemma,
-                        POSTag=upos)
-      )
-    })
-
-    ## 4. Multi-Word Creation ----
+    ## Multi-Word Creation ----
 
     output$multiwordPosSel <- renderUI({
       checkboxGroupInput("multiwordPosSel", label="Multi-Words created by:",
@@ -321,6 +285,41 @@ server <- function(input, output, session){
       DTformat(values$multiwords)
     })
 
+
+    ## PoS Tag Selection ----
+
+    observe({
+      output$posTagLists <- renderUI({
+        checkboxGroupInput("posTagLists", label=NULL,
+                           choices = posTagAll(values$dfTag)$description,
+                           selected = (posTagAll(values$dfTag %>% dplyr::filter(POSSelected)))$description
+        )
+      })
+    })
+
+    PosFilterData <- eventReactive({
+      input$posTagSelectRun
+    },{
+      #selected <- (posTagAll(values$dfTag) %>% dplyr::filter(selected==TRUE))$pos
+      selected <- (posTagAll(values$dfTag) %>% dplyr::filter(description %in% (input$posTagLists)))$pos
+      values$dfTag <- posSel(values$dfTag, pos=selected)#ifelse(values$dfTag$upos %in% selected, TRUE, FALSE)
+      values$menu <- 2
+    })
+
+    output$posTagSelectData <- renderDT({
+      PosFilterData()
+      DTformat(values$dfTag %>% dplyr::filter(POSSelected) %>%
+                 group_by(doc_id,sentence_id) %>%
+                 mutate(SentenceByPos = paste(lemma, collapse=" ")) %>%
+                 select(doc_id, sentence_id,sentence,SentenceByPos,token,lemma, upos) %>%
+                 rename(D_id=doc_id,
+                        S_id=sentence_id,
+                        Sentence=sentence,
+                        Token=token,
+                        Lemma=lemma,
+                        POSTag=upos)
+      )
+    })
 
 
   ###Export Tall analysis in Rdata
