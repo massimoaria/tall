@@ -335,10 +335,20 @@ posTagAll <- function(df){
 ### 4. MULTI-WORD CREATION ----
 
 # rake function to create multi-words
-rake <- function(x, term = "lemma", group = "doc_id", ngram_max=5, relevant = c("PROPN", "NOUN", "ADJ", "VERB"), rake.min=2){
+rake <- function(x, group = "doc_id", ngram_max=5, relevant = c("PROPN", "NOUN", "ADJ", "VERB"), rake.min=2){
 
+  if ("upos_original" %in% names(x)){
+    x <- x %>%
+      mutate(upos = upos_original) %>%
+      select(-upos_original)
+  }
+  if ("lemma_original_nomultiwords" %in% names(x)){
+    x <- x %>%
+      mutate(lemma = lemma_original_nomultiwords) %>%
+      select(-"lemma_original_nomultiwords")
+  }
   # rake multi-word creation
-  stats <- keywords_rake(x = x, term = term, group = group, ngram_max = ngram_max,
+  stats <- keywords_rake(x = x, term = "lemma", group = group, ngram_max = ngram_max,
                          relevant = x$upos %in% relevant)
 
   # identify ngrams>1 with reka index>reka.min
@@ -366,8 +376,8 @@ rake <- function(x, term = "lemma", group = "doc_id", ngram_max=5, relevant = c(
     rename(upos_original = upos,
            upos = upos_multiword)
 
-  names(x)[names(x) == term] <- "original"
-  names(x)[names(x) == "multiword"] <- term
+  names(x)[names(x) == "lemma"] <- "lemma_original_nomultiwords"
+  names(x)[names(x) == "multiword"] <- "lemma"
 
 
   obj <- list(dfTag=x, multiwords=stats)
