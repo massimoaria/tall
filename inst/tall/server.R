@@ -279,22 +279,22 @@ server <- function(input, output, session){
       ### REKA Algorithm ####
 
       # to replace with input values
-      # term = input$term
-      # group = input$group
-      # ngram_max = input$ngram_max
-      # multiwordPosSel <- input$multiwordPosSel
-      # rake.min <- input$rake.min
-      term <- "lemma"
-      group <- "doc_id"
-      ngram_max <- 4
+      term = input$term
+      group = input$group
+      ngram_max = input$ngram_max
+      multiwordPosSel <- input$multiwordPosSel
+      rake.min <- input$rake.min
+      #term <- "lemma"
+      #group <- "doc_id"
+      #ngram_max <- 4
       multiwordPosSel <- c("PROPN", "NOUN", "ADJ", "VERB")
-      rake.min <- 2
+      #rake.min <- 2
 
-      obj <- rake(values$dfTag, term = term, group = group, ngram_max=ngram_max, relevant = multiwordPosSel, rake.min=rake.min)
+      obj <- rake(values$dfTag, group = group, ngram_max=ngram_max, relevant = multiwordPosSel, rake.min=rake.min)
 
       values$dfTag <- obj$dfTag
       values$multiwords <- obj$multiwords
-      values$menu <- 4
+      values$menu <- 3
     })
 
     output$multiwordData <- renderDT({
