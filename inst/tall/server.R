@@ -18,6 +18,7 @@ server <- function(input, output, session){
   values$POSTagSelected <- ""
   values$wb <-  openxlsx::createWorkbook()
   values$dfLabel <- dfLabel()
+  values$posMwSel <- c("ADJ", "NOUN", "PROPN") # POS selected by default for multiword creation
   values$myChoices <- "Empty Report"
   #values$token <- token
   values$df <- df
@@ -156,7 +157,8 @@ server <- function(input, output, session){
         # Merge metadata from the original txt object
         values$dfTag <- values$dfTag %>%
           left_join(values$txt %>% select(-text), by = "doc_id") %>%
-          mutate(POSSelected = ifelse(upos %in% c("ADJ","NOUN","PROPN", "VERB"), TRUE, FALSE))
+          posSel(., c("ADJ","NOUN","PROPN", "VERB"))
+          #mutate(POSSelected = ifelse(upos %in% c("ADJ","NOUN","PROPN", "VERB"), TRUE, FALSE))
 
         values$menu <- 1
 
@@ -204,7 +206,6 @@ server <- function(input, output, session){
     },{
       if (!is.null(values$custom_lists)){
         values$dfTag <- mergeCustomLists(values$dfTag,values$custom_lists)
-        values$menu <- 2
       }
     })
 
@@ -239,7 +240,7 @@ server <- function(input, output, session){
   ## 3. PoS Tag Selection ----
     observe({
       output$posTagLists <- renderUI({
-        checkboxGroupInput("posTagLists", "Select POS Tag:",
+        checkboxGroupInput("posTagLists", label=NULL,
                            choices = posTagAll(values$dfTag)$description,
                            selected = (posTagAll(values$dfTag %>% dplyr::filter(POSSelected)))$description
         )
@@ -251,8 +252,8 @@ server <- function(input, output, session){
     },{
       #selected <- (posTagAll(values$dfTag) %>% dplyr::filter(selected==TRUE))$pos
       selected <- (posTagAll(values$dfTag) %>% dplyr::filter(description %in% (input$posTagLists)))$pos
-      values$dfTag$POSSelected <- ifelse(values$dfTag$upos %in% selected, TRUE, FALSE)
-      values$menu <- 3
+      values$dfTag <- posSel(values$dfTag, pos=selected)#ifelse(values$dfTag$upos %in% selected, TRUE, FALSE)
+      values$menu <- 2
     })
 
     output$posTagSelectData <- renderDT({
@@ -273,36 +274,39 @@ server <- function(input, output, session){
 
     ## 4. Multi-Word Creation ----
 
+    output$multiwordPosSel <- renderUI({
+      checkboxGroupInput("multiwordPosSel", label="Multi-Words created by:",
+                         choices = posTagAll(values$dfTag %>% dplyr::filter(!upos %in% c("MULTIWORD", "NGRAM_MERGED", "PUNCT", "SYM", "X", "NUM")))$description,
+                         selected = posTagAll(values$dfTag %>% dplyr::filter(upos %in%  values$posMwSel))$description
+
+      )
+    })
+
     multiword <- eventReactive({
       input$multiwordCreatRun
     },{
+
       ### REKA Algorithm ####
 
       # to replace with input values
       term = input$term
       group = input$group
       ngram_max = input$ngram_max
-      multiwordPosSel <- input$multiwordPosSel
       rake.min <- input$rake.min
-      #term <- "lemma"
-      #group <- "doc_id"
-      #ngram_max <- 4
-      multiwordPosSel <- c("PROPN", "NOUN", "ADJ", "VERB")
-      #rake.min <- 2
 
-      obj <- rake(values$dfTag, group = group, ngram_max=ngram_max, relevant = multiwordPosSel, rake.min=rake.min)
+      values$posMwSel <- gsub(":","",gsub(":.*","",input$multiwordPosSel))
+
+      obj <- rake(values$dfTag, group = group, ngram_max=ngram_max, relevant = values$posMwSel, rake.min=rake.min)
 
       values$dfTag <- obj$dfTag
       values$multiwords <- obj$multiwords
-      values$menu <- 3
     })
 
     output$multiwordData <- renderDT({
       multiword()
       DTformat(values$dfTag %>% dplyr::filter(POSSelected) %>%
                  group_by(doc_id,sentence_id) %>%
-                 mutate(SentenceByPos = paste(lemma, collapse=" ")) %>%
-                 select(doc_id, sentence_id,sentence,SentenceByPos,token,lemma, upos) %>%
+                 select(doc_id, sentence_id,sentence,token,lemma, upos) %>%
                  rename(D_id=doc_id,
                         S_id=sentence_id,
                         Sentence=sentence,
@@ -316,7 +320,6 @@ server <- function(input, output, session){
       multiword()
       DTformat(values$multiwords)
     })
-
 
 
 

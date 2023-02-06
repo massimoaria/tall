@@ -435,7 +435,7 @@ body <- dashboardBody(
             fluidRow(
               column(9,
                      tabsetPanel(type = "tabs",
-                                 tabPanel("Annotated Text with PoS Tag",
+                                 tabPanel("Annotated Text",
                                           shinycssloaders::withSpinner(DT::DTOutput("posTagSelectData"),
                                                                        color = getOption("spinner.color", default = "#4F7942"))
                                  ),
@@ -449,10 +449,8 @@ body <- dashboardBody(
                      div(
                        box(
                          width = 12,
-                         div(h3(strong(em("PoS Tag Selection"))), style="margin-top:-57px"),
+                         div(h3(strong(em("Select POS Tag:"))), style="margin-top:-57px"),
                          tags$hr(),
-                         helpText(h5("Below the list of PoS Tag of your text:")),
-                         br(),
                          fluidRow(column(12,
                                          uiOutput("posTagLists")
                          )),
@@ -499,12 +497,12 @@ body <- dashboardBody(
             fluidRow(
               column(9,
                      tabsetPanel(type = "tabs",
-                                 tabPanel("Annotated Text with Multi-Words",
-                                          shinycssloaders::withSpinner(DT::DTOutput("multiwordData"),
-                                                                       color = getOption("spinner.color", default = "#4F7942"))
-                                 ),
                                  tabPanel("Multi-Word List",
                                           shinycssloaders::withSpinner(DT::DTOutput("multiwordList"),
+                                                                       color = getOption("spinner.color", default = "#4F7942"))
+                                 ),
+                                 tabPanel("Annotated Text including Multi-Words",
+                                          shinycssloaders::withSpinner(DT::DTOutput("multiwordData"),
                                                                        color = getOption("spinner.color", default = "#4F7942"))
                                  )
                      )
@@ -513,62 +511,63 @@ body <- dashboardBody(
                      div(
                        box(
                          width = 12,
-                         div(h3(strong(em("Multi-Word Creation"))), style="margin-top:-57px"),
+                         div(h3(strong(em("Options: "))), style="margin-top:-57px"),
                          tags$hr(),
-                         helpText(h5("Options: ")),
-                         br(),
+                         fluidRow(column(6,
                          selectInput("term",
-                                     "Term",
+                                     "Terms:",
                                      choices = c("Tokens" = "token",
                                                  "Lemmas" = "lemma"),
-                                     selected = "lemma"),
+                                     selected = "lemma")),
+                         column(6,
                          selectInput("group",
-                                     "Group",
-                                     choices = c("Documents" = "doc_id",
+                                     "Group by:",
+                                     choices = c("Docs" = "doc_id",
                                                  "Sentences" = "sentence_id"),
-                                     selected = "doc_id"),
+                                     selected = "doc_id"))),
+                         fluidRow(
+                           column(6,
                          numericInput(inputId = "ngram_max",
                                       label = "Ngrams",
                                       min = 2,
                                       max = 10,
                                       value = 4,
-                                      step = 1),
-                         # multiwordPosSel <- input$multiwordPosSel
-                         uiOutput("multiwordPosSel"), # dinamico, in base ai PoS
+                                      step = 1)),
+                         column(6,
                          numericInput(inputId = "rake.min",
                                       label = "Rake Min",
                                       min = 0,
                                       max = Inf,
                                       value = 2,
-                                      step = 0.1),
-
-                         fluidRow(column(6,
-                                         div(
-                                           align = "center",
-                                           width=12,
-                                           actionButton(inputId="multiwordCreatRun",
-                                                        label = strong("APPLY"),
-                                                        icon = icon(name="play", lib = "font-awesome"),
-                                                        style = style_bttn
-                                           ))
+                                      step = 0.1))
                          ),
-                         column(6,
-                                div(#style=style_bttn,
-                                  title = t_save,
-                                  div(align="center",
-                                      do.call("downloadButton", c(save_bttn, list(
-                                        outputId = "multiwordCreatSave")
+                         uiOutput("multiwordPosSel"),
+                     fluidRow(column(6,
+                                     div(
+                                       align = "center",
+                                       width=12,
+                                       actionButton(inputId="multiwordCreatRun",
+                                                    label = strong("APPLY"),
+                                                    icon = icon(name="play", lib = "font-awesome"),
+                                                    style = style_bttn
+                                       ))
+                     ),
+                     column(6,
+                            div(#style=style_bttn,
+                              title = t_save,
+                              div(align="center",
+                                  do.call("downloadButton", c(save_bttn, list(
+                                    outputId = "multiwordCreatSave")
 
-                                      ))
-                                  )
-                                )
-                         )
-                         )
-                     ), style="margin-top:40px"
+                                  ))
+                              )
+                            )
                      )
-              )
+                     )
+              ), style="margin-top:40px")
 
             )
+          )
           )
   ),
 

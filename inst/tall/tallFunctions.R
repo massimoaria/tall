@@ -628,6 +628,11 @@ popUp <- function(title=NULL, type="success", btn_labels="OK"){
 
 ### UTILITY FUNCTIONS ----
 
+posSel <- function(df, pos){
+  df <- df %>% mutate(POSSelected = ifelse(upos %in% pos, TRUE, FALSE))
+
+}
+
 # SIDEBARMENU DYNAMIC ----
 menuList <- function(menu){
 
@@ -643,6 +648,19 @@ menuList <- function(menu){
              )
            )
          },
+         # "1"={
+         #   list(
+         #     menuItem("Data", tabName = "data", icon = fa_i(name = "file-import"),
+         #              menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
+         #              menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
+         #              menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
+         #     menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib = "glyphicon"), startExpanded = TRUE,
+         #              menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
+         #              menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right"), selected = TRUE),
+         #              menuSubItem("PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right"))
+         #     )
+         #   )
+         # },
          "1"={
            list(
              menuItem("Data", tabName = "data", icon = fa_i(name = "file-import"),
@@ -652,8 +670,9 @@ menuList <- function(menu){
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib = "glyphicon"), startExpanded = TRUE,
                       menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
                       menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right"), selected = TRUE),
+                      menuSubItem("Multi-Word Creation", tabName = "multiwordCreat",icon = icon("chevron-right")),
                       menuSubItem("PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right"))
-             )
+                      )
            )
          },
          "2"={
@@ -665,21 +684,8 @@ menuList <- function(menu){
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib = "glyphicon"), startExpanded = TRUE,
                       menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
                       menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right")),
-                      menuSubItem("PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right"), selected = TRUE)
-                      )
-           )
-         },
-         "3"={
-           list(
-             menuItem("Data", tabName = "data", icon = fa_i(name = "file-import"),
-                      menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
-                      menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
-                      menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
-             menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib = "glyphicon"), startExpanded = TRUE,
-                      menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
-                      menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right")),
-                      menuSubItem("PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right")),
-                      menuSubItem("Multi-Word Creation", tabName = "multiwordCreat",icon = icon("chevron-right"), selected = TRUE)),
+                      menuSubItem("Multi-Word Creation", tabName = "multiwordCreat",icon = icon("chevron-right")),
+                      menuSubItem("PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right")), selected = TRUE),
              menuItem("Overview", tabName = "overview", icon = icon("search", lib="glyphicon")),
              menuItem("Words", tabName = "words", icon = icon("font", lib = "glyphicon"),
                       menuSubItem("Frequency List", tabName = "freqList", icon = icon("chevron-right")),
