@@ -416,18 +416,19 @@ valueBoxesIndices <- function(x){
     summarize(nTokens = n(),
               nChars = nchar(paste(sentence, collapse=" "))) %>%
     ungroup() %>%
-    summarize(avgChars = mean(nChars),
-              avgTokens = mean(nTokens))
+    summarize(avgChars = round(mean(nChars),0),
+              avgTokens = round(mean(nTokens),0))
 
   # 7. # avg length sentence
   avgSentLength <- x %>% group_by(doc_id,sentence_id) %>%
-    summarize(sentLength = n()) %>%
+    summarize(sentLength = n(),
+              nChars = nchar(sentence)) %>%
     ungroup() %>%
-    summarize(avg = mean(sentLength)) %>%
-    as.numeric()
+    summarize(avgTokens = round(mean(sentLength),1),
+              avgChars = round(mean(nChars),1))
 
   # 8. TTR: il rapporto tra la varietà del dizionario (Dictionary) e il numero totale di token in una raccolta testuale (# terms); in altre parole, misura la diversità lessicale in un corpus
-  TTR = nDictionary/nTokens
+  TTR = round(nDictionary/nTokens,2)
 
   # 9.  %hapax
   hapax <- x %>% group_by(token) %>%
@@ -435,7 +436,10 @@ valueBoxesIndices <- function(x){
     filter(n==1) %>%
     ungroup() %>%
     summarize(n=sum(n)) %>%
-    as.numeric()
+    as.numeric() / nTokens *100
+
+  # 10. Guiraud
+  guiraud <- round(nDictionary/sqrt(nTokens),1)
 
   obj <- list(nDoc=nDoc,
               nTokens=nTokens,
@@ -444,9 +448,11 @@ valueBoxesIndices <- function(x){
               nSentences=nSentences,
               avgDocLengthChars=avgDocLength$avgChars,
               avgDocLengthTokens=avgDocLength$avgTokens,
-              avgSentLength=avgSentLength,
+              avgSentLengthTokens=avgSentLength$avgTokens,
+              avgSentLengthChars=avgSentLength$avgChars,
               TTR=TTR,
-              hapax=hapax
+              hapax=round(hapax,1),
+              guiraud=guiraud
   )
 }
 
@@ -656,7 +662,7 @@ menuList <- function(menu){
   switch(as.character(menu),
          "0"={
            list(
-             menuItem("Data", tabName = "data", icon = fa_i(name = "file-import"),
+             menuItem("Data", tabName = "data", icon = fa_i(name = "file-import", lib="glyphicon"),
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
@@ -680,7 +686,7 @@ menuList <- function(menu){
          # },
          "1"={
            list(
-             menuItem("Data", tabName = "data", icon = fa_i(name = "file-import"),
+             menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
@@ -694,7 +700,7 @@ menuList <- function(menu){
          },
          "2"={
            list(
-             menuItem("Data", tabName = "data", icon = fa_i(name = "file-import"),
+             menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
@@ -727,7 +733,7 @@ menuList <- function(menu){
          },
          {
            list(
-             menuItem("Data", tabName = "data", icon = fa_i(name = "file-import"),
+             menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right")))
@@ -737,15 +743,40 @@ menuList <- function(menu){
 }
 
 # DATA TABLE FORMAT ----
-DTformat <- function(df, nrow=10){
+DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, right=NULL, numeric=NULL, dom=TRUE, size='85%'){
+
+  if (isTRUE(pagelength)){
+    buttons = list(list(extend = 'pageLength'),
+                   list(extend = 'excel',
+                        filename = paste0(filename,"_tall_",Sys.Date()),
+                        title = " ",
+                        header = TRUE,
+                        exportOptions = list(
+                          modifier = list(page = "all")
+                        )))
+  } else{
+    buttons = list(list(extend = 'excel',
+                        filename = paste0(filename,"_tall_",Sys.Date()),
+                        title = " ",
+                        header = TRUE,
+                        exportOptions = list(
+                          modifier = list(page = "all")
+                        )))
+  }
+
+  if (isTRUE(dom)){
+    dom <- "Bfrtip"
+  } else{
+    dom <- "Bt"
+  }
+
   # da completare
-  DT::datatable(df,escape = FALSE,rownames = FALSE, extensions = c("Buttons"),
+  tab <- DT::datatable(df,escape = FALSE,rownames = FALSE, extensions = c("Buttons"),
                 options = list(
                   pageLength = nrow,
                   autoWidth = FALSE, scrollX = TRUE,
-                  dom = 'Bfrtip',
-                  buttons = list(list(extend = 'pageLength'),
-                                 list(extend = 'print')),
+                  dom = dom,
+                  buttons = buttons,
                   lengthMenu = list(c(10, 25, 50, -1),
                                     c('10 rows', '25 rows', '50 rows', 'Show all')),
                   columnDefs = list(list(
@@ -758,8 +789,40 @@ DTformat <- function(df, nrow=10){
       names(df),
       backgroundColor = 'white',
       textAlign = 'center',
-      fontSize = '85%'
+      fontSize = size
     )
+
+  ## left aligning
+
+  if (!is_null(left)){
+    tab <- tab %>%
+      DT::formatStyle(
+        names(df)[left],
+        backgroundColor = 'white',
+        textAlign = 'left',
+        fontSize = size
+      )
+  }
+
+  # right aligning
+  if (!is_null(right)){
+    tab <- tab %>%
+      DT::formatStyle(
+        names(df)[right],
+        backgroundColor = 'white',
+        textAlign = 'right',
+        fontSize = size
+      )
+  }
+
+  # numeric round
+  if (!is_null(numeric)){
+    tab <- tab %>%
+      formatRound(names(df)[c(numeric)], digits=2)
+  }
+
+  tab
+
 }
 
 
