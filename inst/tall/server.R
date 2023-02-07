@@ -126,7 +126,7 @@ server <- function(input, output, session){
 
   ### PRE-PROCESSING ----
 
-  ## 1. Tokenization & PoS Tagging ----
+  ## Tokenization & PoS Tagging ----
 
   output$optionsTokenization <- renderUI({
       selectInput(
@@ -180,7 +180,7 @@ server <- function(input, output, session){
       }
     })
 
-  ## 2. Custom Term List Merging ----
+  ## Custom Term List Merging ----
 
     observeEvent(
       ignoreNULL = TRUE,
@@ -236,43 +236,7 @@ server <- function(input, output, session){
       }
     })
 
-
-  ## 3. PoS Tag Selection ----
-    observe({
-      output$posTagLists <- renderUI({
-        checkboxGroupInput("posTagLists", label=NULL,
-                           choices = posTagAll(values$dfTag)$description,
-                           selected = (posTagAll(values$dfTag %>% dplyr::filter(POSSelected)))$description
-        )
-      })
-    })
-
-    PosFilterData <- eventReactive({
-      input$posTagSelectRun
-    },{
-      #selected <- (posTagAll(values$dfTag) %>% dplyr::filter(selected==TRUE))$pos
-      selected <- (posTagAll(values$dfTag) %>% dplyr::filter(description %in% (input$posTagLists)))$pos
-      values$dfTag <- posSel(values$dfTag, pos=selected)#ifelse(values$dfTag$upos %in% selected, TRUE, FALSE)
-      values$menu <- 2
-    })
-
-    output$posTagSelectData <- renderDT({
-      PosFilterData()
-      #DTformat(values$dfTag)
-      DTformat(values$dfTag %>% dplyr::filter(POSSelected) %>%
-                 group_by(doc_id,sentence_id) %>%
-                 mutate(SentenceByPos = paste(lemma, collapse=" ")) %>%
-                 select(doc_id, sentence_id,sentence,SentenceByPos,token,lemma, upos) %>%
-                 rename(D_id=doc_id,
-                        S_id=sentence_id,
-                        Sentence=sentence,
-                        Token=token,
-                        Lemma=lemma,
-                        POSTag=upos)
-      )
-    })
-
-    ## 4. Multi-Word Creation ----
+    ## Multi-Word Creation ----
 
     output$multiwordPosSel <- renderUI({
       checkboxGroupInput("multiwordPosSel", label="Multi-Words created by:",
@@ -322,57 +286,229 @@ server <- function(input, output, session){
     })
 
 
+    ## PoS Tag Selection ----
 
-  ###Export Tall analysis in Rdata
+    observe({
+      output$posTagLists <- renderUI({
+        checkboxGroupInput("posTagLists", label=NULL,
+                           choices = posTagAll(values$dfTag)$description,
+                           selected = (posTagAll(values$dfTag %>% dplyr::filter(POSSelected)))$description
+        )
+      })
+    })
 
-  ## Pre-processing - export function ----
+    PosFilterData <- eventReactive({
+      input$posTagSelectRun
+    },{
+      #selected <- (posTagAll(values$dfTag) %>% dplyr::filter(selected==TRUE))$pos
+      selected <- (posTagAll(values$dfTag) %>% dplyr::filter(description %in% (input$posTagLists)))$pos
+      values$dfTag <- posSel(values$dfTag, pos=selected)#ifelse(values$dfTag$upos %in% selected, TRUE, FALSE)
+      values$menu <- 2
+    })
 
-  output$preProSave <- downloadHandler(
-    filename = function() {
-      paste("TallAnalysis-Export-File-", Sys.Date(), ".rdata" , sep="")
-    },
-    content <- function(file) {
+    output$posTagSelectData <- renderDT({
+      PosFilterData()
+      DTformat(values$dfTag %>% dplyr::filter(POSSelected) %>%
+                 group_by(doc_id,sentence_id) %>%
+                 mutate(SentenceByPos = paste(lemma, collapse=" ")) %>%
+                 select(doc_id, sentence_id,sentence,SentenceByPos,token,lemma, upos) %>%
+                 rename(D_id=doc_id,
+                        S_id=sentence_id,
+                        Sentence=sentence,
+                        Token=token,
+                        Lemma=lemma,
+                        POSTag=upos)
+      )
+    })
 
-      tall_analysis <- list(df=values$txt)
 
-      save(tall_analysis, file=file)
-    }, contentType = "rdata"
-  )
 
 
   ## OVERVIEW ----
 
+  ## Main info ----
+
+    # da cambiare utilizzando la funzione DTformat
+
+    # output$MainInfo <- DT::renderDT({
+    #   DT::datatable(values$TABvb , rownames = FALSE, extensions = c("Buttons"),
+    #                 options = list(pageLength = 50, dom = 'Bfrtip',ordering=F,
+    #                                buttons = list('pageLength',
+    #                                               list(extend = 'copy'),
+    #                                               list(extend = 'csv',
+    #                                                    filename = 'Main_Information',
+    #                                                    title = " ",
+    #                                                    header = TRUE),
+    #                                               list(extend = 'excel',
+    #                                                    filename = 'Main_Information',
+    #                                                    title = " ",
+    #                                                    header = TRUE),
+    #                                               list(extend = 'pdf',
+    #                                                    filename = 'Main_Information',
+    #                                                    title = " ",
+    #                                                    header = TRUE),
+    #                                               list(extend = 'print')),
+    #                                columnDefs = list(list(className = 'dt-center', targets = "_all"),
+    #                                                  list(width = '350px', targets = 0))),
+    #                 class = 'cell-border compact stripe') %>%
+    #     formatStyle(names(values$TABvb)[1],  backgroundColor = 'white',textAlign = 'left', fontSize = '110%') %>%
+    #     formatStyle(names(values$TABvb)[2],  backgroundColor = 'white',textAlign = 'right', fontSize = '110%')
+    # })
+
+    #### box1 ---------------
+    output$nDoc <- renderValueBox({
+      TAB <- valueBoxesIndices(values$dfTag)
+      values$TABvb <- TAB
+      valueBox(value = p(TAB[TAB$Description=="Docs", 1], style = 'font-size:16px;color:white;'),
+               subtitle = p(strong((TAB[TAB$Description=="Docs", 2])), style = 'font-size:36px;color:white;', align="center"),
+               icon = fa_i(name="hourglass"), color = "blue",
+               width = NULL)
+    })
+
+    #### box2 ---------------
+    output$nTokens <- renderValueBox({
+      TAB <- values$TABvb
+      valueBox(value = p(TAB[TAB$Description=="Tokens", 1], style = 'font-size:16px;color:white;'),
+               subtitle = p(strong(TAB[TAB$Description=="Tokens", 2]), style = 'font-size:36px;color:white;',align="center"),
+               icon = fa_i(name="user"), color = "light-blue",
+               width = NULL)
+    })
+
+    #### box3 ------------
+    output$nDictionary <- renderValueBox({
+      TAB <- values$TABvb
+      valueBox(value = p(TAB[TAB$Description=="Dictionary", 1], style = 'font-size:16px;color:white;'),
+               subtitle = p(strong(TAB[TAB$Description=="Dictionary", 2]), style = 'font-size:36px;color:white;',align="center"),
+               icon = fa_i(name="spell-check"), color = "aqua",
+               width = NULL)
+    })
+
+    #### box4 ---------------
+    output$nLemmas <- renderValueBox({
+      TAB <- values$TABvb
+      valueBox(value = p("Lemmas", style = 'font-size:16px;color:white;'),
+               subtitle = p(strong(TAB[TAB$Description=="Lemmas", 2]), style = 'font-size:36px;color:white;',align="center"),
+               icon = fa_i(name ="book"), color = "blue",
+               width = NULL)
+    })
+
+    #### box5 --------------------
+    output$nSentences <- renderValueBox({
+      TAB <- values$TABvb
+      valueBox(value = p(TAB[TAB$Description=="Sentences", 1], style = 'font-size:16px;color:white;'),
+               subtitle = p(strong(TAB[TAB$Description=="Sentences", 2]), style = 'font-size:36px;color:white;',align="center"),
+               icon = fa_i(name="pen-fancy"), color = "light-blue",
+               width = NULL)
+    })
+
+    #### box6 -------------
+    output$avgDocLength <- renderValueBox({
+      TAB <- values$TABvb
+      valueBox(value = p(TAB[TAB$Description=="Average Documents Length", 1], style = 'font-size:16px;color:white;'),
+               subtitle = p(strong(TAB[TAB$Description=="Average Document Length", 2]), style = 'font-size:36px;color:white;',align="center"),
+               icon = fa_i(name="file"), color = "aqua",
+               width = NULL)
+    })
+
+    #### box7 ----------------
+    output$avgSentLength <- renderValueBox({
+      TAB <- values$TABvb
+      valueBox(value = p(TAB[TAB$Description=="Average Sentences Length", 1], style = 'font-size:16px;color:white;'),
+               subtitle = p(strong(TAB[TAB$Description=="Average Sentences Length", 2]), style = 'font-size:36px;color:white;',align="center"),
+               icon = fa_i(name="layer-group"), color = "blue",
+               width = NULL)
+    })
+
+    #### box8 ---------------
+    output$TTR <- renderValueBox({
+      TAB <- values$TABvb
+      valueBox(value = p(strong("TTR"), style = 'font-size:16px;color:white;'),
+               subtitle = p(strong(TAB[TAB$Description=="TTR", 2]," %"), style = 'font-size:36px;color:white;',align="center"),
+               icon = icon("globe",lib = "glyphicon"), color = "light-blue",
+               width = NULL)
+    })
+
+    #### box9 ---------------
+    output$hapax <- renderValueBox({
+      TAB <- values$TABvb
+      valueBox(value = p(TAB[TAB$Description=="Hapax", 1], style = 'font-size:16px;color:white;'),
+               subtitle = p(strong(TAB[TAB$Description=="Hapax", 2]), style = 'font-size:36px;color:white;',align="center"),
+               icon = fa_i(name="calendar"), color = "aqua",
+               width = NULL)
+    })
+
+    #### box10 ------------------
+    output$NEW <- renderValueBox({
+      TAB <- values$TABvb
+      valueBox(value = p(strong("Annual Growth Rate"), style = 'font-size:16px;color:white;'),
+               subtitle = p(strong(TAB[TAB$Description=="Annual Growth Rate %", 2]," %"), style = 'font-size:36px;color:white;',align="center"),
+               icon = icon("arrow-up", lib="glyphicon"), color = "blue",
+               width = NULL)
+    })
+
+    #### box11 ------
+    output$NEW2 <- renderValueBox({
+      TAB <- values$TABvb
+      valueBox(value = p(TAB[TAB$Description=="Co-Authors per Doc", 1], style = 'font-size:16px;color:white;'),
+               subtitle = p(strong(TAB[TAB$Description=="Co-Authors per Doc", 2]), style = 'font-size:36px;color:white;',align="center"),
+               icon = fa_i(name="users"), color = "light-blue",
+               width = NULL)
+    })
+
+    #### box12 -------
+    output$NEW3 <- renderValueBox({
+      TAB <- values$TABvb
+      valueBox(value = p(TAB[TAB$Description=="Average citations per doc", 1], style = 'font-size:16px;color:white;'),
+               subtitle = p(strong(TAB[TAB$Description=="Average citations per doc", 2]), style = 'font-size:36px;color:white;',align="center"),
+               icon = icon("volume-up", lib = "glyphicon"), color = "aqua",
+               width = NULL)
+    })
+
+    observeEvent(input$reportMI,{
+      if(!is.null(values$TABvb)){
+        sheetname <- "MainInfo"
+        list_df <- list(values$TABvb)
+        res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
+        values$wb <- res$wb
+        popUp(title="Main Information", type="success")
+        values$myChoices <- sheets(values$wb)
+      } else {
+        popUp(type="error")
+      }
+    })
+
 
   ### WORDS ----
+
   ## Frequency List ----
 
-  wordcloud <- eventReactive(input$overviewApply,{
-    # INPUT DA AGGIUNGERE
-    # n <-  input$wcN numer of words
-    # size <-  input$wcSize
-    # scale <- input$wcScale scale transformation (log, etc.)
-    n <- 100
-    size <- 2
-    scale <- "identity"
-
-    values$wcDf <- distrib(values$token, scale=scale) %>%
-      slice_head(n=n) %>%
-      rename(word = text,
-             freq = n)
-    wordcloud2(values$wcDf,
-               size = size,
-               color = "random-light",
-               backgroundColor = "transparent")
-  })
-
-  output$overviewPlot <- renderWordcloud2({
-    wordcloud()
-  })
-
-  output$overviewTable <- renderDT({
-    wordcloud()
-    values$wcDf
-  })
+  # wordcloud <- eventReactive(input$overviewApply,{
+  #   # INPUT DA AGGIUNGERE
+  #   # n <-  input$wcN numer of words
+  #   # size <-  input$wcSize
+  #   # scale <- input$wcScale scale transformation (log, etc.)
+  #   n <- 100
+  #   size <- 2
+  #   scale <- "identity"
+  #
+  #   values$wcDf <- distrib(values$token, scale=scale) %>%
+  #     slice_head(n=n) %>%
+  #     rename(word = text,
+  #            freq = n)
+  #   wordcloud2(values$wcDf,
+  #              size = size,
+  #              color = "random-light",
+  #              backgroundColor = "transparent")
+  # })
+  #
+  # output$overviewPlot <- renderWordcloud2({
+  #   wordcloud()
+  # })
+  #
+  # output$overviewTable <- renderDT({
+  #   wordcloud()
+  #   values$wcDf
+  # })
 
   ## Clustering ----
 

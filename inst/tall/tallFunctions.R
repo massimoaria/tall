@@ -633,6 +633,24 @@ posSel <- function(df, pos){
 
 }
 
+
+###Export Tall analysis in .tall file ----
+
+# Pre-processing - export function
+
+# output$preProSave <- downloadHandler(
+#   filename = function() {
+#     paste("TallAnalysis-Export-File-", Sys.Date(), ".rdata" , sep="")
+#   },
+#   content <- function(file) {
+#
+#     tall_analysis <- list(df=values$txt)
+#
+#     save(tall_analysis, file=file)
+#   }, contentType = "rdata"
+# )
+
+
 # SIDEBARMENU DYNAMIC ----
 menuList <- function(menu){
 
