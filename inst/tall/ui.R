@@ -567,30 +567,31 @@ body <- dashboardBody(
               ),
               fluidRow(
                 tabsetPanel(type = "tabs", id = "maininfo",
-                            tabPanel("Plot",
+                            tabPanel("Overview",
                                      fluidRow(
                                        br(),
                                        column(3,
                                               valueBoxOutput("nDoc", width = "33vh"),
-                                              valueBoxOutput("nTokens", width = "33vh"),
-                                              valueBoxOutput("nDictionary", width = "33vh")),
+                                              valueBoxOutput("avgDocLengthChar", width = "33vh"),
+                                              valueBoxOutput("avgDocLengthTokens", width = "33vh")),
                                        column(3,
-                                              valueBoxOutput("nLemmas", width = "33vh"),
                                               valueBoxOutput("nSentences", width = "33vh"),
-                                              valueBoxOutput("avgDocLength", width = "33vh")),
+                                              valueBoxOutput("avgSentLengthChar", width = "33vh"),
+                                              valueBoxOutput("avgSentLengthTokens", width = "33vh")),
                                        column(3,
-                                              valueBoxOutput("avgSentLength", width = "33vh"),
+                                              valueBoxOutput("nDictionary", width = "33vh"),
+                                              valueBoxOutput("nTokens", width = "33vh"),
+                                              valueBoxOutput("nLemmas", width = "33vh")),
+                                       column(3,
                                               valueBoxOutput("TTR", width = "33vh"),
-                                              valueBoxOutput("hapax", width = "33vh")),
-                                       column(3,
-                                              valueBoxOutput("NEW", width = "33vh"),
-                                              valueBoxOutput("NEW2", width = "33vh"),
-                                              valueBoxOutput("NEW3", width = "33vh")),
+                                              valueBoxOutput("hapax", width = "33vh"),
+                                              valueBoxOutput("guiraud", width = "33vh")),
                                      )
-                            )),
+                            ),
                 tabPanel("Table",
-                         shinycssloaders::withSpinner(DT::DTOutput(outputId = "MainInfo", width = 700)
+                         shinycssloaders::withSpinner(DT::DTOutput(outputId = "overviewData", width = 700)
                          ), align ="center")
+                )
               )
             )
     ),

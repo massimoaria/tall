@@ -326,143 +326,118 @@ server <- function(input, output, session){
 
   ## OVERVIEW ----
 
-  ## Main info ----
+    ## BOX ----
 
-    # da cambiare utilizzando la funzione DTformat
-
-    # output$MainInfo <- DT::renderDT({
-    #   DT::datatable(values$TABvb , rownames = FALSE, extensions = c("Buttons"),
-    #                 options = list(pageLength = 50, dom = 'Bfrtip',ordering=F,
-    #                                buttons = list('pageLength',
-    #                                               list(extend = 'copy'),
-    #                                               list(extend = 'csv',
-    #                                                    filename = 'Main_Information',
-    #                                                    title = " ",
-    #                                                    header = TRUE),
-    #                                               list(extend = 'excel',
-    #                                                    filename = 'Main_Information',
-    #                                                    title = " ",
-    #                                                    header = TRUE),
-    #                                               list(extend = 'pdf',
-    #                                                    filename = 'Main_Information',
-    #                                                    title = " ",
-    #                                                    header = TRUE),
-    #                                               list(extend = 'print')),
-    #                                columnDefs = list(list(className = 'dt-center', targets = "_all"),
-    #                                                  list(width = '350px', targets = 0))),
-    #                 class = 'cell-border compact stripe') %>%
-    #     formatStyle(names(values$TABvb)[1],  backgroundColor = 'white',textAlign = 'left', fontSize = '110%') %>%
-    #     formatStyle(names(values$TABvb)[2],  backgroundColor = 'white',textAlign = 'right', fontSize = '110%')
-    # })
 
     #### box1 ---------------
     output$nDoc <- renderValueBox({
-      TAB <- valueBoxesIndices(values$dfTag)
-      values$TABvb <- TAB
-      valueBox(value = p(TAB[TAB$Description=="Docs", 1], style = 'font-size:16px;color:white;'),
-               subtitle = p(strong((TAB[TAB$Description=="Docs", 2])), style = 'font-size:36px;color:white;', align="center"),
-               icon = fa_i(name="hourglass"), color = "blue",
+      values$vb <- valueBoxesIndices(values$dfTag)
+      valueBox(value = p("Documents", style = 'font-size:16px;color:white;'),
+               subtitle = p(strong(values$vb$nDoc), style = 'font-size:36px;color:white;', align="center"),
+               icon = fa_i(name="layer-group"), color = "olive",
                width = NULL)
     })
 
     #### box2 ---------------
-    output$nTokens <- renderValueBox({
-      TAB <- values$TABvb
-      valueBox(value = p(TAB[TAB$Description=="Tokens", 1], style = 'font-size:16px;color:white;'),
-               subtitle = p(strong(TAB[TAB$Description=="Tokens", 2]), style = 'font-size:36px;color:white;',align="center"),
-               icon = fa_i(name="user"), color = "light-blue",
+    output$avgDocLengthChar <- renderValueBox({
+      valueBox(value = p("Doc Avg Length in Chars", style = 'font-size:16px;color:white;'),
+               subtitle = p(strong(values$vb$avgDocLengthChars), style = 'font-size:36px;color:white;', align="center"),
+               icon = fa_i(name="layer-group"), color = "olive",
                width = NULL)
     })
 
     #### box3 ------------
-    output$nDictionary <- renderValueBox({
-      TAB <- values$TABvb
-      valueBox(value = p(TAB[TAB$Description=="Dictionary", 1], style = 'font-size:16px;color:white;'),
-               subtitle = p(strong(TAB[TAB$Description=="Dictionary", 2]), style = 'font-size:36px;color:white;',align="center"),
-               icon = fa_i(name="spell-check"), color = "aqua",
+    output$avgDocLengthTokens <- renderValueBox({
+      valueBox(value = p("Doc Avg Length in Tokens", style = 'font-size:16px;color:white;'),
+               subtitle = p(strong(values$vb$avgDocLengthTokens), style = 'font-size:36px;color:white;', align="center"),
+               icon = fa_i(name="layer-group"), color = "olive",
                width = NULL)
     })
 
     #### box4 ---------------
-    output$nLemmas <- renderValueBox({
-      TAB <- values$TABvb
-      valueBox(value = p("Lemmas", style = 'font-size:16px;color:white;'),
-               subtitle = p(strong(TAB[TAB$Description=="Lemmas", 2]), style = 'font-size:36px;color:white;',align="center"),
-               icon = fa_i(name ="book"), color = "blue",
+    output$nSentences <- renderValueBox({
+      valueBox(value = p("Sentences", style = 'font-size:16px;color:white;'),
+               subtitle = p(strong(values$vb$nSentences), style = 'font-size:36px;color:white;', align="center"),
+               icon = icon(name="align-left", lib="glyphicon"), color = "olive",
                width = NULL)
     })
 
     #### box5 --------------------
-    output$nSentences <- renderValueBox({
-      TAB <- values$TABvb
-      valueBox(value = p(TAB[TAB$Description=="Sentences", 1], style = 'font-size:16px;color:white;'),
-               subtitle = p(strong(TAB[TAB$Description=="Sentences", 2]), style = 'font-size:36px;color:white;',align="center"),
-               icon = fa_i(name="pen-fancy"), color = "light-blue",
+    output$avgSentLengthChar <- renderValueBox({
+      valueBox(value = p("Sent Avg Length in Chars", style = 'font-size:16px;color:white;'),
+               subtitle = p(strong(values$vb$avgSentLengthChars), style = 'font-size:36px;color:white;', align="center"),
+               icon = icon(name="align-left", lib="glyphicon"), color = "olive",
                width = NULL)
     })
 
     #### box6 -------------
-    output$avgDocLength <- renderValueBox({
-      TAB <- values$TABvb
-      valueBox(value = p(TAB[TAB$Description=="Average Documents Length", 1], style = 'font-size:16px;color:white;'),
-               subtitle = p(strong(TAB[TAB$Description=="Average Document Length", 2]), style = 'font-size:36px;color:white;',align="center"),
-               icon = fa_i(name="file"), color = "aqua",
+    output$avgSentLengthTokens <- renderValueBox({
+      valueBox(value = p("Sent Avg Length in Tokens", style = 'font-size:16px;color:white;'),
+               subtitle = p(strong(values$vb$avgSentLengthTokens), style = 'font-size:36px;color:white;', align="center"),
+               icon = icon(name="align-left", lib="glyphicon"), color = "olive",
                width = NULL)
     })
 
     #### box7 ----------------
-    output$avgSentLength <- renderValueBox({
-      TAB <- values$TABvb
-      valueBox(value = p(TAB[TAB$Description=="Average Sentences Length", 1], style = 'font-size:16px;color:white;'),
-               subtitle = p(strong(TAB[TAB$Description=="Average Sentences Length", 2]), style = 'font-size:36px;color:white;',align="center"),
-               icon = fa_i(name="layer-group"), color = "blue",
+    output$nDictionary <- renderValueBox({
+      valueBox(value = p("Dictionary", style = 'font-size:16px;color:white;'),
+               subtitle = p(strong(values$vb$nDictionary), style = 'font-size:36px;color:white;', align="center"),
+               icon = icon(name="font", lib="glyphicon"), color = "olive",
                width = NULL)
     })
 
     #### box8 ---------------
-    output$TTR <- renderValueBox({
-      TAB <- values$TABvb
-      valueBox(value = p(strong("TTR"), style = 'font-size:16px;color:white;'),
-               subtitle = p(strong(TAB[TAB$Description=="TTR", 2]," %"), style = 'font-size:36px;color:white;',align="center"),
-               icon = icon("globe",lib = "glyphicon"), color = "light-blue",
+    output$nTokens <- renderValueBox({
+      valueBox(value = p("Tokens", style = 'font-size:16px;color:white;'),
+               subtitle = p(strong(values$vb$nTokens), style = 'font-size:36px;color:white;', align="center"),
+               icon = icon(name="font", lib="glyphicon"), color = "olive",
                width = NULL)
     })
 
     #### box9 ---------------
-    output$hapax <- renderValueBox({
-      TAB <- values$TABvb
-      valueBox(value = p(TAB[TAB$Description=="Hapax", 1], style = 'font-size:16px;color:white;'),
-               subtitle = p(strong(TAB[TAB$Description=="Hapax", 2]), style = 'font-size:36px;color:white;',align="center"),
-               icon = fa_i(name="calendar"), color = "aqua",
+    output$nLemmas <- renderValueBox({
+      valueBox(value = p("Lemmas", style = 'font-size:16px;color:white;'),
+               subtitle = p(strong(values$vb$nLemmas), style = 'font-size:36px;color:white;', align="center"),
+               icon = icon(name="font", lib="glyphicon"), color = "olive",
                width = NULL)
     })
 
     #### box10 ------------------
-    output$NEW <- renderValueBox({
-      TAB <- values$TABvb
-      valueBox(value = p(strong("Annual Growth Rate"), style = 'font-size:16px;color:white;'),
-               subtitle = p(strong(TAB[TAB$Description=="Annual Growth Rate %", 2]," %"), style = 'font-size:36px;color:white;',align="center"),
-               icon = icon("arrow-up", lib="glyphicon"), color = "blue",
+    output$TTR <- renderValueBox({
+      valueBox(value = p("TTR", style = 'font-size:16px;color:white;'),
+               subtitle = p(strong(values$vb$TTR), style = 'font-size:36px;color:white;', align="center"),
+               icon = icon(name="stats", lib="glyphicon"), color = "olive",
                width = NULL)
     })
 
     #### box11 ------
-    output$NEW2 <- renderValueBox({
-      TAB <- values$TABvb
-      valueBox(value = p(TAB[TAB$Description=="Co-Authors per Doc", 1], style = 'font-size:16px;color:white;'),
-               subtitle = p(strong(TAB[TAB$Description=="Co-Authors per Doc", 2]), style = 'font-size:36px;color:white;',align="center"),
-               icon = fa_i(name="users"), color = "light-blue",
+    output$hapax <- renderValueBox({
+      valueBox(value = p("Hapax (%)", style = 'font-size:16px;color:white;'),
+               subtitle = p(strong(values$vb$hapax), style = 'font-size:36px;color:white;', align="center"),
+               icon = icon(name="stats", lib="glyphicon"), color = "olive",
                width = NULL)
     })
 
     #### box12 -------
-    output$NEW3 <- renderValueBox({
-      TAB <- values$TABvb
-      valueBox(value = p(TAB[TAB$Description=="Average citations per doc", 1], style = 'font-size:16px;color:white;'),
-               subtitle = p(strong(TAB[TAB$Description=="Average citations per doc", 2]), style = 'font-size:36px;color:white;',align="center"),
-               icon = icon("volume-up", lib = "glyphicon"), color = "aqua",
+    output$guiraud <- renderValueBox({
+      valueBox(value = p("Guiraud Index", style = 'font-size:16px;color:white;'),
+               subtitle = p(strong(values$vb$guiraud), style = 'font-size:36px;color:white;', align="center"),
+               icon = icon(name="stats", lib="glyphicon"), color = "olive",
                width = NULL)
     })
+
+    ## Overview Table ----
+
+    output$overviewData <- renderDT(server = FALSE,{
+      vb <- data.frame(Description=c("Documents", "Tokens", "Dictionary", "Lemmas", "Sentences",
+                                     "Docs Avg Length in Chars", "Doc Avg Length in Tokens",
+                                     "Sent Avg Length in Tokens", "Sent Avg Length in Chars",
+                                     "TTR", "Hapax (%)", "Guiraud Index"),
+                       Values=unlist(values$vb))
+      DTformat(vb,n=12, left=1, right=2, numeric=2, pagelength=FALSE, dom=FALSE, size='110%', filename="Overview")
+    })
+
+
 
     observeEvent(input$reportMI,{
       if(!is.null(values$TABvb)){
