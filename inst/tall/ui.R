@@ -564,11 +564,36 @@ body <- dashboardBody(
                          ))
                   )),
 
+              ),
+              fluidRow(
+                tabsetPanel(type = "tabs", id = "maininfo",
+                            tabPanel("Plot",
+                                     fluidRow(
+                                       br(),
+                                       column(3,
+                                              valueBoxOutput("nDoc", width = "33vh"),
+                                              valueBoxOutput("nTokens", width = "33vh"),
+                                              valueBoxOutput("nDictionary", width = "33vh")),
+                                       column(3,
+                                              valueBoxOutput("nLemmas", width = "33vh"),
+                                              valueBoxOutput("nSentences", width = "33vh"),
+                                              valueBoxOutput("avgDocLength", width = "33vh")),
+                                       column(3,
+                                              valueBoxOutput("avgSentLength", width = "33vh"),
+                                              valueBoxOutput("TTR", width = "33vh"),
+                                              valueBoxOutput("hapax", width = "33vh")),
+                                       column(3,
+                                              valueBoxOutput("NEW", width = "33vh"),
+                                              valueBoxOutput("NEW2", width = "33vh"),
+                                              valueBoxOutput("NEW3", width = "33vh")),
+                                     )
+                            )),
+                tabPanel("Table",
+                         shinycssloaders::withSpinner(DT::DTOutput(outputId = "MainInfo", width = 700)
+                         ), align ="center")
               )
-              ##VALUES BOXS HERE!
             )
     ),
-
     ### WORDS ----
 
     ## Frequency List----
