@@ -388,7 +388,8 @@ rake <- function(x, group = "doc_id", ngram_max=5, relevant = c("PROPN", "NOUN",
 ### OVERVIEW ----
 valueBoxesIndices <- function(x){
 
-  # LA PUNTEGGIATURA E I NUMERI DEVONO ESSERE ELIMINATI PRIMA DEL CONTEGGIO???????
+  x <- x %>%
+    filter(!upos %in% c("PUNCT", "SYM", "NUM", "X"))
 
   # 1. # of documents
   nDoc <- length(unique(x$doc_id))
@@ -427,8 +428,6 @@ valueBoxesIndices <- function(x){
 
   # 8. TTR: il rapporto tra la varietà del dizionario (Dictionary) e il numero totale di token in una raccolta testuale (# terms); in altre parole, misura la diversità lessicale in un corpus
   TTR = nDictionary/nTokens
-
-  # HAPAX SU TOKEN O LEMMA?????????
 
   # 9.  %hapax
   hapax <- x %>% group_by(token) %>%
