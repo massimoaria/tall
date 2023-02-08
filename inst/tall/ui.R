@@ -660,8 +660,9 @@ body <- dashboardBody(
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
                             tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("nounTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                                     shinycssloaders::withSpinner(DT::DTOutput("nounTable", width = 700),
+                                                                  color = getOption("spinner.color", default = "#4F7942")),
+                                     align="center"
                             )
                 )
               )

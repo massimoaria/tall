@@ -386,6 +386,56 @@ rake <- function(x, group = "doc_id", ngram_max=5, relevant = c("PROPN", "NOUN",
 
 
 ### OVERVIEW ----
+
+# Term Frequency Distributions
+freqByPos <- function(df, term="lemma", pos="NOUN"){
+  obj <- df %>%
+    dplyr::filter(upos %in% pos) %>%
+    count(term=.[[term]]) %>%
+    arrange(desc(n))
+}
+
+# freqPlotly ----
+freqPlotly <- function(dfPlot,x,y,n=10, xlabel,ylabel, scale=c("identity", "log")){
+  # function to build and plot plotly horizontal barplot
+  dfPlot <- dfPlot %>% slice_head(n=n)
+
+  switch(scale,
+         log={
+           dfPlot$scale <- log(obj$n)
+         }
+  )
+
+  fig1 <- plot_ly(data=dfPlot , x = dfPlot[[x]], y = ~reorder(dfPlot[[y]], dfPlot[[x]]),
+                  type = 'bar', orientation = 'h',
+                  marker = list(color = 'rgba(79, 121, 66, 0.6)',
+                                line = list(color = 'rgba(79, 121, 66, 1.0)', width = 1)))
+
+  fig1 <- fig1 %>% layout(yaxis = list(title =ylabel, showgrid = FALSE, showline = FALSE, showticklabels = TRUE, domain= c(0, 1)),
+                          xaxis = list(title = xlabel, zeroline = FALSE, showline = FALSE, showticklabels = TRUE, showgrid = FALSE),
+                          plot_bgcolor  = "rgba(0, 0, 0, 0)",
+                          paper_bgcolor = "rgba(0, 0, 0, 0)")
+
+  fig1 <- fig1 %>% add_annotations(xref = 'x1', yref = 'y',
+                                   x = dfPlot[[x]] + 5,  y = dfPlot[[y]],
+                                   text = dfPlot[[x]],
+                                   font = list(family = 'Arial', size = 12, color = 'rgb(79, 121, 66)'),
+                                   showarrow = FALSE) %>%
+    config(displaylogo = FALSE,
+           modeBarButtonsToRemove = c(
+             #'toImage',
+             'sendDataToCloud',
+             'pan2d',
+             'select2d',
+             'lasso2d',
+             'toggleSpikelines',
+             'hoverClosestCartesian',
+             'hoverCompareCartesian'
+           ))
+  fig1
+}
+
+# ValueBoxes Indices ----
 valueBoxesIndices <- function(x){
 
   x <- x %>%
@@ -824,37 +874,3 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
 
 
 
-
-
-
-
-
-
-
-### QUANTEDA CORPUS FUNTIONS ----
-
-## convert a corpus obj into a tibble ----
-corpus2df <- function(obj){
-  df <- tibble(doc_id=rep(names(obj), lengths(obj)), text=unlist(obj))
-  docvars <- attr(obj, "docvars")
-  df <- df %>% left_join(docvars, by = c("doc_id" = "docid_"))
-}
-
-
-## calculate frequency distribution for wordcloud, etc. ----
-distrib <- function(obj, scale="identity"){
-  obj <- obj %>%
-    corpus2df() %>%
-    count(text) %>%
-    arrange(desc(n))
-
-  switch(scale,
-         identity={
-           obj$scale <- obj$n
-         },
-         log={
-           obj$scale <- log(obj$n)
-         }
-  )
-  return(obj)
-}

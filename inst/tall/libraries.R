@@ -7,15 +7,15 @@ libraries <- function(){
   if (!require(shinydashboardPlus)){install.packages("shinydashboardPlus"); require(shinydashboardPlus, quietly=TRUE)}
   if (!require(shinyWidgets)){install.packages("shinyWidgets"); require(shinyWidgets, quietly=TRUE)}
   if (!require(shinycssloaders)){install.packages("shinycssloaders"); require(shinycssloaders, quietly=TRUE)}
-  if (!require(fontawesome)){install.packages("fontawesome"); require(fontawesome, quietly=TRUE)}
+  #if (!require(fontawesome)){install.packages("fontawesome"); require(fontawesome, quietly=TRUE)}
   if (!require(shinyjs)){install.packages("shinyjs"); require(shinyjs, quietly=TRUE)}
-  if (!require(tidyverse)){install.packages("tidyverse"); require(tidyverse, quietly=TRUE)}
+  if (!require(tidyverse)){install.packages("dplyr"); require(tidyverse, quietly=TRUE)}
   if (!require(DT)){install.packages("DT"); require(DT, quietly=TRUE)}
   if (!require(plotly)){install.packages("plotly"); require(plotly, quietly=TRUE)}
   if (!require(openxlsx)){install.packages("openxlsx"); require(openxlsx, quietly=TRUE)}
   if (!require(readxl)){install.packages("readxl"); require(readxl, quietly=TRUE)}
   if (!require(wordcloud2)){install.packages("wordcloud2"); require(wordcloud2, quietly=TRUE)}
-  if (!require(quanteda)){install.packages("quanteda"); require(quanteda, quietly=TRUE)}
+  #if (!require(quanteda)){install.packages("quanteda"); require(quanteda, quietly=TRUE)}
   if (!require(udpipe)){install.packages("udpipe"); require(udpipe, quietly=TRUE)}
 
 }

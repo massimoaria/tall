@@ -458,6 +458,28 @@ server <- function(input, output, session){
   ## Frequency List ----
 
     ## NOUN ----
+    freqNoun <- eventReactive(
+      eventExpr = {input$nounApply},
+      valueExpr = {
+        #input$nounTerm
+        values$freqNoun <- freqByPos(values$dfTag, term="lemma", pos="NOUN")
+      }
+    )
+    output$nounPlot <- renderPlotly({
+      freqNoun()
+      #input$nounScale <- c("identity", "log")
+      #input$nounN <- 10
+      freqPlotly(values$freqNoun,x="n",y="term",n=10, xlabel="Frequency",ylabel="NOUN", scale="identity")
+    })
+
+    output$nounTable <- renderDT({
+      freqNoun()
+      print(values$freqNoun)
+      DTformat(values$freqNoun %>%
+                 rename(Term = term,
+                        Frequency = n),
+               left=1, right=2, numeric=2, filename="NounFreqList", dom=FALSE, size="110%")
+    })
 
     ## PROPN ----
 
