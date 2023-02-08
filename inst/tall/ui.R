@@ -598,31 +598,33 @@ body <- dashboardBody(
     ### WORDS ----
 
     ## Frequency List----
-    tabItem(tabName = "freqList",
+
+    ### NOUN ----
+    tabItem(tabName = "w_noun",
             fluidPage(
               fluidRow(
                 column(7,
-                       h3(strong("Frequency List"), align = "center")),
-                div(#style=style_bttn,
+                       h3(strong("NOUN Frequency List"), align = "center")),
+                div(
                   title = t_run,
                   column(1,
                          do.call("actionButton", c(run_bttn, list(
-                           inputId = "freqListApply")
+                           inputId = "nounApply")
                          ))
                   )),
 
-                div(#style=style_bttn,
+                div(
                   title = t_report,
                   column(1,
                          do.call("actionButton", c(report_bttn, list(
-                           inputId = "freqListReport")
+                           inputId = "nounReport")
                          ))
                   )),
-                div(#style=style_bttn,
+                div(
                   title = t_export,
                   column(1,
                          do.call("downloadButton", c(export_bttn, list(
-                           outputId = "freqListExport")
+                           outputId = "nounExport")
                          )),
 
                   )),
@@ -643,22 +645,367 @@ body <- dashboardBody(
                 ),
                 style = style_opt
                 ),
-                div(#style=style_bttn,
+                div(
                   title = t_save,
                   column(1,
                          do.call("downloadButton", c(save_bttn, list(
-                           outputId = "freqListSave")
+                           outputId = "nounSave")
                          ))
                   ))
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
                             tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "freqListPlot", height = "75vh",width ="98.9%"),
+                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "nounPlot", height = "75vh",width ="98.9%"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
                             tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("freqListTable"),
+                                     shinycssloaders::withSpinner(DT::DTOutput("nounTable"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            )
+                )
+              )
+            )
+    ),
+
+    ### PROPN ----
+    tabItem(tabName = "w_propn",
+            fluidPage(
+              fluidRow(
+                column(7,
+                       h3(strong("PROPN Frequency List"), align = "center")),
+                div(
+                  title = t_run,
+                  column(1,
+                         do.call("actionButton", c(run_bttn, list(
+                           inputId = "propnApply")
+                         ))
+                  )),
+
+                div(
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "propnReport")
+                         ))
+                  )),
+                div(
+                  title = t_export,
+                  column(1,
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "propnExport")
+                         )),
+
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             br(),
+                             ### elenco opzioni (bottono, input, ecc)
+
+                             right = TRUE, animate = TRUE, #circle = TRUE,
+                             #style = "gradient",
+                             #style = "unite",
+                             tooltip = tooltipOptions(title = "Options"),
+                             color = "default",
+                             icon = icon("cog", lib="glyphicon")#,
+                             #width = "200px"
+                           ),
+                ),
+                style = style_opt
+                ),
+                div(
+                  title = t_save,
+                  column(1,
+                         do.call("downloadButton", c(save_bttn, list(
+                           outputId = "propnSave")
+                         ))
+                  ))
+              ),
+              fluidRow(
+                tabsetPanel(type = "tabs",
+                            tabPanel("Plot",
+                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "propnPlot", height = "75vh",width ="98.9%"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            ),
+                            tabPanel("Table",
+                                     shinycssloaders::withSpinner(DT::DTOutput("propnTable"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            )
+                )
+              )
+            )
+    ),
+
+    ### ADJ ----
+    tabItem(tabName = "w_adj",
+            fluidPage(
+              fluidRow(
+                column(7,
+                       h3(strong("ADJ Frequency List"), align = "center")),
+                div(
+                  title = t_run,
+                  column(1,
+                         do.call("actionButton", c(run_bttn, list(
+                           inputId = "adjApply")
+                         ))
+                  )),
+
+                div(
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "adjReport")
+                         ))
+                  )),
+                div(
+                  title = t_export,
+                  column(1,
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "adjExport")
+                         )),
+
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             br(),
+                             ### elenco opzioni (bottono, input, ecc)
+
+                             right = TRUE, animate = TRUE, #circle = TRUE,
+                             #style = "gradient",
+                             #style = "unite",
+                             tooltip = tooltipOptions(title = "Options"),
+                             color = "default",
+                             icon = icon("cog", lib="glyphicon")#,
+                             #width = "200px"
+                           ),
+                ),
+                style = style_opt
+                ),
+                div(
+                  title = t_save,
+                  column(1,
+                         do.call("downloadButton", c(save_bttn, list(
+                           outputId = "adjSave")
+                         ))
+                  ))
+              ),
+              fluidRow(
+                tabsetPanel(type = "tabs",
+                            tabPanel("Plot",
+                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "adjPlot", height = "75vh",width ="98.9%"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            ),
+                            tabPanel("Table",
+                                     shinycssloaders::withSpinner(DT::DTOutput("adjTable"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            )
+                )
+              )
+            )
+    ),
+
+    ### VERB ----
+    tabItem(tabName = "w_verb",
+            fluidPage(
+              fluidRow(
+                column(7,
+                       h3(strong("VERB Frequency List"), align = "center")),
+                div(
+                  title = t_run,
+                  column(1,
+                         do.call("actionButton", c(run_bttn, list(
+                           inputId = "verbApply")
+                         ))
+                  )),
+
+                div(
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "verbReport")
+                         ))
+                  )),
+                div(
+                  title = t_export,
+                  column(1,
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "verbExport")
+                         )),
+
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             br(),
+                             ### elenco opzioni (bottono, input, ecc)
+
+                             right = TRUE, animate = TRUE, #circle = TRUE,
+                             #style = "gradient",
+                             #style = "unite",
+                             tooltip = tooltipOptions(title = "Options"),
+                             color = "default",
+                             icon = icon("cog", lib="glyphicon")#,
+                             #width = "200px"
+                           ),
+                ),
+                style = style_opt
+                ),
+                div(
+                  title = t_save,
+                  column(1,
+                         do.call("downloadButton", c(save_bttn, list(
+                           outputId = "verbSave")
+                         ))
+                  ))
+              ),
+              fluidRow(
+                tabsetPanel(type = "tabs",
+                            tabPanel("Plot",
+                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "verbPlot", height = "75vh",width ="98.9%"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            ),
+                            tabPanel("Table",
+                                     shinycssloaders::withSpinner(DT::DTOutput("verbTable"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            )
+                )
+              )
+            )
+    ),
+
+    ### OTHER ----
+    tabItem(tabName = "w_other",
+            fluidPage(
+              fluidRow(
+                column(7,
+                       h3(strong("OTHER Frequency List"), align = "center")),
+                div(
+                  title = t_run,
+                  column(1,
+                         do.call("actionButton", c(run_bttn, list(
+                           inputId = "otherApply")
+                         ))
+                  )),
+
+                div(
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "otherReport")
+                         ))
+                  )),
+                div(
+                  title = t_export,
+                  column(1,
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "otherExport")
+                         )),
+
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             br(),
+                             ### elenco opzioni (bottono, input, ecc)
+
+                             right = TRUE, animate = TRUE, #circle = TRUE,
+                             #style = "gradient",
+                             #style = "unite",
+                             tooltip = tooltipOptions(title = "Options"),
+                             color = "default",
+                             icon = icon("cog", lib="glyphicon")#,
+                             #width = "200px"
+                           ),
+                ),
+                style = style_opt
+                ),
+                div(
+                  title = t_save,
+                  column(1,
+                         do.call("downloadButton", c(save_bttn, list(
+                           outputId = "otherSave")
+                         ))
+                  ))
+              ),
+              fluidRow(
+                tabsetPanel(type = "tabs",
+                            tabPanel("Plot",
+                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "otherPlot", height = "75vh",width ="98.9%"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            ),
+                            tabPanel("Table",
+                                     shinycssloaders::withSpinner(DT::DTOutput("otherTable"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            )
+                )
+              )
+            )
+    ),
+
+    ### Part of Speech ----
+    tabItem(tabName = "w_pos",
+            fluidPage(
+              fluidRow(
+                column(7,
+                       h3(strong("Part of Speech Frequency List"), align = "center")),
+                div(
+                  title = t_run,
+                  column(1,
+                         do.call("actionButton", c(run_bttn, list(
+                           inputId = "posApply")
+                         ))
+                  )),
+
+                div(
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "posReport")
+                         ))
+                  )),
+                div(
+                  title = t_export,
+                  column(1,
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "posExport")
+                         )),
+
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             br(),
+                             ### elenco opzioni (bottono, input, ecc)
+
+                             right = TRUE, animate = TRUE, #circle = TRUE,
+                             #style = "gradient",
+                             #style = "unite",
+                             tooltip = tooltipOptions(title = "Options"),
+                             color = "default",
+                             icon = icon("cog", lib="glyphicon")#,
+                             #width = "200px"
+                           ),
+                ),
+                style = style_opt
+                ),
+                div(
+                  title = t_save,
+                  column(1,
+                         do.call("downloadButton", c(save_bttn, list(
+                           outputId = "posSave")
+                         ))
+                  ))
+              ),
+              fluidRow(
+                tabsetPanel(type = "tabs",
+                            tabPanel("Plot",
+                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "posPlot", height = "75vh",width ="98.9%"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            ),
+                            tabPanel("Table",
+                                     shinycssloaders::withSpinner(DT::DTOutput("posTable"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             )
                 )
