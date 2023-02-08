@@ -399,6 +399,7 @@ freqByPos <- function(df, term="lemma", pos="NOUN"){
 freqPlotly <- function(dfPlot,x,y,n=10, xlabel,ylabel, scale=c("identity", "log")){
   # function to build and plot plotly horizontal barplot
   dfPlot <- dfPlot %>% slice_head(n=n)
+  xmax <- max(dfPlot[[x]])
 
   switch(scale,
          log={
@@ -417,7 +418,7 @@ freqPlotly <- function(dfPlot,x,y,n=10, xlabel,ylabel, scale=c("identity", "log"
                           paper_bgcolor = "rgba(0, 0, 0, 0)")
 
   fig1 <- fig1 %>% add_annotations(xref = 'x1', yref = 'y',
-                                   x = dfPlot[[x]] + 5,  y = dfPlot[[y]],
+                                   x = dfPlot[[x]] + xmax*0.015,  y = dfPlot[[y]],
                                    text = dfPlot[[x]],
                                    font = list(family = 'Arial', size = 12, color = 'rgb(79, 121, 66)'),
                                    showarrow = FALSE) %>%

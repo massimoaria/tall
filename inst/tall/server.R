@@ -584,6 +584,33 @@ server <- function(input, output, session){
 
     ## PART OF SPEECH ----
 
+    freqPOS <- eventReactive(
+      eventExpr = {
+        input$posApply
+      },
+      valueExpr = {
+        values$freqPOS <- values$dfTag %>%
+          dplyr::filter(!upos %in% c("PUNCT", "SYM", "NUM")) %>%
+          group_by(upos) %>%
+          count() %>%
+          arrange(desc(n)) %>%
+          rename(PoS = upos)
+      }
+    )
+
+    output$posPlot <- renderPlotly({
+      freqPOS()
+      #input$nounScale <- c("identity", "log")
+      #input$nounN <- 10
+      freqPlotly(values$freqPOS,x="n",y="PoS",n=10, xlabel="Frequency",ylabel="Part of Speech", scale="identity")
+    })
+
+    output$posTable <- renderDT({
+      freqPOS()
+      DTformat(values$freqPOS %>%
+                 rename(Frequency = n),
+               left=1, right=2, numeric=2, filename="POSFreqList", dom=FALSE, size="110%")
+    })
 
   # wordcloud <- eventReactive(input$overviewApply,{
   #   # INPUT DA AGGIUNGERE
