@@ -730,8 +730,9 @@ body <- dashboardBody(
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
                             tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("propnTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                                     shinycssloaders::withSpinner(DT::DTOutput("propnTable", width = 700),
+                                                                  color = getOption("spinner.color", default = "#4F7942")),
+                                     align="center"
                             )
                 )
               )
@@ -799,8 +800,9 @@ body <- dashboardBody(
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
                             tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("adjTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                                     shinycssloaders::withSpinner(DT::DTOutput("adjTable", width = 700),
+                                                                  color = getOption("spinner.color", default = "#4F7942")),
+                                     align="center"
                             )
                 )
               )
@@ -868,8 +870,9 @@ body <- dashboardBody(
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
                             tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("verbTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                                     shinycssloaders::withSpinner(DT::DTOutput("verbTable", width = 700),
+                                                                  color = getOption("spinner.color", default = "#4F7942")),
+                                     align="center"
                             )
                 )
               )
@@ -937,8 +940,9 @@ body <- dashboardBody(
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
                             tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("otherTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                                     shinycssloaders::withSpinner(DT::DTOutput("otherTable", width = 700),
+                                                                  color = getOption("spinner.color", default = "#4F7942")),
+                                     align="center"
                             )
                 )
               )

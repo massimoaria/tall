@@ -458,13 +458,16 @@ server <- function(input, output, session){
   ## Frequency List ----
 
     ## NOUN ----
+
     freqNoun <- eventReactive(
-      eventExpr = {input$nounApply},
+      eventExpr = {
+        input$nounApply
+        },
       valueExpr = {
-        #input$nounTerm
         values$freqNoun <- freqByPos(values$dfTag, term="lemma", pos="NOUN")
       }
     )
+
     output$nounPlot <- renderPlotly({
       freqNoun()
       #input$nounScale <- c("identity", "log")
@@ -474,7 +477,6 @@ server <- function(input, output, session){
 
     output$nounTable <- renderDT({
       freqNoun()
-      print(values$freqNoun)
       DTformat(values$freqNoun %>%
                  rename(Term = term,
                         Frequency = n),
@@ -482,12 +484,103 @@ server <- function(input, output, session){
     })
 
     ## PROPN ----
+    freqPropn <- eventReactive(
+      eventExpr = {
+        input$propnApply
+      },
+      valueExpr = {
+        values$freqPropn <- freqByPos(values$dfTag, term="lemma", pos="PROPN")
+      }
+    )
 
+    output$propnPlot <- renderPlotly({
+      freqPropn()
+      #input$nounScale <- c("identity", "log")
+      #input$nounN <- 10
+      freqPlotly(values$freqPropn,x="n",y="term",n=10, xlabel="Frequency",ylabel="PROPN", scale="identity")
+    })
+
+    output$propnTable <- renderDT({
+      freqPropn()
+      DTformat(values$freqPropn %>%
+                 rename(Term = term,
+                        Frequency = n),
+               left=1, right=2, numeric=2, filename="PropnFreqList", dom=FALSE, size="110%")
+    })
     ## ADJ ----
+    freqAdj <- eventReactive(
+      eventExpr = {
+        input$adjApply
+      },
+      valueExpr = {
+        values$freqAdj <- freqByPos(values$dfTag, term="lemma", pos="ADJ")
+      }
+    )
+
+    output$adjPlot <- renderPlotly({
+      freqAdj()
+      #input$nounScale <- c("identity", "log")
+      #input$nounN <- 10
+      freqPlotly(values$freqAdj,x="n",y="term",n=10, xlabel="Frequency",ylabel="ADJ", scale="identity")
+    })
+
+    output$adjTable <- renderDT({
+      freqAdj()
+      DTformat(values$freqAdj %>%
+                 rename(Term = term,
+                        Frequency = n),
+               left=1, right=2, numeric=2, filename="AdjFreqList", dom=FALSE, size="110%")
+    })
 
     ## VERB ----
+    freqVerb <- eventReactive(
+      eventExpr = {
+        input$verbApply
+      },
+      valueExpr = {
+        values$freqVerb <- freqByPos(values$dfTag, term="lemma", pos="VERB")
+      }
+    )
+
+    output$verbPlot <- renderPlotly({
+      freqVerb()
+      #input$nounScale <- c("identity", "log")
+      #input$nounN <- 10
+      freqPlotly(values$freqVerb,x="n",y="term",n=10, xlabel="Frequency",ylabel="VERB", scale="identity")
+    })
+
+    output$verbTable <- renderDT({
+      freqVerb()
+      DTformat(values$freqVerb %>%
+                 rename(Term = term,
+                        Frequency = n),
+               left=1, right=2, numeric=2, filename="VerbFreqList", dom=FALSE, size="110%")
+    })
 
     ## OTHER ----
+    freqOther <- eventReactive(
+      eventExpr = {
+        input$otherApply
+      },
+      valueExpr = {
+        values$freqOther <- freqByPos(values$dfTag, term="lemma", pos=input$otherPos)
+      }
+    )
+
+    output$otherPlot <- renderPlotly({
+      freqOther()
+      #input$nounScale <- c("identity", "log")
+      #input$nounN <- 10
+      freqPlotly(values$freqOther,x="n",y="term",n=10, xlabel="Frequency",ylabel=input$otherPos, scale="identity")
+    })
+
+    output$otherTable <- renderDT({
+      freqOther()
+      DTformat(values$freqOther %>%
+                 rename(Term = term,
+                        Frequency = n),
+               left=1, right=2, numeric=2, filename="OtherFreqList", dom=FALSE, size="110%")
+    })
 
     ## PART OF SPEECH ----
 
