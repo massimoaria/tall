@@ -457,6 +457,19 @@ server <- function(input, output, session){
 
   ## Frequency List ----
 
+    ## NOUN ----
+
+    ## PROPN ----
+
+    ## ADJ ----
+
+    ## VERB ----
+
+    ## OTHER ----
+
+    ## PART OF SPEECH ----
+
+
   # wordcloud <- eventReactive(input$overviewApply,{
   #   # INPUT DA AGGIUNGERE
   #   # n <-  input$wcN numer of words

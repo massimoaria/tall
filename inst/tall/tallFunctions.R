@@ -671,19 +671,6 @@ menuList <- function(menu){
              )
            )
          },
-         # "1"={
-         #   list(
-         #     menuItem("Data", tabName = "data", icon = fa_i(name = "file-import"),
-         #              menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
-         #              menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
-         #              menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
-         #     menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib = "glyphicon"), startExpanded = TRUE,
-         #              menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
-         #              menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right"), selected = TRUE),
-         #              menuSubItem("PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right"))
-         #     )
-         #   )
-         # },
          "1"={
            list(
              menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),
@@ -711,7 +698,13 @@ menuList <- function(menu){
                       menuSubItem("PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right")), selected = TRUE),
              menuItem("Overview", tabName = "overview", icon = icon("search", lib="glyphicon")),
              menuItem("Words", tabName = "words", icon = icon("font", lib = "glyphicon"),
-                      menuSubItem("Frequency List", tabName = "freqList", icon = icon("chevron-right")),
+                      menuItem("Frequency List", tabName = "freqList", icon = icon("chevron-right"),
+                               menuSubItem("NOUN", tabName = "w_noun", icon = icon("chevron-right")),
+                               menuSubItem("PROPN", tabName = "w_propn", icon = icon("chevron-right")),
+                               menuSubItem("ADJ", tabName = "w_adj", icon = icon("chevron-right")),
+                               menuSubItem("VERB", tabName = "w_verb", icon = icon("chevron-right")),
+                               menuSubItem("OTHER", tabName = "w_other", icon = icon("chevron-right")),
+                               menuSubItem("Part of Speech", tabName = "w_pos", icon = icon("chevron-right"))),
                       menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),
                       menuSubItem("Correspondence Analysis", tabName = "ca", icon = icon("chevron-right")),
                       menuSubItem("Network", tabName = "w_network", icon = icon("chevron-right"))),
