@@ -56,36 +56,26 @@ server <- function(input, output, session){
 
 ### DATA ----
 
-  ### Import directory ----
-  observeEvent(
-    ignoreNULL = TRUE,
-    eventExpr = {
-      input$directory
-    },
-    handlerExpr = {
-      if (input$directory > 0) {
-        # condition prevents handler execution on initial app launch
-        values$path = choose.dir(default = readDirectoryInput(session, 'directory'),
-                          caption="Choose a directory...")
-        updateDirectoryInput(session, 'directory', value = values$path)
-      }
-    }
-  )
-
-  output$directory = renderText({
-    readDirectoryInput(session, 'directory')
+  output$file_raw <- renderUI({
+    fileInput(
+      "file_raw",
+      "Select file(s) containing text",
+      multiple = TRUE,
+      accept = c(input$ext)
+    )
   })
+
 
   ### dataImported ----
   DATAloading<- eventReactive(input$runImport,{
     switch(input$load,
            import={
-             if (!is.null(values$path)){
-
-               txt <- read_files(values$path,ext=input$ext, subfolder=input$include_subfolder)
+             if (!is.null(req(input$file_raw))){
+               file <- input$file_raw
+               txt <- read_files(file,ext=input$ext, subfolder=FALSE, line_sep=input$line_sep=="yes")
                values$menu <- 0
                values$custom_lists <- NULL
-               values$txt <- txt
+               values$txt <- txt %>% arrange(doc_id)
              }
            },
            load_tall={
@@ -197,7 +187,7 @@ server <- function(input, output, session){
         })
         custom_lists <- do.call(rbind,custom_lists)
         values$custom_lists <- custom_lists
-        print(values$custom_lists)
+        #print(values$custom_lists)
       }
     )
 
@@ -308,9 +298,10 @@ server <- function(input, output, session){
 
     output$posTagSelectData <- renderDT({
       PosFilterData()
+      if(!"lemma_original_nomultiwords" %in% names(values$dfTag)) values$dfTag <- values$dfTag %>% mutate(lemma_original_nomultiwords=lemma)
       DTformat(values$dfTag %>% dplyr::filter(POSSelected) %>%
                  group_by(doc_id,sentence_id) %>%
-                 mutate(SentenceByPos = paste(lemma, collapse=" ")) %>%
+                 mutate(SentenceByPos = paste(lemma_original_nomultiwords, collapse=" ")) %>%
                  select(doc_id, sentence_id,sentence,SentenceByPos,token,lemma, upos) %>%
                  rename(D_id=doc_id,
                         S_id=sentence_id,

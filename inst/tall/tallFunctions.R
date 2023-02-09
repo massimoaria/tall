@@ -1,239 +1,65 @@
-# Button for Folder Selection ----
 
-choose.dir = function(default = NA, caption = NA, useNew=TRUE) {
-  if (Sys.info()['sysname'] == 'Darwin') {
-    return(choose.dir.darwin(default = default, caption = caption))
-  } else if (Sys.info()['sysname'] == 'Linux') {
-    return(choose.dir.linux(default = default, caption = caption))
-  } else if (Sys.info()['sysname'] == 'Windows') {
-    # Use batch script to circumvent issue w/ `choose.dir`/`tcltk::tk_choose.dir`
-    # window popping out unnoticed in the back of the current window
-    return(choose.dir.windows(default = default, caption = caption, useNew = useNew))
-  }
-  return(paste("Error: don't know how to show a folder dialog in", Sys.info()['sysname']) )
-}
-
-choose.dir.darwin <- function(default = NA, caption = NA) {
-  command = 'osascript'
-  args = '-e "POSIX path of (choose folder{{prompt}}{{default}})"'
-
-  if (!is.null(caption) && !is.na(caption) && nzchar(caption)) {
-    prompt = sprintf(' with prompt \\"%s\\"', caption)
-  } else {
-    prompt = ''
-  }
-  args = sub('{{prompt}}', prompt, args, fixed = T)
-
-  if (!is.null(default) && !is.na(default) && nzchar(default)) {
-    default = sprintf(' default location \\"%s\\"', path.expand(default))
-  } else {
-    default = ''
-  }
-  args = sub('{{default}}', default, args, fixed = T)
-
-  suppressWarnings({
-    path = system2(command, args = args, stderr = TRUE)
-  })
-  if (!is.null(attr(path, 'status')) && attr(path, 'status')) {
-    # user canceled
-    path = NA
-  } else {
-    # cut any extra output lines, like "Class FIFinderSyncExtensionHost ..."
-    path = tail(path, n=1)
-  }
-
-  return(path)
-}
-
-choose.dir.linux <- function(default = NA, caption = NA) {
-  command = 'zenity'
-  args = '--file-selection --directory'
-
-  if (!is.null(default) && !is.na(default) && nzchar(default)) {
-    args = paste(args, sprintf('--filename="%s"', default))
-  }
-
-  if (!is.null(caption) && !is.na(caption) && nzchar(caption)) {
-    args = paste(args, sprintf('--title="%s"', caption))
-  }
-
-  suppressWarnings({
-    path = system2(command, args = args, stderr = TRUE)
-  })
-
-  #Return NA if user hits cancel
-  if (!is.null(attr(path, 'status')) && attr(path, 'status')) {
-    # user canceled
-    return(NA)
-  }
-
-  #Error: Gtk-Message: GtkDialog mapped without a transient parent
-  if(length(path) > 1){
-    path = path[(length(path))]
-  }
-
-  return(path)
-}
-
-choose.dir.windows <- function(default = NA, caption = NA, useNew = TRUE) {
-  if(useNew){
-    ## uses a powershell script rather than the bat version, gives a nicer interface
-    ## and allows setting of the default directory and the caption
-    whereisutils <- system.file("utils", 'newFolderDialog.ps1', package = "tall")
-    command = 'powershell'
-    args = paste('-NoProfile -ExecutionPolicy Bypass -File',normalizePath(whereisutils))
-    if (!is.null(default) && !is.na(default) && nzchar(default)) {
-      args = paste(args, sprintf('-default "%s"', normalizePath(default)))
-    }
-
-    if (!is.null(caption) && !is.na(caption) && nzchar(caption)) {
-      args = paste(args, sprintf('-caption "%s"', caption))
-    }
-
-    suppressWarnings({
-      path = system2(command, args = args, stdout = TRUE)
-    })
-   } else {
-    whereisutils <- system.file("utils", 'choose_dir.bat', package = "tall")
-    command = normalizePath(whereisutils)
-    args = if (is.na(caption)) '' else sprintf('"%s"', caption)
-    suppressWarnings({
-      path = system2(command, args = args, stdout = TRUE)
-    })
-  }
-  if (path == 'NONE') path = NA
-  return(path)
-}
-
-directoryInput = function(inputId, label, value = NULL) {
-  if (!is.null(value) && !is.na(value)) {
-    value = path.expand(value)
-  }
-  version <- as.character(packageVersion("tall")[[1]])
-  dep <- htmltools::htmlDependency(
-    name = "tall-assets", version = version,
-    package = "tall",
-    src = "assets",
-    script = "js/directory_input_binding.js"
-  )
-  tagList(
-    shiny::div(
-      class = 'form-group directory-input-container',
-      style = 'width:100% ',
-
-      `%AND%`(label, tags$label(label, style = 'width:100% ')),
-      shiny::div(
-        shiny::span(
-        #    class = 'col-xs-9 col-md-11',
-            style = 'width:100% ',#'padding-left: 70px; padding-right: 0px',
-        #shiny::div(
-        class = 'input-group shiny-input-container'),
-        style = 'width:100%;',
-        shiny::span(
-          class = 'shiny-input-container',
-          style =  'width:100% ',
-          tags$button(
-            id = inputId,
-            style =  'height:40px; width:100% ', #'padding-left: 30px; padding-right: 30px;
-            title="Browse", # Tips
-            class = 'btn btn-default directory-input',icon('folder-open', lib="glyphicon")
-            #)
-          ),
-
-          # tags$input(
-          #   id = sprintf('%s__chosen_dir', inputId),
-          #   value = value,
-          #   type = 'text',
-          #   class = 'form-control directory-input-chosen-dir',
-          #   style = 'font-size: 12px;', #align??
-          #   readonly = 'readonly'
-          # )
-        ),
-        #' shiny::span(
-        #'   class = 'shiny-input-container',
-        #'   tags$button(
-        #'     id = inputId,
-        #'     style = 'padding-left: 20px; padding-right: 20px',
-        #'
-        #'     class = 'btn btn-default directory-input',icon('folder-open', lib="glyphicon")
-        #'     #'...'
-        #'   )
-        #' )
-      )
-    ),
-    dep
-  )
-
-}
-
-updateDirectoryInput = function(session, inputId, value = NULL, ...) {
-  if (is.null(value)) {
-    value = choose.dir(...)
-  }
-  session$sendInputMessage(inputId, list(chosen_dir = value))
-}
-
-readDirectoryInput = function(session, inputId) {
-  session$input[[sprintf('%s__chosen_dir', inputId)]]
-}
-
-# AND infix operator ----
-## Given x and y, return y only if both x and y are set
-`%AND%` <- function(x, y) {
-  if (!is.null(x) && !isTRUE(is.na(x)))
-    if (!is.null(y) && !isTRUE(is.na(y)))
-      return(y)
-  return(NULL)
-}
-
-
-
+### DATA ----
 # IMPORT TEXT FUNCTIONS ----
 
-read_files <- function(path, ext=c("txt","csv", "xlsx"), subfolder=TRUE){
+getFileNameExtension <- function (fn) {
+  # remove a path
+  splitted    <- strsplit(x=fn, split='/')[[1]]
+  # or use .Platform$file.sep in stead of '/'
+  fn          <- splitted [length(splitted)]
+  ext         <- ''
+  splitted    <- strsplit(x=fn, split='\\.')[[1]]
+  l           <-length (splitted)
+  if (l > 1 && sum(splitted[1:(l-1)] != ''))  ext <-splitted [l]
+  # the extention must be the suffix of a non-empty name
+  ext
+}
 
-  files <- list.files(path=path, pattern = paste0(".",ext,"$"), recursive = subfolder)
+read_files <- function(files, ext=c("txt","csv", "xlsx"), subfolder=TRUE, line_sep=FALSE){
 
-  if (!length(files)>0) return(data.frame(doc_id=NA,text=NA,path=path))
+  #files <- list.files(path=path, pattern = paste0(".",ext,"$"), recursive = subfolder)
+  if (is.null(files)) return(data.frame(doc_id=NA,text=NA, folder=NA))
 
-  files <- paste0(path,"/",files)
-  doc_id <- unlist(lapply(strsplit(files,"/"), function(l){l[length(l)]}))
+  if ("datapath" %in% names(files)){
+    doc_id <- files$name
+    file <- files$datapath
+    folder=NA
+  }
+
+  if (getFileNameExtension(file[1])=="zip"){
+    zip_file <-  unzip(file[1])
+    zip_file <- zip_file[(substr(zip_file,nchar(zip_file)-nchar(ext)+1,nchar(zip_file))==ext)]
+    file <- zip_file[regexpr("__MACOSX",zip_file)==-1]
+    doc_id <- unlist(lapply(strsplit(file,"/"), function(l){l[length(l)]}))
+    folder <- unlist(lapply(strsplit(file, "/"), function(l){l[length(l)-1]}))
+  }
 
   switch(ext,
          txt={
-           df <- data.frame(doc_id=doc_id,text=NA,folder=NA,files=files) %>%
+           if (isTRUE(line_sep)){line_sep <- ". "}else{line_sep <- " "}
+
+           df <- data.frame(doc_id=doc_id,text=NA, folder=folder, file=file) %>%
              group_by(doc_id) %>%
-             mutate(folder = gsub(paste0("/",doc_id),"",files),
-                    text = gsub("\\.\\.","\\.",paste(read_lines(files,skip_empty_rows = TRUE),sep="",collapse=". "))) %>%
-             select(-files)
+             mutate(text = gsub("\\.\\.","\\.",paste(read_lines(file,skip_empty_rows = TRUE),sep="",collapse=line_sep))) %>%
+             select(-file)
          },
          csv={
            listdf <- list()
-           for (i in seq_len(length(files))){
-             listdf[[i]] <- read_csv(files[i], show_col_types=FALSE) %>%
-               mutate(doc_id = doc_id[i],
-                      folder = gsub(paste0("/",doc_id[i]),"",files[i]))
+           for (i in seq_len(length(file))){
+             listdf[[i]] <- read_csv(file[i], show_col_types=FALSE) %>%
+               mutate(doc_id = doc_id[i])
            }
 
            df <- do.call(rbind,listdf)
          },
 
          xlsx={
-           df <- readxl::read_excel(files, col_types = "text")
+           df <- readxl::read_excel(file, col_types = "text")
          }
          )
 
 return(df)
 }
-
-shortpath <- function(path){
-  if (inherits(path,"character")){
-    unlist(lapply(strsplit(path,"/"), function(l){
-      l[length(l)]
-    }))
-  } else {NULL}
-}
-
 
 ### PRE_PROCESSING ----
 
@@ -353,7 +179,7 @@ rake <- function(x, group = "doc_id", ngram_max=5, relevant = c("PROPN", "NOUN",
 
   # identify ngrams>1 with reka index>reka.min
   stats <- stats %>%
-    dplyr::filter(rake>rake.min & ngram>1)
+    dplyr::filter(rake>=rake.min & ngram>1)
 
   # filter original token df removing POS excluded in reka
   x2 <- x %>% filter(upos %in% relevant)
@@ -749,7 +575,7 @@ menuList <- function(menu){
                       menuSubItem("PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right")), selected = TRUE),
              menuItem("Overview", tabName = "overview", icon = icon("search", lib="glyphicon")),
              menuItem("Words", tabName = "words", icon = icon("font", lib = "glyphicon"),
-                      menuItem("Frequency List", tabName = "freqList", icon = icon("chevron-right"),
+                      menuItem("Most Used Words", tabName = "freqList", icon = icon("chevron-right"),
                                menuSubItem("NOUN", tabName = "w_noun", icon = icon("chevron-right")),
                                menuSubItem("PROPN", tabName = "w_propn", icon = icon("chevron-right")),
                                menuSubItem("ADJ", tabName = "w_adj", icon = icon("chevron-right")),
@@ -864,10 +690,11 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
     tab <- tab %>%
       formatRound(names(df)[c(numeric)], digits=2)
   }
-
   tab
-
 }
+
+
+### FUNCTIONS FOR UI ----
 
 
 

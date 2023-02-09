@@ -133,56 +133,84 @@ body <- dashboardBody(
                            selectInput("load", "Please, choose what to do",
                                        choices = c(
                                          " "= "null",
-                                         "Load a raw files"="import",
-                                         "Load a Tall structured file"="load_tall",
+                                         "Load text files"="import",
+                                         "Load Tall structured files"="load_tall",
                                          "Use a sample collection"="demo"
                                        ),
                                        selected = "null"
                            ),
                            conditionalPanel(
                              condition="input.load == 'import'",
-                             h5(strong('Select the folder that contains the files')),
-                             fluidRow(
-                               column(5,
-                                      div(
-                                        directoryInput('directory', label = NULL, value = NULL),
-                                        style="margin-top: 5px;"
-                                      )),
-                               column(7,
-                                      div(
-                                        h6((htmlOutput("folder"))),
-                                        style="margin-top: -5px;"
-                                      ),
-                               )
+                             fluidRow(column(6,
+                                             selectizeInput(
+                                               'ext', label="File format",choices = c(
+                                                 "txt"="txt",
+                                                 "csv"="csv",
+                                                 "excel"="xlsx"),
+                                               tags$style("height: 50px")
+                                             )
                              ),
-                             fluidRow(
-                               column(5,
-                                      (div(style= "margin-top: 11px; ",
-                                           switchInput(
-                                             inputId = "include_subfolder",
-                                             label = "Include subfolders",
-                                             labelWidth = "100px",
-                                             onLabel = "YES",
-                                             offLabel = "NO",
-                                             size = "small",
-                                             onStatus = "success",
-                                             offStatus = "danger",
-                                             width="100%",
-                                             inline = T,
-                                           )
-                                      )
-                                      )
-                               ),
-                               column(7,
-                                      selectizeInput(
-                                        'ext', label="File format",choices = c(
-                                          "TXT"="txt",
-                                          "CSV"="csv",
-                                          "EXCEL"="xlsx"),
-                                        tags$style("height: 50px")
-                                      )
-                               )
+                             column(6,
+                                    selectizeInput(
+                                      'line_sep', label="Line Separator",choices = c(
+                                        "Dot (.)"="no",
+                                        "Return (\\n)"="yes"),
+                                      tags$style("height: 50px")
+                                    )
                              )
+                             ),
+                             uiOutput("file_raw")
+                             # fileInput(
+                             #   "file_raw",
+                             #   "Choose files",
+                             #   multiple = TRUE,
+                             #   accept = c(
+                             #     ".tall"
+                             #   )
+                             # ),
+
+                             # h5(strong('Select the folder that contains the files')),
+                             # fluidRow(
+                             #   column(5,
+                             #          div(
+                             #            directoryInput('directory', label = NULL, value = NULL),
+                             #            style="margin-top: 5px;"
+                             #          )),
+                             #   column(7,
+                             #          div(
+                             #            h6((htmlOutput("folder"))),
+                             #            style="margin-top: -5px;"
+                             #          ),
+                             #   )
+                             # ),
+                             # fluidRow(
+                             #   column(5,
+                             #          (div(style= "margin-top: 11px; ",
+                             #               switchInput(
+                             #                 inputId = "include_subfolder",
+                             #                 label = "Include subfolders",
+                             #                 labelWidth = "100px",
+                             #                 onLabel = "YES",
+                             #                 offLabel = "NO",
+                             #                 size = "small",
+                             #                 onStatus = "success",
+                             #                 offStatus = "danger",
+                             #                 width="100%",
+                             #                 inline = T,
+                             #               )
+                             #          )
+                             #          )
+                             #   ),
+                             #   column(7,
+                             #          # selectizeInput(
+                             #          #   'ext', label="File format",choices = c(
+                             #          #     "TXT"="txt",
+                             #          #     "CSV"="csv",
+                             #          #     "EXCEL"="xlsx"),
+                             #          #   tags$style("height: 50px")
+                             #          # )
+                             #   )
+                             # )
                            ),
                            conditionalPanel(
                              condition="input.load=='demo'",
