@@ -7,7 +7,7 @@ libraries()
 ## button style and contents
 
 style_bttn <- "border-radius: 20px; border-width: 1px; font-size: 17px; text-align: center; color: #ffff; padding-left: 20px; padding-right: 20px"
-style_opt <-  "border-radius: 15px; border-width: 3px; font-size: 15px; margin-top: 15px;" # (option button)
+style_opt <-  "border-radius: 35px; border-width: 3px; font-size: 15px; margin-top: 15px;" # (option button)
 style_start <-  "border-radius: 15px; border-width: 3px; font-size: 15px; width:100% " # (start button)
 #style_bttn <- "border-radius: 15px; border-width: 3px; font-size: 15px; margin-top: 15px;" # (action buttons)
 t_report  <-  "Add Results to the Report"
@@ -22,12 +22,12 @@ run_bttn <- list(
 )
 report_bttn <- list(
   label = NULL,
-  style ="display:block; height: 45px; width: 45px; border-radius: 50%; border: 3px; margin-top: 15px",
+  style ="display:block; height: 45px; width: 45px; border-radius: 50%; border: 3px; margin-top: 0px",
   icon = icon(name ="plus", lib="glyphicon")
 )
 export_bttn <- list(
   label=NULL,
-  style ="display:block; height: 45px; width: 45px; border-radius: 50%; border: 3px; margin-top: 15px",
+  style ="display:block; height: 45px; width: 45px; border-radius: 50%; border: 3px; margin-top: 0px",
   icon = icon(name ="download-alt", lib="glyphicon")
 )
 save_bttn <- list(
@@ -66,7 +66,7 @@ body <- dashboardBody(
   tags$style(".glyphicon-download-alt {color:#ffffff; font-size: 24px; align: center; margin-left: -2.5px}"),
   tags$style(".glyphicon-play {color:#ffffff; font-size: 24px; align: center}"),
   tags$style(".glyphicon-plus {color:#ffffff; font-size: 24px;align: center; margin-left: -0.5px}"),
-  tags$style(".glyphicon-cog {color:#ffffff; font-size: 28px; margin-top: 2px; margin-left: -2px}"),
+  tags$style(".glyphicon-cog {color:#ffffff; font-size: 26px; margin-top: 2px; margin-left: -2px}"),
   tags$style(".glyphicon-floppy-save {color:#ffffff; font-size: 23px; text-align:center; padding-right: -10px;
              margin-top: 1px;}"),#margin-top: 4px; margin-down: 22px; margin-right: 25px}"),
 
@@ -160,57 +160,6 @@ body <- dashboardBody(
                              )
                              ),
                              uiOutput("file_raw")
-                             # fileInput(
-                             #   "file_raw",
-                             #   "Choose files",
-                             #   multiple = TRUE,
-                             #   accept = c(
-                             #     ".tall"
-                             #   )
-                             # ),
-
-                             # h5(strong('Select the folder that contains the files')),
-                             # fluidRow(
-                             #   column(5,
-                             #          div(
-                             #            directoryInput('directory', label = NULL, value = NULL),
-                             #            style="margin-top: 5px;"
-                             #          )),
-                             #   column(7,
-                             #          div(
-                             #            h6((htmlOutput("folder"))),
-                             #            style="margin-top: -5px;"
-                             #          ),
-                             #   )
-                             # ),
-                             # fluidRow(
-                             #   column(5,
-                             #          (div(style= "margin-top: 11px; ",
-                             #               switchInput(
-                             #                 inputId = "include_subfolder",
-                             #                 label = "Include subfolders",
-                             #                 labelWidth = "100px",
-                             #                 onLabel = "YES",
-                             #                 offLabel = "NO",
-                             #                 size = "small",
-                             #                 onStatus = "success",
-                             #                 offStatus = "danger",
-                             #                 width="100%",
-                             #                 inline = T,
-                             #               )
-                             #          )
-                             #          )
-                             #   ),
-                             #   column(7,
-                             #          # selectizeInput(
-                             #          #   'ext', label="File format",choices = c(
-                             #          #     "TXT"="txt",
-                             #          #     "CSV"="csv",
-                             #          #     "EXCEL"="xlsx"),
-                             #          #   tags$style("height: 50px")
-                             #          # )
-                             #   )
-                             # )
                            ),
                            conditionalPanel(
                              condition="input.load=='demo'",
@@ -582,15 +531,16 @@ body <- dashboardBody(
     tabItem(tabName = "overview",
             fluidPage(
               fluidRow(
-                column(7,
+                column(11,
                        h3(strong("Overview"), align = "center")),
-                div(#style=style_bttn,
-                  title = t_report,
+                div(
+                  title = t_report,style=style_opt,
                   column(1,
                          do.call("actionButton", c(report_bttn, list(
                            inputId = "overviewReport")
                          ))
-                  )),
+                  )
+                ),
 
               ),
               fluidRow(
@@ -616,13 +566,16 @@ body <- dashboardBody(
                                               valueBoxOutput("guiraud", width = "33vh")),
                                      )
                             ),
-                tabPanel("Table",
-                         shinycssloaders::withSpinner(DT::DTOutput(outputId = "overviewData", width = 700)
-                         ), align ="center")
-                )
+                            tabPanel("Table",
+                                     shinycssloaders::withSpinner(DT::DTOutput(outputId = "overviewData", width = 700))
+                                     ),
+                            tabPanel("WordCloud",
+                                     wordcloud2::wordcloud2Output("wordcloudPlot", height = "75vh"), width = 700)
+                            ), align ="center"
               )
             )
     ),
+
     ### WORDS ----
 
     ## Frequency List----
@@ -631,7 +584,7 @@ body <- dashboardBody(
     tabItem(tabName = "w_noun",
             fluidPage(
               fluidRow(
-                column(7,
+                column(8,
                        h3(strong("NOUN Frequency List"), align = "center")),
                 div(
                   title = t_run,
@@ -640,44 +593,34 @@ body <- dashboardBody(
                            inputId = "nounApply")
                          ))
                   )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             br(),
+                             numericInput("nounN",
+                                          label=("Number of NOUN"),
+                                          value = 20),
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = FALSE, animate = TRUE,
+                             tooltip = tooltipOptions(title = "Options"),
+                             #style = "material-circle"
+                             )
 
-                div(
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "nounReport")
-                         ))
-                  )),
+                ),
+                style = style_opt
+                ),
                 div(
                   title = t_export,
                   column(1,
                          do.call("downloadButton", c(export_bttn, list(
                            outputId = "nounExport")
                          )),
-
                   )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                ),
                 div(
-                  title = t_save,
+                  title = t_report,
                   column(1,
-                         do.call("downloadButton", c(save_bttn, list(
-                           outputId = "nounSave")
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "nounReport")
                          ))
                   ))
               ),
@@ -701,7 +644,7 @@ body <- dashboardBody(
     tabItem(tabName = "w_propn",
             fluidPage(
               fluidRow(
-                column(7,
+                column(8,
                        h3(strong("PROPN Frequency List"), align = "center")),
                 div(
                   title = t_run,
@@ -710,7 +653,29 @@ body <- dashboardBody(
                            inputId = "propnApply")
                          ))
                   )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             br(),
+                             numericInput("propnN",
+                                          label=("Number of PROPN"),
+                                          value = 20),
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = FALSE, animate = TRUE,
+                             tooltip = tooltipOptions(title = "Options"),
+                             #style = "material-circle"
+                           )
 
+                ),
+                style = style_opt
+                ),
+                div(
+                  title = t_export,
+                  column(1,
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "propnExport")
+                         ))
+                  )),
                 div(
                   title = t_report,
                   column(1,
@@ -718,38 +683,7 @@ body <- dashboardBody(
                            inputId = "propnReport")
                          ))
                   )),
-                div(
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "propnExport")
-                         )),
 
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                ),
-                div(
-                  title = t_save,
-                  column(1,
-                         do.call("downloadButton", c(save_bttn, list(
-                           outputId = "propnSave")
-                         ))
-                  ))
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
@@ -771,7 +705,7 @@ body <- dashboardBody(
     tabItem(tabName = "w_adj",
             fluidPage(
               fluidRow(
-                column(7,
+                column(8,
                        h3(strong("ADJ Frequency List"), align = "center")),
                 div(
                   title = t_run,
@@ -780,14 +714,22 @@ body <- dashboardBody(
                            inputId = "adjApply")
                          ))
                   )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             br(),
+                             numericInput("adjN",
+                                          label=("Number of ADJ"),
+                                          value = 20),
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = FALSE, animate = TRUE,
+                             tooltip = tooltipOptions(title = "Options"),
+                             #style = "material-circle"
+                           )
 
-                div(
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "adjReport")
-                         ))
-                  )),
+                ),
+                style = style_opt
+                ),
                 div(
                   title = t_export,
                   column(1,
@@ -796,28 +738,11 @@ body <- dashboardBody(
                          )),
 
                   )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                ),
                 div(
-                  title = t_save,
+                  title = t_report,
                   column(1,
-                         do.call("downloadButton", c(save_bttn, list(
-                           outputId = "adjSave")
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "adjReport")
                          ))
                   ))
               ),
@@ -841,7 +766,7 @@ body <- dashboardBody(
     tabItem(tabName = "w_verb",
             fluidPage(
               fluidRow(
-                column(7,
+                column(8,
                        h3(strong("VERB Frequency List"), align = "center")),
                 div(
                   title = t_run,
@@ -850,44 +775,34 @@ body <- dashboardBody(
                            inputId = "verbApply")
                          ))
                   )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             br(),
+                             numericInput("verbN",
+                                          label=("Number of VERB"),
+                                          value = 20),
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = FALSE, animate = TRUE,
+                             tooltip = tooltipOptions(title = "Options"),
+                             #style = "material-circle"
+                           )
 
-                div(
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "verbReport")
-                         ))
-                  )),
+                ),
+                style = style_opt
+                ),
                 div(
                   title = t_export,
                   column(1,
                          do.call("downloadButton", c(export_bttn, list(
                            outputId = "verbExport")
-                         )),
-
+                         ))
                   )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                ),
                 div(
-                  title = t_save,
+                  title = t_report,
                   column(1,
-                         do.call("downloadButton", c(save_bttn, list(
-                           outputId = "verbSave")
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "verbReport")
                          ))
                   ))
               ),
@@ -911,7 +826,7 @@ body <- dashboardBody(
     tabItem(tabName = "w_other",
             fluidPage(
               fluidRow(
-                column(7,
+                column(8,
                        h3(strong("OTHER Frequency List"), align = "center")),
                 div(
                   title = t_run,
@@ -920,14 +835,22 @@ body <- dashboardBody(
                            inputId = "otherApply")
                          ))
                   )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             br(),
+                             numericInput("otherN",
+                                          label=("Number of OTHER"),
+                                          value = 20),
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = FALSE, animate = TRUE,
+                             tooltip = tooltipOptions(title = "Options"),
+                             #style = "material-circle"
+                           )
 
-                div(
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "otherReport")
-                         ))
-                  )),
+                ),
+                style = style_opt
+                ),
                 div(
                   title = t_export,
                   column(1,
@@ -936,28 +859,11 @@ body <- dashboardBody(
                          )),
 
                   )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                ),
                 div(
-                  title = t_save,
+                  title = t_report,
                   column(1,
-                         do.call("downloadButton", c(save_bttn, list(
-                           outputId = "otherSave")
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "otherReport")
                          ))
                   ))
               ),
@@ -981,7 +887,7 @@ body <- dashboardBody(
     tabItem(tabName = "w_pos",
             fluidPage(
               fluidRow(
-                column(7,
+                column(8,
                        h3(strong("Part of Speech Frequency List"), align = "center")),
                 div(
                   title = t_run,
@@ -990,46 +896,37 @@ body <- dashboardBody(
                            inputId = "posApply")
                          ))
                   )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             br(),
+                             numericInput("posN",
+                                          label=("Number of PoS"),
+                                          value = 20),
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = FALSE, animate = TRUE,
+                             tooltip = tooltipOptions(title = "Options"),
+                             #style = "material-circle"
+                           )
 
+                ),
+                style = style_opt
+                ),
+                div(
+                  title = t_export,
+                  column(1,
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "posExport")
+                         ))
+                  )),
                 div(
                   title = t_report,
                   column(1,
                          do.call("actionButton", c(report_bttn, list(
                            inputId = "posReport")
                          ))
-                  )),
-                div(
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "posExport")
-                         )),
-
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                ),
-                div(
-                  title = t_save,
-                  column(1,
-                         do.call("downloadButton", c(save_bttn, list(
-                           outputId = "posSave")
-                         ))
                   ))
+
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
@@ -1038,8 +935,9 @@ body <- dashboardBody(
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
                             tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("posTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                                     shinycssloaders::withSpinner(DT::DTOutput("posTable", width = 700),
+                                                                  color = getOption("spinner.color", default = "#4F7942")),
+                                     align="center"
                             )
                 )
               )
@@ -1050,30 +948,14 @@ body <- dashboardBody(
     tabItem(tabName = "w_clustering",
             fluidPage(
               fluidRow(
-                column(7,
+                column(8,
                        h3(strong("Clustering"), align = "center")),
-                div(#style=style_bttn,
+                div(
                   title = t_run,
                   column(1,
                          do.call("actionButton", c(run_bttn, list(
                            inputId = "w_clusteringApply")
                          ))
-                  )),
-
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "w_clusteringReport")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "w_clusteringExport")
-                         )),
-
                   )),
                 div(column(1,
                            dropdown(
@@ -1092,11 +974,18 @@ body <- dashboardBody(
                 ),
                 style = style_opt
                 ),
-                div(#style=style_bttn,
-                  title = t_save,
+                div(
+                  title = t_export,
                   column(1,
-                         do.call("downloadButton", c(save_bttn, list(
-                           outputId = "w_clusteringSave")
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "w_clusteringExport")
+                         ))
+                  )),
+                div(
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "w_clusteringReport")
                          ))
                   ))
               ),
@@ -1119,30 +1008,14 @@ body <- dashboardBody(
     tabItem(tabName = "ca",
             fluidPage(
               fluidRow(
-                column(7,
+                column(8,
                        h3(strong("Correspondence Analysis"), align = "center")),
-                div(#style=style_bttn,
+                div(
                   title = t_run,
                   column(1,
                          do.call("actionButton", c(run_bttn, list(
                            inputId = "caApply")
                          ))
-                  )),
-
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "caReport")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "caExport")
-                         )),
-
                   )),
                 div(column(1,
                            dropdown(
@@ -1161,11 +1034,18 @@ body <- dashboardBody(
                 ),
                 style = style_opt
                 ),
-                div(#style=style_bttn,
-                  title = t_save,
+                div(
+                  title = t_export,
                   column(1,
-                         do.call("downloadButton", c(save_bttn, list(
-                           outputId = "caSave")
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "caExport")
+                         ))
+                  )),
+                div(
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "caReport")
                          ))
                   ))
               ),
@@ -1189,30 +1069,14 @@ body <- dashboardBody(
     tabItem(tabName = "w_network",
             fluidPage(
               fluidRow(
-                column(7,
+                column(8,
                        h3(strong("Network"), align = "center")),
-                div(#style=style_bttn,
+                div(
                   title = t_run,
                   column(1,
                          do.call("actionButton", c(run_bttn, list(
                            inputId = "w_networkApply")
                          ))
-                  )),
-
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "w_networkReport")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "w_networkExport")
-                         )),
-
                   )),
                 div(column(1,
                            dropdown(
@@ -1231,11 +1095,18 @@ body <- dashboardBody(
                 ),
                 style = style_opt
                 ),
-                div(#style=style_bttn,
-                  title = t_save,
+                div(
+                  title = t_export,
                   column(1,
-                         do.call("downloadButton", c(save_bttn, list(
-                           outputId = "w_networkSave")
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "w_networkExport")
+                         ))
+                  )),
+                div(
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "w_networkReport")
                          ))
                   ))
               ),
@@ -1261,30 +1132,14 @@ body <- dashboardBody(
     tabItem(tabName = "d_topicMod",
             fluidPage(
               fluidRow(
-                column(7,
+                column(8,
                        h3(strong("Topic Modeling"), align = "center")),
-                div(#style=style_bttn,
+                div(
                   title = t_run,
                   column(1,
                          do.call("actionButton", c(run_bttn, list(
                            inputId = "d_topicModApply")
                          ))
-                  )),
-
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "d_topicModReport")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "d_topicModExport")
-                         )),
-
                   )),
                 div(column(1,
                            dropdown(
@@ -1303,11 +1158,18 @@ body <- dashboardBody(
                 ),
                 style = style_opt
                 ),
-                div(#style=style_bttn,
-                  title = t_save,
+                div(
+                  title = t_export,
                   column(1,
-                         do.call("downloadButton", c(save_bttn, list(
-                           outputId = "d_topicModSave")
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "d_topicModExport")
+                         ))
+                  )),
+                div(
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "d_topicModReport")
                          ))
                   ))
               ),
@@ -1331,9 +1193,9 @@ body <- dashboardBody(
     tabItem(tabName = "d_clustering",
             fluidPage(
               fluidRow(
-                column(7,
+                column(8,
                        h3(strong("Clustering"), align = "center")),
-                div(#style=style_bttn,
+                div(
                   title = t_run,
                   column(1,
                          do.call("actionButton", c(run_bttn, list(
@@ -1341,21 +1203,6 @@ body <- dashboardBody(
                          ))
                   )),
 
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "d_clusteringReport")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "d_clusteringExport")
-                         )),
-
-                  )),
                 div(column(1,
                            dropdown(
                              h4(strong("Options: ")),
@@ -1369,15 +1216,22 @@ body <- dashboardBody(
                              color = "default",
                              icon = icon("cog", lib="glyphicon")#,
                              #width = "200px"
-                           ),
+                           )
                 ),
                 style = style_opt
                 ),
-                div(#style=style_bttn,
-                  title = t_save,
+                div(
+                  title = t_export,
                   column(1,
-                         do.call("downloadButton", c(save_bttn, list(
-                           outputId = "d_clusteringSave")
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "d_clusteringExport")
+                         ))
+                  )),
+                div(
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "d_clusteringReport")
                          ))
                   ))
               ),
@@ -1401,30 +1255,14 @@ body <- dashboardBody(
     tabItem(tabName = "d_network",
             fluidPage(
               fluidRow(
-                column(7,
+                column(8,
                        h3(strong("Network"), align = "center")),
-                div(#style=style_bttn,
+                div(
                   title = t_run,
                   column(1,
                          do.call("actionButton", c(run_bttn, list(
                            inputId = "d_networkApply")
                          ))
-                  )),
-
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "d_networkReport")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "d_networkExport")
-                         )),
-
                   )),
                 div(column(1,
                            dropdown(
@@ -1439,15 +1277,22 @@ body <- dashboardBody(
                              color = "default",
                              icon = icon("cog", lib="glyphicon")#,
                              #width = "200px"
-                           ),
+                           )
                 ),
                 style = style_opt
                 ),
-                div(#style=style_bttn,
-                  title = t_save,
+                div(
+                  title = t_export,
                   column(1,
-                         do.call("downloadButton", c(save_bttn, list(
-                           outputId = "d_networkSave")
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "d_networkExport")
+                         ))
+                  )),
+                div(
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "d_networkReport")
                          ))
                   ))
               ),
@@ -1471,7 +1316,7 @@ body <- dashboardBody(
     tabItem(tabName = "d_summarization",
             fluidPage(
               fluidRow(
-                column(7,
+                column(8,
                        h3(strong("Summarization"), align = "center")),
                 div(#style=style_bttn,
                   title = t_run,
@@ -1479,22 +1324,6 @@ body <- dashboardBody(
                          do.call("actionButton", c(run_bttn, list(
                            inputId = "d_summarizationApply")
                          ))
-                  )),
-
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "d_summarizationReport")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "d_summarizationExport")
-                         )),
-
                   )),
                 div(column(1,
                            dropdown(
@@ -1514,10 +1343,19 @@ body <- dashboardBody(
                 style = style_opt
                 ),
                 div(#style=style_bttn,
-                  title = t_save,
+                  title = t_export,
                   column(1,
-                         do.call("downloadButton", c(save_bttn, list(
-                           outputId = "d_summarizationSave")
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "d_summarizationExport")
+                         ))
+
+                  )),
+
+                div(#style=style_bttn,
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "d_summarizationReport")
                          ))
                   ))
               ),
@@ -1541,30 +1379,14 @@ body <- dashboardBody(
     tabItem(tabName = "d_polDet",
             fluidPage(
               fluidRow(
-                column(7,
+                column(8,
                        h3(strong("Polarity Detection"), align = "center")),
-                div(#style=style_bttn,
+                div(
                   title = t_run,
                   column(1,
                          do.call("actionButton", c(run_bttn, list(
                            inputId = "d_polDetApply")
                          ))
-                  )),
-
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "d_polDetReport")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "d_polDetExport")
-                         )),
-
                   )),
                 div(column(1,
                            dropdown(
@@ -1584,10 +1406,18 @@ body <- dashboardBody(
                 style = style_opt
                 ),
                 div(#style=style_bttn,
-                  title = t_save,
+                  title = t_export,
                   column(1,
-                         do.call("downloadButton", c(save_bttn, list(
-                           outputId = "d_polDetSave")
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "d_polDetExport")
+                         ))
+                  )),
+
+                div(
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "d_polDetReport")
                          ))
                   ))
               ),
@@ -1613,7 +1443,7 @@ body <- dashboardBody(
     tabItem(tabName = "g_topicMod",
             fluidPage(
               fluidRow(
-                column(7,
+                column(8,
                        h3(strong("Topic Modeling"), align = "center")),
                 div(#style=style_bttn,
                   title = t_run,
@@ -1621,22 +1451,6 @@ body <- dashboardBody(
                          do.call("actionButton", c(run_bttn, list(
                            inputId = "g_topicModApply")
                          ))
-                  )),
-
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "g_topicModReport")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "g_topicModExport")
-                         )),
-
                   )),
                 div(column(1,
                            dropdown(
@@ -1656,10 +1470,17 @@ body <- dashboardBody(
                 style = style_opt
                 ),
                 div(#style=style_bttn,
-                  title = t_save,
+                  title = t_export,
                   column(1,
-                         do.call("downloadButton", c(save_bttn, list(
-                           outputId = "g_topicModSave")
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "g_topicModExport")
+                         ))
+                  )),
+                div(#style=style_bttn,
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "g_topicModReport")
                          ))
                   ))
               ),
@@ -1683,7 +1504,7 @@ body <- dashboardBody(
     tabItem(tabName = "g_clustering",
             fluidPage(
               fluidRow(
-                column(7,
+                column(8,
                        h3(strong("Clustering"), align = "center")),
                 div(#style=style_bttn,
                   title = t_run,
@@ -1691,22 +1512,6 @@ body <- dashboardBody(
                          do.call("actionButton", c(run_bttn, list(
                            inputId = "g_clusteringApply")
                          ))
-                  )),
-
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "g_clusteringReport")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "g_clusteringExport")
-                         )),
-
                   )),
                 div(column(1,
                            dropdown(
@@ -1726,10 +1531,17 @@ body <- dashboardBody(
                 style = style_opt
                 ),
                 div(#style=style_bttn,
-                  title = t_save,
+                  title = t_export,
                   column(1,
-                         do.call("downloadButton", c(save_bttn, list(
-                           outputId = "g_clusteringSave")
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "g_clusteringExport")
+                         ))
+                  )),
+                div(#style=style_bttn,
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "g_clusteringReport")
                          ))
                   ))
               ),
@@ -1753,7 +1565,7 @@ body <- dashboardBody(
     tabItem(tabName = "g_network",
             fluidPage(
               fluidRow(
-                column(7,
+                column(8,
                        h3(strong("Network"), align = "center")),
                 div(#style=style_bttn,
                   title = t_run,
@@ -1761,22 +1573,6 @@ body <- dashboardBody(
                          do.call("actionButton", c(run_bttn, list(
                            inputId = "g_networkApply")
                          ))
-                  )),
-
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "g_networkReport")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "g_networkExport")
-                         )),
-
                   )),
                 div(column(1,
                            dropdown(
@@ -1796,10 +1592,18 @@ body <- dashboardBody(
                 style = style_opt
                 ),
                 div(#style=style_bttn,
-                  title = t_save,
+                  title = t_export,
                   column(1,
-                         do.call("downloadButton", c(save_bttn, list(
-                           outputId = "g_networkSave")
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "g_networkExport")
+                         ))
+                  )),
+
+                div(#style=style_bttn,
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "g_networkReport")
                          ))
                   ))
               ),
@@ -1823,7 +1627,7 @@ body <- dashboardBody(
     tabItem(tabName = "g_summarization",
             fluidPage(
               fluidRow(
-                column(7,
+                column(8,
                        h3(strong("Summarization"), align = "center")),
                 div(#style=style_bttn,
                   title = t_run,
@@ -1831,22 +1635,6 @@ body <- dashboardBody(
                          do.call("actionButton", c(run_bttn, list(
                            inputId = "g_summarizationApply")
                          ))
-                  )),
-
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "g_summarizationReport")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "g_summarizationExport")
-                         )),
-
                   )),
                 div(column(1,
                            dropdown(
@@ -1866,10 +1654,18 @@ body <- dashboardBody(
                 style = style_opt
                 ),
                 div(#style=style_bttn,
-                  title = t_save,
+                  title = t_export,
                   column(1,
-                         do.call("downloadButton", c(save_bttn, list(
-                           outputId = "g_summarizationSave")
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "g_summarizationExport")
+                         ))
+                  )),
+
+                div(#style=style_bttn,
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "g_summarizationReport")
                          ))
                   ))
               ),
@@ -1893,7 +1689,7 @@ body <- dashboardBody(
     tabItem(tabName = "g_polDet",
             fluidPage(
               fluidRow(
-                column(7,
+                column(8,
                        h3(strong("Polarity Detection"), align = "center")),
                 div(#style=style_bttn,
                   title = t_run,
@@ -1901,22 +1697,6 @@ body <- dashboardBody(
                          do.call("actionButton", c(run_bttn, list(
                            inputId = "g_polDetApply")
                          ))
-                  )),
-
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "g_polDetReport")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "g_polDetExport")
-                         )),
-
                   )),
                 div(column(1,
                            dropdown(
@@ -1936,10 +1716,18 @@ body <- dashboardBody(
                 style = style_opt
                 ),
                 div(#style=style_bttn,
-                  title = t_save,
+                  title = t_export,
                   column(1,
-                         do.call("downloadButton", c(save_bttn, list(
-                           outputId = "g_polDetSave")
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "g_polDetExport")
+                         ))
+                  )),
+
+                div(#style=style_bttn,
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "g_polDetReport")
                          ))
                   ))
               ),

@@ -8,6 +8,9 @@ library(tall)
 server <- function(input, output, session){
   session$onSessionEnded(stopApp)
 
+  ## suppress summarise message
+  options(dplyr.summarise.inform = FALSE)
+
   ### Initial values ----
   values <- reactiveValues()
   values$path <- NULL
@@ -325,7 +328,7 @@ server <- function(input, output, session){
       values$vb <- valueBoxesIndices(values$dfTag)
       valueBox(value = p("Documents", style = 'font-size:16px;color:white;'),
                subtitle = p(strong(values$vb$nDoc), style = 'font-size:36px;color:white;', align="center"),
-               icon = fa_i(name="layer-group"), color = "olive",
+               icon = icon("duplicate", lib="glyphicon"), color = "olive",
                width = NULL)
     })
 
@@ -333,7 +336,7 @@ server <- function(input, output, session){
     output$avgDocLengthChar <- renderValueBox({
       valueBox(value = p("Doc Avg Length in Chars", style = 'font-size:16px;color:white;'),
                subtitle = p(strong(values$vb$avgDocLengthChars), style = 'font-size:36px;color:white;', align="center"),
-               icon = fa_i(name="layer-group"), color = "olive",
+               icon = icon("duplicate", lib="glyphicon"), color = "olive",
                width = NULL)
     })
 
@@ -341,7 +344,7 @@ server <- function(input, output, session){
     output$avgDocLengthTokens <- renderValueBox({
       valueBox(value = p("Doc Avg Length in Tokens", style = 'font-size:16px;color:white;'),
                subtitle = p(strong(values$vb$avgDocLengthTokens), style = 'font-size:36px;color:white;', align="center"),
-               icon = fa_i(name="layer-group"), color = "olive",
+               icon = icon("duplicate", lib="glyphicon"), color = "olive",
                width = NULL)
     })
 
@@ -429,6 +432,25 @@ server <- function(input, output, session){
     })
 
 
+    ## WORDCLOUD ----
+
+    output$wordcloudPlot <- renderWordcloud2({
+
+      n <- 200
+      wcDf <- freqByPos(values$dfTag, term="lemma",pos=unique(values$dfTag$upos[values$dfTag$POSSelected==TRUE])) %>%
+        slice_head(n=n) %>%
+        mutate(n=log(n)) %>%
+        rename(text = term,
+               freq = n)
+
+      wcPlot <- wordcloud2::wordcloud2(wcDf,
+                                       fontFamily = "Impact", fontWeight = "normal", minSize=0,
+                                       minRotation = 0, maxRotation = 0, shuffle = TRUE,
+                                       rotateRatio = 0.7, shape = "circle",ellipticity = 0.65,
+                                       widgetsize = NULL, figPath = NULL, hoverFunction = NULL,
+                                       size = 0.5, color = "random-dark", backgroundColor = "transparent")
+      return(wcPlot)
+    })
 
     observeEvent(input$reportMI,{
       if(!is.null(values$TABvb)){
@@ -456,14 +478,12 @@ server <- function(input, output, session){
         },
       valueExpr = {
         values$freqNoun <- freqByPos(values$dfTag, term="lemma", pos="NOUN")
+          freqPlotly(values$freqNoun,x="n",y="term",n=input$nounN, xlabel="Frequency",ylabel="NOUN", scale="identity")
       }
     )
 
     output$nounPlot <- renderPlotly({
       freqNoun()
-      #input$nounScale <- c("identity", "log")
-      #input$nounN <- 10
-      freqPlotly(values$freqNoun,x="n",y="term",n=10, xlabel="Frequency",ylabel="NOUN", scale="identity")
     })
 
     output$nounTable <- renderDT({
@@ -474,6 +494,8 @@ server <- function(input, output, session){
                left=1, right=2, numeric=2, filename="NounFreqList", dom=FALSE, size="110%")
     })
 
+
+
     ## PROPN ----
     freqPropn <- eventReactive(
       eventExpr = {
@@ -481,14 +503,13 @@ server <- function(input, output, session){
       },
       valueExpr = {
         values$freqPropn <- freqByPos(values$dfTag, term="lemma", pos="PROPN")
+        freqPlotly(values$freqPropn,x="n",y="term",n=input$propnN, xlabel="Frequency",ylabel="PROPN", scale="identity")
+
       }
     )
 
     output$propnPlot <- renderPlotly({
       freqPropn()
-      #input$nounScale <- c("identity", "log")
-      #input$nounN <- 10
-      freqPlotly(values$freqPropn,x="n",y="term",n=10, xlabel="Frequency",ylabel="PROPN", scale="identity")
     })
 
     output$propnTable <- renderDT({
@@ -498,6 +519,7 @@ server <- function(input, output, session){
                         Frequency = n),
                left=1, right=2, numeric=2, filename="PropnFreqList", dom=FALSE, size="110%")
     })
+
     ## ADJ ----
     freqAdj <- eventReactive(
       eventExpr = {
@@ -505,14 +527,12 @@ server <- function(input, output, session){
       },
       valueExpr = {
         values$freqAdj <- freqByPos(values$dfTag, term="lemma", pos="ADJ")
+        freqPlotly(values$freqAdj,x="n",y="term",n=input$adjN, xlabel="Frequency",ylabel="ADJ", scale="identity")
       }
     )
 
     output$adjPlot <- renderPlotly({
       freqAdj()
-      #input$nounScale <- c("identity", "log")
-      #input$nounN <- 10
-      freqPlotly(values$freqAdj,x="n",y="term",n=10, xlabel="Frequency",ylabel="ADJ", scale="identity")
     })
 
     output$adjTable <- renderDT({
@@ -530,14 +550,12 @@ server <- function(input, output, session){
       },
       valueExpr = {
         values$freqVerb <- freqByPos(values$dfTag, term="lemma", pos="VERB")
+        freqPlotly(values$freqVerb,x="n",y="term",n=input$verbN, xlabel="Frequency",ylabel="VERB", scale="identity")
       }
     )
 
     output$verbPlot <- renderPlotly({
       freqVerb()
-      #input$nounScale <- c("identity", "log")
-      #input$nounN <- 10
-      freqPlotly(values$freqVerb,x="n",y="term",n=10, xlabel="Frequency",ylabel="VERB", scale="identity")
     })
 
     output$verbTable <- renderDT({
@@ -555,14 +573,12 @@ server <- function(input, output, session){
       },
       valueExpr = {
         values$freqOther <- freqByPos(values$dfTag, term="lemma", pos=input$otherPos)
+        freqPlotly(values$freqOther,x="n",y="term",n=input$otherN, xlabel="Frequency",ylabel=input$otherPos, scale="identity")
       }
     )
 
     output$otherPlot <- renderPlotly({
       freqOther()
-      #input$nounScale <- c("identity", "log")
-      #input$nounN <- 10
-      freqPlotly(values$freqOther,x="n",y="term",n=10, xlabel="Frequency",ylabel=input$otherPos, scale="identity")
     })
 
     output$otherTable <- renderDT({
@@ -586,50 +602,23 @@ server <- function(input, output, session){
           count() %>%
           arrange(desc(n)) %>%
           rename(PoS = upos)
+
+        freqPlotly(values$freqPOS,x="n",y="PoS",n=nrow(values$freqPOS), xlabel="Frequency",ylabel="Part of Speech", scale="identity")
       }
     )
 
     output$posPlot <- renderPlotly({
       freqPOS()
-      #input$nounScale <- c("identity", "log")
-      #input$nounN <- 10
-      freqPlotly(values$freqPOS,x="n",y="PoS",n=10, xlabel="Frequency",ylabel="Part of Speech", scale="identity")
     })
 
     output$posTable <- renderDT({
       freqPOS()
       DTformat(values$freqPOS %>%
                  rename(Frequency = n),
-               left=1, right=2, numeric=2, filename="POSFreqList", dom=FALSE, size="110%")
+               left=1, right=2, numeric=2, filename="POSFreqList", dom=FALSE, pagelength=FALSE, size="110%")
     })
 
-  # wordcloud <- eventReactive(input$overviewApply,{
-  #   # INPUT DA AGGIUNGERE
-  #   # n <-  input$wcN numer of words
-  #   # size <-  input$wcSize
-  #   # scale <- input$wcScale scale transformation (log, etc.)
-  #   n <- 100
-  #   size <- 2
-  #   scale <- "identity"
-  #
-  #   values$wcDf <- distrib(values$token, scale=scale) %>%
-  #     slice_head(n=n) %>%
-  #     rename(word = text,
-  #            freq = n)
-  #   wordcloud2(values$wcDf,
-  #              size = size,
-  #              color = "random-light",
-  #              backgroundColor = "transparent")
-  # })
-  #
-  # output$overviewPlot <- renderWordcloud2({
-  #   wordcloud()
-  # })
-  #
-  # output$overviewTable <- renderDT({
-  #   wordcloud()
-  #   values$wcDf
-  # })
+
 
   ## Clustering ----
 
