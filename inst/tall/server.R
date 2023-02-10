@@ -5,6 +5,16 @@ source("tallFunctions.R", local=TRUE)
 library(tall)
 ###
 
+## suppress warnings
+options(warn = -1)
+
+## file upload max size
+maxUploadSize <- 200 # default value
+maxUploadSize <- getShinyOption("maxUploadSize", maxUploadSize)
+options(shiny.maxRequestSize=maxUploadSize*1024^2)
+
+
+
 server <- function(input, output, session){
   session$onSessionEnded(stopApp)
 
@@ -82,8 +92,10 @@ server <- function(input, output, session){
              }
            },
            load_tall={
-             file_tall <- input$file1
-              load(file_tall$datapath)
+             req(input$file1)
+             file_tall <- input$file1$datapath
+              print(file_tall)
+              load(file_tall)
               values$menu <- menu
               values$dfTag <- dfTag
               values$custom_lists <- custom_lists
@@ -295,7 +307,7 @@ server <- function(input, output, session){
     },{
       #selected <- (posTagAll(values$dfTag) %>% dplyr::filter(selected==TRUE))$pos
       selected <- (posTagAll(values$dfTag) %>% dplyr::filter(description %in% (input$posTagLists)))$pos
-      values$dfTag <- posSel(values$dfTag, pos=selected)#ifelse(values$dfTag$upos %in% selected, TRUE, FALSE)
+      values$dfTag <- posSel(values$dfTag, pos=selected)
       values$menu <- 2
     })
 
@@ -314,6 +326,17 @@ server <- function(input, output, session){
                         POSTag=upos)
       )
     })
+
+    output$posTagSelectSave <- downloadHandler(
+      filename = function() {
+        paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
+      },
+      content <- function(file) {
+        saveTall(values$dfTag, values$custom_lists, values$menu, "POS Tag Selection", file)
+        # D <- date()
+        # save(dfTag,menu,D,where, file=file)
+      }, contentType = "tall"
+    )
 
 
 

@@ -514,11 +514,30 @@ popUp <- function(title=NULL, type="success", btn_labels="OK"){
 
 ### UTILITY FUNCTIONS ----
 
+## POS selection function ----
 posSel <- function(df, pos){
   df <- df %>% mutate(POSSelected = ifelse(upos %in% pos, TRUE, FALSE))
 
+  ## create highlighted tokens
+  posUnsel <- c("PUNCT","X","SYM","NUM", "NGRAM_MERGED")
+  df <- df %>%
+    group_by(token) %>%
+    mutate(token_hl = ifelse(!upos %in% posUnsel,
+                             paste0("<mark>", token, "</mark>"), token)) %>%
+    group_by(doc_id,sentence_id) %>%
+    mutate(start_hl = start-(first(start)-1),
+           end_hl = start_hl+(end-start)) %>%
+    mutate(sentence_hl = ifelse(!upos %in% posUnsel,
+                                paste0(substr(sentence,0,start_hl-1),token_hl,substr(sentence,end_hl+1,nchar(sentence))),
+                                sentence)) %>% ungroup()
+
 }
 
+## saveTall function ----
+saveTall <- function(dfTag,custom_lists,menu,where,file){
+  D <- date()
+  save(dfTag,custom_lists,menu,D,where, file=file)
+}
 
 ###Export Tall analysis in .tall file ----
 
