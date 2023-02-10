@@ -109,56 +109,8 @@ mergeCustomLists <- function(df,custom_lists){
 
 }
 
-### 3. POS TAG SELECTION ----
 
-# create description for pos tag check box ----
-posTagAll <- function(df){
-  posLegend <- data.frame(pos=c('ADJ',
-                                'ADP',
-                                'ADV',
-                                'AUX',
-                                'CCONJ',
-                                'DET',
-                                'INTJ',
-                                'NOUN',
-                                'NUM',
-                                'PART',
-                                'PRON',
-                                'PROPN',
-                                'PUNCT',
-                                'SCONJ',
-                                'SYM',
-                                'VERB',
-                                'X'),
-                          description=c('Adjective',
-                                        'Adposition',
-                                        'Adverb',
-                                        'Auxiliary',
-                                        'Coord. Conjunction',
-                                        'Determiner',
-                                        'Interjection',
-                                        'Noun',
-                                        'Numeral',
-                                        'Particle',
-                                        'Pronoun',
-                                        'Proper Noun',
-                                        'Punctuation',
-                                        'Subord. Conjunction',
-                                        'Symbol',
-                                        'Verb',
-                                        'Other'))
-
-  pos <- unique(df$upos)
-  additionalPos <- sort(setdiff(pos, posLegend$pos))
-  ordinaryPos <- sort(pos[!pos %in% additionalPos])
-  pos <- c(ordinaryPos,additionalPos)
-  description <- c(posLegend$description[posLegend$pos %in% pos], rep("Custom PoS", length(additionalPos)))
-  description <- paste(pos, description,sep=": ")
-  obj <- data.frame(pos=pos, description=description)
-  return(obj)
-}
-
-### 4. MULTI-WORD CREATION ----
+### MULTI-WORD CREATION ----
 
 # rake function to create multi-words
 rake <- function(x, group = "doc_id", ngram_max=5, relevant = c("PROPN", "NOUN", "ADJ", "VERB"), rake.min=2){
@@ -211,6 +163,56 @@ rake <- function(x, group = "doc_id", ngram_max=5, relevant = c("PROPN", "NOUN",
 }
 
 
+### POS TAG SELECTION ----
+
+# create description for pos tag check box ----
+posTagAll <- function(df){
+  posLegend <- data.frame(pos=c('ADJ',
+                                'ADP',
+                                'ADV',
+                                'AUX',
+                                'CCONJ',
+                                'DET',
+                                'INTJ',
+                                'NOUN',
+                                'NUM',
+                                'PART',
+                                'PRON',
+                                'PROPN',
+                                'PUNCT',
+                                'SCONJ',
+                                'SYM',
+                                'VERB',
+                                'X'),
+                          description=c('Adjective',
+                                        'Adposition',
+                                        'Adverb',
+                                        'Auxiliary',
+                                        'Coord. Conjunction',
+                                        'Determiner',
+                                        'Interjection',
+                                        'Noun',
+                                        'Numeral',
+                                        'Particle',
+                                        'Pronoun',
+                                        'Proper Noun',
+                                        'Punctuation',
+                                        'Subord. Conjunction',
+                                        'Symbol',
+                                        'Verb',
+                                        'Other'))
+
+  pos <- unique(df$upos)
+  additionalPos <- sort(setdiff(pos, posLegend$pos))
+  ordinaryPos <- sort(pos[!pos %in% additionalPos])
+  pos <- c(ordinaryPos,additionalPos)
+  description <- c(posLegend$description[posLegend$pos %in% pos], rep("Custom PoS", length(additionalPos)))
+  description <- paste(pos, description,sep=": ")
+  obj <- data.frame(pos=pos, description=description)
+  return(obj)
+}
+
+
 ### OVERVIEW ----
 
 # Term Frequency Distributions
@@ -224,12 +226,14 @@ freqByPos <- function(df, term="lemma", pos="NOUN"){
 # freqPlotly ----
 freqPlotly <- function(dfPlot,x,y,n=10, xlabel,ylabel, scale=c("identity", "log")){
   # function to build and plot plotly horizontal barplot
-  dfPlot <- dfPlot %>% slice_head(n=n)
+  dfPlot <- dfPlot %>% dplyr::slice_head(n=n)
   xmax <- max(dfPlot[[x]])
 
   switch(scale,
          log={
-           dfPlot$scale <- log(obj$n)
+           #dfPlot$scale <- log(obj$n)
+           dfPlot$n <- log(dfPlot$n)
+
          }
   )
 
@@ -539,11 +543,11 @@ menuList <- function(menu){
   switch(as.character(menu),
          "0"={
            list(
-             menuItem("Data", tabName = "data", icon = fa_i(name = "file-import", lib="glyphicon"),
+             menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
-             menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib = "glyphicon"), startExpanded = TRUE,
+             menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
                       menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right"), selected = TRUE)
              )
            )
@@ -554,7 +558,7 @@ menuList <- function(menu){
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
-             menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib = "glyphicon"), startExpanded = TRUE,
+             menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
                       menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
                       menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right"), selected = TRUE),
                       menuSubItem("Multi-Word Creation", tabName = "multiwordCreat",icon = icon("chevron-right")),
@@ -568,7 +572,7 @@ menuList <- function(menu){
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
-             menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib = "glyphicon"), startExpanded = TRUE,
+             menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
                       menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
                       menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right")),
                       menuSubItem("Multi-Word Creation", tabName = "multiwordCreat",icon = icon("chevron-right")),
@@ -585,20 +589,20 @@ menuList <- function(menu){
                       menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),
                       menuSubItem("Correspondence Analysis", tabName = "ca", icon = icon("chevron-right")),
                       menuSubItem("Network", tabName = "w_network", icon = icon("chevron-right"))),
-             menuItem("Documents",tabName = "documents", icon = fa_i(name="layer-group"),
+             menuItem("Documents",tabName = "documents", icon = icon(name="duplicate", lib="glyphicon"),
                       menuSubItem("Topic Modeling", tabName = "d_topicMod", icon = icon("chevron-right")),
                       menuSubItem("Clustering", tabName = "d_clustering", icon = icon("chevron-right")),
                       menuSubItem("Network", tabName = "d_network", icon = icon("chevron-right")),
                       menuSubItem("Summarization", tabName = "d_summarization", icon = icon("chevron-right")),
                       menuSubItem("Polarity Detection", tabName = "d_polDet", icon = icon("chevron-right"))),
-             menuItem("Groups",tabName = "groups", icon = fa_i(name ="spinner"),
+             menuItem("Groups",tabName = "groups", icon = icon("th", lib="glyphicon"),
                       menuSubItem("Topic Modeling", tabName = "g_topicMod", icon = icon("chevron-right")),
                       menuSubItem("Clustering", tabName = "g_clustering", icon = icon("chevron-right")),
                       menuSubItem("Network", tabName = "g_network", icon = icon("chevron-right")),
                       menuSubItem("Summarization", tabName = "g_summarization", icon = icon("chevron-right")),
                       menuSubItem("Polarity Detection", tabName = "g_polDet", icon = icon("chevron-right"))),
-             menuItem("Report",tabName = "report", icon = fa_i(name ="list-alt")),
-             menuItem("Settings",tabName = "settings", icon = fa_i(name ="sliders"))
+             menuItem("Report",tabName = "report", icon = icon("list-alt")),
+             menuItem("Settings",tabName = "settings", icon = icon("tasks"))
            )
          },
          {

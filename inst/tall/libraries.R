@@ -7,7 +7,6 @@ libraries <- function(){
   if (!require(shinydashboardPlus)){install.packages("shinydashboardPlus"); require(shinydashboardPlus, quietly=TRUE)}
   if (!require(shinyWidgets)){install.packages("shinyWidgets"); require(shinyWidgets, quietly=TRUE)}
   if (!require(shinycssloaders)){install.packages("shinycssloaders"); require(shinycssloaders, quietly=TRUE)}
-  if (!require(fontawesome)){install.packages("fontawesome"); require(fontawesome, quietly=TRUE)}
   if (!require(shinyjs)){install.packages("shinyjs"); require(shinyjs, quietly=TRUE)}
   if (!require(tidyverse)){install.packages("dplyr"); require(tidyverse, quietly=TRUE)}
   if (!require(DT)){install.packages("DT"); require(DT, quietly=TRUE)}
