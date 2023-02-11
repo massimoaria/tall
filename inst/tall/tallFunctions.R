@@ -262,7 +262,9 @@ freqPlotly <- function(dfPlot,x,y,n=10, xlabel,ylabel, scale=c("identity", "log"
              'toggleSpikelines',
              'hoverClosestCartesian',
              'hoverCompareCartesian'
-           ))
+           )) %>%
+    event_register("plotly_selecting")
+
   fig1
 }
 
@@ -517,20 +519,23 @@ popUp <- function(title=NULL, type="success", btn_labels="OK"){
 ## POS selection function ----
 posSel <- function(df, pos){
   df <- df %>% mutate(POSSelected = ifelse(upos %in% pos, TRUE, FALSE))
+  df <- highlight(df)
+}
 
+## Highlight function ----
+highlight <- function(df){
   ## create highlighted tokens
   posUnsel <- c("PUNCT","X","SYM","NUM", "NGRAM_MERGED")
   df <- df %>%
     group_by(token) %>%
     mutate(token_hl = ifelse(!upos %in% posUnsel,
-                             paste0("<mark>", token, "</mark>"), token)) %>%
+                             paste0("<mark><strong>", token, "</strong></mark>"), token)) %>%
     group_by(doc_id,sentence_id) %>%
     mutate(start_hl = start-(first(start)-1),
            end_hl = start_hl+(end-start)) %>%
     mutate(sentence_hl = ifelse(!upos %in% posUnsel,
                                 paste0(substr(sentence,0,start_hl-1),token_hl,substr(sentence,end_hl+1,nchar(sentence))),
                                 sentence)) %>% ungroup()
-
 }
 
 ## saveTall function ----

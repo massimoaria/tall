@@ -72,6 +72,7 @@ body <- dashboardBody(
 
   tags$style(".glyphicon-folder-open {color:#ffffff; font-size: 17px}"),
   tags$head(
+    tags$style("mark {background-color: olive;}"), ## Color for highlighted text
     tags$style(".fa-envelope {color:#FF0000; font-size: 20px}"),
     tags$style(".fa-envelope-open {font-size: 20px}"),
     tags$style(".fa-cube {font-size: 20px}"),

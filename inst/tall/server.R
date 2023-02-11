@@ -491,6 +491,39 @@ server <- function(input, output, session){
 
   ### WORDS ----
 
+    ## Click on Plotly graphs: WORDS IN CONTEXT ----
+    observeEvent(event_data("plotly_click"), {
+      #if (input$sidebarmenu=="freqList"){
+        showModal(plotModalTerm(session))
+      #}
+    })
+
+    plotModalTerm <- function(session) {
+      ns <- session$ns
+      modalDialog(
+        h3(strong(("Words in context"))),
+        DTOutput(ns("wordInContext")),
+        size = "l",
+        easyClose = TRUE,
+        footer = tagList(
+          # screenshotButton(label="Save", id = "cocPlotClust",
+          #                  scale = 2,
+          #                  file=paste("TMClusterGraph-", Sys.Date(), ".png", sep="")),
+          modalButton("Close")),
+      )
+    }
+
+    output$wordInContext <- renderDT({
+      values$d <- event_data("plotly_click")
+      #print(values$d)
+      word <- values$d$y
+      word_search <- unique(c(word, values$dfTag$token[values$dfTag$lemma==word]))
+      # find sentences containing the tokens/lemmas
+      DTformat(sentences <- values$dfTag %>%
+        filter(token %in% word_search) %>%
+        ungroup() %>% select(token, sentence_hl))
+    }, escape=FALSE)
+
   ## Frequency List ----
 
     ## NOUN ----
