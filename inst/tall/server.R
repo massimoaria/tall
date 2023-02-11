@@ -501,7 +501,7 @@ server <- function(input, output, session){
     plotModalTerm <- function(session) {
       ns <- session$ns
       modalDialog(
-        h3(strong(("Words in context"))),
+        h3(strong(("Words in Context"))),
         DTOutput(ns("wordInContext")),
         size = "l",
         easyClose = TRUE,
@@ -521,7 +521,7 @@ server <- function(input, output, session){
       # find sentences containing the tokens/lemmas
       DTformat(sentences <- values$dfTag %>%
         filter(token %in% word_search) %>%
-        ungroup() %>% select(token, sentence_hl))
+        ungroup() %>% select(token, sentence_hl), size='100%')
     }, escape=FALSE)
 
   ## Frequency List ----
