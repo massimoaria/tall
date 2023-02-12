@@ -469,8 +469,10 @@ server <- function(input, output, session){
                                        fontFamily = "Impact", fontWeight = "normal", minSize=0,
                                        minRotation = 0, maxRotation = 0, shuffle = TRUE,
                                        rotateRatio = 0.7, shape = "circle",ellipticity = 0.65,
-                                       widgetsize = NULL, figPath = NULL, hoverFunction = NULL,
-                                       size = 0.35, color = "random-dark", backgroundColor = "transparent")
+                                       widgetsize = NULL,
+                                       figPath = NULL, hoverFunction = "none",
+                                       size = ifelse(length(wcDfPlot$freq)>100,0.35,0.4),
+                                       color = "random-dark", backgroundColor = "transparent")
       return(wcPlot)
     })
 
