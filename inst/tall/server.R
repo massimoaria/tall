@@ -94,7 +94,7 @@ server <- function(input, output, session){
            load_tall={
              req(input$file1)
              file_tall <- input$file1$datapath
-              print(file_tall)
+              #print(file_tall)
               load(file_tall)
               values$menu <- menu
               values$dfTag <- dfTag
@@ -202,7 +202,6 @@ server <- function(input, output, session){
         })
         custom_lists <- do.call(rbind,custom_lists)
         values$custom_lists <- custom_lists
-        #print(values$custom_lists)
       }
     )
 
@@ -459,21 +458,34 @@ server <- function(input, output, session){
 
     output$wordcloudPlot <- renderWordcloud2({
 
-      n <- 200
-      wcDf <- freqByPos(values$dfTag, term="lemma",pos=unique(values$dfTag$upos[values$dfTag$POSSelected==TRUE])) %>%
+      n <- 200 #showing the first 200 lemmas
+      wcDfPlot <- freqByPos(values$dfTag, term="lemma",pos=unique(values$dfTag$upos[values$dfTag$POSSelected==TRUE])) %>%
         slice_head(n=n) %>%
         mutate(n=log(n)) %>%
         rename(text = term,
                freq = n)
 
-      wcPlot <- wordcloud2::wordcloud2(wcDf,
+      wcPlot <- wordcloud2::wordcloud2(wcDfPlot,
                                        fontFamily = "Impact", fontWeight = "normal", minSize=0,
                                        minRotation = 0, maxRotation = 0, shuffle = TRUE,
                                        rotateRatio = 0.7, shape = "circle",ellipticity = 0.65,
                                        widgetsize = NULL, figPath = NULL, hoverFunction = NULL,
-                                       size = 0.5, color = "random-dark", backgroundColor = "transparent")
+                                       size = 0.35, color = "random-dark", backgroundColor = "transparent")
       return(wcPlot)
     })
+
+
+    output$wcDfData <- renderDT({
+      n=200
+      wcDfTable <- freqByPos(values$dfTag, term="lemma",pos=unique(values$dfTag$upos[values$dfTag$POSSelected==TRUE])) %>%
+        slice_head(n=n) %>%
+        rename(Lemma = term,
+               Freq = n)
+
+      DTformat(wcDfTable,n=15, left=1, right=2, numeric=2, pagelength=TRUE, dom=TRUE, size='110%', filename="WordCloudData")
+
+    })
+
 
     observeEvent(input$reportMI,{
       if(!is.null(values$TABvb)){
@@ -515,7 +527,6 @@ server <- function(input, output, session){
 
     output$wordInContext <- renderDT({
       values$d <- event_data("plotly_click")
-      #print(values$d)
       word <- values$d$y
       word_search <- unique(c(word, values$dfTag$token[values$dfTag$lemma==word]))
       # find sentences containing the tokens/lemmas
@@ -623,6 +634,19 @@ server <- function(input, output, session){
     })
 
     ## OTHER ----
+
+  ### CHECK IT!!!!
+    # mettiamo un pop-up se nel pos tag sel non ha incluso other or multiword or custom terms.....?
+    # in other è possibile fare le distr di freq per tutti gli altri terms
+
+    output$otherFreq <- renderUI({
+      values$UniPos <- unique(values$dfTag$upos[values$dfTag$POSSelected==TRUE])
+      UniPos <- values$UniPos[! values$UniPos %in% c("PROPN", "NOUN", "ADJ", "VERB")]
+      selectInput("otherPos",label = NULL,
+                  choices = UniPos)#,
+                  #selected = posTagAll(values$dfTag)$pos[1]
+    })
+
     freqOther <- eventReactive(
       eventExpr = {
         input$otherApply

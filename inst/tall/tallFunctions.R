@@ -668,7 +668,6 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
     dom <- "Bt"
   }
 
-  # da completare
   tab <- DT::datatable(df,escape = FALSE,rownames = FALSE, extensions = c("Buttons"),
                 options = list(
                   pageLength = nrow,
