@@ -573,7 +573,9 @@ body <- dashboardBody(
                                      shinycssloaders::withSpinner(DT::DTOutput(outputId = "overviewData", width = 700))
                                      ),
                             tabPanel("WordCloud",
-                                     wordcloud2::wordcloud2Output("wordcloudPlot", height = "75vh"), width = 700)
+                                     wordcloud2::wordcloud2Output("wordcloudPlot", height = "75vh")),# width = 700),
+                            tabPanel("WordCloud Table",
+                                     shinycssloaders::withSpinner(DT::DTOutput(outputId = "wcDfData", width = 700)))
                             ), align ="center"
               )
             )
@@ -842,6 +844,7 @@ body <- dashboardBody(
                            dropdown(
                              h4(strong("Options: ")),
                              br(),
+                             uiOutput("otherFreq"),
                              numericInput("otherN",
                                           label=("Number of OTHER"),
                                           value = 20),
