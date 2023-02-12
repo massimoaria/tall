@@ -470,7 +470,7 @@ server <- function(input, output, session){
                                        minRotation = 0, maxRotation = 0, shuffle = TRUE,
                                        rotateRatio = 0.7, shape = "circle",ellipticity = 0.65,
                                        widgetsize = NULL,
-                                       figPath = NULL, hoverFunction = "none",
+                                       figPath = NULL,
                                        size = ifelse(length(wcDfPlot$freq)>100,0.35,0.4),
                                        color = "random-dark", backgroundColor = "transparent")
       return(wcPlot)
