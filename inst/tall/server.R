@@ -530,6 +530,7 @@ server <- function(input, output, session){
     output$wordInContext <- renderDT({
       values$d <- event_data("plotly_click")
       word <- values$d$y
+      #print(word)
       #word_search <- unique(c(word, values$dfTag$token[values$dfTag$lemma==word]))
       if (input$sidebarmenu=="w_other" & input$otherPos == "MULTIWORD"){
         word_search <- word
