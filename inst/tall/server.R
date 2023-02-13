@@ -470,7 +470,7 @@ server <- function(input, output, session){
                                        minRotation = 0, maxRotation = 0, shuffle = TRUE,
                                        rotateRatio = 0.7, shape = "circle",ellipticity = 0.65,
                                        widgetsize = NULL,
-                                       figPath = NULL, hoverFunction = "none",
+                                       figPath = NULL,
                                        size = ifelse(length(wcDfPlot$freq)>100,0.35,0.4),
                                        color = "random-dark", backgroundColor = "transparent")
       return(wcPlot)
@@ -530,11 +530,20 @@ server <- function(input, output, session){
     output$wordInContext <- renderDT({
       values$d <- event_data("plotly_click")
       word <- values$d$y
-      word_search <- unique(c(word, values$dfTag$token[values$dfTag$lemma==word]))
+      #word_search <- unique(c(word, values$dfTag$token[values$dfTag$lemma==word]))
+      if (input$sidebarmenu=="w_other" & input$otherPos == "MULTIWORD"){
+        word_search <- word
+        sentences <- values$dfTag %>%
+          filter(lemma %in% word_search) %>%
+          ungroup() %>% select(lemma, token, sentence_hl)
+      }else{
+        word_search <- unique(c(word, values$dfTag$token[values$dfTag$lemma==word]))
+        sentences <- values$dfTag %>%
+          filter(token %in% word_search) %>%
+          ungroup() %>% select(lemma, token, sentence_hl)
+      }
       # find sentences containing the tokens/lemmas
-      DTformat(sentences <- values$dfTag %>%
-        filter(token %in% word_search) %>%
-        ungroup() %>% select(token, sentence_hl), size='100%')
+      DTformat(sentences, size='100%')
     }, escape=FALSE)
 
   ## Frequency List ----
@@ -637,16 +646,10 @@ server <- function(input, output, session){
 
     ## OTHER ----
 
-  ### CHECK IT!!!!
-    # mettiamo un pop-up se nel pos tag sel non ha incluso other or multiword or custom terms.....?
-    # in other è possibile fare le distr di freq per tutti gli altri terms
 
     output$otherFreq <- renderUI({
-      values$UniPos <- unique(values$dfTag$upos[values$dfTag$POSSelected==TRUE])
-      UniPos <- values$UniPos[! values$UniPos %in% c("PROPN", "NOUN", "ADJ", "VERB")]
       selectInput("otherPos",label = NULL,
-                  choices = UniPos)#,
-                  #selected = posTagAll(values$dfTag)$pos[1]
+                  choices = setdiff(values$dfTag$upos,c("PROPN", "NOUN", "ADJ", "VERB","PUNCT","X","SYM","NUM", "NGRAM_MERGED")))
     })
 
     freqOther <- eventReactive(
