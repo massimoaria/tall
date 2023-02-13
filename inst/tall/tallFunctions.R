@@ -113,6 +113,7 @@ mergeCustomLists <- function(df,custom_lists){
 ### MULTI-WORD CREATION ----
 
 # rake function to create multi-words
+
 rake <- function(x, group = "doc_id", ngram_max=5, relevant = c("PROPN", "NOUN", "ADJ", "VERB"), rake.min=2){
 
   if ("upos_original" %in% names(x)){
@@ -142,11 +143,12 @@ rake <- function(x, group = "doc_id", ngram_max=5, relevant = c("PROPN", "NOUN",
   # assign new POS tags "MULTIWORD" for combined lemmas and "NGRAM_MERGED" for lemmas to be removed because combined
   x2 <- x2 %>%
     mutate(upos_multiword = ifelse(lemma==multiword,upos,"MULTIWORD"),
-           upos_multiword =ifelse(is.na(multiword), "NGRAM_MERGED",upos_multiword))
+           upos_multiword =ifelse(is.na(multiword), "NGRAM_MERGED",upos_multiword)) %>%
+    left_join(stats %>% select(keyword, ngram), by = c("multiword" = "keyword"))
 
   # rebuild the original tokenized df
   x <- x %>%
-    left_join(x2 %>% select(doc_id,term_id,multiword,upos_multiword), by = c("doc_id","term_id")) %>%
+    left_join(x2 %>% select(doc_id,term_id,multiword,upos_multiword, ngram), by = c("doc_id","term_id")) %>%
     mutate(multiword = ifelse(is.na(multiword),lemma,multiword),
            upos_multiword = ifelse(is.na(upos_multiword),upos,upos_multiword),
            POSSelected = ifelse(upos_multiword == "MULTIWORD", TRUE, POSSelected),
@@ -157,10 +159,17 @@ rake <- function(x, group = "doc_id", ngram_max=5, relevant = c("PROPN", "NOUN",
   names(x)[names(x) == "lemma"] <- "lemma_original_nomultiwords"
   names(x)[names(x) == "multiword"] <- "lemma"
 
+  ## calculate new start end values for multiwords
+  ind <- which(!is.na(x$ngram))
+  ind2 <- ind+(x$ngram[ind]-1)
+  x$end[ind] <- x$end[ind2]
 
   obj <- list(dfTag=x, multiwords=stats)
 
 }
+
+
+
 
 
 ### POS TAG SELECTION ----
@@ -522,14 +531,18 @@ posSel <- function(df, pos){
   df <- highlight(df)
 }
 
-## Highlight function ----
+# ## Highlight function ----
+
 highlight <- function(df){
   ## create highlighted tokens
   posUnsel <- c("PUNCT","X","SYM","NUM", "NGRAM_MERGED")
+
   df <- df %>%
     group_by(token) %>%
     mutate(token_hl = ifelse(!upos %in% posUnsel,
-                             paste0("<mark><strong>", token, "</strong></mark>"), token)) %>%
+                             paste0("<mark><strong>", token, "</strong></mark>"), token),
+           token_hl = ifelse(upos=="MULTIWORD", paste0("<mark><strong>", lemma, "</strong></mark>"), token_hl)
+    ) %>%
     group_by(doc_id,sentence_id) %>%
     mutate(start_hl = start-(first(start)-1),
            end_hl = start_hl+(end-start)) %>%
@@ -537,6 +550,13 @@ highlight <- function(df){
                                 paste0(substr(sentence,0,start_hl-1),token_hl,substr(sentence,end_hl+1,nchar(sentence))),
                                 sentence)) %>% ungroup()
 }
+
+
+
+
+
+
+
 
 ## saveTall function ----
 saveTall <- function(dfTag,custom_lists,menu,where,file){
