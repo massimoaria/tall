@@ -461,7 +461,7 @@ server <- function(input, output, session){
       n <- 200 #showing the first 200 lemmas
       wcDfPlot <- freqByPos(values$dfTag, term="lemma",pos=unique(values$dfTag$upos[values$dfTag$POSSelected==TRUE])) %>%
         slice_head(n=n) %>%
-        mutate(n=log(n)) %>%
+        #mutate(n=log(n)) %>%
         rename(text = term,
                freq = n)
 
@@ -471,7 +471,7 @@ server <- function(input, output, session){
                                        rotateRatio = 0.7, shape = "circle",ellipticity = 0.65,
                                        widgetsize = NULL,
                                        figPath = NULL,
-                                       size = ifelse(length(wcDfPlot$freq)>100,0.35,0.4),
+                                       size = ifelse(length(wcDfPlot$text)>100,1.5,1.8),
                                        color = "random-dark", backgroundColor = "transparent")
       return(wcPlot)
     })
@@ -500,6 +500,21 @@ server <- function(input, output, session){
       } else {
         popUp(type="error")
       }
+    })
+
+    ## DICTIONARY ----
+    dictionary <- eventReactive({
+      input$dictionaryApply
+      },
+      values$dictFreq <- freqByPos(values$dfTag, term=input$termDict, pos=c("PROPN", "NOUN", "ADJ", "VERB"))
+      )
+
+    output$dictionaryData <- renderDT({
+      dictionary()
+      DTformat(values$dictFreq %>%
+                 rename(Term=term,
+                   Frequency = n),
+               left=1, n=15,right=2, numeric=2, pagelength=TRUE, filename="Dictionary", dom=TRUE, size="110%")
     })
 
 
@@ -704,6 +719,13 @@ server <- function(input, output, session){
                left=1, right=2, numeric=2, filename="POSFreqList", dom=FALSE, pagelength=FALSE, size="110%")
     })
 
+    ## Words in Context ----
+
+    # output$wordsContSearch <- eventReactive({
+    #   eventExpr = {input$wordsContApply},
+    #   valueExpr = {
+    #   ##### HIGHLIGTH TEXT !!!!!!!
+    #   })
 
 
   ## Clustering ----

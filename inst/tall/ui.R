@@ -574,10 +574,25 @@ body <- dashboardBody(
                                      ),
                             tabPanel("WordCloud",
                                      wordcloud2::wordcloud2Output("wordcloudPlot", height = "75vh")),# width = 700),
-                            tabPanel("WordCloud Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput(outputId = "wcDfData", width = 700)))
-                            ), align ="center"
-              )
+                            tabPanel("Dictionary",
+                                     column(9,shinycssloaders::withSpinner(DT::DTOutput(outputId = "dictionaryData", width = 700))),
+                                     column(3,
+                                            div(
+                                              box(
+                                                width = 12,
+                                                selectInput("termDict",
+                                                            label = "Dictionary by:",
+                                                            choices = c("Tokens"="token",
+                                                                        "Lemmas"="lemma"),
+                                                            selected = "token"),
+                                                  actionButton(inputId="dictionaryApply",
+                                                               label = strong("APPLY"),
+                                                               icon = icon(name="play", lib = "font-awesome"),
+                                                               style = style_bttn))
+                                              ,align="left")
+                                            )
+                                     )),align="center"
+                )
             )
     ),
 
@@ -590,7 +605,7 @@ body <- dashboardBody(
             fluidPage(
               fluidRow(
                 column(8,
-                       h3(strong("NOUN Frequency List"), align = "center")),
+                       h3(strong("Noun Frequency List"), align = "center")),
                 div(
                   title = t_run,
                   column(1,
@@ -650,7 +665,7 @@ body <- dashboardBody(
             fluidPage(
               fluidRow(
                 column(8,
-                       h3(strong("PROPN Frequency List"), align = "center")),
+                       h3(strong("Proper Noun Frequency List"), align = "center")),
                 div(
                   title = t_run,
                   column(1,
@@ -711,7 +726,7 @@ body <- dashboardBody(
             fluidPage(
               fluidRow(
                 column(8,
-                       h3(strong("ADJ Frequency List"), align = "center")),
+                       h3(strong("Adjective Frequency List"), align = "center")),
                 div(
                   title = t_run,
                   column(1,
@@ -772,7 +787,7 @@ body <- dashboardBody(
             fluidPage(
               fluidRow(
                 column(8,
-                       h3(strong("VERB Frequency List"), align = "center")),
+                       h3(strong("Verb Frequency List"), align = "center")),
                 div(
                   title = t_run,
                   column(1,
@@ -832,7 +847,7 @@ body <- dashboardBody(
             fluidPage(
               fluidRow(
                 column(8,
-                       h3(strong("OTHER Frequency List"), align = "center")),
+                       h3(strong("Other PoS tags Frequency List"), align = "center")),
                 div(
                   title = t_run,
                   column(1,
@@ -946,6 +961,58 @@ body <- dashboardBody(
                                      align="center"
                             )
                 )
+              )
+            )
+    ),
+
+    ## WORDS IN CONTEXT -----
+
+    tabItem(tabName = "wordCont",
+            fluidPage(
+              fluidRow(
+                column(12,
+                       h3(strong("Words in Context"), align = "center"))
+              )
+            ),
+            br(),
+            br(),
+            fluidRow(
+              column(9,
+                     tabsetPanel(type = "tabs",
+                                 tabPanel("Annotated Text by Words",
+                                          shinycssloaders::withSpinner(DT::DTOutput("wordsContData"),
+                                                                       color = getOption("spinner.color", default = "#4F7942"))
+                                 )
+                     )
+              ),
+              column(3,
+                     div(
+                       box(
+                         width = 12,
+                         div(h3(strong(em("Words in Context"))), style="margin-top:-57px"),
+                         tags$hr(),
+                         style="text-align: left; text-color: #989898",
+                         searchInput(
+                           inputId = "wordsContSearch",
+                           label = "Search word(s) in text",
+                           placeholder = "",
+                           btnSearch = icon("magnifying-glass"),
+                           #btnReset = icon("xmark"),
+                           width = "100%"
+                         ),
+                         fluidRow(column(6,
+                                         div(
+                                           align = "left",
+                                           width=12,
+                                           actionButton(inputId="wordsContApply",
+                                                        label = strong("APPLY"),
+                                                        icon = icon(name="play", lib = "font-awesome"),
+                                                        style = style_bttn
+                                           ))
+                         )
+                         )
+                       ),style="margin-top:40px"
+                     )
               )
             )
     ),
