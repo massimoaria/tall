@@ -850,7 +850,7 @@ body <- dashboardBody(
             fluidPage(
               fluidRow(
                 column(8,
-                       h3(strong("Other PoS tags Frequency List"), align = "center")),
+                       h3(strong("Multi-Word Frequency List"), align = "center")),
                 div(
                   title = t_run,
                   column(1,
@@ -862,7 +862,7 @@ body <- dashboardBody(
                            dropdown(
                              h4(strong("Options: ")),
                              br(),
-                             uiOutput("otherFreq"),
+                             # uiOutput("otherFreq"),
                              numericInput("otherN",
                                           label=("Number of OTHER"),
                                           value = 20),

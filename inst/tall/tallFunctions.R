@@ -643,7 +643,7 @@ menuList <- function(menu){
                                menuSubItem("Proper Noun", tabName = "w_propn", icon = icon("chevron-right")),
                                menuSubItem("Adjective", tabName = "w_adj", icon = icon("chevron-right")),
                                menuSubItem("Verb", tabName = "w_verb", icon = icon("chevron-right")),
-                               menuSubItem("Other PoS tags", tabName = "w_other", icon = icon("chevron-right")),
+                               menuSubItem("Multi-Words", tabName = "w_other", icon = icon("chevron-right")),
                                menuSubItem("Part of Speech", tabName = "w_pos", icon = icon("chevron-right"))),
                       menuSubItem("Words in Context", tabName = "wordCont", icon = icon("chevron-right")),
                       menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),

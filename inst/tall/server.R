@@ -66,11 +66,6 @@ server <- function(input, output, session){
     updateTabItems(session, "sidebarmenu", "multiwordCreat")
   })
 
-  ## Button to download the entire data table
-  observeEvent(input$downloadEntireTable, {
-    #print("hello")
-    showModal(ModalButtonTable())
-  })
 
 ### DATA ----
 
@@ -113,7 +108,7 @@ server <- function(input, output, session){
   output$dataImported <- DT::renderDT({
     DATAloading()
     if (values$menu==0){
-      DTformat(values$txt, nrow=5, columnShort=2)
+      DTformat(values$txt %>% mutate(text = paste0(substr(text,1,500),"...")),left=2, nrow=5, filter="none")
     }
   })
 ### shortpath for folder path ----
@@ -168,6 +163,7 @@ server <- function(input, output, session){
         values$dfTag <- values$dfTag %>%
           left_join(values$txt %>% select(-text), by = "doc_id") %>%
           posSel(., c("ADJ","NOUN","PROPN", "VERB"))
+        values$dfTag <- highlight(values$dfTag)
           #mutate(POSSelected = ifelse(upos %in% c("ADJ","NOUN","PROPN", "VERB"), TRUE, FALSE))
 
         values$menu <- 1
@@ -226,6 +222,7 @@ server <- function(input, output, session){
     },{
       if (!is.null(values$custom_lists)){
         values$dfTag <- mergeCustomLists(values$dfTag,values$custom_lists)
+        values$dfTag <- highlight(values$dfTag)
       }
     })
 
@@ -294,6 +291,7 @@ server <- function(input, output, session){
       obj <- rake(values$dfTag, group = group, ngram_max=ngram_max, relevant = values$posMwSel, rake.min=rake.min)
 
       values$dfTag <- obj$dfTag
+      values$dfTag <- highlight(values$dfTag)
       values$multiwords <- obj$multiwords
     })
 
@@ -621,12 +619,12 @@ server <- function(input, output, session){
     output$wordInContext <- renderDT({
       values$d <- event_data("plotly_click")
       word <- values$d$y
-      if (input$sidebarmenu=="w_other" & input$otherPos == "MULTIWORD"){
+      if (input$sidebarmenu=="w_other"){
         word_search <- word
         sentences <- values$dfTag %>%
           filter(lemma %in% word_search) %>%
           ungroup() %>% select(lemma, token, sentence_hl)
-      }else{
+      } else {
         word_search <- unique(c(word, values$dfTag$token[values$dfTag$lemma==word]))
         sentences <- values$dfTag %>%
           filter(token %in% word_search) %>%
@@ -737,18 +735,18 @@ server <- function(input, output, session){
     ## OTHER ----
 
 
-    output$otherFreq <- renderUI({
-      selectInput("otherPos",label = NULL,
-                  choices = setdiff(values$dfTag$upos,c("PROPN", "NOUN", "ADJ", "VERB","PUNCT","X","SYM","NUM", "NGRAM_MERGED")))
-    })
+    # output$otherFreq <- renderUI({
+    #   selectInput("otherPos",label = NULL,
+    #               choices = setdiff(values$dfTag$upos,c("PROPN", "NOUN", "ADJ", "VERB","PUNCT","X","SYM","NUM", "NGRAM_MERGED")))
+    # })
 
     freqOther <- eventReactive(
       eventExpr = {
         input$otherApply
       },
       valueExpr = {
-        values$freqOther <- freqByPos(values$dfTag, term="lemma", pos=input$otherPos)
-        freqPlotly(values$freqOther,x="n",y="term",n=input$otherN, xlabel="Frequency",ylabel=input$otherPos, scale="identity")
+        values$freqOther <- freqByPos(values$dfTag, term="lemma", pos="MULTIWORD")
+        freqPlotly(values$freqOther,x="n",y="term",n=input$otherN, xlabel="Frequency",ylabel="Multi-Words", scale="identity")
       }
     )
 
@@ -761,7 +759,7 @@ server <- function(input, output, session){
       DTformat(values$freqOther %>%
                  rename(Term = term,
                         Frequency = n),
-               left=1, right=2, numeric=2, filename="OtherFreqList", dom=FALSE, size="110%")
+               left=1, right=2, numeric=2, filename="MultiWordFreqList", dom=FALSE, size="110%")
     })
 
     ## PART OF SPEECH ----
@@ -795,7 +793,7 @@ server <- function(input, output, session){
 
     ## Words in Context ----
 
-    wordsInContext <- eventReactive(
+    wordsInContextMenu <- eventReactive(
       ignoreNULL = TRUE,
       eventExpr = {input$wordsContSearch},
       valueExpr = {
@@ -807,7 +805,7 @@ server <- function(input, output, session){
       })
 
     output$wordsContData <- renderDT({
-      wordsInContext()
+      wordsInContextMenu()
       DTformat(values$wordInContext, size='100%')
     }, escape=FALSE)
 
