@@ -552,29 +552,21 @@ server <- function(input, output, session){
     Term <- input$termDict
     values$dictFreq <- values$dfTag %>%
       dplyr::filter(POSSelected) %>%
-      mutate(token = ifelse(upos == "MULTIWORD", lemma,token)) %>%
-      count(term=.[[Term]]) %>%
-      arrange(desc(n))
+      mutate(token = ifelse(upos == "MULTIWORD", lemma,token))
+
     if (Term=="lemma"){
       values$dictFreq <- values$dictFreq %>%
-        rename(lemma = term) %>%
-        left_join(values$dfTag %>%
-                    dplyr::filter(POSSelected) %>%
-                    select(lemma,upos), by = "lemma") %>%
-        distinct() %>%
-        select(upos,everything()) %>%
+        group_by(upos, lemma) %>%
+        summarize(n=n()) %>%
+        arrange(desc(n)) %>%
         rename("Part of Speech"=upos,
                Lemma = lemma,
                Frequency = n)
     } else {
       values$dictFreq <- values$dictFreq %>%
-        rename(token = term) %>%
-        left_join(values$dfTag %>%
-                    dplyr::filter(POSSelected) %>%
-                    mutate(token = ifelse(upos == "MULTIWORD", lemma,token)) %>%
-                    select(token,upos), by = "token") %>%
-        distinct() %>%
-        select(upos,everything()) %>%
+        group_by(upos, token) %>%
+        summarize(n=n()) %>%
+        arrange(desc(n)) %>%
         rename("Part of Speech"=upos,
                Token = token,
                Frequency = n)
@@ -587,6 +579,19 @@ server <- function(input, output, session){
       DTformat(values$dictFreq,
                left=c(1,2), nrow=15, pagelength=TRUE, filename="Dictionary", dom=TRUE, size="110%")
     })
+
+    ## TF-IDF ----
+    output$tfidfData <- renderDT({
+      DTformat(values$dfTag %>%
+        dplyr::filter(POSSelected) %>%
+        tfidf(term="lemma") %>%
+          rename(
+            Lemma = term,
+            "TF-IDF" = TFIDF),
+        left=1, numeric=2,round=4, size="110%"
+      )
+    })
+
 
 
   ### WORDS ----

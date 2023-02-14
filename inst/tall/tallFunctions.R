@@ -353,6 +353,16 @@ valueBoxesIndices <- function(x){
   )
 }
 
+## TFIDF functions ----
+tfidf <- function(dfTag, term="lemma", document="doc_id"){
+  # calculate tfidf
+  dtm <- dfTag %>% dplyr::filter(POSSelected)
+  dtm <- document_term_frequencies(dtm, document = document, term = term)
+  dtm <- document_term_matrix(dtm)
+  tfidf <- dtm_tfidf(dtm)
+  tibble(term=names(tfidf), TFIDF=as.numeric(tfidf)) %>% arrange(desc(tfidf))
+}
+
 ### EXCEL REPORT FUNCTIONS ----
 addDataWb <- function(list_df, wb, sheetname){
   l <- length(list_df)
@@ -668,7 +678,7 @@ menuList <- function(menu){
 
 # DATA TABLE FORMAT ----
 DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, right=NULL, numeric=NULL, dom=TRUE, size='85%', filter="top",
-                     columnShort=NULL, columnSmall=NULL){
+                     columnShort=NULL, columnSmall=NULL, round=2){
 
   if (length(columnShort)>0){
     columnDefs = list(list(
@@ -763,7 +773,7 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
   # numeric round
   if (!is_null(numeric)){
     tab <- tab %>%
-      formatRound(names(df)[c(numeric)], digits=2)
+      formatRound(names(df)[c(numeric)], digits=round)
   }
   tab
 }

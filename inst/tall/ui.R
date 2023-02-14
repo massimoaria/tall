@@ -591,7 +591,10 @@ body <- dashboardBody(
                                                                style = style_bttn))
                                               ,align="left")
                                             )
-                                     )),align="center"
+                                     ),
+                            tabPanel("TF-IDF",
+                                     shinycssloaders::withSpinner(DT::DTOutput(outputId = "tfidfData", width = 700)))
+                            ), align="center"
                 )
             )
     ),
