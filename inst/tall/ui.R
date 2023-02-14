@@ -999,18 +999,18 @@ body <- dashboardBody(
                            btnSearch = icon("magnifying-glass"),
                            #btnReset = icon("xmark"),
                            width = "100%"
-                         ),
-                         fluidRow(column(6,
-                                         div(
-                                           align = "left",
-                                           width=12,
-                                           actionButton(inputId="wordsContApply",
-                                                        label = strong("APPLY"),
-                                                        icon = icon(name="play", lib = "font-awesome"),
-                                                        style = style_bttn
-                                           ))
-                         )
-                         )
+                         )#,
+                         # fluidRow(column(6,
+                         #                 div(
+                         #                   align = "left",
+                         #                   width=12,
+                         #                   actionButton(inputId="wordsContApply",
+                         #                                label = strong("APPLY"),
+                         #                                icon = icon(name="play", lib = "font-awesome"),
+                         #                                style = style_bttn
+                         #                   ))
+                         # )
+                         # )
                        ),style="margin-top:40px"
                      )
               )

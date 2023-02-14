@@ -66,6 +66,11 @@ server <- function(input, output, session){
     updateTabItems(session, "sidebarmenu", "multiwordCreat")
   })
 
+  ## Button to download the entire data table
+  observeEvent(input$downloadEntireTable, {
+    #print("hello")
+    showModal(ModalButtonTable())
+  })
 
 ### DATA ----
 
@@ -108,7 +113,7 @@ server <- function(input, output, session){
   output$dataImported <- DT::renderDT({
     DATAloading()
     if (values$menu==0){
-      DTformat(values$txt, nrow=5)
+      DTformat(values$txt, nrow=5, columnShort=2)
     }
   })
 ### shortpath for folder path ----
@@ -180,10 +185,21 @@ server <- function(input, output, session){
                         Sentence=sentence,
                         Token=token,
                         Lemma=lemma,
-                        POSTag=upos)
+                        "Part of Speech"=upos)
       )
       }
     })
+
+    output$tokPosSave <- downloadHandler(
+      filename = function() {
+        paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
+      },
+      content <- function(file) {
+        saveTall(values$dfTag, values$custom_lists, values$menu, "Custom Term Lists", file)
+        # D <- date()
+        # save(dfTag,menu,D,where, file=file)
+      }, contentType = "tall"
+    )
 
   ## Custom Term List Merging ----
 
@@ -223,7 +239,7 @@ server <- function(input, output, session){
                           Sentence=sentence,
                           Token=token,
                           Lemma=lemma,
-                          POSTag=upos)
+                          "Part of Speech"=upos)
         )
       }
     })
@@ -236,9 +252,20 @@ server <- function(input, output, session){
       } else {
         DTformat(values$custom_lists %>% rename(
           Lemma = lemma,
-          POSTag = upos))
+          "Part of Speech"=upos))
       }
     })
+
+    output$custTermSave <- downloadHandler(
+      filename = function() {
+        paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
+      },
+      content <- function(file) {
+        saveTall(values$dfTag, values$custom_lists, values$menu, "Custom Term Lists", file)
+        # D <- date()
+        # save(dfTag,menu,D,where, file=file)
+      }, contentType = "tall"
+    )
 
     ## Multi-Word Creation ----
 
@@ -280,14 +307,28 @@ server <- function(input, output, session){
                         Sentence=sentence,
                         Token=token,
                         Lemma=lemma,
-                        POSTag=upos)
+                        "Part of Speech"=upos)
       )
     })
 
     output$multiwordList <- renderDT({
       multiword()
-      DTformat(values$multiwords)
+      DTformat(values$multiwords %>%  rename("Multi-Words" = keyword,
+                                             "Lenght" = ngram, "Freq"=freq,
+                                             "Rake value" = rake),
+               numeric=4)
     })
+
+    output$multiwordCreatSave <- downloadHandler(
+      filename = function() {
+        paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
+      },
+      content <- function(file) {
+        saveTall(values$dfTag, values$custom_lists, values$menu, "Multi-Word Creation", file)
+        # D <- date()
+        # save(dfTag,menu,D,where, file=file)
+      }, contentType = "tall"
+    )
 
 
     ## PoS Tag Selection ----
@@ -322,7 +363,7 @@ server <- function(input, output, session){
                         Sentence=sentence,
                         Token=token,
                         Lemma=lemma,
-                        POSTag=upos)
+                        "Part of Speech"=upos)
       )
     })
 
@@ -505,16 +546,46 @@ server <- function(input, output, session){
     ## DICTIONARY ----
     dictionary <- eventReactive({
       input$dictionaryApply
-      },
-      values$dictFreq <- freqByPos(values$dfTag, term=input$termDict, pos=c("PROPN", "NOUN", "ADJ", "VERB"))
-      )
+    },
+    {
+    #values$dictFreq <- freqByPos(values$dfTag, term=input$termDict, pos=c("PROPN", "NOUN", "ADJ", "VERB"))
+    Term <- input$termDict
+    values$dictFreq <- values$dfTag %>%
+      dplyr::filter(POSSelected) %>%
+      mutate(token = ifelse(upos == "MULTIWORD", lemma,token)) %>%
+      count(term=.[[Term]]) %>%
+      arrange(desc(n))
+    if (Term=="lemma"){
+      values$dictFreq <- values$dictFreq %>%
+        rename(lemma = term) %>%
+        left_join(values$dfTag %>%
+                    dplyr::filter(POSSelected) %>%
+                    select(lemma,upos), by = "lemma") %>%
+        distinct() %>%
+        select(upos,everything()) %>%
+        rename("Part of Speech"=upos,
+               Lemma = lemma,
+               Frequency = n)
+    } else {
+      values$dictFreq <- values$dictFreq %>%
+        rename(token = term) %>%
+        left_join(values$dfTag %>%
+                    dplyr::filter(POSSelected) %>%
+                    mutate(token = ifelse(upos == "MULTIWORD", lemma,token)) %>%
+                    select(token,upos), by = "token") %>%
+        distinct() %>%
+        select(upos,everything()) %>%
+        rename("Part of Speech"=upos,
+               Token = token,
+               Frequency = n)
+    }
+    })
+
 
     output$dictionaryData <- renderDT({
       dictionary()
-      DTformat(values$dictFreq %>%
-                 rename(Term=term,
-                   Frequency = n),
-               left=1, n=15,right=2, numeric=2, pagelength=TRUE, filename="Dictionary", dom=TRUE, size="110%")
+      DTformat(values$dictFreq,
+               left=c(1,2), nrow=15, pagelength=TRUE, filename="Dictionary", dom=TRUE, size="110%")
     })
 
 
@@ -545,8 +616,6 @@ server <- function(input, output, session){
     output$wordInContext <- renderDT({
       values$d <- event_data("plotly_click")
       word <- values$d$y
-      #print(word)
-      #word_search <- unique(c(word, values$dfTag$token[values$dfTag$lemma==word]))
       if (input$sidebarmenu=="w_other" & input$otherPos == "MULTIWORD"){
         word_search <- word
         sentences <- values$dfTag %>%
@@ -721,11 +790,21 @@ server <- function(input, output, session){
 
     ## Words in Context ----
 
-    # output$wordsContSearch <- eventReactive({
-    #   eventExpr = {input$wordsContApply},
-    #   valueExpr = {
-    #   ##### HIGHLIGTH TEXT !!!!!!!
-    #   })
+    wordsInContext <- eventReactive(
+      ignoreNULL = TRUE,
+      eventExpr = {input$wordsContSearch},
+      valueExpr = {
+        word_search <- req(tolower(input$wordsContSearch))
+        values$wordInContext <- values$dfTag %>%
+          filter(tolower(lemma) %in% word_search | tolower(token) %in% word_search) %>%
+          ungroup() %>% select(lemma, token, sentence_hl) %>%
+          rename(Lemma=lemma, Token=token, Sentence=sentence_hl)
+      })
+
+    output$wordsContData <- renderDT({
+      wordsInContext()
+      DTformat(values$wordInContext, size='100%')
+    }, escape=FALSE)
 
 
   ## Clustering ----

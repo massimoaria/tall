@@ -126,6 +126,11 @@ rake <- function(x, group = "doc_id", ngram_max=5, relevant = c("PROPN", "NOUN",
       mutate(lemma = lemma_original_nomultiwords) %>%
       select(-"lemma_original_nomultiwords")
   }
+  if ("ngram" %in% names(x)){
+    x <- x %>%
+      select(-"ngram")
+  }
+
   # rake multi-word creation
   stats <- keywords_rake(x = x, term = "lemma", group = group, ngram_max = ngram_max,
                          relevant = x$upos %in% relevant)
@@ -662,46 +667,68 @@ menuList <- function(menu){
 }
 
 # DATA TABLE FORMAT ----
-DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, right=NULL, numeric=NULL, dom=TRUE, size='85%'){
+DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, right=NULL, numeric=NULL, dom=TRUE, size='85%', filter="top",
+                     columnShort=NULL, columnSmall=NULL){
+
+  if (length(columnShort)>0){
+    columnDefs = list(list(
+      className = 'dt-center', targets = 0:(length(names(df)) - 1)),
+      list(
+      targets = columnShort-1,
+      render = JS(
+        "function(data, type, row, meta) {",
+        "return type === 'display' && data.length > 500 ?",
+        "'<span title=\"' + data + '\">' + data.substr(0, 500) + '...</span>' : data;",
+        "}")
+    ))
+  } else{
+    columnDefs = list(list(
+      className = 'dt-center', targets = 0:(length(names(df)) - 1)
+    ))
+  }
 
   if (isTRUE(pagelength)){
-    buttons = list(list(extend = 'pageLength'),
-                   list(extend = 'excel',
-                        filename = paste0(filename,"_tall_",Sys.Date()),
-                        title = " ",
-                        header = TRUE,
-                        exportOptions = list(
-                          modifier = list(page = "all")
-                        )))
+    buttons = list(
+      list(extend = 'pageLength'),
+      list(extend = 'excel',
+           filename = paste0(filename,"_tall_",Sys.Date()),
+           title = " ",
+           header = TRUE,
+           exportOptions = list(
+             modifier = list(page = "all")
+           )))
   } else{
-    buttons = list(list(extend = 'excel',
-                        filename = paste0(filename,"_tall_",Sys.Date()),
-                        title = " ",
-                        header = TRUE,
-                        exportOptions = list(
-                          modifier = list(page = "all")
-                        )))
+    buttons = list(
+      list(extend = 'excel',
+           filename = paste0(filename,"_tall_",Sys.Date()),
+           title = " ",
+           header = TRUE,
+           exportOptions = list(
+             modifier = list(page = "all")
+           )))
   }
 
   if (isTRUE(dom)){
-    dom <- "Bfrtip"
+    dom <- "Brtip"
   } else{
     dom <- "Bt"
   }
 
-  tab <- DT::datatable(df,escape = FALSE,rownames = FALSE, extensions = c("Buttons"),
+  tab <- DT::datatable(df, escape = FALSE,rownames = FALSE, extensions = c("Buttons", "ColReorder", "FixedHeader"),
+                       filter = filter,
                 options = list(
+                  colReorder = TRUE,
+                  fixedHeader = TRUE,
                   pageLength = nrow,
                   autoWidth = FALSE, scrollX = TRUE,
                   dom = dom,
                   buttons = buttons,
                   lengthMenu = list(c(10, 25, 50, -1),
                                     c('10 rows', '25 rows', '50 rows', 'Show all')),
-                  columnDefs = list(list(
-                    className = 'dt-center', targets = 0:(length(names(df)) - 1)
-                  ))
+                  columnDefs = columnDefs
                 ),
-                class = 'cell-border compact stripe'
+                class = 'cell-border compact stripe',
+                callback = JS('table.page(3).draw(false);')
   ) %>%
     DT::formatStyle(
       names(df),
