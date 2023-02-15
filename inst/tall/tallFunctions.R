@@ -372,21 +372,28 @@ network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labels
 
   # params
   shape <- "dot"
+  opacity.min <- 0.4
 
   x <- dfTag %>% dplyr::filter(POSSelected)
 
   ### NODES
-  nodes <- txt_freq(x$lemma) %>%
-    rename(label = key,
-           value = freq) %>%
+  nodes <- x %>%
+    group_by(upos,lemma) %>%
+    summarize(value = n()) %>%
+    arrange(desc(value)) %>%
+    ungroup() %>%
     slice_head(n=n) %>%
     #dplyr::filter(value>=minFreq) %>%
-    select(-freq_pct) %>%
     mutate(id=row_number(),
            shape=shape,
-           color = "navyblue")
+           # shape=ifelse(upos %in% c("PROPN","NOUN","VERB"),"icon",shape),
+           # icon.code=ifelse(upos %in% "PROPN", "f007",NA),
+           # icon.code=ifelse(upos %in% "NOUN", "e284",icon.code),
+           # icon.code=ifelse(upos %in% "VERB", "56",icon.code),
+           color = "navyblue") %>%
+    rename(label=lemma)
 
-  nodes$font.size <- nodes$value
+  nodes$font.size <- log(nodes$value)
   scalemin <- 20
   scalemax <- 150
   Min <- min(nodes$font.size)
@@ -404,10 +411,10 @@ network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labels
     nodes$font.vadjust <-0
   }
 
-  ## opacity for nodes and labels
-  nodes$color <- adjustcolor(nodes$color,alpha.f=min(c(opacity,1)))
-  opacity_font <- sqrt((nodes$font.size-min(nodes$font.size))/diff(range(nodes$font.size)))*opacity+0.3
-  if(is.nan(opacity_font[1])) opacity_font <- rep(0.3,length(opacity_font))
+
+  ## opacity for label
+  opacity_font <- sqrt((nodes$font.size-min(nodes$font.size))/diff(range(nodes$font.size)))*opacity+opacity.min
+  if(is.nan(opacity_font[1])) opacity_font <- rep(opacity.min,length(opacity_font))
 
   if (labelsize>0){
     nodes$font.color <- unlist(lapply(opacity_font, function(x) adjustcolor("black",alpha.f = x)))
@@ -442,21 +449,32 @@ network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labels
     rename(group = "V1")
   #Create group column
   nodes <- left_join(nodes, cluster_df, by = "id")
-  nodes$color <- colorlist[nodes$group]
 
-  edges$color <- apply(edges %>% select(from,to), 1, function(x) {
-    if (nodes$group[x[1]] == nodes$group[x[2]]) {
-      C <- nodes$color[x[1]]
-    } else{
-      C <- '#B3B3B3'
-    }
-    return(C)
-  })
+  # node colors
+  nodes$opacity.nodes <- (opacity_font-min(opacity_font))/(diff(range(opacity_font)))*0.5+opacity.min
+  nodes$color <- paste0(colorlist[nodes$group],round(nodes$opacity.nodes,2)*100)
 
-  # opacity for edges
-  edges$color <- paste(substr(edges$color,1,7),"90",sep="")
-  edges$color[substr(edges$color,1,7)=="#B3B3B3"] <- "#69696960"
-  edges$color <- adjustcolor(edges$color,alpha.f=opacity)
+
+  edges <- edges %>%
+    left_join(nodes %>% select(id,group,color), by=c("from"="id")) %>%
+    rename(group_from=group) %>%
+    left_join(nodes %>% select(id,group), by=c("from"="id")) %>%
+    rename(group_to = group) %>%
+    mutate(color = ifelse(group_from==group_to, paste0(substr(color,1,7),"30"), "#69696940"))
+
+  # edges$color <- apply(edges %>% select(from,to), 1, function(x) {
+  #   if (nodes$group[x[1]] == nodes$group[x[2]]) {
+  #     C <- nodes$color[x[1]]
+  #   } else{
+  #     C <- '#B3B3B3'
+  #   }
+  #   return(C)
+  # })
+  #
+  # # opacity for edges
+  # edges$color <- paste(substr(edges$color,1,7),"90",sep="")
+  # edges$color[substr(edges$color,1,7)=="#B3B3B3"] <- "#69696960"
+  # edges$color <- adjustcolor(edges$color,alpha.f=opacity)
 
   # community repulsion
   #edges <- switchLayout(nodes, edges, community.repulsion)
@@ -499,6 +517,7 @@ weight.community=function(row,membership,weigth.within,weight.between){
 }
 
 net2vis <- function(nodes,edges){
+
   VIS<-
     visNetwork::visNetwork(nodes = nodes, edges = edges, type="full", smooth=TRUE, physics=FALSE) %>%
     visNetwork::visNodes(shadow=TRUE, shape=nodes$shape, font=list(color=nodes$font.color, size=nodes$font.size,vadjust=nodes$font.vadjust)) %>%
@@ -506,8 +525,9 @@ net2vis <- function(nodes,edges){
     visNetwork::visEdges(smooth = list(type="horizontal")) %>%
     visNetwork::visOptions(highlightNearest =list(enabled = T, hover = T, degree=1), nodesIdSelection = T) %>%
     visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE) %>%
-    visNetwork::visPhysics(avoidOverlap=1) %>%
-    visNetwork::visOptions(manipulation = FALSE, height ="100%", width = "100%")
+    #visNetwork::visPhysics(barnesHut=list(avoidOverlap=1)) %>%
+    visNetwork::visOptions(manipulation = FALSE, height ="100%", width = "100%") #%>%
+    #visNetwork::addFontAwesome()
 }
 
 
