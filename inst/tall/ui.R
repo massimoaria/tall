@@ -845,7 +845,7 @@ body <- dashboardBody(
             )
     ),
 
-    ### OTHER ----
+    ### MULTIWORD ----
     tabItem(tabName = "w_other",
             fluidPage(
               fluidRow(
@@ -1189,7 +1189,7 @@ body <- dashboardBody(
               fluidRow(
                 tabsetPanel(type = "tabs",
                             tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "w_networkPlot", height = "75vh",width ="98.9%"),
+                                     shinycssloaders::withSpinner(visNetworkOutput("w_networkPlot", width="auto", height = "75vh"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
                             tabPanel("Table",

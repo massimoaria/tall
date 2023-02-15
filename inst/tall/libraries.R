@@ -14,8 +14,9 @@ libraries <- function(){
   if (!require(openxlsx)){install.packages("openxlsx"); require(openxlsx, quietly=TRUE)}
   if (!require(readxl)){install.packages("readxl"); require(readxl, quietly=TRUE)}
   if (!require(wordcloud2)){install.packages("wordcloud2"); require(wordcloud2, quietly=TRUE)}
-  #if (!require(quanteda)){install.packages("quanteda"); require(quanteda, quietly=TRUE)}
+  if (!require(visNetwork)){install.packages("visNetwork"); require(visNetwork, quietly=TRUE)}
   if (!require(udpipe)){install.packages("udpipe"); require(udpipe, quietly=TRUE)}
+  if (!require(igraph)){install.packages("igraph")}
 
 }
 

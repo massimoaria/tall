@@ -825,6 +825,25 @@ server <- function(input, output, session){
 
   ## Network ----
 
+    netFunction <- eventReactive(
+      ignoreNULL = TRUE,
+      eventExpr = {input$w_networkApply},
+      valueExpr ={
+        n=200
+        minEdges=200
+        labelsize=4
+        opacity=0.6
+        community.repulsion=0.0
+        group="doc_id"
+        values$network <- network(values$dfTag, group=group, n=n, minEdges=minEdges, labelsize=labelsize, opacity=opacity, community.repulsion=community.repulsion)
+      }
+    )
+
+    output$w_networkPlot <- renderVisNetwork({
+      netFunction()
+      net2vis(nodes=values$network$nodes, edges=values$network$edges)
+    })
+
   ## Summarization ----
 
   ## Polarity detection ----

@@ -363,6 +363,154 @@ tfidf <- function(dfTag, term="lemma", document="doc_id"){
   tibble(term=names(tfidf), TFIDF=as.numeric(tfidf)) %>% arrange(desc(tfidf))
 }
 
+### NETWORK -----
+network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labelsize=4, opacity=0.6, community.repulsion=0.1){
+
+  colorlist <- c("#E41A1C","#377EB8","#4DAF4A","#984EA3","#FF7F00","#A65628","#F781BF","#999999","#66C2A5","#FC8D62","#8DA0CB","#E78AC3","#A6D854","#FFD92F"
+                          ,"#B3B3B3","#A6CEE3","#1F78B4","#B2DF8A","#33A02C","#FB9A99","#E31A1C","#FDBF6F","#FF7F00","#CAB2D6","#6A3D9A","#B15928","#8DD3C7","#BEBADA"
+                          ,"#FB8072","#80B1D3","#FDB462","#B3DE69","#D9D9D9","#BC80BD","#CCEBC5")
+
+  # params
+  shape <- "dot"
+
+  x <- dfTag %>% dplyr::filter(POSSelected)
+
+  ### NODES
+  nodes <- txt_freq(x$lemma) %>%
+    rename(label = key,
+           value = freq) %>%
+    slice_head(n=n) %>%
+    #dplyr::filter(value>=minFreq) %>%
+    select(-freq_pct) %>%
+    mutate(id=row_number(),
+           shape=shape,
+           color = "navyblue")
+
+  nodes$font.size <- nodes$value
+  scalemin <- 20
+  scalemax <- 150
+  Min <- min(nodes$font.size)
+  Max <- max(nodes$font.size)
+  if (Max>Min){
+    size <- (nodes$font.size-Min)/(Max-Min)*15*labelsize+10
+  } else {size=10*labelsize}
+  size[size<scalemin]=scalemin
+  size[size>scalemax]=scalemax
+  nodes$font.size <- size
+
+  if (shape %in% c("dot","square")){
+    nodes$font.vadjust <- -0.7*nodes$font.size
+  }else{
+    nodes$font.vadjust <-0
+  }
+
+  ## opacity for nodes and labels
+  nodes$color <- adjustcolor(nodes$color,alpha.f=min(c(opacity,1)))
+  opacity_font <- sqrt((nodes$font.size-min(nodes$font.size))/diff(range(nodes$font.size)))*opacity+0.3
+  if(is.nan(opacity_font[1])) opacity_font <- rep(0.3,length(opacity_font))
+
+  if (labelsize>0){
+    nodes$font.color <- unlist(lapply(opacity_font, function(x) adjustcolor("black",alpha.f = x)))
+  }else{
+    nodes$font.color <- adjustcolor("black", alpha.f = 0)
+  }
+
+  ### EDGES
+  cooc <- cooccurrence(x,
+                       term = "lemma",
+                       group = group, skipgram = 1)
+
+  edges <- cooc %>%
+    data.frame() %>%
+    dplyr::filter(cooc >= minEdges) %>%
+    dplyr::filter(term1 %in% nodes$label & term2 %in% nodes$label) %>%
+    left_join(
+      nodes %>% select(id,label), by = c("term1" = "label")) %>%
+    rename(from = id) %>%
+    left_join(
+      nodes %>% select(id,label), by = c("term2" = "label")) %>%
+    rename(to = id,
+           value= cooc) %>%
+    select(from,to,value)
+
+  ### COMMUNITY DETECTION
+  graph <- igraph::graph_from_data_frame(edges, directed = FALSE)
+  cluster <- igraph::cluster_walktrap(graph)
+  cluster_df <- data.frame(as.list(igraph::membership(cluster)))
+  cluster_df <- as.data.frame(t(cluster_df)) %>%
+    mutate(id = as.numeric(gsub("X","",rownames(.)))) %>%
+    rename(group = "V1")
+  #Create group column
+  nodes <- left_join(nodes, cluster_df, by = "id")
+  nodes$color <- colorlist[nodes$group]
+
+  edges$color <- apply(edges %>% select(from,to), 1, function(x) {
+    if (nodes$group[x[1]] == nodes$group[x[2]]) {
+      C <- nodes$color[x[1]]
+    } else{
+      C <- '#B3B3B3'
+    }
+    return(C)
+  })
+
+  # opacity for edges
+  edges$color <- paste(substr(edges$color,1,7),"90",sep="")
+  edges$color[substr(edges$color,1,7)=="#B3B3B3"] <- "#69696960"
+  edges$color <- adjustcolor(edges$color,alpha.f=opacity)
+
+  # community repulsion
+  #edges <- switchLayout(nodes, edges, community.repulsion)
+
+
+
+  obj <- list(nodes=nodes, edges=edges)
+}
+
+switchLayout <- function(nodes, edges, community.repulsion) {
+  edges$freq <- edges$value
+
+  if (community.repulsion>0){
+    #community.repulsion = round(community.repulsion*100)
+    community.repulsion = (community.repulsion*2)
+    edges$value <- edges$value/max(edges$value)
+    #row <- get.edgelist(bsk.network)
+    row <- edges %>% select(from, to) %>%
+      mutate(from = as.character(from),
+             to = as.character(to)) %>%
+      as.matrix()
+    membership <- nodes$group
+    names(membership) <- nodes$id
+
+    #E(bsk.network)$weight
+    edges$value <- edges$value+apply(row,1,weight.community,membership,community.repulsion,0.001)
+
+  }
+  return(edges)
+}
+
+weight.community=function(row,membership,weigth.within,weight.between){
+  if(as.numeric(membership[which(names(membership)==row[1])])==as.numeric(membership[which(names(membership)==row[2])])){
+    print("OK")
+    weight=weigth.within
+  }else{
+    weight=weight.between
+  }
+  return(weight)
+}
+
+net2vis <- function(nodes,edges){
+  VIS<-
+    visNetwork::visNetwork(nodes = nodes, edges = edges, type="full", smooth=TRUE, physics=FALSE) %>%
+    visNetwork::visNodes(shadow=TRUE, shape=nodes$shape, font=list(color=nodes$font.color, size=nodes$font.size,vadjust=nodes$font.vadjust)) %>%
+    visNetwork::visIgraphLayout(layout = "layout_nicely", type = "full") %>%
+    visNetwork::visEdges(smooth = list(type="horizontal")) %>%
+    visNetwork::visOptions(highlightNearest =list(enabled = T, hover = T, degree=1), nodesIdSelection = T) %>%
+    visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE) %>%
+    visNetwork::visPhysics(avoidOverlap=1) %>%
+    visNetwork::visOptions(manipulation = FALSE, height ="100%", width = "100%")
+}
+
+
 ### EXCEL REPORT FUNCTIONS ----
 addDataWb <- function(list_df, wb, sheetname){
   l <- length(list_df)
