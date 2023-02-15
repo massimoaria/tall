@@ -458,7 +458,7 @@ network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labels
   edges <- edges %>%
     left_join(nodes %>% select(id,group,color), by=c("from"="id")) %>%
     rename(group_from=group) %>%
-    left_join(nodes %>% select(id,group), by=c("from"="id")) %>%
+    left_join(nodes %>% select(id,group), by=c("to"="id")) %>%
     rename(group_to = group) %>%
     mutate(color = ifelse(group_from==group_to, paste0(substr(color,1,7),"30"), "#69696940"))
 
@@ -518,10 +518,12 @@ weight.community=function(row,membership,weigth.within,weight.between){
 
 net2vis <- function(nodes,edges){
 
+  layout <- "layout_nicely"
+
   VIS<-
     visNetwork::visNetwork(nodes = nodes, edges = edges, type="full", smooth=TRUE, physics=FALSE) %>%
     visNetwork::visNodes(shadow=TRUE, shape=nodes$shape, font=list(color=nodes$font.color, size=nodes$font.size,vadjust=nodes$font.vadjust)) %>%
-    visNetwork::visIgraphLayout(layout = "layout_nicely", type = "full") %>%
+    visNetwork::visIgraphLayout(layout = layout, type = "full") %>%
     visNetwork::visEdges(smooth = list(type="horizontal")) %>%
     visNetwork::visOptions(highlightNearest =list(enabled = T, hover = T, degree=1), nodesIdSelection = T) %>%
     visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE) %>%
