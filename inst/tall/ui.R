@@ -619,7 +619,7 @@ body <- dashboardBody(
                 div(column(1,
                            dropdown(
                              h4(strong("Options: ")),
-                             br(),
+                             hr(),
                              numericInput("nounN",
                                           label=("Number of NOUN"),
                                           value = 20),
@@ -679,7 +679,7 @@ body <- dashboardBody(
                 div(column(1,
                            dropdown(
                              h4(strong("Options: ")),
-                             br(),
+                             hr(),
                              numericInput("propnN",
                                           label=("Number of PROPN"),
                                           value = 20),
@@ -740,7 +740,7 @@ body <- dashboardBody(
                 div(column(1,
                            dropdown(
                              h4(strong("Options: ")),
-                             br(),
+                             hr(),
                              numericInput("adjN",
                                           label=("Number of ADJ"),
                                           value = 20),
@@ -801,7 +801,7 @@ body <- dashboardBody(
                 div(column(1,
                            dropdown(
                              h4(strong("Options: ")),
-                             br(),
+                             hr(),
                              numericInput("verbN",
                                           label=("Number of VERB"),
                                           value = 20),
@@ -861,7 +861,7 @@ body <- dashboardBody(
                 div(column(1,
                            dropdown(
                              h4(strong("Options: ")),
-                             br(),
+                             hr(),
                              # uiOutput("otherFreq"),
                              numericInput("otherN",
                                           label=("Number of Multi-Word"),
@@ -923,7 +923,7 @@ body <- dashboardBody(
                 div(column(1,
                            dropdown(
                              h4(strong("Options: ")),
-                             br(),
+                             hr(),
                              numericInput("posN",
                                           label=("Number of PoS"),
                                           value = 20),
@@ -1025,7 +1025,7 @@ body <- dashboardBody(
                 div(column(1,
                            dropdown(
                              h4(strong("Options: ")),
-                             br(),
+                             hr(),
                              ### elenco opzioni (bottono, input, ecc)
 
                              right = TRUE, animate = TRUE, #circle = TRUE,
@@ -1085,7 +1085,7 @@ body <- dashboardBody(
                 div(column(1,
                            dropdown(
                              h4(strong("Options: ")),
-                             br(),
+                             hr(),
                              ### elenco opzioni (bottono, input, ecc)
 
                              right = TRUE, animate = TRUE, #circle = TRUE,
@@ -1148,7 +1148,7 @@ body <- dashboardBody(
                 div(column(1,
                            dropdown(
                              h4(strong("Options: ")),
-                             br(),
+                             hr(),
                              checkboxGroupInput(
                                inputId = "groupNet",
                                label = "Groups",
@@ -1163,6 +1163,13 @@ body <- dashboardBody(
                                value = FALSE,
                                status = "success"
                              ),
+                             selectInput("normalizationCooc",
+                                         label = "Normalization by:",
+                                         choices = c("None"="none",
+                                                     "Association Index"="association",
+                                                     "Cosine Similarity"="cosine",
+                                                     "Jaccard Index"="jaccard"),
+                                         selected = "none"),
                              fluidRow(
                                column(6,
                                       numericInput("nMax",
@@ -1170,31 +1177,28 @@ body <- dashboardBody(
                                                    value = 100,
                                                    min = 2,
                                                    step=1),
-                                      numericInput("minEdges",
-                                                   label = "Top Link (%)",
-                                                   value = 50,
-                                                   min = 0,
-                                                   max = 100,
-                                                   step = 1)
+                                      numericInput("labelSize",
+                                                   label = "Label Size",
+                                                   value = 4,
+                                                   min = 1,
+                                                   step = 0.5)
                                ),column(6,
-                                        numericInput("labelSize",
-                                                     label = "Label Size",
-                                                     value = 4,
-                                                     min = 0.0,
-                                                     step = 0.5),
+                                        numericInput("minEdges",
+                                                     label = "Top Link (%)",
+                                                     value = 50,
+                                                     min = 0,
+                                                     max = 100,
+                                                     step = 1),
                                         numericInput("opacity",
                                                      label = "Opacity",
                                                      value = 0.6,
                                                      min = 0,
                                                      step = 0.1)
                                )),
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
+                             right = TRUE, animate = TRUE,
                              tooltip = tooltipOptions(title = "Options"),
                              color = "default",
                              icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
                            )
                 ),
                 style = style_opt
@@ -1220,10 +1224,15 @@ body <- dashboardBody(
                                      shinycssloaders::withSpinner(visNetworkOutput("w_networkCoocPlot", width="auto", height = "75vh"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
-                            tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("w_networkCoocTable"),
+                            tabPanel("Words",
+                                     shinycssloaders::withSpinner(DT::DTOutput("w_networkCoocNodesTable"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            ),
+                            tabPanel("Links",
+                                     shinycssloaders::withSpinner(DT::DTOutput("w_networkCoocEdgesTable"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             )
+
                 )
               )
             )
