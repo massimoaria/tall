@@ -429,7 +429,6 @@ network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labels
 
   edges <- cooc %>%
     data.frame() %>%
-    dplyr::filter(cooc >= minEdges) %>%
     dplyr::filter(term1 %in% nodes$label & term2 %in% nodes$label) %>%
     left_join(
       nodes %>% select(id,label), by = c("term1" = "label")) %>%
@@ -438,6 +437,10 @@ network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labels
       nodes %>% select(id,label), by = c("term2" = "label")) %>%
     rename(to = id,
            value= cooc) %>%
+    mutate(value_orig = value,
+           value = ((value-min(value))/diff(range(value)))*14+1
+    ) %>%
+    dplyr::filter(value >= minEdges) %>%
     select(from,to,value)
 
   ### COMMUNITY DETECTION
@@ -460,61 +463,42 @@ network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labels
     rename(group_from=group) %>%
     left_join(nodes %>% select(id,group), by=c("to"="id")) %>%
     rename(group_to = group) %>%
-    mutate(color = ifelse(group_from==group_to, paste0(substr(color,1,7),"30"), "#69696940"))
-
-  # edges$color <- apply(edges %>% select(from,to), 1, function(x) {
-  #   if (nodes$group[x[1]] == nodes$group[x[2]]) {
-  #     C <- nodes$color[x[1]]
-  #   } else{
-  #     C <- '#B3B3B3'
-  #   }
-  #   return(C)
-  # })
-  #
-  # # opacity for edges
-  # edges$color <- paste(substr(edges$color,1,7),"90",sep="")
-  # edges$color[substr(edges$color,1,7)=="#B3B3B3"] <- "#69696960"
-  # edges$color <- adjustcolor(edges$color,alpha.f=opacity)
-
-  # community repulsion
-  #edges <- switchLayout(nodes, edges, community.repulsion)
-
-
+    mutate(color = ifelse(group_from==group_to, paste0(substr(color,1,7),"30"), "#69696930"))
 
   obj <- list(nodes=nodes, edges=edges)
 }
 
-switchLayout <- function(nodes, edges, community.repulsion) {
-  edges$freq <- edges$value
-
-  if (community.repulsion>0){
-    #community.repulsion = round(community.repulsion*100)
-    community.repulsion = (community.repulsion*2)
-    edges$value <- edges$value/max(edges$value)
-    #row <- get.edgelist(bsk.network)
-    row <- edges %>% select(from, to) %>%
-      mutate(from = as.character(from),
-             to = as.character(to)) %>%
-      as.matrix()
-    membership <- nodes$group
-    names(membership) <- nodes$id
-
-    #E(bsk.network)$weight
-    edges$value <- edges$value+apply(row,1,weight.community,membership,community.repulsion,0.001)
-
-  }
-  return(edges)
-}
-
-weight.community=function(row,membership,weigth.within,weight.between){
-  if(as.numeric(membership[which(names(membership)==row[1])])==as.numeric(membership[which(names(membership)==row[2])])){
-    print("OK")
-    weight=weigth.within
-  }else{
-    weight=weight.between
-  }
-  return(weight)
-}
+# switchLayout <- function(nodes, edges, community.repulsion) {
+#   edges$freq <- edges$value
+#
+#   if (community.repulsion>0){
+#     #community.repulsion = round(community.repulsion*100)
+#     community.repulsion = (community.repulsion*2)
+#     edges$value <- edges$value/max(edges$value)
+#     #row <- get.edgelist(bsk.network)
+#     row <- edges %>% select(from, to) %>%
+#       mutate(from = as.character(from),
+#              to = as.character(to)) %>%
+#       as.matrix()
+#     membership <- nodes$group
+#     names(membership) <- nodes$id
+#
+#     #E(bsk.network)$weight
+#     edges$value <- edges$value+apply(row,1,weight.community,membership,community.repulsion,0.001)
+#
+#   }
+#   return(edges)
+# }
+#
+# weight.community=function(row,membership,weigth.within,weight.between){
+#   if(as.numeric(membership[which(names(membership)==row[1])])==as.numeric(membership[which(names(membership)==row[2])])){
+#     print("OK")
+#     weight=weigth.within
+#   }else{
+#     weight=weight.between
+#   }
+#   return(weight)
+# }
 
 net2vis <- function(nodes,edges){
 
