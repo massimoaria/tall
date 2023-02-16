@@ -364,7 +364,8 @@ tfidf <- function(dfTag, term="lemma", document="doc_id"){
 }
 
 ### NETWORK -----
-network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labelsize=4, opacity=0.6, community.repulsion=0.1){
+network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labelsize=4, opacity=0.6,
+                    community.repulsion=0.1, interLinks=FALSE){
 
   colorlist <- c("#E41A1C","#377EB8","#4DAF4A","#984EA3","#FF7F00","#A65628","#F781BF","#999999","#66C2A5","#FC8D62","#8DA0CB","#E78AC3","#A6D854","#FFD92F"
                           ,"#B3B3B3","#A6CEE3","#1F78B4","#B2DF8A","#33A02C","#FB9A99","#E31A1C","#FDBF6F","#FF7F00","#CAB2D6","#6A3D9A","#B15928","#8DD3C7","#BEBADA"
@@ -383,13 +384,8 @@ network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labels
     arrange(desc(value)) %>%
     ungroup() %>%
     slice_head(n=n) %>%
-    #dplyr::filter(value>=minFreq) %>%
     mutate(id=row_number(),
            shape=shape,
-           # shape=ifelse(upos %in% c("PROPN","NOUN","VERB"),"icon",shape),
-           # icon.code=ifelse(upos %in% "PROPN", "f007",NA),
-           # icon.code=ifelse(upos %in% "NOUN", "e284",icon.code),
-           # icon.code=ifelse(upos %in% "VERB", "56",icon.code),
            color = "navyblue") %>%
     rename(label=lemma)
 
@@ -425,7 +421,7 @@ network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labels
   ### EDGES
   cooc <- cooccurrence(x,
                        term = "lemma",
-                       group = group, skipgram = 1)
+                       group = group)
 
   edges <- cooc %>%
     data.frame() %>%
@@ -439,8 +435,11 @@ network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labels
            value= cooc) %>%
     mutate(value_orig = value,
            value = ((value-min(value))/diff(range(value)))*14+1
-    ) %>%
-    dplyr::filter(value >= minEdges) %>%
+    )
+  tailEdges <- quantile(edges$value,1-(minEdges/100))
+
+  edges <- edges %>%
+    dplyr::filter(value >= tailEdges) %>%
     select(from,to,value)
 
   ### COMMUNITY DETECTION
@@ -457,13 +456,17 @@ network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labels
   nodes$opacity.nodes <- (opacity_font-min(opacity_font))/(diff(range(opacity_font)))*0.5+opacity.min
   nodes$color <- paste0(colorlist[nodes$group],round(nodes$opacity.nodes,2)*100)
 
-
+  if(interLinks){
+    interColor <- "#69696920"
+  }else{
+    interColor <- "#69696900"
+  }
   edges <- edges %>%
     left_join(nodes %>% select(id,group,color), by=c("from"="id")) %>%
     rename(group_from=group) %>%
     left_join(nodes %>% select(id,group), by=c("to"="id")) %>%
     rename(group_to = group) %>%
-    mutate(color = ifelse(group_from==group_to, paste0(substr(color,1,7),"30"), "#69696930"))
+    mutate(color = ifelse(group_from==group_to, paste0(substr(color,1,7),"30"), interColor))
 
   obj <- list(nodes=nodes, edges=edges)
 }
@@ -511,6 +514,10 @@ net2vis <- function(nodes,edges){
     visNetwork::visEdges(smooth = list(type="horizontal")) %>%
     visNetwork::visOptions(highlightNearest =list(enabled = T, hover = T, degree=1), nodesIdSelection = T) %>%
     visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE) %>%
+    visEvents(click = "function(nodes){
+                  Shiny.onInputChange('click', nodes.nodes[0]);
+                  ;}"
+    ) %>%
     #visNetwork::visPhysics(barnesHut=list(avoidOverlap=1)) %>%
     visNetwork::visOptions(manipulation = FALSE, height ="100%", width = "100%") #%>%
     #visNetwork::addFontAwesome()
@@ -776,7 +783,7 @@ menuList <- function(menu){
                       menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right"), selected = TRUE),
                       menuSubItem("Multi-Word Creation", tabName = "multiwordCreat",icon = icon("chevron-right")),
                       menuSubItem("PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right"))
-                      )
+             )
            )
          },
          "2"={
@@ -802,21 +809,23 @@ menuList <- function(menu){
                       menuSubItem("Words in Context", tabName = "wordCont", icon = icon("chevron-right")),
                       menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),
                       menuSubItem("Correspondence Analysis", tabName = "ca", icon = icon("chevron-right")),
-                      menuSubItem("Network", tabName = "w_network", icon = icon("chevron-right"))),
-             menuItem("Documents",tabName = "documents", icon = icon(name="duplicate", lib="glyphicon"),
-                      menuSubItem("Topic Modeling", tabName = "d_topicMod", icon = icon("chevron-right")),
-                      menuSubItem("Clustering", tabName = "d_clustering", icon = icon("chevron-right")),
-                      menuSubItem("Network", tabName = "d_network", icon = icon("chevron-right")),
-                      menuSubItem("Summarization", tabName = "d_summarization", icon = icon("chevron-right")),
-                      menuSubItem("Polarity Detection", tabName = "d_polDet", icon = icon("chevron-right"))),
-             menuItem("Groups",tabName = "groups", icon = icon("th", lib="glyphicon"),
-                      menuSubItem("Topic Modeling", tabName = "g_topicMod", icon = icon("chevron-right")),
-                      menuSubItem("Clustering", tabName = "g_clustering", icon = icon("chevron-right")),
-                      menuSubItem("Network", tabName = "g_network", icon = icon("chevron-right")),
-                      menuSubItem("Summarization", tabName = "g_summarization", icon = icon("chevron-right")),
-                      menuSubItem("Polarity Detection", tabName = "g_polDet", icon = icon("chevron-right"))),
-             menuItem("Report",tabName = "report", icon = icon("list-alt")),
-             menuItem("Settings",tabName = "settings", icon = icon("tasks"))
+                      menuItem("Network", tabName = "w_network", icon = icon("chevron-right"),
+                               menuSubItem("Word co-occurence", tabName = "w_networkCooc", icon = icon("chevron-right")),
+                               menuSubItem("Grako", tabName = "w_networkGrako", icon = icon("chevron-right")))),
+                      menuItem("Documents",tabName = "documents", icon = icon(name="duplicate", lib="glyphicon"),
+                               menuSubItem("Topic Modeling", tabName = "d_topicMod", icon = icon("chevron-right")),
+                               menuSubItem("Clustering", tabName = "d_clustering", icon = icon("chevron-right")),
+                               menuSubItem("Network", tabName = "d_network", icon = icon("chevron-right")),
+                               menuSubItem("Summarization", tabName = "d_summarization", icon = icon("chevron-right")),
+                               menuSubItem("Polarity Detection", tabName = "d_polDet", icon = icon("chevron-right"))),
+                      menuItem("Groups",tabName = "groups", icon = icon("th", lib="glyphicon"),
+                               menuSubItem("Topic Modeling", tabName = "g_topicMod", icon = icon("chevron-right")),
+                               menuSubItem("Clustering", tabName = "g_clustering", icon = icon("chevron-right")),
+                               menuSubItem("Network", tabName = "g_network", icon = icon("chevron-right")),
+                               menuSubItem("Summarization", tabName = "g_summarization", icon = icon("chevron-right")),
+                               menuSubItem("Polarity Detection", tabName = "g_polDet", icon = icon("chevron-right"))),
+                      menuItem("Report",tabName = "report", icon = icon("list-alt")),
+                      menuItem("Settings",tabName = "settings", icon = icon("tasks"))
            )
          },
          {
