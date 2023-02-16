@@ -864,7 +864,7 @@ body <- dashboardBody(
                              br(),
                              # uiOutput("otherFreq"),
                              numericInput("otherN",
-                                          label=("Number of OTHER"),
+                                          label=("Number of Multi-Word"),
                                           value = 20),
                              width = "220px", icon = icon("cog", lib="glyphicon"),
                              right = FALSE, animate = TRUE,
@@ -1002,18 +1002,7 @@ body <- dashboardBody(
                            btnSearch = icon("magnifying-glass"),
                            #btnReset = icon("xmark"),
                            width = "100%"
-                         )#,
-                         # fluidRow(column(6,
-                         #                 div(
-                         #                   align = "left",
-                         #                   width=12,
-                         #                   actionButton(inputId="wordsContApply",
-                         #                                label = strong("APPLY"),
-                         #                                icon = icon(name="play", lib = "font-awesome"),
-                         #                                style = style_bttn
-                         #                   ))
-                         # )
-                         # )
+                         )
                        ),style="margin-top:40px"
                      )
               )
@@ -1142,24 +1131,63 @@ body <- dashboardBody(
 
     ### Network ----
 
-    tabItem(tabName = "w_network",
+    ## WORD CO-OCCURENCE ----
+
+    tabItem(tabName = "w_networkCooc",
             fluidPage(
               fluidRow(
                 column(8,
-                       h3(strong("Network"), align = "center")),
+                       h3(strong("Word co-occurence"), align = "center")),
                 div(
                   title = t_run,
                   column(1,
                          do.call("actionButton", c(run_bttn, list(
-                           inputId = "w_networkApply")
+                           inputId = "w_networkCoocApply")
                          ))
                   )),
                 div(column(1,
                            dropdown(
                              h4(strong("Options: ")),
                              br(),
-                             ### elenco opzioni (bottono, input, ecc)
-
+                             checkboxGroupInput(
+                               inputId = "groupNet",
+                               label = "Groups",
+                               choices = c("Docs"="doc_id",
+                                           "Sentences"="sentence_id"),
+                               selected = c("doc_id", "sentence_id"),
+                               inline = TRUE
+                             ),
+                             materialSwitch(
+                               inputId = "interLinks",
+                               label = "Inter-group links",
+                               value = FALSE,
+                               status = "success"
+                             ),
+                             fluidRow(
+                               column(6,
+                                      numericInput("nMax",
+                                                   label = "Words",
+                                                   value = 100,
+                                                   min = 2,
+                                                   step=1),
+                                      numericInput("minEdges",
+                                                   label = "Top Link (%)",
+                                                   value = 50,
+                                                   min = 0,
+                                                   max = 100,
+                                                   step = 1)
+                               ),column(6,
+                                        numericInput("labelSize",
+                                                     label = "Label Size",
+                                                     value = 4,
+                                                     min = 0.0,
+                                                     step = 0.5),
+                                        numericInput("opacity",
+                                                     label = "Opacity",
+                                                     value = 0.6,
+                                                     min = 0,
+                                                     step = 0.1)
+                               )),
                              right = TRUE, animate = TRUE, #circle = TRUE,
                              #style = "gradient",
                              #style = "unite",
@@ -1167,7 +1195,7 @@ body <- dashboardBody(
                              color = "default",
                              icon = icon("cog", lib="glyphicon")#,
                              #width = "200px"
-                           ),
+                           )
                 ),
                 style = style_opt
                 ),
@@ -1175,25 +1203,123 @@ body <- dashboardBody(
                   title = t_export,
                   column(1,
                          do.call("downloadButton", c(export_bttn, list(
-                           outputId = "w_networkExport")
+                           outputId = "w_networkCoocExport")
                          ))
                   )),
                 div(
                   title = t_report,
                   column(1,
                          do.call("actionButton", c(report_bttn, list(
-                           inputId = "w_networkReport")
+                           inputId = "w_networkCoocReport")
                          ))
                   ))
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
-                                     shinycssloaders::withSpinner(visNetworkOutput("w_networkPlot", width="auto", height = "75vh"),
+                            tabPanel("Network",
+                                     shinycssloaders::withSpinner(visNetworkOutput("w_networkCoocPlot", width="auto", height = "75vh"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
                             tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("w_networkTable"),
+                                     shinycssloaders::withSpinner(DT::DTOutput("w_networkCoocTable"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            )
+                )
+              )
+            )
+    ),
+
+    ## GRAKO ----
+
+    tabItem(tabName = "w_networkGrako",
+            fluidPage(
+              fluidRow(
+                column(8,
+                       h3(strong("Grako"), align = "center")),
+                div(
+                  title = t_run,
+                  column(1,
+                         do.call("actionButton", c(run_bttn, list(
+                           inputId = "w_networkGrakoApply")
+                         ))
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             br(),
+                             # checkboxGroupInput(
+                             #   inputId = "groupNet",
+                             #   label = "Groups",
+                             #   choices = c("Docs"="doc_id",
+                             #               "Sentences"="sentence_id"),
+                             #   selected = c("doc_id", "sentence_id"),
+                             #   inline = TRUE
+                             # ),
+                             # materialSwitch(
+                             #   inputId = "interLinks",
+                             #   label = "Inter-group links",
+                             #   value = FALSE,
+                             #   status = "success"
+                             # ),
+                             # fluidRow(
+                             #   column(6,
+                             #          numericInput("nMax",
+                             #                       label = "Words",
+                             #                       value = 100,
+                             #                       min = 2,
+                             #                       step=1),
+                             #          numericInput("minEdges",
+                             #                       label = "Top Link (%)",
+                             #                       value = 50,
+                             #                       min = 0,
+                             #                       max = 100,
+                             #                       step = 1)
+                             #   ),column(6,
+                             #            numericInput("labelSize",
+                             #                         label = "Label Size",
+                             #                         value = 4,
+                             #                         min = 0.0,
+                             #                         step = 0.5),
+                             #            numericInput("opacity",
+                             #                         label = "Opacity",
+                             #                         value = 0.6,
+                             #                         min = 0,
+                             #                         step = 0.1)
+                             #   )),
+                             right = TRUE, animate = TRUE, #circle = TRUE,
+                             #style = "gradient",
+                             #style = "unite",
+                             tooltip = tooltipOptions(title = "Options"),
+                             color = "default",
+                             icon = icon("cog", lib="glyphicon")#,
+                             #width = "200px"
+                           )
+                ),
+                style = style_opt
+                ),
+                div(
+                  title = t_export,
+                  column(1,
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "w_networkGrakoExport")
+                         ))
+                  )),
+                div(
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "w_networkGrakoReport")
+                         ))
+                  ))
+              ),
+              fluidRow(
+                tabsetPanel(type = "tabs",
+                            tabPanel("Network",
+                                     shinycssloaders::withSpinner(visNetworkOutput("w_networkGrakoPlot", width="auto", height = "75vh"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            ),
+                            tabPanel("Table",
+                                     shinycssloaders::withSpinner(DT::DTOutput("w_networkGrakoTable"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             )
                 )

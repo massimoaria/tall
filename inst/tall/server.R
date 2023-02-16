@@ -827,22 +827,52 @@ server <- function(input, output, session){
 
     netFunction <- eventReactive(
       ignoreNULL = TRUE,
-      eventExpr = {input$w_networkApply},
+      eventExpr = {input$w_networkCoocApply},
       valueExpr ={
-        n=100
-        minEdges=1.1
-        labelsize=4
-        opacity=0.6
         community.repulsion=0.0
-        group="doc_id"
-        values$network <- network(values$dfTag, group=group, n=n, minEdges=minEdges, labelsize=labelsize, opacity=opacity, community.repulsion=community.repulsion)
+        values$network <- network(values$dfTag, group=input$groupNet, n=input$nMax, minEdges=input$minEdges,
+                                  labelsize=input$labelSize, opacity=input$opacity,
+                                  community.repulsion=community.repulsion, interLinks=input$interLinks)
       }
     )
 
-    output$w_networkPlot <- renderVisNetwork({
+    output$w_networkCoocPlot <- renderVisNetwork({
       netFunction()
       net2vis(nodes=values$network$nodes, edges=values$network$edges)
     })
+
+    ## Click on visNetwork: WORDS IN CONTEXT ----
+    observeEvent(ignoreNULL = TRUE,
+                 eventExpr={input$click},
+                 handlerExpr = {
+      showModal(plotModalTermNet(session))
+    })
+
+    plotModalTermNet <- function(session) {
+      ns <- session$ns
+      modalDialog(
+        h3(strong(("Words in Context"))),
+        DTOutput(ns("wordInContextNet")),
+        size = "l",
+        easyClose = TRUE,
+        footer = tagList(
+          # screenshotButton(label="Save", id = "cocPlotClust",
+          #                  scale = 2,
+          #                  file=paste("TMClusterGraph-", Sys.Date(), ".png", sep="")),
+          modalButton("Close")),
+      )
+    }
+
+    output$wordInContextNet <- renderDT({
+      id <- input$click
+      word_search<- values$network$nodes$label[values$network$nodes$id==id]
+      sentences <- values$dfTag %>%
+        filter(lemma %in% word_search) %>%
+        ungroup() %>% select(lemma, token, sentence_hl)
+
+      # find sentences containing the tokens/lemmas
+      DTformat(sentences, size='100%')
+    }, escape=FALSE)
 
   ## Summarization ----
 
