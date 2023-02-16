@@ -830,7 +830,7 @@ server <- function(input, output, session){
       eventExpr = {input$w_networkApply},
       valueExpr ={
         n=100
-        minEdges=100
+        minEdges=1.1
         labelsize=4
         opacity=0.6
         community.repulsion=0.0

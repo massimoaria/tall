@@ -413,7 +413,7 @@ network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labels
 
 
   ## opacity for label
-  opacity_font <- sqrt((nodes$font.size-min(nodes$font.size))/diff(range(nodes$font.size)))*opacity+opacity.min
+  opacity_font <- sqrt((nodes$font.size-min(nodes$font.size))/diff(range(nodes$font.size)))*opacity+opacity.min+0.1
   if(is.nan(opacity_font[1])) opacity_font <- rep(opacity.min,length(opacity_font))
 
   if (labelsize>0){
