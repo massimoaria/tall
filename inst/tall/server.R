@@ -829,10 +829,10 @@ server <- function(input, output, session){
       ignoreNULL = TRUE,
       eventExpr = {input$w_networkCoocApply},
       valueExpr ={
-        community.repulsion=0.0
+        normalization="jaccard"
         values$network <- network(values$dfTag, group=input$groupNet, n=input$nMax, minEdges=input$minEdges,
                                   labelsize=input$labelSize, opacity=input$opacity,
-                                  community.repulsion=community.repulsion, interLinks=input$interLinks)
+                                   interLinks=input$interLinks, normalization=normalization)
       }
     )
 

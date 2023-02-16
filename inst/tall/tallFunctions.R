@@ -365,7 +365,7 @@ tfidf <- function(dfTag, term="lemma", document="doc_id"){
 
 ### NETWORK -----
 network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labelsize=4, opacity=0.6,
-                    community.repulsion=0.1, interLinks=FALSE){
+                    interLinks=FALSE, normalization="none"){
 
   colorlist <- c("#E41A1C","#377EB8","#4DAF4A","#984EA3","#FF7F00","#A65628","#F781BF","#999999","#66C2A5","#FC8D62","#8DA0CB","#E78AC3","#A6D854","#FFD92F"
                           ,"#B3B3B3","#A6CEE3","#1F78B4","#B2DF8A","#33A02C","#FB9A99","#E31A1C","#FDBF6F","#FF7F00","#CAB2D6","#6A3D9A","#B15928","#8DD3C7","#BEBADA"
@@ -427,20 +427,34 @@ network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labels
     data.frame() %>%
     dplyr::filter(term1 %in% nodes$label & term2 %in% nodes$label) %>%
     left_join(
-      nodes %>% select(id,label), by = c("term1" = "label")) %>%
-    rename(from = id) %>%
+      nodes %>% select(id,label, value), by = c("term1" = "label")) %>%
+    rename(from = id,
+           s_from=value) %>%
     left_join(
-      nodes %>% select(id,label), by = c("term2" = "label")) %>%
+      nodes %>% select(id,label, value), by = c("term2" = "label")) %>%
     rename(to = id,
-           value= cooc) %>%
-    mutate(value_orig = value,
-           value = ((value-min(value))/diff(range(value)))*14+1
+           s_to = value,
+           s= cooc) %>%
+    mutate(sA = s/(s_from*s_to),
+           sC = s/(sqrt(s_from*s_to)),
+           sJ = s/(s_from+s_to-s),
+           sNorm = ((s-min(s))/diff(range(s)))*14+1,
+           sANorm = ((sA-min(sA))/diff(range(sA)))*14+1,
+           sCNorm = ((sC-min(sC))/diff(range(sC)))*14+1,
+           sJNorm = ((sJ-min(sJ))/diff(range(sJ)))*14+1,
     )
+
+  switch(normalization,
+         none={edges$value <- edges$sNorm},
+         association={edges$value <- edges$sANorm},
+         cosine={edges$value <- edges$sCNorm},
+         jaccard={edges$value <- edges$sJNorm})
+
   tailEdges <- quantile(edges$value,1-(minEdges/100))
 
   edges <- edges %>%
     dplyr::filter(value >= tailEdges) %>%
-    select(from,to,value)
+    select(from,to,value, s, sA, sC, sJ)
 
   ### COMMUNITY DETECTION
   graph <- igraph::graph_from_data_frame(edges, directed = FALSE)
@@ -470,38 +484,6 @@ network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labels
 
   obj <- list(nodes=nodes, edges=edges)
 }
-
-# switchLayout <- function(nodes, edges, community.repulsion) {
-#   edges$freq <- edges$value
-#
-#   if (community.repulsion>0){
-#     #community.repulsion = round(community.repulsion*100)
-#     community.repulsion = (community.repulsion*2)
-#     edges$value <- edges$value/max(edges$value)
-#     #row <- get.edgelist(bsk.network)
-#     row <- edges %>% select(from, to) %>%
-#       mutate(from = as.character(from),
-#              to = as.character(to)) %>%
-#       as.matrix()
-#     membership <- nodes$group
-#     names(membership) <- nodes$id
-#
-#     #E(bsk.network)$weight
-#     edges$value <- edges$value+apply(row,1,weight.community,membership,community.repulsion,0.001)
-#
-#   }
-#   return(edges)
-# }
-#
-# weight.community=function(row,membership,weigth.within,weight.between){
-#   if(as.numeric(membership[which(names(membership)==row[1])])==as.numeric(membership[which(names(membership)==row[2])])){
-#     print("OK")
-#     weight=weigth.within
-#   }else{
-#     weight=weight.between
-#   }
-#   return(weight)
-# }
 
 net2vis <- function(nodes,edges){
 
