@@ -815,24 +815,14 @@ server <- function(input, output, session){
   ## Correspondence Analysis ----
 
   ## Network ----
-
-
-  ## DOCUMENTS ----
-
-  ## Topic Modeling ----
-
-  ## Clustering ----
-
-  ## Network ----
-
+    ## WORD CO-OCCURENCE ----
     netFunction <- eventReactive(
       ignoreNULL = TRUE,
       eventExpr = {input$w_networkCoocApply},
       valueExpr ={
-        normalization="jaccard"
         values$network <- network(values$dfTag, group=input$groupNet, n=input$nMax, minEdges=input$minEdges,
                                   labelsize=input$labelSize, opacity=input$opacity,
-                                   interLinks=input$interLinks, normalization=normalization)
+                                  interLinks=input$interLinks, normalization=input$normalizationCooc)
       }
     )
 
@@ -845,8 +835,8 @@ server <- function(input, output, session){
     observeEvent(ignoreNULL = TRUE,
                  eventExpr={input$click},
                  handlerExpr = {
-      showModal(plotModalTermNet(session))
-    })
+                   showModal(plotModalTermNet(session))
+                 })
 
     plotModalTermNet <- function(session) {
       ns <- session$ns
@@ -873,6 +863,15 @@ server <- function(input, output, session){
       # find sentences containing the tokens/lemmas
       DTformat(sentences, size='100%')
     }, escape=FALSE)
+
+
+  ## DOCUMENTS ----
+
+  ## Topic Modeling ----
+
+  ## Clustering ----
+
+  ## Network ----
 
   ## Summarization ----
 
