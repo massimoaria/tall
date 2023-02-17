@@ -831,6 +831,34 @@ server <- function(input, output, session){
       net2vis(nodes=values$network$nodes, edges=values$network$edges)
     })
 
+    output$w_networkCoocNodesTable <- renderDT({
+      netFunction()
+      DTformat(values$network$nodes %>%
+                 select(upos, label, value, group, color) %>%
+                 rename(PoS=upos,
+                        Word=label,
+                        Frequency=value,
+                        Group=group,
+                        "Color Group"=color), size='100%',filename="NetworkWordsTable", pagelength=TRUE, left=NULL, right=NULL,
+               numeric=NULL, dom=TRUE, filter="top")
+    })
+
+    output$w_networkCoocEdgesTable <- renderDT({
+      netFunction()
+      DTformat(values$network$edges %>%
+                 select(term_from, term_to,group_from, group_to, s,sA, sC, sJ) %>%
+                 rename(From=term_from,
+                        To=term_to,
+                        "Co-occurence"=s,
+                        "Association Intex"=sA,
+                        "Cosine Similarity"=sC,
+                        "Jaccard Index"=sJ,
+                        "Group From"=group_from,
+                        "Group To"=group_to),
+               size='100%',filename="NetworkLinksTable", numeric=6:8, round=4)
+    })
+
+
     ## Click on visNetwork: WORDS IN CONTEXT ----
     observeEvent(ignoreNULL = TRUE,
                  eventExpr={input$click},

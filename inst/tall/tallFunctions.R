@@ -454,10 +454,12 @@ network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labels
 
   edges <- edges %>%
     dplyr::filter(value >= tailEdges) %>%
-    select(from,to,value, s, sA, sC, sJ)
+    select(term1, term2, from,to,value, s, sA, sC, sJ) %>%
+    rename(term_from=term1,
+           term_to=term2)
 
   ### COMMUNITY DETECTION
-  graph <- igraph::graph_from_data_frame(edges, directed = FALSE)
+  graph <- igraph::graph_from_data_frame(edges %>% select(-term_from, -term_to), directed = FALSE)
   cluster <- igraph::cluster_walktrap(graph)
   cluster_df <- data.frame(as.list(igraph::membership(cluster)))
   cluster_df <- as.data.frame(t(cluster_df)) %>%
