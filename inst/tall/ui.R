@@ -20,15 +20,15 @@ run_bttn <- list(
   style ="display:block; height: 45px; width: 45px; border-radius: 50%; border: 3px; margin-top: 15px",
   icon = icon(name ="play", lib="glyphicon")
 )
-report_bttn <- list(
-  label = NULL,
-  style ="display:block; height: 45px; width: 45px; border-radius: 50%; border: 3px; margin-top: 0px",
-  icon = icon(name ="plus", lib="glyphicon")
-)
 export_bttn <- list(
   label=NULL,
-  style ="display:block; height: 45px; width: 45px; border-radius: 50%; border: 3px; margin-top: 0px",
+  style ="display:block; height: 45px; width: 45px; border-radius: 50%; border: 3px; margin-top: 15px",
   icon = icon(name ="download-alt", lib="glyphicon")
+)
+report_bttn <- list(
+  label = NULL,
+  style ="display:block; height: 45px; width: 45px; border-radius: 50%; border: 3px; margin-top: 15px",
+  icon = icon(name ="plus", lib="glyphicon")
 )
 save_bttn <- list(
   label=NULL,
@@ -66,7 +66,7 @@ body <- dashboardBody(
   tags$style(".glyphicon-download-alt {color:#ffffff; font-size: 24px; align: center; margin-left: -2.5px}"),
   tags$style(".glyphicon-play {color:#ffffff; font-size: 24px; align: center}"),
   tags$style(".glyphicon-plus {color:#ffffff; font-size: 24px;align: center; margin-left: -0.5px}"),
-  tags$style(".glyphicon-cog {color:#ffffff; font-size: 26px; margin-top: 2px; margin-left: -2px}"),
+  tags$style(".glyphicon-cog {color:#4F794290; font-size: 27px; margin-top: 2.5px; margin-left: -3px}"),
   tags$style(".glyphicon-floppy-save {color:#ffffff; font-size: 23px; text-align:center; padding-right: -10px;
              margin-top: 1px;}"),#margin-top: 4px; margin-down: 22px; margin-right: 25px}"),
 
@@ -571,7 +571,7 @@ body <- dashboardBody(
                             ),
                             tabPanel("Table",
                                      shinycssloaders::withSpinner(DT::DTOutput(outputId = "overviewData", width = 700))
-                                     ),
+                            ),
                             tabPanel("WordCloud",
                                      wordcloud2::wordcloud2Output("wordcloudPlot", height = "75vh")),# width = 700),
                             tabPanel("Dictionary",
@@ -585,17 +585,17 @@ body <- dashboardBody(
                                                             choices = c("Tokens"="token",
                                                                         "Lemmas"="lemma"),
                                                             selected = "token"),
-                                                  actionButton(inputId="dictionaryApply",
-                                                               label = strong("APPLY"),
-                                                               icon = icon(name="play", lib = "font-awesome"),
-                                                               style = style_bttn))
+                                                actionButton(inputId="dictionaryApply",
+                                                             label = strong("APPLY"),
+                                                             icon = icon(name="play", lib = "font-awesome"),
+                                                             style = style_bttn))
                                               ,align="left")
-                                            )
-                                     ),
+                                     )
+                            ),
                             tabPanel("TF-IDF",
                                      shinycssloaders::withSpinner(DT::DTOutput(outputId = "tfidfData", width = 700)))
-                            ), align="center"
-                )
+                ), align="center"
+              )
             )
     ),
 
@@ -616,22 +616,7 @@ body <- dashboardBody(
                            inputId = "nounApply")
                          ))
                   )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             hr(),
-                             numericInput("nounN",
-                                          label=("Number of NOUN"),
-                                          value = 20),
-                             width = "220px", icon = icon("cog", lib="glyphicon"),
-                             right = FALSE, animate = TRUE,
-                             tooltip = tooltipOptions(title = "Options"),
-                             #style = "material-circle"
-                             )
 
-                ),
-                style = style_opt
-                ),
                 div(
                   title = t_export,
                   column(1,
@@ -645,7 +630,23 @@ body <- dashboardBody(
                          do.call("actionButton", c(report_bttn, list(
                            inputId = "nounReport")
                          ))
-                  ))
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             hr(),
+                             numericInput("nounN",
+                                          label=("Number of Nouns"),
+                                          value = 20),
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = TRUE, animate = TRUE,
+                             tooltip = tooltipOptions(title = "Options"),
+                             style = "material-circle"
+                           )
+
+                ),
+                style = style_opt
+                )
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
@@ -675,38 +676,38 @@ body <- dashboardBody(
                          do.call("actionButton", c(run_bttn, list(
                            inputId = "propnApply")
                          ))
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             hr(),
-                             numericInput("propnN",
-                                          label=("Number of PROPN"),
-                                          value = 20),
-                             width = "220px", icon = icon("cog", lib="glyphicon"),
-                             right = FALSE, animate = TRUE,
-                             tooltip = tooltipOptions(title = "Options"),
-                             #style = "material-circle"
-                           )
+                  ),
+              ),
+              div(
+                title = t_export,
+                column(1,
+                       do.call("downloadButton", c(export_bttn, list(
+                         outputId = "propnExport")
+                       ))
+                )),
+              div(
+                title = t_report,
+                column(1,
+                       do.call("actionButton", c(report_bttn, list(
+                         inputId = "propnReport")
+                       ))
+                )),
+              div(column(1,
+                         dropdown(
+                           h4(strong("Options: ")),
+                           hr(),
+                           numericInput("propnN",
+                                        label=("Number of Proper Nouns"),
+                                        value = 20),
+                           width = "220px", icon = icon("cog", lib="glyphicon"),
+                           right = TRUE, animate = TRUE,
+                           tooltip = tooltipOptions(title = "Options"),
+                           style = "material-circle"
+                         )
 
-                ),
-                style = style_opt
-                ),
-                div(
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "propnExport")
-                         ))
-                  )),
-                div(
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "propnReport")
-                         ))
-                  )),
-
+              ),
+              style = style_opt
+              )
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
@@ -737,29 +738,12 @@ body <- dashboardBody(
                            inputId = "adjApply")
                          ))
                   )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             hr(),
-                             numericInput("adjN",
-                                          label=("Number of ADJ"),
-                                          value = 20),
-                             width = "220px", icon = icon("cog", lib="glyphicon"),
-                             right = FALSE, animate = TRUE,
-                             tooltip = tooltipOptions(title = "Options"),
-                             #style = "material-circle"
-                           )
-
-                ),
-                style = style_opt
-                ),
                 div(
                   title = t_export,
                   column(1,
                          do.call("downloadButton", c(export_bttn, list(
                            outputId = "adjExport")
-                         )),
-
+                         ))
                   )),
                 div(
                   title = t_report,
@@ -767,7 +751,23 @@ body <- dashboardBody(
                          do.call("actionButton", c(report_bttn, list(
                            inputId = "adjReport")
                          ))
-                  ))
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             hr(),
+                             numericInput("adjN",
+                                          label=("Number of Adjectives"),
+                                          value = 20),
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = TRUE, animate = TRUE,
+                             tooltip = tooltipOptions(title = "Options"),
+                             style = "material-circle"
+                           )
+
+                ),
+                style = style_opt
+                )
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
@@ -798,22 +798,6 @@ body <- dashboardBody(
                            inputId = "verbApply")
                          ))
                   )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             hr(),
-                             numericInput("verbN",
-                                          label=("Number of VERB"),
-                                          value = 20),
-                             width = "220px", icon = icon("cog", lib="glyphicon"),
-                             right = FALSE, animate = TRUE,
-                             tooltip = tooltipOptions(title = "Options"),
-                             #style = "material-circle"
-                           )
-
-                ),
-                style = style_opt
-                ),
                 div(
                   title = t_export,
                   column(1,
@@ -827,7 +811,23 @@ body <- dashboardBody(
                          do.call("actionButton", c(report_bttn, list(
                            inputId = "verbReport")
                          ))
-                  ))
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             hr(),
+                             numericInput("verbN",
+                                          label=("Number of Verbs"),
+                                          value = 20),
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = TRUE, animate = TRUE,
+                             tooltip = tooltipOptions(title = "Options"),
+                             style = "material-circle"
+                           )
+
+                ),
+                style = style_opt
+                )
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
@@ -858,30 +858,12 @@ body <- dashboardBody(
                            inputId = "otherApply")
                          ))
                   )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             hr(),
-                             # uiOutput("otherFreq"),
-                             numericInput("otherN",
-                                          label=("Number of Multi-Word"),
-                                          value = 20),
-                             width = "220px", icon = icon("cog", lib="glyphicon"),
-                             right = FALSE, animate = TRUE,
-                             tooltip = tooltipOptions(title = "Options"),
-                             #style = "material-circle"
-                           )
-
-                ),
-                style = style_opt
-                ),
                 div(
                   title = t_export,
                   column(1,
                          do.call("downloadButton", c(export_bttn, list(
                            outputId = "otherExport")
-                         )),
-
+                         ))
                   )),
                 div(
                   title = t_report,
@@ -889,7 +871,24 @@ body <- dashboardBody(
                          do.call("actionButton", c(report_bttn, list(
                            inputId = "otherReport")
                          ))
-                  ))
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             hr(),
+                             # uiOutput("otherFreq"),
+                             numericInput("otherN",
+                                          label=("Number of Multi-Words"),
+                                          value = 20),
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = TRUE, animate = TRUE,
+                             tooltip = tooltipOptions(title = "Options"),
+                             style = "material-circle"
+                           )
+
+                ),
+                style = style_opt
+                )
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
@@ -920,22 +919,6 @@ body <- dashboardBody(
                            inputId = "posApply")
                          ))
                   )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             hr(),
-                             numericInput("posN",
-                                          label=("Number of PoS"),
-                                          value = 20),
-                             width = "220px", icon = icon("cog", lib="glyphicon"),
-                             right = FALSE, animate = TRUE,
-                             tooltip = tooltipOptions(title = "Options"),
-                             #style = "material-circle"
-                           )
-
-                ),
-                style = style_opt
-                ),
                 div(
                   title = t_export,
                   column(1,
@@ -949,8 +932,22 @@ body <- dashboardBody(
                          do.call("actionButton", c(report_bttn, list(
                            inputId = "posReport")
                          ))
-                  ))
-
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             hr(),
+                             numericInput("posN",
+                                          label=("Number of PoS"),
+                                          value = 20),
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = TRUE, animate = TRUE,
+                             tooltip = tooltipOptions(title = "Options"),
+                             style = "material-circle"
+                           )
+                ),
+                style = style_opt
+                )
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
@@ -1022,23 +1019,6 @@ body <- dashboardBody(
                            inputId = "w_clusteringApply")
                          ))
                   )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             hr(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                ),
                 div(
                   title = t_export,
                   column(1,
@@ -1052,7 +1032,21 @@ body <- dashboardBody(
                          do.call("actionButton", c(report_bttn, list(
                            inputId = "w_clusteringReport")
                          ))
-                  ))
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             hr(),
+                             ### elenco opzioni (bottono, input, ecc)
+
+                             tooltip = tooltipOptions(title = "Options"),
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = TRUE, animate = TRUE,
+                             style = "material-circle"
+                           ),
+                ),
+                style = style_opt
+                )
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
@@ -1082,23 +1076,6 @@ body <- dashboardBody(
                            inputId = "caApply")
                          ))
                   )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             hr(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                ),
                 div(
                   title = t_export,
                   column(1,
@@ -1112,7 +1089,20 @@ body <- dashboardBody(
                          do.call("actionButton", c(report_bttn, list(
                            inputId = "caReport")
                          ))
-                  ))
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             hr(),
+                             ### elenco opzioni (bottono, input, ecc)
+                             tooltip = tooltipOptions(title = "Options"),
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = TRUE, animate = TRUE,
+                             style = "material-circle"
+                           ),
+                ),
+                style = style_opt
+                )
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
@@ -1143,6 +1133,20 @@ body <- dashboardBody(
                   column(1,
                          do.call("actionButton", c(run_bttn, list(
                            inputId = "w_networkCoocApply")
+                         ))
+                  )),
+                div(
+                  title = t_export,
+                  column(1,
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "w_networkCoocExport")
+                         ))
+                  )),
+                div(
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "w_networkCoocReport")
                          ))
                   )),
                 div(column(1,
@@ -1195,28 +1199,14 @@ body <- dashboardBody(
                                                      min = 0,
                                                      step = 0.1)
                                )),
-                             right = TRUE, animate = TRUE,
                              tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = TRUE, animate = TRUE,
+                             style = "material-circle"
                            )
                 ),
                 style = style_opt
-                ),
-                div(
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "w_networkCoocExport")
-                         ))
-                  )),
-                div(
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "w_networkCoocReport")
-                         ))
-                  ))
+                )
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
@@ -1250,6 +1240,20 @@ body <- dashboardBody(
                   column(1,
                          do.call("actionButton", c(run_bttn, list(
                            inputId = "w_networkGrakoApply")
+                         ))
+                  )),
+                div(
+                  title = t_export,
+                  column(1,
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "w_networkGrakoExport")
+                         ))
+                  )),
+                div(
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "w_networkGrakoReport")
                          ))
                   )),
                 div(column(1,
@@ -1295,31 +1299,14 @@ body <- dashboardBody(
                              #                         min = 0,
                              #                         step = 0.1)
                              #   )),
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
                              tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = TRUE, animate = TRUE,
+                             style = "material-circle"
                            )
                 ),
                 style = style_opt
-                ),
-                div(
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "w_networkGrakoExport")
-                         ))
-                  )),
-                div(
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "w_networkGrakoReport")
-                         ))
-                  ))
+                )
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
@@ -1352,23 +1339,6 @@ body <- dashboardBody(
                            inputId = "d_topicModApply")
                          ))
                   )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                ),
                 div(
                   title = t_export,
                   column(1,
@@ -1382,7 +1352,20 @@ body <- dashboardBody(
                          do.call("actionButton", c(report_bttn, list(
                            inputId = "d_topicModReport")
                          ))
-                  ))
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             hr(),
+                             # inserire opzioni....
+                             tooltip = tooltipOptions(title = "Options"),
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = TRUE, animate = TRUE,
+                             style = "material-circle"
+                           )
+                ),
+                style = style_opt
+                )
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
@@ -1413,24 +1396,6 @@ body <- dashboardBody(
                            inputId = "d_clusteringApply")
                          ))
                   )),
-
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           )
-                ),
-                style = style_opt
-                ),
                 div(
                   title = t_export,
                   column(1,
@@ -1444,7 +1409,20 @@ body <- dashboardBody(
                          do.call("actionButton", c(report_bttn, list(
                            inputId = "d_clusteringReport")
                          ))
-                  ))
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             hr(),
+                             # inserire opzioni....
+                             tooltip = tooltipOptions(title = "Options"),
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = TRUE, animate = TRUE,
+                             style = "material-circle"
+                           )
+                ),
+                style = style_opt
+                )
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
@@ -1475,23 +1453,6 @@ body <- dashboardBody(
                            inputId = "d_networkApply")
                          ))
                   )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           )
-                ),
-                style = style_opt
-                ),
                 div(
                   title = t_export,
                   column(1,
@@ -1505,7 +1466,20 @@ body <- dashboardBody(
                          do.call("actionButton", c(report_bttn, list(
                            inputId = "d_networkReport")
                          ))
-                  ))
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             hr(),
+                             # inserire opzioni....
+                             tooltip = tooltipOptions(title = "Options"),
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = TRUE, animate = TRUE,
+                             style = "material-circle"
+                           )
+                ),
+                style = style_opt
+                )
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
@@ -1536,23 +1510,6 @@ body <- dashboardBody(
                            inputId = "d_summarizationApply")
                          ))
                   )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                ),
                 div(#style=style_bttn,
                   title = t_export,
                   column(1,
@@ -1568,7 +1525,20 @@ body <- dashboardBody(
                          do.call("actionButton", c(report_bttn, list(
                            inputId = "d_summarizationReport")
                          ))
-                  ))
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             hr(),
+                             # inserire opzioni....
+                             tooltip = tooltipOptions(title = "Options"),
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = TRUE, animate = TRUE,
+                             style = "material-circle"
+                           )
+                ),
+                style = style_opt
+                )
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
@@ -1599,23 +1569,6 @@ body <- dashboardBody(
                            inputId = "d_polDetApply")
                          ))
                   )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                ),
                 div(#style=style_bttn,
                   title = t_export,
                   column(1,
@@ -1630,7 +1583,20 @@ body <- dashboardBody(
                          do.call("actionButton", c(report_bttn, list(
                            inputId = "d_polDetReport")
                          ))
-                  ))
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             hr(),
+                             # inserire opzioni....
+                             tooltip = tooltipOptions(title = "Options"),
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = TRUE, animate = TRUE,
+                             style = "material-circle"
+                           )
+                ),
+                style = style_opt
+                )
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
@@ -1663,23 +1629,6 @@ body <- dashboardBody(
                            inputId = "g_topicModApply")
                          ))
                   )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                ),
                 div(#style=style_bttn,
                   title = t_export,
                   column(1,
@@ -1693,7 +1642,20 @@ body <- dashboardBody(
                          do.call("actionButton", c(report_bttn, list(
                            inputId = "g_topicModReport")
                          ))
-                  ))
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             hr(),
+                             # inserire opzioni....
+                             tooltip = tooltipOptions(title = "Options"),
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = TRUE, animate = TRUE,
+                             style = "material-circle"
+                           )
+                ),
+                style = style_opt
+                )
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
@@ -1724,23 +1686,6 @@ body <- dashboardBody(
                            inputId = "g_clusteringApply")
                          ))
                   )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                ),
                 div(#style=style_bttn,
                   title = t_export,
                   column(1,
@@ -1754,7 +1699,20 @@ body <- dashboardBody(
                          do.call("actionButton", c(report_bttn, list(
                            inputId = "g_clusteringReport")
                          ))
-                  ))
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             hr(),
+                             # inserire opzioni....
+                             tooltip = tooltipOptions(title = "Options"),
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = TRUE, animate = TRUE,
+                             style = "material-circle"
+                           )
+                ),
+                style = style_opt
+                )
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
@@ -1785,23 +1743,6 @@ body <- dashboardBody(
                            inputId = "g_networkApply")
                          ))
                   )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                ),
                 div(#style=style_bttn,
                   title = t_export,
                   column(1,
@@ -1816,7 +1757,20 @@ body <- dashboardBody(
                          do.call("actionButton", c(report_bttn, list(
                            inputId = "g_networkReport")
                          ))
-                  ))
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             hr(),
+                             # inserire opzioni....
+                             tooltip = tooltipOptions(title = "Options"),
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = TRUE, animate = TRUE,
+                             style = "material-circle"
+                           )
+                ),
+                style = style_opt
+                )
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
@@ -1847,23 +1801,6 @@ body <- dashboardBody(
                            inputId = "g_summarizationApply")
                          ))
                   )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                ),
                 div(#style=style_bttn,
                   title = t_export,
                   column(1,
@@ -1878,7 +1815,20 @@ body <- dashboardBody(
                          do.call("actionButton", c(report_bttn, list(
                            inputId = "g_summarizationReport")
                          ))
-                  ))
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             hr(),
+                             # inserire opzioni....
+                             tooltip = tooltipOptions(title = "Options"),
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = TRUE, animate = TRUE,
+                             style = "material-circle"
+                           )
+                ),
+                style = style_opt
+                )
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
@@ -1909,23 +1859,6 @@ body <- dashboardBody(
                            inputId = "g_polDetApply")
                          ))
                   )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             br(),
-                             ### elenco opzioni (bottono, input, ecc)
-
-                             right = TRUE, animate = TRUE, #circle = TRUE,
-                             #style = "gradient",
-                             #style = "unite",
-                             tooltip = tooltipOptions(title = "Options"),
-                             color = "default",
-                             icon = icon("cog", lib="glyphicon")#,
-                             #width = "200px"
-                           ),
-                ),
-                style = style_opt
-                ),
                 div(#style=style_bttn,
                   title = t_export,
                   column(1,
@@ -1940,7 +1873,20 @@ body <- dashboardBody(
                          do.call("actionButton", c(report_bttn, list(
                            inputId = "g_polDetReport")
                          ))
-                  ))
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             hr(),
+                             # inserire opzioni....
+                             tooltip = tooltipOptions(title = "Options"),
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = TRUE, animate = TRUE,
+                             style = "material-circle"
+                           )
+                ),
+                style = style_opt
+                )
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
