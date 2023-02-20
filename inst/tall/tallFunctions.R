@@ -294,7 +294,7 @@ freqGgplot <- function(df,x=2,y=1,n=20, title="NOUN Frequency"){
     geom_text(aes(label=df[,x]), position=position_dodge(width=0.9), hjust=-0.4, color="#4f7942", size=3.7)+
     labs(title=title, y="", x = "Frequency")+
     scale_y_discrete(limits = rev(df[,y]))+
-    scale_x_continuous(limits=c(0,df[,x]+max(df[,x])*0.04), expand = c(0,0))+
+    scale_x_continuous(limits=c(0,df[,x]+max(df[,x])*0.06), expand = c(0,0))+
     theme(axis.text.y  = element_text(angle=0, hjust=0, size=9),
           axis.text.x  = element_text(size=10),
           panel.grid.major = element_blank(),
