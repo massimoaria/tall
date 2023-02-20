@@ -114,7 +114,7 @@ mergeCustomLists <- function(df,custom_lists){
 
 # rake function to create multi-words
 
-rake <- function(x, group = "doc_id", ngram_max=5, relevant = c("PROPN", "NOUN", "ADJ", "VERB"), rake.min=2){
+rake <- function(x, group = "doc_id", ngram_max=5, ngram_min=2,relevant = c("PROPN", "NOUN", "ADJ", "VERB"), rake.min=2){
 
   if ("upos_original" %in% names(x)){
     x <- x %>%
@@ -137,7 +137,7 @@ rake <- function(x, group = "doc_id", ngram_max=5, relevant = c("PROPN", "NOUN",
 
   # identify ngrams>1 with reka index>reka.min
   stats <- stats %>%
-    dplyr::filter(rake>=rake.min & ngram>1)
+    dplyr::filter(rake>=rake.min & ngram>=ngram_min)
 
   # filter original token df removing POS excluded in reka
   x2 <- x %>% filter(upos %in% relevant)
@@ -389,9 +389,7 @@ tfidf <- function(dfTag, term="lemma", document="doc_id"){
 network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labelsize=4, opacity=0.6,
                     interLinks=FALSE, normalization="none"){
 
-  colorlist <- c("#E41A1C","#377EB8","#4DAF4A","#984EA3","#FF7F00","#A65628","#F781BF","#999999","#66C2A5","#FC8D62","#8DA0CB","#E78AC3","#A6D854","#FFD92F"
-                          ,"#B3B3B3","#A6CEE3","#1F78B4","#B2DF8A","#33A02C","#FB9A99","#E31A1C","#FDBF6F","#FF7F00","#CAB2D6","#6A3D9A","#B15928","#8DD3C7","#BEBADA"
-                          ,"#FB8072","#80B1D3","#FDB462","#B3DE69","#D9D9D9","#BC80BD","#CCEBC5")
+  colorlist <- colorlist()
 
   # params
   shape <- "dot"
@@ -527,6 +525,193 @@ net2vis <- function(nodes,edges){
     #visNetwork::visPhysics(barnesHut=list(avoidOverlap=1)) %>%
     visNetwork::visOptions(manipulation = FALSE, height ="100%", width = "100%") #%>%
     #visNetwork::addFontAwesome()
+}
+
+## GRACO ----
+grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity=0.6, minEdges=50, singleWords=FALSE){
+
+  opacity.min=0.6
+
+  # n is the number of NOUNS AND PROPER NOUNS
+  if (singleWords){
+    ngram_min <- 1
+    dfTag <- rake(dfTag, group = "doc_id", ngram_max=5, ngram_min=ngram_min, relevant = c("PROPN"), rake.min=-Inf)$dfTag %>%
+      mutate(upos = ifelse(upos =="PROPN", "MULTIWORD", upos))
+  } else {
+    ngram_min <- 2
+    dfTag <- rake(dfTag, group = "doc_id", ngram_max=5, ngram_min=ngram_min, relevant = c("PROPN"), rake.min=-Inf)$dfTag
+  }
+
+
+
+
+
+  x <- dfTag %>% dplyr::filter(upos %in% c("MULTIWORD", "VERB"))
+
+  ### NODES
+  nodes <- x %>%
+    group_by(upos,lemma) %>%
+    summarize(value = n()) %>%
+    arrange(desc(value)) %>%
+    ungroup() %>%
+    mutate(n_nouns = ifelse(upos %in% c("PROPN", "MULTIWORD"), 1,0),
+           n_nouns = cumsum(n_nouns)) %>%
+    dplyr::filter(n_nouns<=n) %>%
+    select(-n_nouns) %>%
+    mutate(id=row_number(),
+           shape=ifelse(upos =="VERB", "text", "text"),
+           color = ifelse(upos =="VERB", "#E41A1C", "#4F7942")) %>%
+    rename(label=lemma)
+
+  #"#377EB870"
+
+  nodes$font.size <- log(nodes$value)
+  scalemin <- 30
+  scalemax <- 60
+  Min <- min(nodes$font.size)
+  Max <- max(nodes$font.size)
+  if (Max>Min){
+    size <- (nodes$font.size-Min)/(Max-Min)*15*labelsize+10
+  } else {size=10*labelsize}
+  size[size<scalemin]=scalemin
+  size[size>scalemax]=scalemax
+  nodes$font.size <- size
+
+  # if (shape %in% c("dot","square")){
+  #   nodes$font.vadjust <- -0.7*nodes$font.size
+  # }else{
+  nodes$font.vadjust <- ifelse(nodes$shape=="box",-0.7*nodes$font.size, 0)
+  #nodes$font.vadjust <-0
+  # }
+
+
+  ## opacity for label
+  opacity_font <- sqrt((nodes$font.size-min(nodes$font.size))/diff(range(nodes$font.size)))*opacity+opacity.min+0.1
+
+  if(is.nan(opacity_font[1])) opacity_font <- rep(opacity.min,length(opacity_font))
+
+  # node colors
+  nodes$opacity.nodes <- round(((opacity_font-min(opacity_font))/(diff(range(opacity_font)))*0.5+opacity.min)*100,0)
+
+  if (labelsize>0){
+    nodes <- nodes %>%
+      mutate(
+        opacity.nodes = ifelse(opacity.nodes>=100,99,opacity.nodes),
+        font.color = ifelse(upos=="VERB", paste0("#E41A1C",opacity.nodes), paste0("#4F7942",opacity.nodes)))
+    #nodes$font.color <- unlist(lapply(opacity_font, function(x) adjustcolor("black",alpha.f = x)))
+  }else{
+    nodes <- nodes %>%
+      mutate(font.color = ifelse(upos=="VERB", adjustcolor("#E41A1C",alpha.f = 0), adjustcolor("#4F7942",alpha.f = 0)))
+  }
+
+
+  #nodes$color <- paste0(nodes$color,round(nodes$opacity.nodes,2)*100)
+
+  ### EDGES
+  x2 <- dfTag %>%
+    dplyr::filter(upos %in% c("MULTIWORD", "NOUN", "PROPN", "ADJ", "VERB")) %>%
+    mutate(lemma_upos = paste0(lemma,"_",upos)) %>%
+    select(lemma_upos)
+  cooc <- cooccurrence(x=x2$lemma_upos,
+                       skipgram = 0)
+  edges <- cooc %>%
+    data.frame() %>%
+    mutate(label1 = gsub("_.*","",term1),
+           label2 = gsub("_.*","",term2),
+           upos_from = gsub(".*_","",term1),
+           upos_to = gsub(".*_","",term2)) %>%
+    select(-term1,-term2) %>%
+    dplyr::filter(label1 %in% nodes$label & label2 %in% nodes$label)
+
+  # calculate local occurrences for nodes
+  nodes <- localOcc(nodes, edges)
+
+
+  edges <- edges %>%
+    left_join(nodes %>% select(id,label, upos, value), by = c("label1" = "label", "upos_from" = "upos")) %>%
+    rename(from = id,
+           s_from = value) %>%
+    left_join(nodes %>% select(id,label, upos, value), by = c("label2" = "label", "upos_to" = "upos")) %>%
+    rename(to = id,
+           s_to = value,
+           s= cooc) %>%
+    drop_na() %>%
+    dplyr::filter(!upos_from==upos_to & !(upos_from == "MULTIWORD" & upos_to == "PROPN") &
+                    !(upos_to == "MULTIWORD" & upos_from == "PROPN")) %>%
+    mutate(sA = s/(s_from*s_to),
+           sC = s/(sqrt(s_from*s_to)),
+           sJ = s/(s_from+s_to-s),
+           sNorm = ((s-min(s))/diff(range(s)))*14+1,
+           sANorm = ((sA-min(sA))/diff(range(sA)))*14+1,
+           sCNorm = ((sC-min(sC))/diff(range(sC)))*14+1,
+           sJNorm = ((sJ-min(sJ))/diff(range(sJ)))*14+1,
+           role = ifelse(upos_from!="VERB","active","passive"),
+           color = ifelse(role=="active", "#4F794250", "#E41A1C50")
+    )
+
+  switch(normalization,
+         none={edges$value <- edges$sNorm},
+         association={edges$value <- edges$sANorm},
+         cosine={edges$value <- edges$sCNorm},
+         jaccard={edges$value <- edges$sJNorm})
+
+  tailEdges <- quantile(edges$value,1-(minEdges/100))
+
+  edges <- edges %>%
+    dplyr::filter(value >= tailEdges) %>%
+    select(upos_from,label1, upos_to,label2,from,to,value, s, sA, sC, sJ, role, color) %>%
+    rename(term_from=label1,
+           term_to=label2)
+
+  nodes <- nodes %>%
+    dplyr::filter(!id %in% setdiff(nodes$id,c(edges$from,edges$to)) )
+
+  obj <- list(nodes=nodes, edges=edges)
+}
+
+localOcc <- function(nodes, edges){
+  nodes_w <- data.frame(label=c(edges$label1,edges$label2), upos=c(edges$upos_from,edges$upos_to)) %>%
+    group_by(upos,label) %>%
+    count() %>%
+    left_join(nodes %>% select(id, label, upos), by= c("label", "upos")) %>%
+    dplyr::filter(upos %in% c("MULTIWORD","VERB")) %>%
+    drop_na(id) %>%
+    rename(value = n) %>%
+    ungroup()
+
+  nodes <- nodes %>%
+    rename(occurrences = value) %>%
+    left_join(nodes_w %>% select(id, value), by="id")
+}
+
+grako2vis <- function(nodes, edges){
+  # nodes data.frame for legend
+  lnodes <- data.frame(label = c("Proper Noun", "Verb"),
+                       shape = c("text", "text"), font.color = c("#4F794290", "#E41A1C90"),
+                       title = " ", id = 1:2,
+                       font.size=12)
+  #,
+  #                     font.style="font-weight:bold")
+
+  # edges data.frame for legend
+  ledges <- data.frame(color = c("#4F794270", "#E41A1C90"),
+                       label = c("active", "passive"), arrows =c("to", "to"),
+                       font.size=10,
+                       font.vadjust = -8)
+
+  layout="layout_nicely"
+  VIS <- visNetwork::visNetwork(nodes = nodes, edges = edges, type="full", smooth=TRUE, physics=TRUE) %>%
+    visNetwork::visNodes(shadow=TRUE, shape=nodes$shape, font=list(color=nodes$font.color, size=nodes$font.size,vadjust=nodes$font.vadjust)) %>%
+    visNetwork::visIgraphLayout(layout = layout, type = "full") %>%
+    visNetwork::visEdges(smooth = list(type="horizontal")) %>%
+    visNetwork::visOptions(highlightNearest =list(enabled = T, hover = T, degree=1), nodesIdSelection = T) %>%
+    visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE) %>%
+    visEvents(click = "function(nodes){
+                  Shiny.onInputChange('click', nodes.nodes[0]);
+                  ;}"
+    ) %>%
+    visNetwork::visOptions(manipulation = FALSE, height ="100%", width = "100%") %>%
+    visLegend(addEdges = ledges, addNodes = lnodes, useGroups = FALSE, width = 0.1)
 }
 
 
@@ -706,6 +891,13 @@ popUp <- function(title=NULL, type="success", btn_labels="OK"){
 
 
 ### UTILITY FUNCTIONS ----
+## Color palette for plots
+colorlist <- function(){
+  c("#E41A1C","#377EB8","#4DAF4A","#984EA3","#FF7F00","#A65628","#F781BF","#999999","#66C2A5","#FC8D62","#8DA0CB","#E78AC3","#A6D854","#FFD92F"
+             ,"#B3B3B3","#A6CEE3","#1F78B4","#B2DF8A","#33A02C","#FB9A99","#E31A1C","#FDBF6F","#FF7F00","#CAB2D6","#6A3D9A","#B15928","#8DD3C7","#BEBADA"
+             ,"#FB8072","#80B1D3","#FDB462","#B3DE69","#D9D9D9","#BC80BD","#CCEBC5")
+}
+
 
 ## POS selection function ----
 posSel <- function(df, pos){

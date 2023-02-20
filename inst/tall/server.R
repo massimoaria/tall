@@ -968,6 +968,52 @@ server <- function(input, output, session){
     }, escape=FALSE)
 
 
+    ## GRAKO ----
+    grakoFunction <- eventReactive(
+      ignoreNULL = TRUE,
+      eventExpr = {input$w_networkGrakoApply},
+      valueExpr ={
+        values$grako <- grako(values$dfTag, n=input$grakoNMax, minEdges=input$grakoMinEdges,
+                                  labelsize=input$grakoLabelSize, opacity=input$grakoOpacity,
+                                  normalization=input$grakoNormalization, singleWords=input$grakoUnigram)
+      }
+    )
+
+    output$w_networkGrakoPlot <- renderVisNetwork({
+      grakoFunction()
+      grako2vis(nodes=values$grako$nodes, edges=values$grako$edges)
+    })
+
+    output$w_networkGrakoNodesTable <- renderDT({
+      grakoFunction()
+      DTformat(values$grako$nodes %>%
+                 select(upos, label, value) %>%
+                 rename(PoS=upos,
+                        Word=label,
+                        Frequency=value), size='100%',filename="GrakoWordsTable", pagelength=TRUE, left=NULL, right=NULL,
+               numeric=NULL, dom=TRUE, filter="top")
+    })
+
+    output$w_networkGrakoEdgesTable <- renderDT({
+      grakoFunction()
+      DTformat(values$grako$edges %>%
+                 select(term_from, term_to,upos_from, upos_to, role, s,sA, sC, sJ) %>%
+                 rename(From=term_from,
+                        To=term_to,
+                        "Co-occurence"=s,
+                        "Association Intex"=sA,
+                        "Cosine Similarity"=sC,
+                        "Jaccard Index"=sJ,
+                        "PoS From"=upos_from,
+                        "PoS To"=upos_to,
+                        "Action"=role),
+               size='100%',filename="GrakoLinksTable", numeric=7:9, round=4)
+    })
+
+
+
+
+
   ## DOCUMENTS ----
 
   ## Topic Modeling ----

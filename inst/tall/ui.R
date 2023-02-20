@@ -1260,45 +1260,44 @@ body <- dashboardBody(
                            dropdown(
                              h4(strong("Options: ")),
                              br(),
-                             # checkboxGroupInput(
-                             #   inputId = "groupNet",
-                             #   label = "Groups",
-                             #   choices = c("Docs"="doc_id",
-                             #               "Sentences"="sentence_id"),
-                             #   selected = c("doc_id", "sentence_id"),
-                             #   inline = TRUE
-                             # ),
-                             # materialSwitch(
-                             #   inputId = "interLinks",
-                             #   label = "Inter-group links",
-                             #   value = FALSE,
-                             #   status = "success"
-                             # ),
-                             # fluidRow(
-                             #   column(6,
-                             #          numericInput("nMax",
-                             #                       label = "Words",
-                             #                       value = 100,
-                             #                       min = 2,
-                             #                       step=1),
-                             #          numericInput("minEdges",
-                             #                       label = "Top Link (%)",
-                             #                       value = 50,
-                             #                       min = 0,
-                             #                       max = 100,
-                             #                       step = 1)
-                             #   ),column(6,
-                             #            numericInput("labelSize",
-                             #                         label = "Label Size",
-                             #                         value = 4,
-                             #                         min = 0.0,
-                             #                         step = 0.5),
-                             #            numericInput("opacity",
-                             #                         label = "Opacity",
-                             #                         value = 0.6,
-                             #                         min = 0,
-                             #                         step = 0.1)
-                             #   )),
+                             selectInput("grakoNormalization",
+                                         label = "Normalization by:",
+                                         choices = c("None"="none",
+                                                     "Association Index"="association",
+                                                     "Cosine Similarity"="cosine",
+                                                     "Jaccard Index"="jaccard"),
+                                         selected = "association"),
+                             materialSwitch(
+                               inputId = "grakoUnigram",
+                               label = "Include Single words",
+                               value = FALSE,
+                               status = "success"
+                             ),
+                             fluidRow(
+                               column(6,
+                                      numericInput("grakoNMax",
+                                                   label = "Words",
+                                                   value = 30,
+                                                   min = 2,
+                                                   step=1),
+                                      numericInput("grakoMinEdges",
+                                                   label = "Top Link (%)",
+                                                   value = 10,
+                                                   min = 0,
+                                                   max = 100,
+                                                   step = 1)
+                               ),column(6,
+                                        numericInput("grakoLabelSize",
+                                                     label = "Label Size",
+                                                     value = 4,
+                                                     min = 0.0,
+                                                     step = 0.5),
+                                        numericInput("grakoOpacity",
+                                                     label = "Opacity",
+                                                     value = 0.6,
+                                                     min = 0,
+                                                     step = 0.1)
+                               )),
                              tooltip = tooltipOptions(title = "Options"),
                              width = "220px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
@@ -1314,8 +1313,12 @@ body <- dashboardBody(
                                      shinycssloaders::withSpinner(visNetworkOutput("w_networkGrakoPlot", width="auto", height = "75vh"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
-                            tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("w_networkGrakoTable"),
+                            tabPanel("Words",
+                                     shinycssloaders::withSpinner(DT::DTOutput("w_networkGrakoNodesTable"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            ),
+                            tabPanel("Links",
+                                     shinycssloaders::withSpinner(DT::DTOutput("w_networkGrakoEdgesTable"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             )
                 )
