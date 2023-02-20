@@ -39,6 +39,10 @@ server <- function(input, output, session){
   names(label_lang) <- languages$short
   values$label_lang <- label_lang
 
+  ## Settin plot values
+  values$h <- 7
+  dpi <- 300
+
 
 
   ### SIDEBARMENU ----
@@ -638,7 +642,7 @@ server <- function(input, output, session){
 
     ## NOUN ----
 
-    freqNoun <- eventReactive(
+    nounFreq <- eventReactive(
       eventExpr = {
         input$nounApply
         },
@@ -649,21 +653,33 @@ server <- function(input, output, session){
     )
 
     output$nounPlot <- renderPlotly({
-      freqNoun()
+      nounFreq()
     })
 
     output$nounTable <- renderDT({
-      freqNoun()
+      nounFreq()
       DTformat(values$freqNoun %>%
                  rename(Term = term,
                         Frequency = n),
                left=1, right=2, numeric=2, filename="NounFreqList", dom=FALSE, size="110%")
     })
 
+    output$nounExport <- downloadHandler(
+      filename = function() {
+
+        paste("NounFrequency-", Sys.Date(), ".png", sep="")
+      },
+      content <- function(file) {
+        values$nounGgplot <- freqGgplot(values$freqNoun,x=2, y=1,n=input$nounN,
+                                        title = "Noun Frequency", yText = "Noun")
+        ggsave(filename = file, plot = values$nounGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="white")
+      },
+      contentType = "png"
+    )
 
 
     ## PROPN ----
-    freqPropn <- eventReactive(
+    propnFreq <- eventReactive(
       eventExpr = {
         input$propnApply
       },
@@ -675,19 +691,32 @@ server <- function(input, output, session){
     )
 
     output$propnPlot <- renderPlotly({
-      freqPropn()
+      propnFreq()
     })
 
     output$propnTable <- renderDT({
-      freqPropn()
+      propnFreq()
       DTformat(values$freqPropn %>%
                  rename(Term = term,
                         Frequency = n),
                left=1, right=2, numeric=2, filename="PropnFreqList", dom=FALSE, size="110%")
     })
 
+    output$propnExport <- downloadHandler(
+      filename = function() {
+
+        paste("ProperNounFrequency-", Sys.Date(), ".png", sep="")
+      },
+      content <- function(file) {
+        values$propnGgplot <- freqGgplot(values$freqPropn,x=2, y=1,n=input$nounN,
+                                        title = "Proper Noun Frequency", yText = "Proper Noun")
+        ggsave(filename = file, plot = values$propnGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="white")
+      },
+      contentType = "png"
+    )
+
     ## ADJ ----
-    freqAdj <- eventReactive(
+    adjFreq <- eventReactive(
       eventExpr = {
         input$adjApply
       },
@@ -698,19 +727,32 @@ server <- function(input, output, session){
     )
 
     output$adjPlot <- renderPlotly({
-      freqAdj()
+      adjFreq()
     })
 
     output$adjTable <- renderDT({
-      freqAdj()
+      adjFreq()
       DTformat(values$freqAdj %>%
                  rename(Term = term,
                         Frequency = n),
                left=1, right=2, numeric=2, filename="AdjFreqList", dom=FALSE, size="110%")
     })
 
+    output$adjExport <- downloadHandler(
+      filename = function() {
+
+        paste("AdjectiveFrequency-", Sys.Date(), ".png", sep="")
+      },
+      content <- function(file) {
+        values$adjGgplot <- freqGgplot(values$freqAdj,x=2, y=1,n=input$nounN,
+                                         title = "Adjective Frequency", yText = "Adjective")
+        ggsave(filename = file, plot = values$adjGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="white")
+      },
+      contentType = "png"
+    )
+
     ## VERB ----
-    freqVerb <- eventReactive(
+    verbFreq <- eventReactive(
       eventExpr = {
         input$verbApply
       },
@@ -721,26 +763,33 @@ server <- function(input, output, session){
     )
 
     output$verbPlot <- renderPlotly({
-      freqVerb()
+      verbFreq()
     })
 
     output$verbTable <- renderDT({
-      freqVerb()
+      verbFreq()
       DTformat(values$freqVerb %>%
                  rename(Term = term,
                         Frequency = n),
                left=1, right=2, numeric=2, filename="VerbFreqList", dom=FALSE, size="110%")
     })
 
+    output$verbExport <- downloadHandler(
+      filename = function() {
+
+        paste("VerbFrequency-", Sys.Date(), ".png", sep="")
+      },
+      content <- function(file) {
+        values$verbGgplot <- freqGgplot(values$freqVerb,x=2, y=1,n=input$nounN,
+                                       title = "Verb Frequency", yText = "Verb")
+        ggsave(filename = file, plot = values$verbGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="white")
+      },
+      contentType = "png"
+    )
+
     ## OTHER ----
 
-
-    # output$otherFreq <- renderUI({
-    #   selectInput("otherPos",label = NULL,
-    #               choices = setdiff(values$dfTag$upos,c("PROPN", "NOUN", "ADJ", "VERB","PUNCT","X","SYM","NUM", "NGRAM_MERGED")))
-    # })
-
-    freqOther <- eventReactive(
+    otherFreq <- eventReactive(
       eventExpr = {
         input$otherApply
       },
@@ -751,20 +800,33 @@ server <- function(input, output, session){
     )
 
     output$otherPlot <- renderPlotly({
-      freqOther()
+      otherFreq()
     })
 
     output$otherTable <- renderDT({
-      freqOther()
+      otherFreq()
       DTformat(values$freqOther %>%
                  rename(Term = term,
                         Frequency = n),
                left=1, right=2, numeric=2, filename="MultiWordFreqList", dom=FALSE, size="110%")
     })
 
+    output$otherExport <- downloadHandler(
+      filename = function() {
+
+        paste("MultiWordFrequency-", Sys.Date(), ".png", sep="")
+      },
+      content <- function(file) {
+        values$otherGgplot <- freqGgplot(values$freqOther,x=2, y=1,n=input$nounN,
+                                       title = "Multi-Word Frequency", yText = "Multi-Word")
+        ggsave(filename = file, plot = values$otherGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="white")
+      },
+      contentType = "png"
+    )
+
     ## PART OF SPEECH ----
 
-    freqPOS <- eventReactive(
+    posFreq <- eventReactive(
       eventExpr = {
         input$posApply
       },
@@ -781,15 +843,28 @@ server <- function(input, output, session){
     )
 
     output$posPlot <- renderPlotly({
-      freqPOS()
+      posFreq()
     })
 
     output$posTable <- renderDT({
-      freqPOS()
+      posFreq()
       DTformat(values$freqPOS %>%
                  rename(Frequency = n),
                left=1, right=2, numeric=2, filename="POSFreqList", dom=FALSE, pagelength=FALSE, size="110%")
     })
+
+    output$posExport <- downloadHandler(
+      filename = function() {
+
+        paste("PoSFrequency-", Sys.Date(), ".png", sep="")
+      },
+      content <- function(file) {
+        values$posGgplot <- freqGgplot(values$freqPOS,x=2, y=1,n=input$nounN,
+                                         title = "PoS Frequency", yText = "PoS")
+        ggsave(filename = file, plot = values$posGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="white")
+      },
+      contentType = "png"
+    )
 
     ## Words in Context ----
 
