@@ -282,6 +282,28 @@ freqPlotly <- function(dfPlot,x,y,n=10, xlabel,ylabel, scale=c("identity", "log"
   fig1
 }
 
+## freqGgplot ----
+## ggplot for frequency plots to download
+
+freqGgplot <- function(df,x=2,y=1,n=20, title="NOUN Frequency", yText="NOUN"){
+
+  df <- df %>% dplyr::slice_head(n=n) %>%
+    data.frame()
+  g <- ggplot(df, aes(x =df[,x], y = df[,y], label = df[,x])) +
+    geom_col(color = "#c3d1be", fill="#96af8e")+
+    geom_text(aes(label=df[,x]), position=position_dodge(width=0.9), hjust=-0.4, color="#4f7942", size=3.7)+
+    labs(title=title, y = yText, x = "Frequency")+
+    scale_y_discrete(limits = rev(df[,y]))+
+    scale_x_continuous(limits=c(0,max(df[,x])+10), expand = c(0,0))+
+    theme(axis.text.y  = element_text(angle=0, hjust=0, size=11),
+          axis.text.x  = element_text(size=10),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank())
+  return(g)
+}
+
+
 # ValueBoxes Indices ----
 valueBoxesIndices <- function(x){
 
