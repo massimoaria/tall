@@ -671,7 +671,7 @@ server <- function(input, output, session){
       },
       content <- function(file) {
         values$nounGgplot <- freqGgplot(values$freqNoun,x=2, y=1,n=input$nounN,
-                                        title = "Noun Frequency", yText = "Noun")
+                                        title = "Noun Frequency")
         ggsave(filename = file, plot = values$nounGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="white")
       },
       contentType = "png"
@@ -708,8 +708,8 @@ server <- function(input, output, session){
         paste("ProperNounFrequency-", Sys.Date(), ".png", sep="")
       },
       content <- function(file) {
-        values$propnGgplot <- freqGgplot(values$freqPropn,x=2, y=1,n=input$nounN,
-                                        title = "Proper Noun Frequency", yText = "Proper Noun")
+        values$propnGgplot <- freqGgplot(values$freqPropn,x=2, y=1,n=input$propnN,
+                                        title = "Proper Noun Frequency")
         ggsave(filename = file, plot = values$propnGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="white")
       },
       contentType = "png"
@@ -744,8 +744,8 @@ server <- function(input, output, session){
         paste("AdjectiveFrequency-", Sys.Date(), ".png", sep="")
       },
       content <- function(file) {
-        values$adjGgplot <- freqGgplot(values$freqAdj,x=2, y=1,n=input$nounN,
-                                         title = "Adjective Frequency", yText = "Adjective")
+        values$adjGgplot <- freqGgplot(values$freqAdj,x=2, y=1,n=input$adjN,
+                                         title = "Adjective Frequency")
         ggsave(filename = file, plot = values$adjGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="white")
       },
       contentType = "png"
@@ -780,8 +780,8 @@ server <- function(input, output, session){
         paste("VerbFrequency-", Sys.Date(), ".png", sep="")
       },
       content <- function(file) {
-        values$verbGgplot <- freqGgplot(values$freqVerb,x=2, y=1,n=input$nounN,
-                                       title = "Verb Frequency", yText = "Verb")
+        values$verbGgplot <- freqGgplot(values$freqVerb,x=2, y=1,n=input$verbN,
+                                       title = "Verb Frequency")
         ggsave(filename = file, plot = values$verbGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="white")
       },
       contentType = "png"
@@ -817,8 +817,8 @@ server <- function(input, output, session){
         paste("MultiWordFrequency-", Sys.Date(), ".png", sep="")
       },
       content <- function(file) {
-        values$otherGgplot <- freqGgplot(values$freqOther,x=2, y=1,n=input$nounN,
-                                       title = "Multi-Word Frequency", yText = "Multi-Word")
+        values$otherGgplot <- freqGgplot(values$freqOther,x=2, y=1,n=input$otherN,
+                                       title = "Multi-Word Frequency")
         ggsave(filename = file, plot = values$otherGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="white")
       },
       contentType = "png"
@@ -859,8 +859,8 @@ server <- function(input, output, session){
         paste("PoSFrequency-", Sys.Date(), ".png", sep="")
       },
       content <- function(file) {
-        values$posGgplot <- freqGgplot(values$freqPOS,x=2, y=1,n=input$nounN,
-                                         title = "PoS Frequency", yText = "PoS")
+        values$posGgplot <- freqGgplot(data.frame(values$freqPOS),x=2, y=1,n=length(values$freqPOS$PoS),
+                                         title = "PoS Frequency")
         ggsave(filename = file, plot = values$posGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="white")
       },
       contentType = "png"
@@ -925,7 +925,7 @@ server <- function(input, output, session){
                  rename(From=term_from,
                         To=term_to,
                         "Co-occurence"=s,
-                        "Association Intex"=sA,
+                        "Association Index"=sA,
                         "Cosine Similarity"=sC,
                         "Jaccard Index"=sJ,
                         "Group From"=group_from,
@@ -1001,7 +1001,7 @@ server <- function(input, output, session){
                  rename(From=term_from,
                         To=term_to,
                         "Co-occurence"=s,
-                        "Association Intex"=sA,
+                        "Association Index"=sA,
                         "Cosine Similarity"=sC,
                         "Jaccard Index"=sJ,
                         "PoS From"=upos_from,
@@ -1009,9 +1009,6 @@ server <- function(input, output, session){
                         "Action"=role),
                size='100%',filename="GrakoLinksTable", numeric=7:9, round=4)
     })
-
-
-
 
 
   ## DOCUMENTS ----
