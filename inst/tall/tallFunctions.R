@@ -517,7 +517,7 @@ net2vis <- function(nodes,edges){
     visNetwork::visIgraphLayout(layout = layout, type = "full") %>%
     visNetwork::visEdges(smooth = list(type="horizontal")) %>%
     visNetwork::visOptions(highlightNearest =list(enabled = T, hover = T, degree=1), nodesIdSelection = T) %>%
-    visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE) %>%
+    visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed = 0.2) %>%
     visEvents(click = "function(nodes){
                   Shiny.onInputChange('click', nodes.nodes[0]);
                   ;}"
@@ -709,7 +709,7 @@ grako2vis <- function(nodes, edges){
     visNetwork::visIgraphLayout(layout = layout, type = "full") %>%
     visNetwork::visEdges(smooth = list(type="horizontal")) %>%
     visNetwork::visOptions(highlightNearest =list(enabled = T, hover = T, degree=1), nodesIdSelection = T) %>%
-    visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE) %>%
+    visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed = 0.2) %>%
     visEvents(click = "function(nodes){
                   Shiny.onInputChange('click', nodes.nodes[0]);
                   ;}"
