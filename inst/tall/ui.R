@@ -1173,7 +1173,7 @@ body <- dashboardBody(
                                                      "Association Index"="association",
                                                      "Cosine Similarity"="cosine",
                                                      "Jaccard Index"="jaccard"),
-                                         selected = "none"),
+                                         selected = "association"),
                              fluidRow(
                                column(6,
                                       numericInput("nMax",

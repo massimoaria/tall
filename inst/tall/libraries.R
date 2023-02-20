@@ -97,7 +97,7 @@ customTheme <- function(){
   ,boxDefaultColor = "rgb(210,214,220)"
   ,boxPrimaryColor = "rgba(44,222,235,1)"
   ,boxInfoColor = "rgb(210,214,220)"
-  ,boxSuccessColor = "rgb(88,101,185)"
+  ,boxSuccessColor = "#6CC283"#"rgb(88,101,185)"
   ,boxWarningColor = "rgb(244,156,104)"
   ,boxDangerColor = "rgb(255,88,55)"
 

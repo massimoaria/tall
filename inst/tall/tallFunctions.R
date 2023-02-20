@@ -285,17 +285,17 @@ freqPlotly <- function(dfPlot,x,y,n=10, xlabel,ylabel, scale=c("identity", "log"
 ## freqGgplot ----
 ## ggplot for frequency plots to download
 
-freqGgplot <- function(df,x=2,y=1,n=20, title="NOUN Frequency", yText="NOUN"){
+freqGgplot <- function(df,x=2,y=1,n=20, title="NOUN Frequency"){
 
   df <- df %>% dplyr::slice_head(n=n) %>%
     data.frame()
   g <- ggplot(df, aes(x =df[,x], y = df[,y], label = df[,x])) +
     geom_col(color = "#c3d1be", fill="#96af8e")+
     geom_text(aes(label=df[,x]), position=position_dodge(width=0.9), hjust=-0.4, color="#4f7942", size=3.7)+
-    labs(title=title, y = yText, x = "Frequency")+
+    labs(title=title, y="", x = "Frequency")+
     scale_y_discrete(limits = rev(df[,y]))+
-    scale_x_continuous(limits=c(0,max(df[,x])+10), expand = c(0,0))+
-    theme(axis.text.y  = element_text(angle=0, hjust=0, size=11),
+    scale_x_continuous(limits=c(0,df[,x]+max(df[,x])*0.06), expand = c(0,0))+
+    theme(axis.text.y  = element_text(angle=0, hjust=0, size=9),
           axis.text.x  = element_text(size=10),
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
@@ -527,7 +527,7 @@ net2vis <- function(nodes,edges){
     #visNetwork::addFontAwesome()
 }
 
-## GRACO ----
+## GRAKO ----
 grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity=0.6, minEdges=50, singleWords=FALSE){
 
   opacity.min=0.6
@@ -664,7 +664,9 @@ grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity
            term_to=label2)
 
   nodes <- nodes %>%
-    dplyr::filter(!id %in% setdiff(nodes$id,c(edges$from,edges$to)) )
+    dplyr::filter(!id %in% setdiff(nodes$id,c(edges$from,edges$to))) %>%
+    mutate(label = ifelse(upos=="VERB", paste0("<i>",label,"</i>"), paste0("<b>",label,"</b>")),
+           font.multi = "html")
 
   obj <- list(nodes=nodes, edges=edges)
 }
@@ -701,7 +703,9 @@ grako2vis <- function(nodes, edges){
 
   layout="layout_nicely"
   VIS <- visNetwork::visNetwork(nodes = nodes, edges = edges, type="full", smooth=TRUE, physics=TRUE) %>%
-    visNetwork::visNodes(shadow=TRUE, shape=nodes$shape, font=list(color=nodes$font.color, size=nodes$font.size,vadjust=nodes$font.vadjust)) %>%
+    visNetwork::visNodes(shadow=FALSE, shape=nodes$shape,
+                         font=list(color=nodes$font.color, size=nodes$font.size,vadjust=nodes$font.vadjust,
+                                   multi=nodes$font.multi)) %>%
     visNetwork::visIgraphLayout(layout = layout, type = "full") %>%
     visNetwork::visEdges(smooth = list(type="horizontal")) %>%
     visNetwork::visOptions(highlightNearest =list(enabled = T, hover = T, degree=1), nodesIdSelection = T) %>%
@@ -713,7 +717,6 @@ grako2vis <- function(nodes, edges){
     visNetwork::visOptions(manipulation = FALSE, height ="100%", width = "100%") %>%
     visLegend(addEdges = ledges, addNodes = lnodes, useGroups = FALSE, width = 0.1)
 }
-
 
 ### EXCEL REPORT FUNCTIONS ----
 addDataWb <- function(list_df, wb, sheetname){
