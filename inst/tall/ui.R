@@ -965,7 +965,7 @@ body <- dashboardBody(
             )
     ),
 
-    ## WORDS IN CONTEXT -----
+    ## Words in Context -----
 
     tabItem(tabName = "wordCont",
             fluidPage(
@@ -1006,7 +1006,7 @@ body <- dashboardBody(
             )
     ),
 
-    ### Clustering----
+    ### Clustering ----
     tabItem(tabName = "w_clustering",
             fluidPage(
               fluidRow(
@@ -1037,27 +1037,57 @@ body <- dashboardBody(
                            dropdown(
                              h4(strong("Options: ")),
                              hr(),
-                             ### elenco opzioni (bottono, input, ecc)
-
+                             # checkboxGroupInput(
+                             #   inputId = "groupClustering",
+                             #   label = "Groups",
+                             #   choices = c("Docs"="doc_id",
+                             #               "Sentences"="sentence_id"),
+                             #   selected = c("doc_id", "sentence_id"),
+                             #   inline = TRUE
+                             # ),
+                             selectInput("w_clusteringSimilarity",
+                                         label = "Words Similarity by:",
+                                         choices = c("None"="none",
+                                                     "Association Index"="association",
+                                                     "Cosine Similarity"="cosine",
+                                                     "Jaccard Index"="jaccard"),
+                                         selected = "association"),
+                             fluidRow(
+                               column(6,
+                                      numericInput("w_clusteringNMax",
+                                                   label = "Words",
+                                                   value = 50,
+                                                   min = 2,
+                                                   step=1)
+                                      ),
+                               column(6,
+                                      numericInput("w_clusteringLabelSize",
+                                                   label = "Label Size",
+                                                   value = 4,
+                                                   min = 1,
+                                                   step = 0.5)
+                               )
+                               ),
                              tooltip = tooltipOptions(title = "Options"),
-                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             width = "300px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
                              style = "material-circle"
-                           ),
+                           )
                 ),
                 style = style_opt
                 )
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "w_clusteringPlot", height = "75vh",width ="98.9%"),
+                            tabPanel("Dendrogram",
+                                     shinycssloaders::withSpinner(visNetworkOutput("w_clusteringPlot", width="auto", height = "75vh"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
                             tabPanel("Table",
                                      shinycssloaders::withSpinner(DT::DTOutput("w_clusteringTable"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             )
+
                 )
               )
             )
@@ -1200,7 +1230,7 @@ body <- dashboardBody(
                                                      step = 0.1)
                                )),
                              tooltip = tooltipOptions(title = "Options"),
-                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             width = "300px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
                              style = "material-circle"
                            )
