@@ -398,11 +398,27 @@ network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labels
   x <- dfTag %>% dplyr::filter(POSSelected)
 
   ### NODES
-  nodes <- x %>%
-    group_by(upos,lemma) %>%
-    summarize(value = n()) %>%
-    arrange(desc(value)) %>%
+  cooc_freq <- x %>%
+    mutate(freq=1) %>%
+    group_by(doc_id,lemma) %>%
+    summarize(n=sum(freq),
+              s2=n^2) %>%
     ungroup() %>%
+    group_by(lemma) %>%
+    summarize(n=sum(n),
+              s2=sum(s2)) %>%
+    arrange(desc(n))
+
+  nodes <- x %>%
+    mutate(freq=1) %>%
+    group_by(upos,lemma) %>%
+    summarize(value=sum(freq),
+              s2=value^2) %>%
+    ungroup() %>%
+    group_by(lemma) %>%
+    summarize(value=sum(value),
+              s2=sum(s2)) %>%
+    arrange(desc(value)) %>%
     slice_head(n=n) %>%
     mutate(id=row_number(),
            shape=shape,
@@ -447,16 +463,18 @@ network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labels
     data.frame() %>%
     dplyr::filter(term1 %in% nodes$label & term2 %in% nodes$label) %>%
     left_join(
-      nodes %>% select(id,label, value), by = c("term1" = "label")) %>%
+      nodes %>% select(id,label, value, s2), by = c("term1" = "label")) %>%
     rename(from = id,
-           s_from=value) %>%
+           s_from=value,
+           s2_from=s2) %>%
     left_join(
-      nodes %>% select(id,label, value), by = c("term2" = "label")) %>%
+      nodes %>% select(id,label, value, s2), by = c("term2" = "label")) %>%
     rename(to = id,
            s_to = value,
+           s2_to = s2,
            s= cooc) %>%
     mutate(sA = s/(s_from*s_to),
-           sC = s/(sqrt(s_from*s_to)),
+           sC = s/(sqrt(s2_from*s2_to)),
            sJ = s/(s_from+s_to-s),
            sNorm = ((s-min(s))/diff(range(s)))*14+1,
            sANorm = ((sA-min(sA))/diff(range(sA)))*14+1,
