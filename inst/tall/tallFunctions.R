@@ -386,10 +386,7 @@ tfidf <- function(dfTag, term="lemma", document="doc_id"){
 }
 
 ### CLUSTERING ----
-clustering <- function(dfTag, n=50, group="doc_id", minEdges=25){
-  # group=c("doc_id")#, "sentence_id")
-  #
-  # n=50
+clustering <- function(dfTag, n=50, group="doc_id", term="lemma",minEdges=25, normalization="association"){
 
   x <- dfTag %>% dplyr::filter(POSSelected)
 
@@ -420,9 +417,18 @@ clustering <- function(dfTag, n=50, group="doc_id", minEdges=25){
   # Community detection via optimization of modularity score
   wordnetwork <- as.undirected(wordnetwork) # an undirected graph
   comm <- igraph::cluster_walktrap(wordnetwork, weights = E(wordnetwork)$value)
+  cluster <- data.frame(word=c(cooc$term1,cooc$term2),frequency=c(cooc$s_from,cooc$s_to)) %>%
+    distinct() %>%
+    left_join(data.frame(word=comm$names,group=comm$membership), by=c("word")) %>%
+    drop_na() %>%
+    group_by(word) %>%
+    summarize(group=first(group),
+              frequency=max(frequency)) %>%
+    arrange(group,desc(frequency))
+  obj <- list(cluster=cluster,comm=comm)
 }
 
-dend2vis <- function(comm){
+dend2vis <- function(comm, labelsize){
   # transform and plot a community igraph object using dendrogram
   hc=as.hclust(comm)
   VIS <- visHclust(hc, method=method,cutree = max(comm$membership), colorEdges = "firebrick", horizontal = TRUE)
@@ -451,7 +457,7 @@ dend2vis <- function(comm){
     rename(label=label.y) %>%
     mutate(value=10,
            font.color=color,
-           font.size=50,
+           font.size=labelsize*10,
            font.vadjust=-0.2*font.size)
 
   VIS <- VIS %>% visGroups(groupname = "group", color ="gray90",
@@ -461,7 +467,7 @@ dend2vis <- function(comm){
               color = list(background = "white", border = "#80B1D3",
                            highlight = "#e2e9e9", hover = "orange"), shape = "box") %>%
     visNodes(font=list(align=VIS$x$nodes$font.align)) %>%
-    visEdges(font = list(align="top")) %>%
+    visEdges(font = list(align="top", font.size=VIS$x$edges$font.size)) %>%
     visNetwork::visOptions(highlightNearest =list(enabled = T, hover = T, degree=list(to=1000,from=0), algorithm="hierarchical"), nodesIdSelection = FALSE,
                            manipulation = FALSE, height ="100%", width = "100%") %>%
     visNetwork::visInteraction(dragNodes = FALSE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed=0.4) %>%

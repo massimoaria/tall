@@ -887,7 +887,6 @@ server <- function(input, output, session){
 
   ## Clustering ----
 
-
     ## Dendrogramm ----
     dendFunction <- eventReactive(
       ignoreNULL = TRUE,
@@ -896,24 +895,24 @@ server <- function(input, output, session){
         #input$w_clusteringSimilarity
         #input$w_clusteringNMax
         #input$w_clusteringLabelSize
+        results <- clustering(values$dfTag, n=input$w_clusteringNMax,
+                   group="doc_id", minEdges=25, term="lemma",
+                   normalization=input$w_clusteringSimilarity)
+        values$wordCluster <- results$cluster
+        values$wordComm <- results$comm
+        values$WordDendrogram <- dend2vis(values$wordComm, labelsize=input$w_clusteringLabelSize)
       }
     )
 
     output$w_clusteringPlot <- renderVisNetwork({
       dendFunction()
-      #### function clust2vis()
+      values$WordDendrogram
     })
 
     output$w_clusteringTable <- renderDT({
-      # #dendFunction()
-      # DTformat(values$network$nodes %>%
-      #            select(upos, label, value, group, color) %>%
-      #            rename(PoS=upos,
-      #                   Word=label,
-      #                   Frequency=value,
-      #                   Group=group,
-      #                   "Color Group"=color), size='100%',filename="NetworkWordsTable", pagelength=TRUE, left=NULL, right=NULL,
-      #          numeric=NULL, dom=TRUE, filter="top")
+      dendFunction()
+      DTformat(values$wordCluster, size='100%',filename="ClusterWordsTable", pagelength=TRUE, left=1, right=NULL,
+               numeric=NULL, dom=TRUE, filter="top")
     })
 
 
