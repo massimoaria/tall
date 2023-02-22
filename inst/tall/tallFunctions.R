@@ -385,6 +385,92 @@ tfidf <- function(dfTag, term="lemma", document="doc_id"){
   tibble(term=names(tfidf), TFIDF=as.numeric(tfidf)) %>% arrange(desc(tfidf))
 }
 
+### CLUSTERING ----
+clustering <- function(dfTag, n=50, group="doc_id", minEdges=25){
+  # group=c("doc_id")#, "sentence_id")
+  #
+  # n=50
+
+  x <- dfTag %>% dplyr::filter(POSSelected)
+
+  cooc <- coocMatrix(x, term=term, group=group, n=n, pos=TRUE)
+
+  edges <- cooc %>%
+    data.frame() %>%
+    rename(s = cooc) %>%
+    mutate(sA = s/(s_from*s_to),
+           sC = s/(sqrt(s_from*s_to)),
+           sJ = s/(s_from+s_to-s)
+    )
+
+  switch(normalization,
+         none={edges$value <- edges$s},
+         association={edges$value <- edges$sA},
+         cosine={edges$value <- edges$sC},
+         jaccard={edges$value <- edges$sJ})
+
+  tailEdges <- quantile(edges$value,1-(minEdges/100))
+
+  edges <- edges %>%
+    dplyr::filter(value >= tailEdges) %>%
+    select(term1, term2, value, s, sA, sC, sJ)
+
+  wordnetwork <- graph_from_data_frame(edges %>% select(term1,term2,value))
+
+  # Community detection via optimization of modularity score
+  wordnetwork <- as.undirected(wordnetwork) # an undirected graph
+  comm <- igraph::cluster_walktrap(wordnetwork, weights = E(wordnetwork)$value)
+}
+
+dend2vis <- function(comm){
+  # transform and plot a community igraph object using dendrogram
+  hc=as.hclust(comm)
+  VIS <- visHclust(hc, method=method,cutree = max(comm$membership), colorEdges = "firebrick", horizontal = TRUE)
+  VIS$x$edges <- data.frame(color=unique(VIS$x$edges$color)) %>%
+    mutate(new_color=colorlist()[1:nrow(.)]) %>%
+    right_join(VIS$x$edges, by = "color") %>%
+    select(-color) %>%
+    rename(color = new_color)
+  VIS$x$nodes <- VIS$x$nodes %>%
+    mutate(group=ifelse(group=="individual","word",group),
+           title=gsub("individuals","words",title),
+           value=1,
+           scaling.min=10,
+           scaling.max=10)
+  coords <- VIS$x$nodes %>% select(x,y) %>% as.matrix()
+
+  edges <- VIS$x$edges
+  nodes <- VIS$x$nodes %>% select(id,label) %>% dplyr::filter(label!="1")
+
+
+
+  VIS$x$edges <- edges %>%
+    select(-id) %>%
+    left_join(nodes, by=c("to" = "id")) %>%
+    select(-label.x) %>%
+    rename(label=label.y) %>%
+    mutate(value=10,
+           font.color=color,
+           font.size=50,
+           font.vadjust=-0.2*font.size)
+
+  VIS <- VIS %>% visGroups(groupname = "group", color ="gray90",
+                           shape = "dot", size = 10)  %>%
+    visGroups(groupname = "word",
+              font = list(size = 0),
+              color = list(background = "white", border = "#80B1D3",
+                           highlight = "#e2e9e9", hover = "orange"), shape = "box") %>%
+    visNodes(font=list(align=VIS$x$nodes$font.align)) %>%
+    visEdges(font = list(align="top")) %>%
+    visNetwork::visOptions(highlightNearest =list(enabled = T, hover = T, degree=list(to=1000,from=0), algorithm="hierarchical"), nodesIdSelection = FALSE,
+                           manipulation = FALSE, height ="100%", width = "100%") %>%
+    visNetwork::visInteraction(dragNodes = FALSE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed=0.4) %>%
+    visIgraphLayout(layout = "layout.norm", layoutMatrix = coords, type="full")
+
+  VIS
+}
+
+
 ### NETWORK -----
 
 ## cooccurrence matrix
@@ -432,6 +518,7 @@ coocMatrix <- function(x, term="lemma", group="doc_id", n=50, pos=TRUE){
   return(mat)
 }
 
+# word frequency from cooccurence matrix
 cooc_freq <- function(cooc){
   term_freq <- data.frame(term=c(cooc$term1,cooc$term2),
                           upos = c(cooc$upos_from,cooc$upos_to),
@@ -458,37 +545,6 @@ network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labels
            color = "navyblue") %>%
     rename(label = term,
            value = n)
-
-  # cooc_freq <- data.frame(term=c(cooc$term1,cooc$term2), n=c(cooc$s_from,cooc$s_to)) %>%
-  #   distinct() %>%
-  #   arrange(desc(n))
-  ### NODES
-  # cooc_freq <- x %>%
-  #   mutate(freq=1) %>%
-  #   group_by(doc_id,lemma) %>%
-  #   summarize(n=sum(freq),
-  #             s2=n^2) %>%
-  #   ungroup() %>%
-  #   group_by(lemma) %>%
-  #   summarize(n=sum(n),
-  #             s2=sum(s2)) %>%
-  #   arrange(desc(n))
-  #
-  #   nodes <- x %>%
-  #     mutate(freq=1) %>%
-  #     group_by(upos,lemma) %>%
-  #     summarize(value=sum(freq),
-  #               s2=value^2) %>%
-  #     ungroup() %>%
-  #     group_by(lemma) %>%
-  #     summarize(value=sum(value),
-  #               s2=sum(s2)) %>%
-  #     arrange(desc(value)) %>%
-  #     slice_head(n=n) %>%
-  #     mutate(id=row_number(),
-  #            shape=shape,
-  #            color = "navyblue") %>%
-  #     rename(label=lemma)
 
   nodes$font.size <- log(nodes$value)
   scalemin <- 20
@@ -520,10 +576,6 @@ network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labels
   }
 
   ### EDGES
-  # cooc <- cooccurrence(x,
-  #                      term = "lemma",
-  #                      group = group)
-
   edges <- cooc %>%
     left_join(
       nodes %>% select(id,label), by = c("term1" = "label")) %>%
