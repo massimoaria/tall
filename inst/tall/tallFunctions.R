@@ -386,6 +386,59 @@ tfidf <- function(dfTag, term="lemma", document="doc_id"){
 }
 
 ### NETWORK -----
+
+## cooccurrence matrix
+coocMatrix <- function(x, term="lemma", group="doc_id", n=50, pos=TRUE){
+
+  if (pos){
+    #new_var <- paste0(term,"_upos")
+    x$new_var <- paste0(x[[term]],"_",x$upos)
+    term="new_var"
+  }
+
+  dtm <- document_term_frequencies(x, term=term, group=group)
+
+  dtm <- dtm %>%
+    mutate(binary=1)
+
+  mat <- document_term_matrix(dtm, weight="binary")
+  mat <- dtm_remove_lowfreq(mat, maxterms=n)
+
+  mat <- Matrix::crossprod(mat)
+
+  mat <- as_cooccurrence(mat)
+  mat <- mat %>%
+    group_by(term1) %>%
+    mutate(s_from=max(cooc)) %>%
+    ungroup() %>%
+    group_by(term2) %>%
+    mutate(s_to=max(cooc)) %>%
+    ungroup() %>%
+    filter(term1 != term2) %>%
+    data.frame()
+
+  if (pos){
+    mat <- mat %>%
+      mutate(label1 = gsub("_.*","",term1),
+             label2 = gsub("_.*","",term2),
+             upos_from = gsub(".*_","",term1),
+             upos_to = gsub(".*_","",term2)) %>%
+      select(-term1,-term2) %>%
+      rename(term1=label1,
+             term2=label2)
+  } else{
+    mat$upos_from <- mat$upos_to <-  ""
+  }
+  return(mat)
+}
+
+cooc_freq <- function(cooc){
+  term_freq <- data.frame(term=c(cooc$term1,cooc$term2),
+                          upos = c(cooc$upos_from,cooc$upos_to),
+                          n=c(cooc$s_from,cooc$s_to)) %>%
+    distinct()
+}
+
 network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labelsize=4, opacity=0.6,
                     interLinks=FALSE, normalization="none"){
 
@@ -397,33 +450,45 @@ network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labels
 
   x <- dfTag %>% dplyr::filter(POSSelected)
 
-  ### NODES
-  cooc_freq <- x %>%
-    mutate(freq=1) %>%
-    group_by(doc_id,lemma) %>%
-    summarize(n=sum(freq),
-              s2=n^2) %>%
-    ungroup() %>%
-    group_by(lemma) %>%
-    summarize(n=sum(n),
-              s2=sum(s2)) %>%
-    arrange(desc(n))
+  cooc <- coocMatrix(x, term=term, group=group, n=n, pos=TRUE)
 
-  nodes <- x %>%
-    mutate(freq=1) %>%
-    group_by(upos,lemma) %>%
-    summarize(value=sum(freq),
-              s2=value^2) %>%
-    ungroup() %>%
-    group_by(lemma) %>%
-    summarize(value=sum(value),
-              s2=sum(s2)) %>%
-    arrange(desc(value)) %>%
-    slice_head(n=n) %>%
-    mutate(id=row_number(),
+  nodes <- cooc_freq(cooc) %>%
+    mutate(id = row_number(),
            shape=shape,
            color = "navyblue") %>%
-    rename(label=lemma)
+    rename(label = term,
+           value = n)
+
+  # cooc_freq <- data.frame(term=c(cooc$term1,cooc$term2), n=c(cooc$s_from,cooc$s_to)) %>%
+  #   distinct() %>%
+  #   arrange(desc(n))
+  ### NODES
+  # cooc_freq <- x %>%
+  #   mutate(freq=1) %>%
+  #   group_by(doc_id,lemma) %>%
+  #   summarize(n=sum(freq),
+  #             s2=n^2) %>%
+  #   ungroup() %>%
+  #   group_by(lemma) %>%
+  #   summarize(n=sum(n),
+  #             s2=sum(s2)) %>%
+  #   arrange(desc(n))
+  #
+  #   nodes <- x %>%
+  #     mutate(freq=1) %>%
+  #     group_by(upos,lemma) %>%
+  #     summarize(value=sum(freq),
+  #               s2=value^2) %>%
+  #     ungroup() %>%
+  #     group_by(lemma) %>%
+  #     summarize(value=sum(value),
+  #               s2=sum(s2)) %>%
+  #     arrange(desc(value)) %>%
+  #     slice_head(n=n) %>%
+  #     mutate(id=row_number(),
+  #            shape=shape,
+  #            color = "navyblue") %>%
+  #     rename(label=lemma)
 
   nodes$font.size <- log(nodes$value)
   scalemin <- 20
@@ -455,26 +520,20 @@ network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labels
   }
 
   ### EDGES
-  cooc <- cooccurrence(x,
-                       term = "lemma",
-                       group = group)
+  # cooc <- cooccurrence(x,
+  #                      term = "lemma",
+  #                      group = group)
 
   edges <- cooc %>%
-    data.frame() %>%
-    dplyr::filter(term1 %in% nodes$label & term2 %in% nodes$label) %>%
     left_join(
-      nodes %>% select(id,label, value, s2), by = c("term1" = "label")) %>%
-    rename(from = id,
-           s_from=value,
-           s2_from=s2) %>%
+      nodes %>% select(id,label), by = c("term1" = "label")) %>%
+    rename(from = id) %>%
     left_join(
-      nodes %>% select(id,label, value, s2), by = c("term2" = "label")) %>%
+      nodes %>% select(id,label), by = c("term2" = "label")) %>%
     rename(to = id,
-           s_to = value,
-           s2_to = s2,
-           s= cooc) %>%
+           s = cooc) %>%
     mutate(sA = s/(s_from*s_to),
-           sC = s/(sqrt(s2_from*s2_to)),
+           sC = s/(sqrt(s_from*s_to)),
            sJ = s/(s_from+s_to-s),
            sNorm = ((s-min(s))/diff(range(s)))*14+1,
            sANorm = ((sA-min(sA))/diff(range(sA)))*14+1,
@@ -566,22 +625,19 @@ grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity
 
   x <- dfTag %>% dplyr::filter(upos %in% c("MULTIWORD", "VERB"))
 
+  cooc <- coocMatrix(dfTag %>% dplyr::filter(upos %in% c("MULTIWORD", "VERB")), term=term, group=group, n=Inf, pos=TRUE)
+
   ### NODES
-  nodes <- x %>%
-    group_by(upos,lemma) %>%
-    summarize(value = n()) %>%
-    arrange(desc(value)) %>%
-    ungroup() %>%
-    mutate(n_nouns = ifelse(upos %in% c("PROPN", "MULTIWORD"), 1,0),
+  nodes <- cooc_freq(cooc) %>%
+    rename(label = term,
+           value = n) %>%
+    mutate(n_nouns = ifelse(upos %in% c("MULTIWORD"), 1,0),
            n_nouns = cumsum(n_nouns)) %>%
     dplyr::filter(n_nouns<=n) %>%
     select(-n_nouns) %>%
     mutate(id=row_number(),
            shape=ifelse(upos =="VERB", "text", "text"),
-           color = ifelse(upos =="VERB", "#E41A1C", "#4F7942")) %>%
-    rename(label=lemma)
-
-  #"#377EB870"
+           color = ifelse(upos =="VERB", "#E41A1C", "#4F7942"))
 
   nodes$font.size <- log(nodes$value)
   scalemin <- 30
@@ -627,31 +683,23 @@ grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity
 
   ### EDGES
   x2 <- dfTag %>%
-    dplyr::filter(upos %in% c("MULTIWORD", "NOUN", "PROPN", "ADJ", "VERB")) %>%
-    mutate(lemma_upos = paste0(lemma,"_",upos)) %>%
-    select(lemma_upos)
-  cooc <- cooccurrence(x=x2$lemma_upos,
-                       skipgram = 0)
+    dplyr::filter(upos %in% c("MULTIWORD", "NOUN", "PROPN", "ADJ", "VERB"))
+  cooc <- coocMatrix(x2, term=term, group=group, n=Inf, pos=TRUE)
+
   edges <- cooc %>%
-    data.frame() %>%
-    mutate(label1 = gsub("_.*","",term1),
-           label2 = gsub("_.*","",term2),
-           upos_from = gsub(".*_","",term1),
-           upos_to = gsub(".*_","",term2)) %>%
-    select(-term1,-term2) %>%
-    dplyr::filter(label1 %in% nodes$label & label2 %in% nodes$label)
+    dplyr::filter(term1 %in% nodes$label & term2 %in% nodes$label)
+
 
   # calculate local occurrences for nodes
-  nodes <- localOcc(nodes, edges)
+  #nodes <- localOcc(nodes, edges)
 
 
   edges <- edges %>%
-    left_join(nodes %>% select(id,label, upos, value), by = c("label1" = "label", "upos_from" = "upos")) %>%
-    rename(from = id,
-           s_from = value) %>%
-    left_join(nodes %>% select(id,label, upos, value), by = c("label2" = "label", "upos_to" = "upos")) %>%
+    dplyr::filter(upos_from %in% c("VERB", "MULTIWORD") & upos_to %in% c("VERB", "MULTIWORD")) %>%
+    left_join(nodes %>% select(id,label), by = c("term1" = "label")) %>%
+    rename(from = id) %>%
+    left_join(nodes %>% select(id,label), by = c("term2" = "label")) %>%
     rename(to = id,
-           s_to = value,
            s= cooc) %>%
     drop_na() %>%
     dplyr::filter(!upos_from==upos_to & !(upos_from == "MULTIWORD" & upos_to == "PROPN") &
@@ -677,9 +725,9 @@ grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity
 
   edges <- edges %>%
     dplyr::filter(value >= tailEdges) %>%
-    select(upos_from,label1, upos_to,label2,from,to,value, s, sA, sC, sJ, role, color) %>%
-    rename(term_from=label1,
-           term_to=label2)
+    select(upos_from,term1, upos_to,term2,from,to,value, s, sA, sC, sJ, role, color) %>%
+    rename(term_from=term1,
+           term_to=term2)
 
   nodes <- nodes %>%
     dplyr::filter(!id %in% setdiff(nodes$id,c(edges$from,edges$to))) %>%
@@ -687,21 +735,6 @@ grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity
            font.multi = "html")
 
   obj <- list(nodes=nodes, edges=edges)
-}
-
-localOcc <- function(nodes, edges){
-  nodes_w <- data.frame(label=c(edges$label1,edges$label2), upos=c(edges$upos_from,edges$upos_to)) %>%
-    group_by(upos,label) %>%
-    count() %>%
-    left_join(nodes %>% select(id, label, upos), by= c("label", "upos")) %>%
-    dplyr::filter(upos %in% c("MULTIWORD","VERB")) %>%
-    drop_na(id) %>%
-    rename(value = n) %>%
-    ungroup()
-
-  nodes <- nodes %>%
-    rename(occurrences = value) %>%
-    left_join(nodes_w %>% select(id, value), by="id")
 }
 
 grako2vis <- function(nodes, edges){
@@ -735,6 +768,7 @@ grako2vis <- function(nodes, edges){
     visNetwork::visOptions(manipulation = FALSE, height ="100%", width = "100%") %>%
     visLegend(addEdges = ledges, addNodes = lnodes, useGroups = FALSE, width = 0.1)
 }
+
 
 ### EXCEL REPORT FUNCTIONS ----
 addDataWb <- function(list_df, wb, sheetname){
