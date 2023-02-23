@@ -436,7 +436,7 @@ dend2vis <- function(comm, labelsize, nclusters=1){
 
   hc$height <- hc$height+h_tail
 
-  VIS <- visHclust(hc, method=method,cutree = nclusters, colorEdges = "firebrick", horizontal = TRUE, export=FALSE)
+  VIS <- visHclust(hc, cutree = nclusters, colorEdges = "firebrick", horizontal = TRUE, export=FALSE)
   VIS$x$edges <- data.frame(color=unique(VIS$x$edges$color)) %>%
     mutate(new_color=colorlist()[1:nrow(.)]) %>%
     right_join(VIS$x$edges, by = "color") %>%
