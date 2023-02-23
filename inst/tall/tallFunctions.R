@@ -430,26 +430,30 @@ clustering <- function(dfTag, n=50, group="doc_id", term="lemma",minEdges=25, no
 
 dend2vis <- function(comm, labelsize, nclusters=1){
   # transform and plot a community igraph object using dendrogram
-  hc=as.hclust(comm)
+  hc=as.hclust(comm, use.modularity = TRUE)
 
-  VIS <- visHclust(hc, method=method,cutree = nclusters, colorEdges = "firebrick", horizontal = TRUE)
+  h_tail <- round((max(hc$height)*0.12),1)
+
+  hc$height <- hc$height+h_tail
+
+  VIS <- visHclust(hc, method=method,cutree = nclusters, colorEdges = "firebrick", horizontal = TRUE, export=FALSE)
   VIS$x$edges <- data.frame(color=unique(VIS$x$edges$color)) %>%
     mutate(new_color=colorlist()[1:nrow(.)]) %>%
     right_join(VIS$x$edges, by = "color") %>%
     select(-color) %>%
     rename(color = new_color)
   VIS$x$nodes <- VIS$x$nodes %>%
-    mutate(group=ifelse(group=="individual","word",group),
-           title=gsub("individuals","words",title),
-           value=1,
-           scaling.min=10,
-           scaling.max=10)
+    mutate(
+      label = ifelse(group!="individual", NA,label),
+      group=ifelse(group=="individual","word",group),
+      title=gsub("individuals","words",title),
+      value=1,
+      scaling.min=10,
+      scaling.max=10)
   coords <- VIS$x$nodes %>% select(x,y) %>% as.matrix()
 
   edges <- VIS$x$edges
   nodes <- VIS$x$nodes %>% select(id,label) %>% dplyr::filter(label!="1")
-
-
 
   VIS$x$edges <- edges %>%
     select(-id) %>%
@@ -459,7 +463,8 @@ dend2vis <- function(comm, labelsize, nclusters=1){
     mutate(value=10,
            font.color=color,
            font.size=labelsize*10,
-           font.vadjust=-0.2*font.size)
+           font.vadjust=-0.2*font.size,
+           label = ifelse(is.na(label),"",label))
 
   VIS <- VIS %>% visGroups(groupname = "group", color ="gray90",
                            shape = "dot", size = 10)  %>%
@@ -473,6 +478,14 @@ dend2vis <- function(comm, labelsize, nclusters=1){
     visNetwork::visInteraction(dragNodes = FALSE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed=0.4) %>%
     visIgraphLayout(layout = "layout.norm", layoutMatrix = coords, type="full") %>%
     visEdges(font = list(align="top", size=VIS$x$edges$font.size))
+
+  for (i in 1:nrow(VIS$x$nodes)){
+    if (VIS$x$nodes$group[i]=="group"){
+      old_inertia <- as.character(VIS$x$nodes$inertia[i])
+      inertia <- as.character(VIS$x$nodes$inertia[i]-h_tail)
+      VIS$x$nodes$title[i] <- gsub(old_inertia,inertia,VIS$x$nodes$title[i])
+    }
+  }
 
   VIS
 }
