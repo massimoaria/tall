@@ -428,10 +428,11 @@ clustering <- function(dfTag, n=50, group="doc_id", term="lemma",minEdges=25, no
   obj <- list(cluster=cluster,comm=comm)
 }
 
-dend2vis <- function(comm, labelsize){
+dend2vis <- function(comm, labelsize, nclusters=1){
   # transform and plot a community igraph object using dendrogram
   hc=as.hclust(comm)
-  VIS <- visHclust(hc, method=method,cutree = max(comm$membership), colorEdges = "firebrick", horizontal = TRUE)
+
+  VIS <- visHclust(hc, method=method,cutree = nclusters, colorEdges = "firebrick", horizontal = TRUE)
   VIS$x$edges <- data.frame(color=unique(VIS$x$edges$color)) %>%
     mutate(new_color=colorlist()[1:nrow(.)]) %>%
     right_join(VIS$x$edges, by = "color") %>%
@@ -467,11 +468,11 @@ dend2vis <- function(comm, labelsize){
               color = list(background = "white", border = "#80B1D3",
                            highlight = "#e2e9e9", hover = "orange"), shape = "box") %>%
     visNodes(font=list(align=VIS$x$nodes$font.align)) %>%
-    visEdges(font = list(align="top", font.size=VIS$x$edges$font.size)) %>%
     visNetwork::visOptions(highlightNearest =list(enabled = T, hover = T, degree=list(to=1000,from=0), algorithm="hierarchical"), nodesIdSelection = FALSE,
                            manipulation = FALSE, height ="100%", width = "100%") %>%
     visNetwork::visInteraction(dragNodes = FALSE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed=0.4) %>%
-    visIgraphLayout(layout = "layout.norm", layoutMatrix = coords, type="full")
+    visIgraphLayout(layout = "layout.norm", layoutMatrix = coords, type="full") %>%
+    visEdges(font = list(align="top", size=VIS$x$edges$font.size))
 
   VIS
 }

@@ -39,7 +39,7 @@ server <- function(input, output, session){
   names(label_lang) <- languages$short
   values$label_lang <- label_lang
 
-  ## Settin plot values
+  ## Setting plot values
   values$h <- 7
   dpi <- 300
 
@@ -900,7 +900,12 @@ server <- function(input, output, session){
                    normalization=input$w_clusteringSimilarity)
         values$wordCluster <- results$cluster
         values$wordComm <- results$comm
-        values$WordDendrogram <- dend2vis(values$wordComm, labelsize=input$w_clusteringLabelSize)
+        if (input$w_clusteringMode == "auto"){
+          nclusters <- max(values$wordComm$membership)
+        } else {
+          nclusters <- min(input$w_nclusters, length(values$wordComm$membership)-1)
+        }
+        values$WordDendrogram <- dend2vis(values$wordComm, labelsize=input$w_clusteringLabelSize, nclusters = nclusters)
       }
     )
 

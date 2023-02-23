@@ -1052,6 +1052,20 @@ body <- dashboardBody(
                                                      "Cosine Similarity"="cosine",
                                                      "Jaccard Index"="jaccard"),
                                          selected = "association"),
+                             selectInput("w_clusteringMode",
+                                         label = "Cluster selection:",
+                                         choices = c("Auto"="auto",
+                                                     "Manual"="manual"),
+                                         selected = "auto"),
+                             conditionalPanel(
+                               condition = "input.w_clusteringMode == 'manual'",
+                               numericInput("w_nclusters",
+                                            label = "N. of Clusters",
+                                            value = 1,
+                                            min = 1,
+                                            step = 1
+                               )
+                             ),
                              fluidRow(
                                column(6,
                                       numericInput("w_clusteringNMax",
