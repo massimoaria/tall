@@ -477,7 +477,10 @@ dend2vis <- function(comm, labelsize, nclusters=1){
                            manipulation = FALSE, height ="100%", width = "100%") %>%
     visNetwork::visInteraction(dragNodes = FALSE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed=0.4) %>%
     visIgraphLayout(layout = "layout.norm", layoutMatrix = coords, type="full") %>%
-    visEdges(font = list(align="top", size=VIS$x$edges$font.size))
+    visEdges(font = list(align="top", size=VIS$x$edges$font.size))%>%
+    visEvents(click = "function(nodes){
+                  Shiny.onInputChange('click_dend', nodes.nodes[0]);
+                  ;}")
 
   for (i in 1:nrow(VIS$x$nodes)){
     if (VIS$x$nodes$group[i]=="group"){

@@ -1007,6 +1007,41 @@ server <- function(input, output, session){
     }, escape=FALSE)
 
 
+    ## Click on Dendrogram: WORDS IN CONTEXT ----
+    observeEvent(ignoreNULL = TRUE,
+                 eventExpr={input$click_dend},
+                 handlerExpr = {
+                   showModal(plotModalTermDend(session))
+                 })
+
+    plotModalTermDend <- function(session) {
+      ns <- session$ns
+      modalDialog(
+        h3(strong(("Words in Context"))),
+        DTOutput(ns("wordInContextDend")),
+        size = "l",
+        easyClose = TRUE,
+        footer = tagList(
+          # screenshotButton(label="Save", id = "cocPlotClust",
+          #                  scale = 2,
+          #                  file=paste("TMClusterGraph-", Sys.Date(), ".png", sep="")),
+          modalButton("Close")),
+      )
+    }
+
+    output$wordInContextDend <- renderDT({
+      id <- unlist(input$click_dend)
+      words_id <- c(id, unlist(values$WordDendrogram$x$nodes$neib[values$WordDendrogram$x$nodes$id==id]))
+      words <- unlist(values$WordDendrogram$x$nodes$label[values$WordDendrogram$x$nodes$id %in% words_id])
+      word_search <- words[!is.na(words)]
+      sentences <- values$dfTag %>%
+        filter(lemma %in% word_search) %>%
+        ungroup() %>% select(lemma, token, sentence_hl)
+
+      # find sentences containing the tokens/lemmas
+      DTformat(sentences, size='100%')
+    }, escape=FALSE)
+
     ## GRAKO ----
     grakoFunction <- eventReactive(
       ignoreNULL = TRUE,
