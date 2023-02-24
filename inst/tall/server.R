@@ -601,8 +601,9 @@ server <- function(input, output, session){
     ## Click on Plotly graphs: WORDS IN CONTEXT ----
     observeEvent(event_data("plotly_click"), {
       #if (input$sidebarmenu=="freqList"){
+      if (input$sidebarmenu %in% c("w_noun","w_propn", "w_adj", "w_verb", "w_other")){
         showModal(plotModalTerm(session))
-      #}
+      }
     })
 
     plotModalTerm <- function(session) {
@@ -622,7 +623,7 @@ server <- function(input, output, session){
 
     output$wordInContext <- renderDT({
       values$d <- event_data("plotly_click")
-      word <- values$d$y
+      word <- values$d
       if (input$sidebarmenu=="w_other"){
         word_search <- word
         sentences <- values$dfTag %>%
@@ -892,9 +893,6 @@ server <- function(input, output, session){
       ignoreNULL = TRUE,
       eventExpr = {input$w_clusteringApply},
       valueExpr ={
-        #input$w_clusteringSimilarity
-        #input$w_clusteringNMax
-        #input$w_clusteringLabelSize
         results <- clustering(values$dfTag, n=input$w_clusteringNMax,
                    group="doc_id", minEdges=25, term="lemma",
                    normalization=input$w_clusteringSimilarity)
@@ -992,10 +990,17 @@ server <- function(input, output, session){
 
     output$wordInContextNet <- renderDT({
       id <- input$click
-      word_search<- values$network$nodes$label[values$network$nodes$id==id]
-      sentences <- values$dfTag %>%
-        filter(lemma %in% word_search) %>%
-        ungroup() %>% select(lemma, token, sentence_hl)
+      if (input$sidebarmenu=="w_networkGrako") {
+        word_search<- values$grako$nodes$title[values$grako$nodes$id==id]
+        sentences <- values$grako$multiwords %>%
+          filter(lemma %in% word_search) %>%
+          ungroup() %>% select(lemma, token, sentence_hl)
+      } else {
+        word_search<- values$network$nodes$label[values$network$nodes$id==id]
+        sentences <- values$dfTag %>%
+          filter(lemma %in% word_search) %>%
+          ungroup() %>% select(lemma, token, sentence_hl)
+      }
 
       # find sentences containing the tokens/lemmas
       DTformat(sentences, size='100%')
@@ -1008,7 +1013,7 @@ server <- function(input, output, session){
       eventExpr = {input$w_networkGrakoApply},
       valueExpr ={
         values$grako <- grako(values$dfTag, n=input$grakoNMax, minEdges=input$grakoMinEdges,
-                                  labelsize=input$grakoLabelSize, opacity=input$grakoOpacity,
+                                  labelsize=input$grakoLabelSize, opacity=input$grakoOpacity,term="lemma",
                                   normalization=input$grakoNormalization, singleWords=input$grakoUnigram)
       }
     )

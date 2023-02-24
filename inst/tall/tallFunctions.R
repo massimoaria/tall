@@ -495,11 +495,13 @@ dend2vis <- function(comm, labelsize, nclusters=1){
 
 ## cooccurrence matrix
 coocMatrix <- function(x, term="lemma", group="doc_id", n=50, pos=TRUE){
-
+  term_old <- term
   if (pos){
     #new_var <- paste0(term,"_upos")
     x$new_var <- paste0(x[[term]],"_",x$upos)
     term="new_var"
+  } else {
+    term <- old_term
   }
 
   dtm <- document_term_frequencies(x, term=term, group=group)
@@ -677,7 +679,7 @@ net2vis <- function(nodes,edges){
 }
 
 ## GRAKO ----
-grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity=0.6, minEdges=50, singleWords=FALSE){
+grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity=0.6, minEdges=50, singleWords=FALSE, term="lemma"){
 
   opacity.min=0.6
 
@@ -695,7 +697,7 @@ grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity
 
 
 
-  x <- dfTag %>% dplyr::filter(upos %in% c("MULTIWORD", "VERB"))
+  x <- dfTag %>% dplyr::filter(upos %in% c("MULTIWORD", "VERB")) %>% highlight()
 
   cooc <- coocMatrix(dfTag %>% dplyr::filter(upos %in% c("MULTIWORD", "VERB")), term=term, group=group, n=Inf, pos=TRUE)
 
@@ -803,18 +805,19 @@ grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity
 
   nodes <- nodes %>%
     dplyr::filter(!id %in% setdiff(nodes$id,c(edges$from,edges$to))) %>%
-    mutate(label = ifelse(upos=="VERB", paste0("<i>",label,"</i>"), paste0("<b>",label,"</b>")),
+    mutate(title = label,
+           label = ifelse(upos=="VERB", paste0("<i>",label,"</i>"), paste0("<b>",label,"</b>")),
            font.multi = "html")
 
-  obj <- list(nodes=nodes, edges=edges)
+  obj <- list(nodes=nodes, edges=edges, multiwords=x %>% select(doc_id, sentence_id, sentence_hl, token, lemma, upos))
 }
 
 grako2vis <- function(nodes, edges){
   # nodes data.frame for legend
-  lnodes <- data.frame(label = c("Proper Noun", "Verb"),
+  lnodes <- data.frame(label = c("<b>Proper Noun</b>", "<i>Verb</i>"),
                        shape = c("text", "text"), font.color = c("#4F794290", "#E41A1C90"),
-                       title = " ", id = 1:2,
-                       font.size=12)
+                       title = " ", id = 1:2, font.multi = "html",
+                       font.size=14) %>% mutate(title=c("Proper Noun", "Verb"))
   #,
   #                     font.style="font-weight:bold")
 
@@ -825,7 +828,7 @@ grako2vis <- function(nodes, edges){
                        font.vadjust = -8)
 
   layout="layout_nicely"
-  VIS <- visNetwork::visNetwork(nodes = nodes, edges = edges, type="full", smooth=TRUE, physics=TRUE) %>%
+  VIS <- visNetwork::visNetwork(nodes = nodes, edges = edges, type="full", smooth=TRUE, physics=TRUE, export=FALSE) %>%
     visNetwork::visNodes(shadow=FALSE, shape=nodes$shape,
                          font=list(color=nodes$font.color, size=nodes$font.size,vadjust=nodes$font.vadjust,
                                    multi=nodes$font.multi)) %>%
