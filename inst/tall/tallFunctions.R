@@ -558,7 +558,7 @@ cooc_freq <- function(cooc){
     distinct()
 }
 
-network <- function(dfTag, group=c("doc_id", "sentence_id"), n, minEdges, labelsize=4, opacity=0.6,
+network <- function(dfTag, term="lemma", group=c("doc_id", "sentence_id"), n, minEdges, labelsize=4, opacity=0.6,
                     interLinks=FALSE, normalization="none"){
 
   colorlist <- colorlist()
@@ -707,7 +707,7 @@ grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity
 
 
 
-  x <- dfTag %>% dplyr::filter(upos %in% c("MULTIWORD", "VERB")) %>% highlight()
+  x <- dfTag %>% highlight() %>% dplyr::filter(upos %in% c("MULTIWORD", "VERB"))
 
   cooc <- coocMatrix(dfTag %>% dplyr::filter(upos %in% c("MULTIWORD", "VERB")), term=term, group=group, n=Inf, pos=TRUE)
 

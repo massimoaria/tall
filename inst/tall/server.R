@@ -623,7 +623,7 @@ server <- function(input, output, session){
 
     output$wordInContext <- renderDT({
       values$d <- event_data("plotly_click")
-      word <- values$d
+      word <- values$d$y
       if (input$sidebarmenu=="w_other"){
         word_search <- word
         sentences <- values$dfTag %>%
