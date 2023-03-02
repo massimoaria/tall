@@ -921,6 +921,51 @@ server <- function(input, output, session){
 
   ## Correspondence Analysis ----
 
+    # CA plot
+    caPlotFunction <- eventReactive(
+      ignoreNULL = TRUE,
+      eventExpr = {input$caApply},
+      valueExpr ={
+        ##### input$caPlot
+      }
+    )
+
+    output$caPlot <- renderPlotly(
+      caPlotFunction()
+      #########
+    )
+
+    # CA Table
+    output$caTable <- renderDT({
+      caDendFunction()
+      # DTformat(#values$
+      #          ,size='100%',filename="ClusterWordsTable", pagelength=TRUE, left=1, right=NULL,
+      #          numeric=NULL, dom=TRUE, filter="top")
+    })
+
+
+    ## CA Dendrogram ----
+    caDendFunction <- eventReactive(
+      ignoreNULL = TRUE,
+      eventExpr = {input$caApply},
+      valueExpr ={
+        ##### input$caDendrogram
+      }
+    )
+
+    output$caDendrogram <- renderVisNetwork({
+      caDendFunction()
+      #########
+    })
+
+    output$caClusterTable <- renderDT({
+      caDendFunction()
+      # DTformat(#values$wordCluster
+      #          ,size='100%',filename="ClusterWordsTable", pagelength=TRUE, left=1, right=NULL,
+      #          numeric=NULL, dom=TRUE, filter="top")
+    })
+
+
   ## Network ----
     ## WORD CO-OCCURENCE ----
     netFunction <- eventReactive(
