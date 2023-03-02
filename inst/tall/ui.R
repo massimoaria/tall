@@ -1140,7 +1140,7 @@ body <- dashboardBody(
                              hr(),
                              ### elenco opzioni (bottono, input, ecc)
                              tooltip = tooltipOptions(title = "Options"),
-                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             width = "300px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
                              style = "material-circle"
                            ),
@@ -1154,14 +1154,23 @@ body <- dashboardBody(
                                      shinycssloaders::withSpinner(plotlyOutput(outputId = "caPlot", height = "75vh",width ="98.9%"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
-                            tabPanel("Table",
+                            tabPanel("Dendrogram",
+                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "caDendrogram", height = "75vh",width ="98.9%"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            ),
+                            tabPanel("CA Table",
                                      shinycssloaders::withSpinner(DT::DTOutput("caTable"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            ),
+                            tabPanel("CA Cluster Table",
+                                     shinycssloaders::withSpinner(DT::DTOutput("caClusterTable"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             )
                 )
               )
             )
     ),
+
 
     ### Network ----
 
@@ -1343,7 +1352,7 @@ body <- dashboardBody(
                                                      step = 0.1)
                                )),
                              tooltip = tooltipOptions(title = "Options"),
-                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             width = "300px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
                              style = "material-circle"
                            )
