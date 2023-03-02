@@ -1138,7 +1138,66 @@ body <- dashboardBody(
                            dropdown(
                              h4(strong("Options: ")),
                              hr(),
-                             ### elenco opzioni (bottono, input, ecc)
+                             fluidRow(
+                               column(6,
+                                      numericInput("nCA",
+                                                   label = "Words",
+                                                   value = 50,
+                                                   min = 2,
+                                                   step=1)
+                                      ),
+                               column(6,
+                                             selectInput("termCA",
+                                                         "Terms:",
+                                                         choices = c("Tokens" = "token",
+                                                                     "Lemmas" = "lemma"),
+                                                         selected = "lemma"))),
+                             fluidRow(
+                               column(6,
+                                      numericInput("nClustersCA",
+                                                   label = "Clusters",
+                                                   value = 1,
+                                                   min = 1,
+                                                   step = 1)
+                               ),
+                               column(6,
+                                      numericInput("nDimsCA",
+                                                   label = "Dims for Clustering",
+                                                   value = 2,
+                                                   min = 1,
+                                                   max = 10,
+                                                   step = 1)
+                               )
+                             ),
+                             hr(),
+                             h4(strong("Graphical options: ")),
+                             br(),
+                             selectInput("dimPlotCA",
+                                         "Select plane to plot:",
+                                         choices = c("1° Factorial Plane" = "1",
+                                                     "2° Factorial Plane" = "2",
+                                                     "3° Factorial Plane" = "3",
+                                                     "4° Factorial Plane" = "4",
+                                                     "5° Factorial Plane" = "5"),
+                                         selected = "1"),
+                             fluidRow(
+                               column(6,
+                                      numericInput("labelsizeCA",
+                                                   label = "Label size",
+                                                   value = 16,
+                                                   min = 2,
+                                                   step=1)
+                               ),
+                               column(6,
+                                      numericInput("sizeCA",
+                                                   label = "Min. Dot Size",
+                                                   value = 0,
+                                                   min = 0,
+                                                   max = 20,
+                                                   step = 1)
+                               )
+                             ),
+
                              tooltip = tooltipOptions(title = "Options"),
                              width = "300px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
@@ -1150,20 +1209,24 @@ body <- dashboardBody(
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
+                            tabPanel("Factiorial Plane",
                                      shinycssloaders::withSpinner(plotlyOutput(outputId = "caPlot", height = "75vh",width ="98.9%"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
                             tabPanel("Dendrogram",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "caDendrogram", height = "75vh",width ="98.9%"),
+                                     shinycssloaders::withSpinner(visNetworkOutput("caDendrogram", width="auto", height = "75vh"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
-                            tabPanel("CA Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("caTable"),
+                            tabPanel("Coordinates",
+                                     shinycssloaders::withSpinner(DT::DTOutput("caCoordTable"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
-                            tabPanel("CA Cluster Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("caClusterTable"),
+                            tabPanel("Contributes",
+                                     shinycssloaders::withSpinner(DT::DTOutput("caContribTable"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            ),
+                            tabPanel("Cosines Squared",
+                                     shinycssloaders::withSpinner(DT::DTOutput("caCosineTable"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             )
                 )

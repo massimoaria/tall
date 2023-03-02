@@ -500,6 +500,237 @@ dend2vis <- function(hc, labelsize, nclusters=1, community=TRUE){
   VIS
 }
 
+### CORRESPONDENCE ANALYSIS -----
+
+## Correspondence Analysis on Words ----
+wordCA <- function(dfTag, n=50,  term="lemma"){
+
+  x <- dfTag %>% dplyr::filter(POSSelected)
+  dtm <- document_term_frequencies(x, term=term)
+  mat <- document_term_matrix(dtm, weight="freq")
+  mat <- as.matrix(dtm_remove_lowfreq(mat, maxterms=n))
+
+  res <- ca::ca(mat)
+
+  # Contribute
+  contrib <- data.frame((res$colcoord[,1:10]^2)*res$colmass)
+  colnames(contrib) <- paste0("Contrib",1:ncol(contrib))
+
+
+  # Cosines squared
+  cosine <- data.frame(((res$colcoord[,1:10]^2)/(res$coldist)))
+  colnames(cosine) <- paste0("Cosine",1:ncol(contrib))
+
+  # Word Coordinates
+  wordCoord <- res$colcoord[,1:10] %>%
+    data.frame() %>%
+    mutate(label = res$colnames,
+           inertia = res$colinertia,
+           dist = res$coldist,
+           mass = res$colmass)
+
+  ## Benzecrì correction
+  res$eigCorrected <- ((n/(n-1))^2*(res$sv-1/n)^2)
+  res$eigCorrected[res$eigCorrected<=1/length(res$eigCorrected)] <- 0
+  res$eigCorrectedNorm <- res$eigCorrected/sum(res$eigCorrected)*100
+
+  ## result object
+  results <- list(ca=res, wordCoord=wordCoord, contrib = contrib, cosine=cosine)
+
+  return(results)
+}
+
+
+## caClustering ----
+caClustering <- function(results, method = "ward.D2", nDim=2, nclusters=1){
+  vars <- "Dim"
+  D <- dist(
+    results$wordCoord %>% select(starts_with(vars)) %>%
+      select(all_of(1:nDim))
+  )
+  h <- hclust(D, method=method)
+
+  if (nclusters >1) {
+    groups <- cutree(h, k = nclusters)
+  } else {
+    groups <- rep(1,length(h$labels))
+    names(groups) <- h$labels
+  }
+
+  results$clustering <- list(h=h, groups=groups)
+
+  return(results)
+}
+
+
+## CA Plot ----
+ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = 20, threshold=0.03, labelsize=16, size=5){
+
+  xlabel <- paste0("Dim",dimX)
+  ylabel <- paste0("Dim",dimY)
+  dimContrLabel <- paste0("Contrib",c(dimX,dimY))
+  ymax <- diff(range((results$wordCoord[[ylabel]])))
+  xmax <- diff(range((results$wordCoord[[xlabel]])))
+  threshold <- threshold*mean(xmax,ymax)
+
+  # scaled size for dots
+  dotScale <- (results$contrib[,c(dimX,dimY)]*200)
+  dotScale <- ((dotScale[,1]+dotScale[,2])/2)+size
+
+  #Threshold labels to plot
+  thres <- sort(dotScale, decreasing = TRUE)[min(topWordPlot, nrow(results$wordCoord))]
+
+  # coordinates to plot
+  noCol <- setdiff(1:10,c(dimX,dimY))
+
+  results$wordCoord <- results$wordCoord %>%
+    select(-any_of(noCol))
+
+  names(results$wordCoord)[1:2] <- c("Dim1","Dim2")
+
+  results$wordCoord <- results$wordCoord %>%
+    mutate(dotSize = dotScale,
+           groups = results$clustering$groups,
+           labelToPlot = ifelse(dotSize>=thres, label, ""),
+           font.color = ifelse(labelToPlot=="", NA, adjustcolor(colorlist()[groups], alpha.f = 0.85)),
+           font.size = round(dotSize*2 ,0))
+
+  ## Avoid label overlapping
+  labelToRemove <- avoidOverlaps(results$wordCoord, threshold = threshold, dimX=dimX, dimY=dimY)
+  results$wordCoord <- results$wordCoord %>%
+    mutate(labelToPlot = ifelse(labelToPlot %in% labelToRemove, "",labelToPlot))
+
+  # hoverText <- paste('<i>Word</i>: %{label}',
+  #                                    '<br><b>Inertia</b>: $%{inertia:.3f}<br>',
+  #                                    '<b>Mass</b>: $%{mass:.3f}')
+  hoverText <- paste(" <b>", results$wordCoord$label,"</b>\n Inertia: ", round(results$wordCoord$inertia,3), "\n Mass:   ", round(results$wordCoord$mass,3), sep="")
+
+  fig <- plot_ly(data = results$wordCoord, x = results$wordCoord[[xlabel]], y = results$wordCoord[[ylabel]],
+                 type="scatter",
+                 mode   = 'markers',
+                 marker = list(
+                   size = dotScale,
+                   color = adjustcolor(colorlist()[results$wordCoord$groups], alpha.f = 0.3), #'rgb(79, 121, 66, .5)',
+                   line = list(color = adjustcolor(colorlist()[results$wordCoord$groups], alpha.f = 0.3), #'rgb(79, 121, 66, .8)',
+                               width = 2)
+                 ),
+                 text = hoverText,
+                 hoverinfo = 'text',
+                 alpha = .3
+  )
+
+  fig <- fig %>% layout(yaxis = list(title = ylabel, showgrid = TRUE, showline = FALSE, showticklabels = TRUE, domain= c(0, 1)),
+                        xaxis = list(title = xlabel, zeroline = TRUE, showgrid = TRUE, showline = FALSE, showticklabels = TRUE),
+                        plot_bgcolor  = "rgba(0, 0, 0, 0)",
+                        paper_bgcolor = "rgba(0, 0, 0, 0)")
+
+  for (i in seq_len(max(results$wordCoord$groups))){
+    w <- results$wordCoord %>% dplyr::filter(groups == i) %>%
+      mutate(Dim1 = Dim1+dotSize*0.005,
+             Dim2 = Dim2+dotSize*0.01)
+
+    fig <- fig %>% add_annotations(data = w,x = ~Dim1, y = ~Dim2, xref = 'x1', yref = 'y',
+                                   text = ~labelToPlot,
+                                   font = list(family = 'sans serif', size = labelsize, color = w$font.color[1]), #'rgb(79, 121, 66)'),
+                                   showarrow = FALSE)
+  }
+
+  fig <- fig %>% config(displaylogo = FALSE,
+                        modeBarButtonsToRemove = c(
+                          #'toImage',
+                          'sendDataToCloud',
+                          'pan2d',
+                          'select2d',
+                          'lasso2d',
+                          'toggleSpikelines',
+                          'hoverClosestCartesian',
+                          'hoverCompareCartesian'
+                        )) %>%
+    event_register("plotly_selecting")
+  fig
+
+}
+
+
+## function to avoid label overlapping ----
+avoidOverlaps <- function(w,threshold=0.10, dimX=1, dimY=2){
+
+  w[,2] <- w[,2]/2
+
+  Ds <- dist(w %>%
+               dplyr::filter(labelToPlot!="") %>%
+               select(1:2),
+             method="manhattan", upper=T) %>%
+    dist2df() %>%
+    rename(from = row,
+           to = col,
+           dist = value) %>%
+    left_join(
+      w %>% dplyr::filter(labelToPlot!="") %>%
+        select(labelToPlot, dotSize),
+      by=c("from" = "labelToPlot")
+    ) %>%
+    rename(w_from = dotSize) %>%
+    left_join(
+      w %>% dplyr::filter(labelToPlot!="") %>%
+        select(labelToPlot, dotSize),
+      by=c("to" = "labelToPlot")
+    ) %>%
+    rename(w_to = dotSize) %>%
+    filter(dist<threshold)
+
+  st <- TRUE
+  i <- 1
+  label <- NULL
+  case <- "n"
+
+  while(isTRUE(st)){
+    if (Ds$w_from[i]>Ds$w_to[i] & Ds$dist[i]<threshold){
+      case <- "y"
+      lab <- Ds$to[i]
+
+    } else if (Ds$w_from[i]<=Ds$w_to[i] & Ds$dist[i]<threshold){
+      case <- "y"
+      lab <- Ds$from[i]
+    }
+
+    switch(case,
+           "y"={
+             Ds <- Ds[Ds$from != lab,]
+             Ds <- Ds[Ds$to != lab,]
+             label <- c(label,lab)
+           },
+           "n"={
+             Ds <- Ds[-1,]
+           })
+
+    if (i>=nrow(Ds)){
+      st <- FALSE
+    }
+    case <- "n"
+    #print(nrow(Ds))
+  }
+
+  label
+
+}
+
+## convert a distance object into a data.frame ----
+dist2df <- function(inDist) {
+  if (class(inDist) != "dist") stop("wrong input type")
+  A <- attr(inDist, "Size")
+  B <- if (is.null(attr(inDist, "Labels"))) sequence(A) else attr(inDist, "Labels")
+  if (isTRUE(attr(inDist, "Diag"))) attr(inDist, "Diag") <- FALSE
+  if (isTRUE(attr(inDist, "Upper"))) attr(inDist, "Upper") <- FALSE
+  data.frame(
+    row = B[unlist(lapply(sequence(A)[-1], function(x) x:A))],
+    col = rep(B[-length(B)], (length(B)-1):1),
+    value = as.vector(inDist))
+}
+
+
+
+
 
 ### NETWORK -----
 

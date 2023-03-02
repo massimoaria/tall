@@ -926,45 +926,53 @@ server <- function(input, output, session){
       ignoreNULL = TRUE,
       eventExpr = {input$caApply},
       valueExpr ={
-        ##### input$caPlot
+        values$CA <- wordCA(values$dfTag, n=input$nCA, term=input$termCA)
+        values$CA <- caClustering(values$CA, nclusters = input$nClustersCA, nDim=input$nDimsCA)
       }
     )
 
-    output$caPlot <- renderPlotly(
+    output$caPlot <- renderPlotly({
       caPlotFunction()
+      dimY <- as.numeric(input$dimPlotCA)*2
+      dimX <- dimY-1
+      ca2plotly(values$CA, dimX = dimX, dimY = dimY, topWordPlot = input$nCA, threshold=0.03, labelsize = input$labelsizeCA, size=input$sizeCA)
       #########
-    )
-
-    # CA Table
-    output$caTable <- renderDT({
-      caDendFunction()
-      # DTformat(#values$
-      #          ,size='100%',filename="ClusterWordsTable", pagelength=TRUE, left=1, right=NULL,
-      #          numeric=NULL, dom=TRUE, filter="top")
     })
-
-
-    ## CA Dendrogram ----
-    caDendFunction <- eventReactive(
-      ignoreNULL = TRUE,
-      eventExpr = {input$caApply},
-      valueExpr ={
-        ##### input$caDendrogram
-      }
-    )
 
     output$caDendrogram <- renderVisNetwork({
-      caDendFunction()
-      #########
+      dend2vis(values$CA$clustering$h, labelsize=input$labelsizeCA, nclusters=input$nClustersCA, community=FALSE)
     })
 
-    output$caClusterTable <- renderDT({
-      caDendFunction()
-      # DTformat(#values$wordCluster
-      #          ,size='100%',filename="ClusterWordsTable", pagelength=TRUE, left=1, right=NULL,
-      #          numeric=NULL, dom=TRUE, filter="top")
+    # CA Table
+    output$caCoordTable <- renderDT({
+      caPlotFunction()
+      DTformat(values$CA$wordCoord %>%
+                 select(label, everything()) %>%
+                 left_join(
+                   data.frame(label=names(values$CA$clustering$groups), Group=values$CA$clustering$groups), by = "label"
+                 ) %>%
+                 rename(Label = label)
+               ,size='100%',filename="CAWordCoordinatesTable", pagelength=TRUE, left=1, right=2:ncol(values$CA$wordCoord),
+               numeric=2:ncol(values$CA$wordCoord), dom=TRUE, filter="top", round=3)
     })
 
+    output$caContribTable <- renderDT({
+      caPlotFunction()
+      DTformat(values$CA$contrib %>%
+                 rownames_to_column() %>%
+                 rename(Label = rowname),
+               size='100%',filename="CAWordContributesTable", pagelength=TRUE, left=1, right=2:(ncol(values$CA$contrib)+1),
+               numeric=2:(ncol(values$CA$contrib)+1), dom=TRUE, filter="top", round=3)
+    })
+
+    output$caCosineTable <- renderDT({
+      caPlotFunction()
+      DTformat(values$CA$cosine %>%
+                 rownames_to_column() %>%
+                 rename(Label = rowname),
+               size='100%',filename="CAWordCosinesTable", pagelength=TRUE, left=1, right=2:(ncol(values$CA$cosine)+1),
+               numeric=2:(ncol(values$CA$cosine)+1), dom=TRUE, filter="top", round=3)
+    })
 
   ## Network ----
     ## WORD CO-OCCURENCE ----
