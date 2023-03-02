@@ -601,7 +601,7 @@ server <- function(input, output, session){
     ## Click on Plotly graphs: WORDS IN CONTEXT ----
     observeEvent(event_data("plotly_click"), {
       #if (input$sidebarmenu=="freqList"){
-      if (input$sidebarmenu %in% c("w_noun","w_propn", "w_adj", "w_verb", "w_other")){
+      if (input$sidebarmenu %in% c("w_noun","w_propn", "w_adj", "w_verb", "w_other", "ca")){
         showModal(plotModalTerm(session))
       }
     })
@@ -629,7 +629,17 @@ server <- function(input, output, session){
         sentences <- values$dfTag %>%
           filter(lemma %in% word_search) %>%
           ungroup() %>% select(lemma, token, sentence_hl)
-      } else {
+      } else if (input$sidebarmenu=="ca"){
+        X <- round(values$d$x,6)
+        Y <- round(values$d$y,6)
+        word <- values$CA$wordCoord %>%
+          dplyr::filter(round(.[,1],6)==X,round(.[,2],6)==Y)
+        word <- word$label
+        word_search <- unique(c(word, values$dfTag$token[values$dfTag$lemma==word]))
+        sentences <- values$dfTag %>%
+          filter(token %in% word_search) %>%
+          ungroup() %>% select(lemma, token, sentence_hl)
+        } else {
         word_search <- unique(c(word, values$dfTag$token[values$dfTag$lemma==word]))
         sentences <- values$dfTag %>%
           filter(token %in% word_search) %>%
@@ -933,14 +943,14 @@ server <- function(input, output, session){
 
     output$caPlot <- renderPlotly({
       caPlotFunction()
-      dimY <- as.numeric(input$dimPlotCA)*2
-      dimX <- dimY-1
-      ca2plotly(values$CA, dimX = dimX, dimY = dimY, topWordPlot = input$nCA, threshold=0.03, labelsize = input$labelsizeCA, size=input$sizeCA)
+      values$CAdimY <- as.numeric(input$dimPlotCA)*2
+      values$CAdimX <- values$CAdimY-1
+      values$plotCA <- ca2plotly(values$CA, dimX = values$CAdimX, dimY = values$CAdimY, topWordPlot = input$nCA, threshold=0.03, labelsize = input$labelsizeCA, size=input$sizeCA)
       #########
     })
 
     output$caDendrogram <- renderVisNetwork({
-      dend2vis(values$CA$clustering$h, labelsize=input$labelsizeCA, nclusters=input$nClustersCA, community=FALSE)
+      values$CADendrogram <- dend2vis(values$CA$clustering$h, labelsize=input$labelsizeCA, nclusters=input$nClustersCA, community=FALSE)
     })
 
     # CA Table
@@ -961,7 +971,7 @@ server <- function(input, output, session){
       DTformat(values$CA$contrib %>%
                  rownames_to_column() %>%
                  rename(Label = rowname),
-               size='100%',filename="CAWordContributesTable", pagelength=TRUE, left=1, right=2:(ncol(values$CA$contrib)+1),
+               size='100%',filename="CAWordContributesTable", pagelength=TRUE, left=1, #right=2:(ncol(values$CA$contrib)+1),
                numeric=2:(ncol(values$CA$contrib)+1), dom=TRUE, filter="top", round=3)
     })
 
@@ -970,8 +980,19 @@ server <- function(input, output, session){
       DTformat(values$CA$cosine %>%
                  rownames_to_column() %>%
                  rename(Label = rowname),
-               size='100%',filename="CAWordCosinesTable", pagelength=TRUE, left=1, right=2:(ncol(values$CA$cosine)+1),
+               size='100%',filename="CAWordCosinesTable", pagelength=TRUE, left=1, #right=2:(ncol(values$CA$cosine)+1),
                numeric=2:(ncol(values$CA$cosine)+1), dom=TRUE, filter="top", round=3)
+    })
+
+    output$caSingularValueTable <- renderDT({
+      caPlotFunction()
+      df <- data.frame(dim=paste0("Dim ",1:10),sv=(values$CA$ca$sv/sum(values$CA$ca$sv)*100)[1:10], svcorr=values$CA$ca$eigCorrectedNorm[1:10])
+      DTformat(df %>%
+                 rename("Factorial Dimension" = dim,
+                   "Singular Values" = sv,
+                        "Corrected Singular Values" = svcorr),
+               size='100%',filename="CAWordSingualValueTable", pagelength=TRUE, left=1, #right=2:3,
+               numeric=2:3, dom=TRUE, filter="top", round=2)
     })
 
   ## Network ----
@@ -1084,9 +1105,18 @@ server <- function(input, output, session){
 
     output$wordInContextDend <- renderDT({
       id <- unlist(input$click_dend)
-      words_id <- c(id, unlist(values$WordDendrogram$x$nodes$neib[values$WordDendrogram$x$nodes$id==id]))
-      words <- unlist(values$WordDendrogram$x$nodes$label[values$WordDendrogram$x$nodes$id %in% words_id])
-      word_search <- words[!is.na(words)]
+      switch(input$sidebarmenu,
+             "w_clustering"={
+               words_id <- c(id, unlist(values$WordDendrogram$x$nodes$neib[values$WordDendrogram$x$nodes$id==id]))
+               words <- unlist(values$WordDendrogram$x$nodes$label[values$WordDendrogram$x$nodes$id %in% words_id])
+               word_search <- words[!is.na(words)]
+             },
+             "ca"={
+               words_id <- c(id, unlist(values$CADendrogram$x$nodes$neib[values$CADendrogram$x$nodes$id==id]))
+               words <- unlist(values$CADendrogram$x$nodes$label[values$CADendrogram$x$nodes$id %in% words_id])
+               word_search <- words[!is.na(words)]
+             })
+
       sentences <- values$dfTag %>%
         filter(lemma %in% word_search) %>%
         ungroup() %>% select(lemma, token, sentence_hl)

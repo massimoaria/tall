@@ -600,12 +600,9 @@ ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = 20, threshold=0
   results$wordCoord <- results$wordCoord %>%
     mutate(labelToPlot = ifelse(labelToPlot %in% labelToRemove, "",labelToPlot))
 
-  # hoverText <- paste('<i>Word</i>: %{label}',
-  #                                    '<br><b>Inertia</b>: $%{inertia:.3f}<br>',
-  #                                    '<b>Mass</b>: $%{mass:.3f}')
   hoverText <- paste(" <b>", results$wordCoord$label,"</b>\n Inertia: ", round(results$wordCoord$inertia,3), "\n Mass:   ", round(results$wordCoord$mass,3), sep="")
 
-  fig <- plot_ly(data = results$wordCoord, x = results$wordCoord[[xlabel]], y = results$wordCoord[[ylabel]],
+  fig <- plot_ly(data = results$wordCoord, x = results$wordCoord[[xlabel]], y = results$wordCoord[[ylabel]], #customdata=results$wordCoord,
                  type="scatter",
                  mode   = 'markers',
                  marker = list(
@@ -647,7 +644,7 @@ ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = 20, threshold=0
                           'hoverCompareCartesian'
                         )) %>%
     event_register("plotly_selecting")
-  fig
+  return(fig)
 
 }
 

@@ -1228,6 +1228,10 @@ body <- dashboardBody(
                             tabPanel("Cosines Squared",
                                      shinycssloaders::withSpinner(DT::DTOutput("caCosineTable"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                            ),
+                            tabPanel("Singular Values",
+                                     shinycssloaders::withSpinner(DT::DTOutput("caSingularValueTable"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
                             )
                 )
               )
