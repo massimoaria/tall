@@ -57,6 +57,14 @@ read_files <- function(files, ext=c("txt","csv", "xlsx"), subfolder=TRUE, line_s
            df <- readxl::read_excel(file, col_types = "text")
          }
          )
+  if ("doc_id" %in% names(df)){
+    if (sum(duplicated(df$doc_id), na.rm=T)>0){
+    df <- df %>% mutate(original_doc_id = doc_id,
+      doc_id = paste0("doc_",row_number())) %>% select(doc_id, everything())
+    }
+  }else{
+    df <- df %>% mutate(doc_id = paste0("doc_",row_number())) %>% select(doc_id, everything())
+  }
 
 return(df)
 }
