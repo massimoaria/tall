@@ -14,7 +14,6 @@ maxUploadSize <- getShinyOption("maxUploadSize", maxUploadSize)
 options(shiny.maxRequestSize=maxUploadSize*1024^2)
 
 
-
 server <- function(input, output, session){
   session$onSessionEnded(stopApp)
 
@@ -103,8 +102,11 @@ server <- function(input, output, session){
               values$menu <- menu
               values$dfTag <- dfTag
               values$custom_lists <- custom_lists
+              values$D <- D
+              values$where <- where
               if (values$menu==1) updateTabItems(session, "sidebarmenu", "custTermList")
               if (values$menu==2) updateTabItems(session, "sidebarmenu", "posTagSelect")
+              if (ncol(values$dfTag)>1){showModal(loadTallgModal(session))}
            }
     )
   })
@@ -120,6 +122,79 @@ server <- function(input, output, session){
     path <- shortpath(values$path)
     if (is.null(path)) path <- " --- "
     HTML(paste("<pre class='tab'>",path, sep = ''))
+  })
+
+  ### Pop-up modal for Tall file loading ----
+  loadTallgModal <- function(session) {
+    ns <- session$ns
+    modalDialog(
+      h3(strong(("Tall Data Overview"))),
+      br(),
+      uiOutput("loadSynthesis"),
+      size = "m",
+      easyClose = TRUE,
+      footer = tagList(
+        actionButton(label="Custom Lists", inputId = "modalCustomLists", style="color: #ffff;",
+                     icon = icon("th-list", lib = "glyphicon")),
+        actionButton(label="Close", inputId = "closeModalCustomLists", style="color: #ffff;",
+                     icon = icon("remove", lib = "glyphicon"))
+        ),
+    )
+  }
+
+  observeEvent(input$closeModalCustomLists,{
+    removeModal(session = getDefaultReactiveDomain())
+    })
+
+
+  output$loadSynthesis <- renderUI({
+    ndocs <- length(unique(values$dfTag$doc_id))
+    txt1 <- (paste0("Tall file contains: ",strong(ndocs),strong(" documents")))
+    txt2 <- (paste0("Last modified date: ", strong(values$D)))
+    if(!is.null(dim(values$custom_lists))){
+      ncust <- nrow(values$custom_lists)
+      txt3 <- (paste0("Tall file includes a custom list of: ",strong(ncust), strong(" words")))
+    } else{
+      txt3 <- (paste0("Tall file does not include a custom word list"))
+    }
+    txt4 <- (paste0("The last pre-processing step performed is: ",strong(values$where)))
+    text <- paste0(txt1,"<br><br>",txt2,"<br><br>",txt3,"<br><br>",txt4)
+    tagList(
+      div(
+        h4(HTML(text)),
+        style="text-align:left")
+    )
+  })
+
+  observeEvent(input$modalCustomLists,{
+    if (!is.null(values$custom_lists)){
+      text =tagList(
+        DTformat(values$custom_lists, left=c(1,2), filename="Custom_lists_table")
+      )
+    }else{
+      text =tagList(
+        div(
+          h4(HTML("No custom lists to show.")),
+          style="text-align:left")
+      )
+    }
+
+    show_alert(
+      title = "Custom Word Lists",
+      text =text,
+      type = NULL,
+      size = "m",
+      closeOnEsc = TRUE,
+      closeOnClickOutside = TRUE,
+      html = TRUE,
+      showConfirmButton = TRUE,
+      showCancelButton = FALSE,
+      btn_labels = "OK",
+      btn_colors = "#6CC283",
+      timer = NULL,
+      imageUrl = "",
+      animation = TRUE
+    )
   })
 
   ### Convert Raw Data in Excel functions ----
@@ -938,19 +1013,26 @@ server <- function(input, output, session){
       valueExpr ={
         values$CA <- wordCA(values$dfTag, n=input$nCA, term=input$termCA)
         values$CA <- caClustering(values$CA, nclusters = input$nClustersCA, nDim=input$nDimsCA)
+        values$CAdimY <- as.numeric(input$dimPlotCA)*2
+        values$CAdimX <- values$CAdimY-1
+        values$plotCA <- ca2plotly(values$CA, dimX = values$CAdimX, dimY = values$CAdimY,
+                                   topWordPlot = input$nCA, threshold=0.03, labelsize = input$labelsizeCA, size=input$sizeCA)
+        values$CADendrogram <- dend2vis(values$CA$clustering$h, labelsize=input$labelsizeCA, nclusters=input$nClustersCA, community=FALSE)
       }
     )
 
     output$caPlot <- renderPlotly({
       caPlotFunction()
-      values$CAdimY <- as.numeric(input$dimPlotCA)*2
-      values$CAdimX <- values$CAdimY-1
-      values$plotCA <- ca2plotly(values$CA, dimX = values$CAdimX, dimY = values$CAdimY, topWordPlot = input$nCA, threshold=0.03, labelsize = input$labelsizeCA, size=input$sizeCA)
+      values$plotCA
+      # values$CAdimY <- as.numeric(input$dimPlotCA)*2
+      # values$CAdimX <- values$CAdimY-1
+      # values$plotCA <- ca2plotly(values$CA, dimX = values$CAdimX, dimY = values$CAdimY, topWordPlot = input$nCA, threshold=0.03, labelsize = input$labelsizeCA, size=input$sizeCA)
       #########
     })
 
     output$caDendrogram <- renderVisNetwork({
-      values$CADendrogram <- dend2vis(values$CA$clustering$h, labelsize=input$labelsizeCA, nclusters=input$nClustersCA, community=FALSE)
+      caPlotFunction()
+      values$CADendrogram
     })
 
     # CA Table
