@@ -477,7 +477,7 @@ dend2vis <- function(hc, labelsize, nclusters=1, community=TRUE){
     mutate(value=10,
            font.color=color,
            font.size=labelsize*10,
-           font.vadjust=-0.2*font.size,
+           font.vadjust=-0.1*font.size,
            label = ifelse(is.na(label),"",label))
 
   VIS <- VIS %>% visGroups(groupname = "group", color ="gray90",
@@ -579,7 +579,7 @@ ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = 20, threshold=0
   dimContrLabel <- paste0("Contrib",c(dimX,dimY))
   ymax <- diff(range((results$wordCoord[[ylabel]])))
   xmax <- diff(range((results$wordCoord[[xlabel]])))
-  threshold <- threshold*mean(xmax,ymax)
+  threshold2 <- threshold*mean(xmax,ymax)
 
   # scaled size for dots
   dotScale <- (results$contrib[,c(dimX,dimY)]*200)
@@ -604,13 +604,20 @@ ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = 20, threshold=0
            font.size = round(dotSize*2 ,0))
 
   ## Avoid label overlapping
-  labelToRemove <- avoidOverlaps(results$wordCoord, threshold = threshold, dimX=dimX, dimY=dimY)
+  labelToRemove <- avoidOverlaps(results$wordCoord, threshold = threshold2, dimX=1, dimY=2)
   results$wordCoord <- results$wordCoord %>%
     mutate(labelToPlot = ifelse(labelToPlot %in% labelToRemove, "",labelToPlot))
 
+  hull_data <-
+    results$wordCoord %>%
+    group_by(.data$groups) %>%
+    slice(chull(Dim1, Dim2)) %>%
+    rename(color=font.color)
+
+
   hoverText <- paste(" <b>", results$wordCoord$label,"</b>\n Inertia: ", round(results$wordCoord$inertia,3), "\n Mass:   ", round(results$wordCoord$mass,3), sep="")
 
-  fig <- plot_ly(data = results$wordCoord, x = results$wordCoord[[xlabel]], y = results$wordCoord[[ylabel]], #customdata=results$wordCoord,
+  fig <- plot_ly(data = results$wordCoord, x = results$wordCoord$Dim1, y = results$wordCoord$Dim2, #customdata=results$wordCoord,
                  type="scatter",
                  mode   = 'markers',
                  marker = list(
@@ -624,8 +631,10 @@ ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = 20, threshold=0
                  alpha = .3
   )
 
-  fig <- fig %>% layout(yaxis = list(title = ylabel, showgrid = TRUE, showline = FALSE, showticklabels = TRUE, domain= c(0, 1)),
-                        xaxis = list(title = xlabel, zeroline = TRUE, showgrid = TRUE, showline = FALSE, showticklabels = TRUE),
+  fig <- fig %>% layout(yaxis = list(title = paste0("Dim ",dimY," (",round(results$ca$eigCorrectedNorm[2],2),"%)"),
+                                     showgrid = TRUE, showline = FALSE, showticklabels = TRUE, domain= c(0, 1)),
+                        xaxis = list(title = paste0("Dim ",dimX," (",round(results$ca$eigCorrectedNorm[1],2),"%)"),
+                                     zeroline = TRUE, showgrid = TRUE, showline = FALSE, showticklabels = TRUE),
                         plot_bgcolor  = "rgba(0, 0, 0, 0)",
                         paper_bgcolor = "rgba(0, 0, 0, 0)")
 
@@ -634,10 +643,19 @@ ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = 20, threshold=0
       mutate(Dim1 = Dim1+dotSize*0.005,
              Dim2 = Dim2+dotSize*0.01)
 
-    fig <- fig %>% add_annotations(data = w,x = ~Dim1, y = ~Dim2, xref = 'x1', yref = 'y',
-                                   text = ~labelToPlot,
-                                   font = list(family = 'sans serif', size = labelsize, color = w$font.color[1]), #'rgb(79, 121, 66)'),
-                                   showarrow = FALSE)
+    if (max(hull_data$groups>1)){
+      hull_df <- hull_data %>% dplyr::filter(.data$groups==i)
+      fig <- fig  %>%
+        add_polygons(x = hull_df$Dim1, y=hull_df$Dim2, inherit = FALSE, showlegend = FALSE,
+                     color = I(hull_df$color[1]), opacity=0.3, line=list(width=0),
+                     text=paste0("Cluster ",i), hoverinfo = 'text', hoveron="points")
+    }
+
+    fig <- fig %>%
+      add_annotations(data = w, x = ~Dim1, y = ~Dim2, xref = 'x1', yref = 'y',
+                      text = ~labelToPlot,
+                      font = list(family = 'sans serif', size = labelsize, color = w$font.color[1]),
+                      showarrow = FALSE)
   }
 
   fig <- fig %>% config(displaylogo = FALSE,
