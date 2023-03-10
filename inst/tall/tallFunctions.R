@@ -246,7 +246,7 @@ freqByPos <- function(df, term="lemma", pos="NOUN"){
 }
 
 # freqPlotly ----
-freqPlotly <- function(dfPlot,x,y,n=10, xlabel,ylabel, scale=c("identity", "log"), topicmodel=FALSE, color="#4F7942"){
+freqPlotly <- function(dfPlot,x,y,n=10, xlabel,ylabel, scale=c("identity", "log"), topicmodel=FALSE, color="#4F7942", decimal=0){
   # function to build and plot plotly horizontal barplot
   dfPlot <- dfPlot %>% dplyr::slice_head(n=n)
   xmax <- max(dfPlot[[x]])
@@ -260,15 +260,17 @@ freqPlotly <- function(dfPlot,x,y,n=10, xlabel,ylabel, scale=c("identity", "log"
   )
 
   if (isTRUE(topicmodel)){
-    fig1 <- plot_ly(data=dfPlot , x = dfPlot[[x]], y = dfPlot[[y]],
+    fig1 <- plot_ly(data=dfPlot , x = round(dfPlot[[x]], decimal), y = dfPlot[[y]],
                     type = 'bar', orientation = 'h',
                     marker = list(color = paste0(color,"60"),
-                                  line = list(color = color, width = 1)))
+                                  line = list(color = color, width = 1)),
+                    hovertemplate = "<b>Word</b>: <i>%{y}</i> <br><b><i>Value: %{x}</i></b><extra></extra>")
   } else {
     fig1 <- plot_ly(data=dfPlot , x = dfPlot[[x]], y = ~reorder(dfPlot[[y]], dfPlot[[x]]),
                     type = 'bar', orientation = 'h',
                     marker = list(color = paste0(color,"60"),
-                                  line = list(color = color, width = 1)))
+                                  line = list(color = color, width = 1)),
+                    hovertemplate = "<b><i>Word: %{y}</i></b> <br> <b><i>Value: %{x}</i></b><extra></extra>")
   }
 
   fig1 <- fig1 %>% layout(yaxis = list(title =ylabel, showgrid = FALSE, showline = FALSE, showticklabels = TRUE, domain= c(0, 1)),
@@ -276,9 +278,13 @@ freqPlotly <- function(dfPlot,x,y,n=10, xlabel,ylabel, scale=c("identity", "log"
                           plot_bgcolor  = "rgba(0, 0, 0, 0)",
                           paper_bgcolor = "rgba(0, 0, 0, 0)")
 
+  if (decimal>0) {
+    ann_text <- format(round(dfPlot[[x]], decimal), nsmall = decimal)
+  } else {ann_text <- dfPlot[[x]]}
+
   fig1 <- fig1 %>% add_annotations(xref = 'x1', yref = 'y',
                                    x = dfPlot[[x]] + xmax*0.015,  y = dfPlot[[y]],
-                                   text = dfPlot[[x]],
+                                   text = ann_text,
                                    font = list(family = 'Arial', size = 12, color = color),
                                    showarrow = FALSE) %>%
     config(displaylogo = FALSE,
@@ -1199,7 +1205,26 @@ tmTuningPlot <- function(result, metric){
 }
 
 ### model estimation
-tmEstimate <- function(dfTag, K, group=c("doc_id", "sentence_id"), term="lemma", n=100, top_by=c("freq","tfidf")){
+
+tmTopicPlot <- function(beta, topic=1, nPlot=10){
+
+  dfPlot <- beta %>%
+    select(word, any_of(topic))
+  names(dfPlot)[2] <- "y"
+  dfPlot <- dfPlot %>% arrange(desc(y)) %>%
+    mutate(word = factor(word, levels = unique(word)[order(y, decreasing = FALSE)]))
+
+  fig <- freqPlotly(dfPlot,x="y", y="word", n=nPlot, ylabel="Words", xlabel="Beta Probability",
+                    scale="identity", topicmodel = TRUE, colorlist()[topic], decimal = 4)
+  return(fig)
+
+}
+
+
+
+tmTuning <- function(dfTag, group=c("doc_id", "sentence_id"), term="lemma",
+                     metric=c("CaoJuan2009",  "Deveaud2014", "Arun2010", "Griffiths2004"),
+                     n=100, top_by=c("freq","tfidf"), minK=2, maxK=20, Kby=1){
 
   x <- dfTag %>% dplyr::filter(POSSelected)
   x$topic_level_id <- unique_identifier(x, fields = group)
@@ -1217,45 +1242,16 @@ tmEstimate <- function(dfTag, K, group=c("doc_id", "sentence_id"), term="lemma",
          }
   )
 
-  # compute the LDA model, inference via 1000 iterations of Gibbs sampling
-
-  topicModel <- LDA(dtm, K, method="Gibbs", control=list(iter = 500, verbose = 25))
-
-  # have a look a some of the results (posterior distributions)
-  tmResult <- posterior(topicModel)
-
-  # topics are probability distributions over the entire vocabulary
-  beta <- t(tmResult$terms) %>%
-    as.data.frame() %>%
-    mutate(word=colnames(beta))   # get beta from results
-  # K distributions over nTerms(DTM) terms
-
-  beta_norm <- beta/matrix(colSums(beta),K,ncol(beta), byrow = TRUE)
-  beta_norm <- t(beta_norm) %>%
-    as.data.frame() %>%
-    mutate(word=colnames(beta_norm))
-
-  # for every document we have a probability distribution of its contained topics
-  theta <- tmResult$topics
-
-  results <- list(topicModel=topicModel, tmResult=tmResult, beta=beta, beta_norm=beta_norm, theta=theta)
-
-  return(results)
-
-}
-
-tmTopicPlot <- function(beta, topic=1, nPlot=10){
-
-  dfPlot <- beta %>%
-    select(word, any_of(topic))
-  names(dfPlot)[2] <- "y"
-  dfPlot <- dfPlot %>% arrange(desc(y)) %>%
-    mutate(y=round(y,3),
-           word = factor(word, levels = unique(word)[order(y, decreasing = FALSE)]))
-
-  fig <- freqPlotly(dfPlot,x="y", y="word", n=nPlot, ylabel="Words", xlabel="Beta Probability", scale="identity", topicmodel = TRUE, colorlist()[topic])
-  return(fig)
-
+  ## find optimal number of topics K using the librare ldatuning
+  result <- ldatuning::FindTopicsNumber(
+    dtm,
+    topics = seq(from = minK, to = maxK, by = Kby),
+    metrics = metric,
+    method = "Gibbs",
+    control = list(seed = 77),
+    verbose = TRUE
+  )
+  return(result)
 }
 
 ### EXCEL REPORT FUNCTIONS ----
