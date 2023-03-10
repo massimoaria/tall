@@ -1024,10 +1024,6 @@ server <- function(input, output, session){
     output$caPlot <- renderPlotly({
       caPlotFunction()
       values$plotCA
-      # values$CAdimY <- as.numeric(input$dimPlotCA)*2
-      # values$CAdimX <- values$CAdimY-1
-      # values$plotCA <- ca2plotly(values$CA, dimX = values$CAdimX, dimY = values$CAdimY, topWordPlot = input$nCA, threshold=0.03, labelsize = input$labelsizeCA, size=input$sizeCA)
-      #########
     })
 
     output$caDendrogram <- renderVisNetwork({
@@ -1253,6 +1249,37 @@ server <- function(input, output, session){
   ## DOCUMENTS ----
 
   ## Topic Modeling ----
+
+    netTMKselect <- eventReactive(
+      ignoreNULL = TRUE,
+      eventExpr = {input$d_tm_selectApply},
+      valueExpr ={
+        group =c("doc_id")
+        metric <- c("CaoJuan2009")
+        n=100
+        minK=2
+        maxK=20
+        Kby=1
+        top_by="freq"
+        values$TMKresult <- tmTuning(values$dfTag, group=group, term="lemma",
+                                     metric=metric, n=n, top_by=top_by, minK=minK, maxK=maxK, Kby=Kby)
+        values$TMKplot <- tmTuningPlot(values$TMKresult, metric=metric)
+      }
+    )
+
+    output$d_tm_selectPlot <- renderPlotly({
+      netTMKselect()
+      values$TMKplot
+    })
+
+    output$d_tm_selectTable <- renderDataTable({
+      df <- values$TMKresult %>% arrange(topics) %>%
+        rename("N. of Topics" = topics)
+      df$Normalized <- (df[,2]-min(df[,2]))/diff(range(df[,2]))
+
+      DTformat(df, numeric=c(2,3), round=2, nrow=nrow(df), size="110%")
+    })
+
 
   ## Clustering ----
 

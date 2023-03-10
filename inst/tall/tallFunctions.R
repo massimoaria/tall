@@ -246,7 +246,7 @@ freqByPos <- function(df, term="lemma", pos="NOUN"){
 }
 
 # freqPlotly ----
-freqPlotly <- function(dfPlot,x,y,n=10, xlabel,ylabel, scale=c("identity", "log")){
+freqPlotly <- function(dfPlot,x,y,n=10, xlabel,ylabel, scale=c("identity", "log"), topicmodel=FALSE, color="#4F7942"){
   # function to build and plot plotly horizontal barplot
   dfPlot <- dfPlot %>% dplyr::slice_head(n=n)
   xmax <- max(dfPlot[[x]])
@@ -259,10 +259,17 @@ freqPlotly <- function(dfPlot,x,y,n=10, xlabel,ylabel, scale=c("identity", "log"
          }
   )
 
-  fig1 <- plot_ly(data=dfPlot , x = dfPlot[[x]], y = ~reorder(dfPlot[[y]], dfPlot[[x]]),
-                  type = 'bar', orientation = 'h',
-                  marker = list(color = 'rgba(79, 121, 66, 0.6)',
-                                line = list(color = 'rgba(79, 121, 66, 1.0)', width = 1)))
+  if (isTRUE(topicmodel)){
+    fig1 <- plot_ly(data=dfPlot , x = dfPlot[[x]], y = dfPlot[[y]],
+                    type = 'bar', orientation = 'h',
+                    marker = list(color = paste0(color,"60"),
+                                  line = list(color = color, width = 1)))
+  } else {
+    fig1 <- plot_ly(data=dfPlot , x = dfPlot[[x]], y = ~reorder(dfPlot[[y]], dfPlot[[x]]),
+                    type = 'bar', orientation = 'h',
+                    marker = list(color = paste0(color,"60"),
+                                  line = list(color = color, width = 1)))
+  }
 
   fig1 <- fig1 %>% layout(yaxis = list(title =ylabel, showgrid = FALSE, showline = FALSE, showticklabels = TRUE, domain= c(0, 1)),
                           xaxis = list(title = xlabel, zeroline = FALSE, showline = FALSE, showticklabels = TRUE, showgrid = FALSE),
@@ -272,7 +279,7 @@ freqPlotly <- function(dfPlot,x,y,n=10, xlabel,ylabel, scale=c("identity", "log"
   fig1 <- fig1 %>% add_annotations(xref = 'x1', yref = 'y',
                                    x = dfPlot[[x]] + xmax*0.015,  y = dfPlot[[y]],
                                    text = dfPlot[[x]],
-                                   font = list(family = 'Arial', size = 12, color = 'rgb(79, 121, 66)'),
+                                   font = list(family = 'Arial', size = 12, color = color),
                                    showarrow = FALSE) %>%
     config(displaylogo = FALSE,
            modeBarButtonsToRemove = c(
@@ -917,7 +924,7 @@ network <- function(dfTag, term="lemma", group=c("doc_id", "sentence_id"), n, mi
     rename(group_from=group) %>%
     left_join(nodes %>% select(id,group), by=c("to"="id")) %>%
     rename(group_to = group) %>%
-    mutate(color = ifelse(group_from==group_to, paste0(substr(color,1,7),"30"), interColor))
+    mutate(color = ifelse(group_from==group_to, paste0(substr(color,1,7),"20"), interColor))
 
   obj <- list(nodes=nodes, edges=edges)
 }
@@ -1108,6 +1115,148 @@ grako2vis <- function(nodes, edges){
     visLegend(addEdges = ledges, addNodes = lnodes, useGroups = FALSE, width = 0.1)
 }
 
+
+#### TOPIC MODELING ----
+
+### model tuning
+tmTuning <- function(dfTag, group=c("doc_id", "sentence_id"), term="lemma",
+                     metric=c("CaoJuan2009",  "Deveaud2014", "Arun2010", "Griffiths2004"),
+                     n=100, top_by=c("freq","tfidf"), minK=2, maxK=20, Kby=1){
+
+  x <- dfTag %>% dplyr::filter(POSSelected)
+  x$topic_level_id <- unique_identifier(x, fields = group)
+
+  dtf <- document_term_frequencies(x, document = "topic_level_id", term = "lemma")
+
+  dtm <- document_term_matrix(x = dtf)
+
+  switch(top_by,
+         freq={
+           dtm <- dtm_remove_lowfreq(dtm, maxterms = n)
+         },
+         tfidf={
+           dtm <- dtm_remove_tfidf(dtm, top = n)
+         }
+  )
+
+  ## find optimal number of topics K using the librare ldatuning
+  result <- ldatuning::FindTopicsNumber(
+    dtm,
+    topics = seq(from = minK, to = maxK, by = Kby),
+    metrics = metric,
+    method = "Gibbs",
+    control = list(seed = 77),
+    verbose = TRUE
+  )
+  return(result)
+}
+
+tmTuningPlot <- function(result, metric){
+  df <- result
+  names(df) <- c("x","y")
+  df <- df %>%
+    mutate(y = (y-min(y))/diff(range(y)))
+
+  hoverText <- paste(" <b>Topic ", df$x,"</b>\n ",metric, ": ",
+                     round(df$y,2), sep="")
+
+  fig <- plot_ly(df, x = ~x, y = ~y, type = 'scatter', mode = 'markers+lines',
+                 line = list(color="#6CC28360", width=2),
+                 marker = list(
+                   size = 5,
+                   color = "#6CC283", #'rgb(79, 121, 66, .5)',
+                   line = list(color = "#6CC283", #'rgb(79, 121, 66, .8)',
+                               width = 2)
+                 ),
+                 text = hoverText,
+                 hoverinfo = 'text') %>%
+    layout(title = paste0("K selection by ",metric," metric"),
+           paper_bgcolor='rgb(255,255,255)', plot_bgcolor='rgb(255,255,255)',
+           xaxis = list(title = "Topics",
+                        gridcolor = 'rgb(229,229,229)',
+                        showgrid = TRUE,
+                        showline = FALSE,
+                        showticklabels = TRUE,
+                        tickcolor = 'rgb(229,229,229)',
+                        ticks = 'outside',
+                        zeroline = TRUE,
+                        range = c(0, max(df$x)+1),
+                        dtick = 1,
+                        tick0 = 0),
+           yaxis = list(title = metric,
+                        gridcolor = 'rgb(229,229,229)',
+                        showgrid = FALSE,
+                        showline = FALSE,
+                        showticklabels = TRUE,
+                        tickcolor = 'rgb(229,229,229)',
+                        ticks = 'inside',
+                        zeroline = TRUE,
+                        range = c(-0.02, 1.05),
+                        dtick = 0.20,
+                        tick0 = 0),
+           showlegend = FALSE)
+  return(fig)
+}
+
+### model estimation
+tmEstimate <- function(dfTag, K, group=c("doc_id", "sentence_id"), term="lemma", n=100, top_by=c("freq","tfidf")){
+
+  x <- dfTag %>% dplyr::filter(POSSelected)
+  x$topic_level_id <- unique_identifier(x, fields = group)
+
+  dtf <- document_term_frequencies(x, document = "topic_level_id", term = "lemma")
+
+  dtm <- document_term_matrix(x = dtf)
+
+  switch(top_by,
+         freq={
+           dtm <- dtm_remove_lowfreq(dtm, maxterms = n)
+         },
+         tfidf={
+           dtm <- dtm_remove_tfidf(dtm, top = n)
+         }
+  )
+
+  # compute the LDA model, inference via 1000 iterations of Gibbs sampling
+
+  topicModel <- LDA(dtm, K, method="Gibbs", control=list(iter = 500, verbose = 25))
+
+  # have a look a some of the results (posterior distributions)
+  tmResult <- posterior(topicModel)
+
+  # topics are probability distributions over the entire vocabulary
+  beta <- t(tmResult$terms) %>%
+    as.data.frame() %>%
+    mutate(word=colnames(beta))   # get beta from results
+  # K distributions over nTerms(DTM) terms
+
+  beta_norm <- beta/matrix(colSums(beta),K,ncol(beta), byrow = TRUE)
+  beta_norm <- t(beta_norm) %>%
+    as.data.frame() %>%
+    mutate(word=colnames(beta_norm))
+
+  # for every document we have a probability distribution of its contained topics
+  theta <- tmResult$topics
+
+  results <- list(topicModel=topicModel, tmResult=tmResult, beta=beta, beta_norm=beta_norm, theta=theta)
+
+  return(results)
+
+}
+
+tmTopicPlot <- function(beta, topic=1, nPlot=10){
+
+  dfPlot <- beta %>%
+    select(word, any_of(topic))
+  names(dfPlot)[2] <- "y"
+  dfPlot <- dfPlot %>% arrange(desc(y)) %>%
+    mutate(y=round(y,3),
+           word = factor(word, levels = unique(word)[order(y, decreasing = FALSE)]))
+
+  fig <- freqPlotly(dfPlot,x="y", y="word", n=nPlot, ylabel="Words", xlabel="Beta Probability", scale="identity", topicmodel = TRUE, colorlist()[topic])
+  return(fig)
+
+}
 
 ### EXCEL REPORT FUNCTIONS ----
 addDataWb <- function(list_df, wb, sheetname){
@@ -1407,7 +1556,9 @@ menuList <- function(menu){
                                menuSubItem("Word co-occurence", tabName = "w_networkCooc", icon = icon("chevron-right")),
                                menuSubItem("Grako", tabName = "w_networkGrako", icon = icon("chevron-right")))),
                       menuItem("Documents",tabName = "documents", icon = icon(name="duplicate", lib="glyphicon"),
-                               menuSubItem("Topic Modeling", tabName = "d_topicMod", icon = icon("chevron-right")),
+                               menuItem("Topic Modeling", tabName = "d_topicMod", icon = icon("chevron-right"),
+                                        menuSubItem("K choice", tabName = "d_tm_select", icon = icon("chevron-right")),
+                                        menuSubItem("Model Estimation", tabName = "d_tm_estim", icon = icon("chevron-right"))),
                                menuSubItem("Clustering", tabName = "d_clustering", icon = icon("chevron-right")),
                                menuSubItem("Network", tabName = "d_network", icon = icon("chevron-right")),
                                menuSubItem("Summarization", tabName = "d_summarization", icon = icon("chevron-right")),

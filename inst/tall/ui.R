@@ -1431,30 +1431,30 @@ body <- dashboardBody(
 
     ### Topic Modeling ----
 
-    tabItem(tabName = "d_topicMod",
+    tabItem(tabName = "d_tm_select",
             fluidPage(
               fluidRow(
                 column(8,
-                       h3(strong("Topic Modeling"), align = "center")),
+                       h3(strong("Topic Modeling: Optimal selection of topic number"), align = "center")),
                 div(
                   title = t_run,
                   column(1,
                          do.call("actionButton", c(run_bttn, list(
-                           inputId = "d_topicModApply")
+                           inputId = "d_tm_selectApply")
                          ))
                   )),
                 div(
                   title = t_export,
                   column(1,
                          do.call("downloadButton", c(export_bttn, list(
-                           outputId = "d_topicModExport")
+                           outputId = "d_tm_selectExport")
                          ))
                   )),
                 div(
                   title = t_report,
                   column(1,
                          do.call("actionButton", c(report_bttn, list(
-                           inputId = "d_topicModReport")
+                           inputId = "d_tm_selectReport")
                          ))
                   )),
                 div(column(1,
@@ -1474,11 +1474,66 @@ body <- dashboardBody(
               fluidRow(
                 tabsetPanel(type = "tabs",
                             tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "d_topicModPlot", height = "75vh",width ="98.9%"),
+                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "d_tm_selectPlot", height = "75vh",width ="98.9%"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
                             tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("d_topicModTable"),
+                                     shinycssloaders::withSpinner(DT::DTOutput("d_tm_selectTable"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            )
+                )
+              )
+            )
+    ),
+
+    tabItem(tabName = "d_tm_estim",
+            fluidPage(
+              fluidRow(
+                column(8,
+                       h3(strong("Topic Modeling: Model estimation"), align = "center")),
+                div(
+                  title = t_run,
+                  column(1,
+                         do.call("actionButton", c(run_bttn, list(
+                           inputId = "d_tm_estimApply")
+                         ))
+                  )),
+                div(
+                  title = t_export,
+                  column(1,
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "d_tm_estimExport")
+                         ))
+                  )),
+                div(
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "d_tm_estimReport")
+                         ))
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             hr(),
+                             # inserire opzioni....
+                             tooltip = tooltipOptions(title = "Options"),
+                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             right = TRUE, animate = TRUE,
+                             style = "material-circle"
+                           )
+                ),
+                style = style_opt
+                )
+              ),
+              fluidRow(
+                tabsetPanel(type = "tabs",
+                            tabPanel("Plot",
+                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "d_tm_estimPlot", height = "75vh",width ="98.9%"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            ),
+                            tabPanel("Table",
+                                     shinycssloaders::withSpinner(DT::DTOutput("d_tm_estimTable"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             )
                 )
