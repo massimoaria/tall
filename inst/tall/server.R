@@ -1250,20 +1250,15 @@ server <- function(input, output, session){
 
   ## Topic Modeling ----
 
+    ## K choice ----
+
     netTMKselect <- eventReactive(
       ignoreNULL = TRUE,
       eventExpr = {input$d_tm_selectApply},
       valueExpr ={
-        group =c("doc_id")
-        metric <- c("CaoJuan2009")
-        n=100
-        minK=2
-        maxK=20
-        Kby=1
-        top_by="freq"
-        values$TMKresult <- tmTuning(values$dfTag, group=group, term="lemma",
-                                     metric=metric, n=n, top_by=top_by, minK=minK, maxK=maxK, Kby=Kby)
-        values$TMKplot <- tmTuningPlot(values$TMKresult, metric=metric)
+        values$TMKresult <- tmTuning(values$dfTag, group=input$groupTm, term=input$termTm,
+                                     metric=input$metric, n=input$nTm, top_by=input$top_by, minK=input$minK, maxK=input$maxK, Kby=input$Kby)
+        values$TMKplot <- tmTuningPlot(values$TMKresult, metric=input$metric)
       }
     )
 
@@ -1278,6 +1273,45 @@ server <- function(input, output, session){
       df$Normalized <- (df[,2]-min(df[,2]))/diff(range(df[,2]))
 
       DTformat(df, numeric=c(2,3), round=2, nrow=nrow(df), size="110%")
+    })
+
+
+    ## Model estimation
+    netTMestim <- eventReactive(
+      ignoreNULL = TRUE,
+      eventExpr = {input$d_tm_estimApply},
+      valueExpr ={
+        values$TMestim_result <- tmEstimate(values$dfTag, input$KEstim, group=input$groupTmEstim, term=input$termTmEstim, n=input$nTmEstim, top_by=input$top_byEstim)
+
+        values$TMestim_plot <- tmTopicPlot(values$TMestim_result, topic=1, nPlot=input$nTopicPlot)
+      }
+    )
+
+    # output$d_tm_estimTPlot <- renderPlotly({
+    #   netTMestim()
+    #   values$TMestim_plot
+    #   })
+
+    output$d_tm_estimBpTable <- renderDataTable({
+
+      ### BETA PROBABILITY
+
+      #DTformat(df, numeric=c(2,3), round=2, nrow=nrow(df), size="110%")
+    })
+
+    # output$d_tm_estimDPlot <- renderPlotly({
+    #   netTMestim()
+
+    # ## DOCUMENT PLOT
+
+    #   values$TMestim_plot
+    #   })
+
+    output$d_tm_estimTpTable <- renderDataTable({
+
+      ### THETA PROBABILITY
+
+      #DTformat(df, numeric=c(2,3), round=2, nrow=nrow(df), size="110%")
     })
 
 

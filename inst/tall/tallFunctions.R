@@ -1201,30 +1201,26 @@ tmTuningPlot <- function(result, metric){
                         dtick = 0.20,
                         tick0 = 0),
            showlegend = FALSE)
+
+    fig <- fig %>% config(displaylogo = FALSE,
+                          modeBarButtonsToRemove = c(
+                            #'toImage',
+                            'sendDataToCloud',
+                            'pan2d',
+                            'select2d',
+                            'lasso2d',
+                            'toggleSpikelines',
+                            'hoverClosestCartesian',
+                            'hoverCompareCartesian'
+                          )) %>%
+    event_register("plotly_selecting")
+
   return(fig)
 }
 
 ### model estimation
 
-tmTopicPlot <- function(beta, topic=1, nPlot=10){
-
-  dfPlot <- beta %>%
-    select(word, any_of(topic))
-  names(dfPlot)[2] <- "y"
-  dfPlot <- dfPlot %>% arrange(desc(y)) %>%
-    mutate(word = factor(word, levels = unique(word)[order(y, decreasing = FALSE)]))
-
-  fig <- freqPlotly(dfPlot,x="y", y="word", n=nPlot, ylabel="Words", xlabel="Beta Probability",
-                    scale="identity", topicmodel = TRUE, colorlist()[topic], decimal = 4)
-  return(fig)
-
-}
-
-
-
-tmTuning <- function(dfTag, group=c("doc_id", "sentence_id"), term="lemma",
-                     metric=c("CaoJuan2009",  "Deveaud2014", "Arun2010", "Griffiths2004"),
-                     n=100, top_by=c("freq","tfidf"), minK=2, maxK=20, Kby=1){
+tmEstimate <- function(dfTag, K, group=c("doc_id", "sentence_id"), term="lemma", n=100, top_by=c("freq","tfidf")){
 
   x <- dfTag %>% dplyr::filter(POSSelected)
   x$topic_level_id <- unique_identifier(x, fields = group)
@@ -1242,16 +1238,61 @@ tmTuning <- function(dfTag, group=c("doc_id", "sentence_id"), term="lemma",
          }
   )
 
-  ## find optimal number of topics K using the librare ldatuning
-  result <- ldatuning::FindTopicsNumber(
-    dtm,
-    topics = seq(from = minK, to = maxK, by = Kby),
-    metrics = metric,
-    method = "Gibbs",
-    control = list(seed = 77),
-    verbose = TRUE
-  )
-  return(result)
+  # compute the LDA model, inference via 1000 iterations of Gibbs sampling
+
+  topicModel <- LDA(dtm, K, method="Gibbs", control=list(iter = 500, verbose = 25))
+
+  # have a look a some of the results (posterior distributions)
+  tmResult <- posterior(topicModel)
+
+  # topics are probability distributions over the entire vocabulary
+  beta <- tmResult$terms # get beta from results
+  # K distributions over nTerms(DTM) terms
+
+  beta_norm <- beta/matrix(colSums(beta),K,ncol(beta), byrow = TRUE)
+  beta_norm <- t(beta_norm) %>%
+    as.data.frame() %>%
+    mutate(word=colnames(beta_norm))
+
+  beta <- t(beta) %>%
+    as.data.frame() %>%
+    mutate(word=colnames(beta))
+  # for every document we have a probability distribution of its contained topics
+  theta <- tmResult$topics
+
+  results <- list(topicModel=topicModel, tmResult=tmResult, beta=beta, beta_norm=beta_norm, theta=theta)
+
+  return(results)
+
+}
+
+
+tmTopicPlot <- function(beta, topic=1, nPlot=10){
+
+  dfPlot <- beta %>%
+    select(word, any_of(topic))
+  names(dfPlot)[2] <- "y"
+  dfPlot <- dfPlot %>% arrange(desc(y)) %>%
+    mutate(word = factor(word, levels = unique(word)[order(y, decreasing = FALSE)]))
+
+  fig <- freqPlotly(dfPlot,x="y", y="word", n=nPlot, ylabel="Words", xlabel="Beta Probability",
+                    scale="identity", topicmodel = TRUE, colorlist()[topic], decimal = 4)
+
+  fig <- fig %>% config(displaylogo = FALSE,
+                        modeBarButtonsToRemove = c(
+                          #'toImage',
+                          'sendDataToCloud',
+                          'pan2d',
+                          'select2d',
+                          'lasso2d',
+                          'toggleSpikelines',
+                          'hoverClosestCartesian',
+                          'hoverCompareCartesian'
+                        )) %>%
+    event_register("plotly_selecting")
+
+  return(fig)
+
 }
 
 ### EXCEL REPORT FUNCTIONS ----
