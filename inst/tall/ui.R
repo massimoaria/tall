@@ -89,9 +89,9 @@ body <- dashboardBody(
     ### TALL PAGE ----
     tabItem(tabName = "tall",
             fluidRow(
-              h1(strong("TALL"), align="center"),
+              h1(strong("TAll"), align="center"),
               br(),
-              h3("Text Analysis for aLL",align = "center"),
+              h3("Text analysis for All",align = "center"),
               br(),
               div(p("Powered by ",
                     em(a("K-Synth",
@@ -1430,11 +1430,12 @@ body <- dashboardBody(
     ### DOCUMENTS ----
 
     ### Topic Modeling ----
+    ### K choice ----
 
     tabItem(tabName = "d_tm_select",
             fluidPage(
               fluidRow(
-                column(8,
+                column(9,
                        h3(strong("Topic Modeling: Optimal selection of topic number"), align = "center")),
                 div(
                   title = t_run,
@@ -1456,24 +1457,25 @@ body <- dashboardBody(
                          do.call("actionButton", c(report_bttn, list(
                            inputId = "d_tm_selectReport")
                          ))
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             hr(),
-                             # inserire opzioni....
-                             tooltip = tooltipOptions(title = "Options"),
-                             width = "220px", icon = icon("cog", lib="glyphicon"),
-                             right = TRUE, animate = TRUE,
-                             style = "material-circle"
-                           )
-                ),
-                style = style_opt
-                )
+                  ))#,
+                # div(column(1,
+                #            dropdown(
+                #              h4(strong("Options: ")),
+                #              hr(),
+                #              # inserire opzioni....
+                #              tooltip = tooltipOptions(title = "Options"),
+                #              width = "220px", icon = icon("cog", lib="glyphicon"),
+                #              right = TRUE, animate = TRUE,
+                #              style = "material-circle"
+                #            )
+                # ),
+                # style = style_opt
+                # )
               ),
               fluidRow(
+                column(9,
                 tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
+                            tabPanel("Tuning Plot",
                                      shinycssloaders::withSpinner(plotlyOutput(outputId = "d_tm_selectPlot", height = "75vh",width ="98.9%"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
@@ -1482,9 +1484,80 @@ body <- dashboardBody(
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             )
                 )
+                ),
+                column(3,
+                       div(
+                         box(
+                           width = 12,
+                           div(h3(strong(em("Find optimal K"))), style="margin-top:-57px"),
+                           tags$hr(),
+                           style="text-align: left; text-color: #989898",
+                           selectInput(
+                             inputId = "groupTm",
+                             label = "Groups",
+                             choices = c("Docs"="doc_id",
+                                         "Sentences"="sentence_id"),
+                             selected = "doc_id"
+                           ),
+                           selectInput("metric", "Metric for model tuning",
+                                       choices = c(
+                                         "CaoJuan-2009"="CaoJuan2009",
+                                         "Deveaud-2014"="Deveaud2014",
+                                         "Arun-2010"="Arun2010",
+                                         "Griffiths-2004"="Griffiths2004"
+                                       ),
+                                       selected = "CaoJuan2009"
+                           ),
+                           fluidRow(column(6,
+                           selectInput("termTm", "Terms:",
+                                       choices = c(
+                                         "Tokens"="token",
+                                         "Lemmas"="lemma"),
+                                       selected = "lemma"
+                           )),
+                           column(6,
+                           numericInput("nTm",
+                                        label = "N. of terms",
+                                        value = 100,
+                                        min = 1,
+                                        step=1))
+                           ),
+                           selectInput("top_by", "Terms selection by:",
+                                       choices = c(
+                                         "Frequency"="freq",
+                                         "TF-IDF"="tfidf"),
+                                       selected = "freq"
+                           ),
+                           fluidRow(column(4,
+                           numericInput("minK",
+                                        label = "K min",
+                                        value = 2,
+                                        min = 2,
+                                        step=1)
+                           ),
+                           column(4,
+                           numericInput("maxK",
+                                        label = "K max",
+                                        value = 20,
+                                        min = 3,
+                                        step=1)
+                           ),
+                           column(4,
+                           numericInput("Kby",
+                                        label = "K by:",
+                                        value = 1,
+                                        min = 1,
+                                        step=1)
+                           )
+                           )
+                         ),style="margin-top:40px"
+                       )
+                )
               )
             )
     ),
+
+    ### Model estimation ----
 
     tabItem(tabName = "d_tm_estim",
             fluidPage(
@@ -1516,27 +1589,75 @@ body <- dashboardBody(
                            dropdown(
                              h4(strong("Options: ")),
                              hr(),
-                             # inserire opzioni....
+                             fluidRow(column(6,
+                                             numericInput("KEstim",
+                                                          label = "N. of Topics (K)",
+                                                          value = 2,
+                                                          min = 2,
+                                                          step=1)
+                             ),
+                             column(6,
+                                    selectInput(
+                                      inputId = "groupTmEstim",
+                                      label = "Groups",
+                                      choices = c("Docs"="doc_id",
+                                                  "Sentences"="sentence_id"),
+                                      selected = "doc_id")
+                             )
+                             ),
+                             fluidRow(
+                               column(6,
+                                      selectInput("termTmEstim", "Terms:",
+                                                  choices = c(
+                                                    "Tokens"="token",
+                                                    "Lemmas"="lemma"),
+                                                  selected = "lemma"
+                                      )),
+                               column(6,
+                                      numericInput("nTmEstim",
+                                                   label = "N. of terms",
+                                                   value = 100,
+                                                   min = 1,
+                                                   step=1))
+                             ),
+                             selectInput("top_byEstim", "Terms selection by:",
+                                         choices = c(
+                                           "Frequency"="freq",
+                                           "TF-IDF"="tfidf"),
+                                         selected = "freq"),
+                             hr(),
+                             numericInput("nTopicPlot",
+                                          label = "N. of Topic to plot",
+                                          value = 1,
+                                          min = 1,
+                                          step=1),
                              tooltip = tooltipOptions(title = "Options"),
-                             width = "220px", icon = icon("cog", lib="glyphicon"),
+                             width = "300px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
-                             style = "material-circle"
-                           )
+                             style = "material-circle")
                 ),
                 style = style_opt
                 )
               ),
-              fluidRow(
-                tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "d_tm_estimPlot", height = "75vh",width ="98.9%"),
+              tabsetPanel(type = "tabs",
+                            tabPanel("Topic Plot",
+                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "d_tm_estimTPlot", height = "75vh",width ="98.9%"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
-                            tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("d_tm_estimTable"),
+                            tabPanel("Beta Probability",
+                                     shinycssloaders::withSpinner(DT::DTOutput("d_tm_estimBpTable"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
-                            )
+                            ),
+                            tabPanel("Document Plot",
+                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "d_tm_estimDPlot", height = "75vh",width ="98.9%"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            ),
+                            tabPanel("Theta Probability",
+                                     shinycssloaders::withSpinner(DT::DTOutput("d_tm_estimTpTable"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+
                 )
+
               )
             )
     ),
