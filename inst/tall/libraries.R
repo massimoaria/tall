@@ -16,8 +16,8 @@ libraries <- function(){
   if (!require(wordcloud2)){install.packages("wordcloud2"); require(wordcloud2, quietly=TRUE)}
   if (!require(visNetwork)){install.packages("visNetwork", dependencies = TRUE); require(visNetwork, quietly=TRUE)}
   if (!require(udpipe)){install.packages("udpipe"); require(udpipe, quietly=TRUE)}
+  if (!require(topicmodels)){install.packages("topicmodels"); require(topicmodels, quietly=TRUE)}
   if (!require(igraph)){install.packages("igraph")}
-
 }
 
 # Custom Theme ----

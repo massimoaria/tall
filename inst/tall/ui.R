@@ -1627,9 +1627,9 @@ body <- dashboardBody(
                                          selected = "freq"),
                              hr(),
                              numericInput("nTopicPlot",
-                                          label = "N. of Topic to plot",
-                                          value = 1,
-                                          min = 1,
+                                          label = "Word per Topic",
+                                          value = 10,
+                                          min = 2,
                                           step=1),
                              tooltip = tooltipOptions(title = "Options"),
                              width = "300px", icon = icon("cog", lib="glyphicon"),
@@ -1641,8 +1641,22 @@ body <- dashboardBody(
               ),
               tabsetPanel(type = "tabs",
                             tabPanel("Topic Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "d_tm_estimTPlot", height = "75vh",width ="98.9%"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                                     fluidRow(
+                                       column(4,
+                                              shinycssloaders::withSpinner(plotlyOutput(outputId = "d_tm_estimTPlot1", height = "75vh",width ="98.9%"),
+                                                                           color = getOption("spinner.color", default = "#4F7942"))),
+                                       column(4,
+                                              shinycssloaders::withSpinner(plotlyOutput(outputId = "d_tm_estimTPlot2", height = "75vh",width ="98.9%"),
+                                                                           color = getOption("spinner.color", default = "#4F7942"))),
+                                       column(4,
+                                              shinycssloaders::withSpinner(plotlyOutput(outputId = "d_tm_estimTPlot3", height = "75vh",width ="98.9%"),
+                                                                           color = getOption("spinner.color", default = "#4F7942")))
+                                     ),
+                                     fluidRow(
+                                       actionButton("TMplotLeft", icon("menu-left", lib = "glyphicon")),
+                                       actionButton("TMplotRight", icon("menu-right", lib = "glyphicon")),
+                                       align="right"
+                                     )
                             ),
                             tabPanel("Beta Probability",
                                      shinycssloaders::withSpinner(DT::DTOutput("d_tm_estimBpTable"),

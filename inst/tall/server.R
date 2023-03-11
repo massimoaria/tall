@@ -37,6 +37,7 @@ server <- function(input, output, session){
   label_lang <- languages$repo
   names(label_lang) <- languages$short
   values$label_lang <- label_lang
+  values$TMplotIndex <- 1
 
   ## Setting plot values
   values$h <- 7
@@ -1276,21 +1277,51 @@ server <- function(input, output, session){
     })
 
 
-    ## Model estimation
+    ## Model estimation ----
     netTMestim <- eventReactive(
       ignoreNULL = TRUE,
       eventExpr = {input$d_tm_estimApply},
       valueExpr ={
-        values$TMestim_result <- tmEstimate(values$dfTag, input$KEstim, group=input$groupTmEstim, term=input$termTmEstim, n=input$nTmEstim, top_by=input$top_byEstim)
-
-        values$TMestim_plot <- tmTopicPlot(values$TMestim_result, topic=1, nPlot=input$nTopicPlot)
+        values$TMplotList <- split(1:input$KEstim, ceiling(seq_along(1:input$KEstim)/3))
+        values$TMestim_result <- tmEstimate(values$dfTag, K=req(input$KEstim), group=input$groupTmEstim,
+                                            term=input$termTmEstim, n=input$nTmEstim, top_by=input$top_byEstim)
       }
     )
 
-    # output$d_tm_estimTPlot <- renderPlotly({
-    #   netTMestim()
-    #   values$TMestim_plot
-    #   })
+    observeEvent(input$TMplotRight,{
+      if (values$TMplotIndex<ceiling(req(input$KEstim)/3)){
+        values$TMplotIndex <- values$TMplotIndex+1
+      }
+    })
+
+    observeEvent(input$TMplotLeft,{
+      if (req(values$TMplotIndex)>1){
+        values$TMplotIndex <- values$TMplotIndex-1
+        }
+    })
+
+    output$d_tm_estimTPlot1 <- renderPlotly({
+      netTMestim()
+      topic1 <- values$TMplotList[[values$TMplotIndex]]
+      values$TMestim_plot1 <- tmTopicPlot(values$TMestim_result$beta, topic=topic1[[1]], nPlot=input$nTopicPlot)
+      values$TMestim_plot1
+      })
+
+    output$d_tm_estimTPlot2 <- renderPlotly({
+      topic2 <- values$TMplotList[[values$TMplotIndex]]
+      if (length(topic2)>=2){
+        values$TMestim_plot2 <- tmTopicPlot(values$TMestim_result$beta, topic=topic2[[2]], nPlot=input$nTopicPlot)
+        values$TMestim_plot2
+      }
+    })
+
+    output$d_tm_estimTPlot3 <- renderPlotly({
+      topic3 <- values$TMplotList[[values$TMplotIndex]]
+      if (length(topic3)==3){
+        values$TMestim_plot3 <- tmTopicPlot(values$TMestim_result$beta, topic=topic3[[3]], nPlot=input$nTopicPlot)
+        values$TMestim_plot3
+      }
+    })
 
     output$d_tm_estimBpTable <- renderDataTable({
 

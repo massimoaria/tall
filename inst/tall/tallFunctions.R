@@ -1276,7 +1276,9 @@ tmTopicPlot <- function(beta, topic=1, nPlot=10){
     mutate(word = factor(word, levels = unique(word)[order(y, decreasing = FALSE)]))
 
   fig <- freqPlotly(dfPlot,x="y", y="word", n=nPlot, ylabel="Words", xlabel="Beta Probability",
-                    scale="identity", topicmodel = TRUE, colorlist()[topic], decimal = 4)
+                    scale="identity", topicmodel = TRUE, colorlist()[topic], decimal = 4) %>%
+    layout(title = paste0("Topic ",topic))
+
 
   fig <- fig %>% config(displaylogo = FALSE,
                         modeBarButtonsToRemove = c(
