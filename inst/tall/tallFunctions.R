@@ -1277,7 +1277,10 @@ tmTopicPlot <- function(beta, topic=1, nPlot=10){
 
   fig <- freqPlotly(dfPlot,x="y", y="word", n=nPlot, ylabel="Words", xlabel="Beta Probability",
                     scale="identity", topicmodel = TRUE, colorlist()[topic], decimal = 4) %>%
-    layout(title = paste0("Topic ",topic))
+    #layout(title = paste0("Topic ",topic))
+    layout(annotations=list(text=paste0("Topic ",topic),xref="paper",x=0.5,
+                     yref="paper",y=1,yshift=30,showarrow=FALSE,
+                     font=list(size=24,color="gray30")))
 
 
   fig <- fig %>% config(displaylogo = FALSE,
