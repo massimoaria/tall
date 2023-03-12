@@ -1282,6 +1282,7 @@ server <- function(input, output, session){
       ignoreNULL = TRUE,
       eventExpr = {input$d_tm_estimApply},
       valueExpr ={
+        #values$TMplotIndex <- 1
         values$TMplotList <- split(1:input$KEstim, ceiling(seq_along(1:input$KEstim)/3))
         values$TMestim_result <- tmEstimate(values$dfTag, K=req(input$KEstim), group=input$groupTmEstim,
                                             term=input$termTmEstim, n=input$nTmEstim, top_by=input$top_byEstim)
@@ -1302,6 +1303,7 @@ server <- function(input, output, session){
 
     output$d_tm_estimTPlot1 <- renderPlotly({
       netTMestim()
+      if (!values$TMplotIndex %in% 1:length(values$TMplotList)) values$TMplotIndex <- 1
       topic1 <- values$TMplotList[[values$TMplotIndex]]
       values$TMestim_plot1 <- tmTopicPlot(values$TMestim_result$beta, topic=topic1[[1]], nPlot=input$nTopicPlot)
       values$TMestim_plot1
@@ -1324,10 +1326,10 @@ server <- function(input, output, session){
     })
 
     output$d_tm_estimBpTable <- renderDataTable({
-
       ### BETA PROBABILITY
-
-      #DTformat(df, numeric=c(2,3), round=2, nrow=nrow(df), size="110%")
+      beta <- values$TMestim_result$beta
+      names(beta)[2:ncol(beta)] <- paste0("Topic ",1:(ncol(beta)-1))
+      DTformat(beta, left=1,numeric=c(2:ncol(values$TMestim_result$beta)), round=4, nrow=10, size="85%", filename = "TopicModel_BetaTable")
     })
 
     # output$d_tm_estimDPlot <- renderPlotly({

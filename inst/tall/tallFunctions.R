@@ -1240,7 +1240,7 @@ tmEstimate <- function(dfTag, K, group=c("doc_id", "sentence_id"), term="lemma",
 
   # compute the LDA model, inference via 1000 iterations of Gibbs sampling
 
-  topicModel <- LDA(dtm, K, method="Gibbs", control=list(iter = 500, verbose = 25))
+  topicModel <- LDA(dtm, K, method="Gibbs", control=list(iter = 500))
 
   # have a look a some of the results (posterior distributions)
   tmResult <- posterior(topicModel)
@@ -1254,9 +1254,12 @@ tmEstimate <- function(dfTag, K, group=c("doc_id", "sentence_id"), term="lemma",
     as.data.frame() %>%
     mutate(word=colnames(beta_norm))
 
+  variables <- as.character(1:K)
   beta <- t(beta) %>%
     as.data.frame() %>%
-    mutate(word=colnames(beta))
+    mutate(word=colnames(beta)) %>%
+    select(word, all_of(variables))
+
   # for every document we have a probability distribution of its contained topics
   theta <- tmResult$topics
 
@@ -1270,7 +1273,7 @@ tmEstimate <- function(dfTag, K, group=c("doc_id", "sentence_id"), term="lemma",
 tmTopicPlot <- function(beta, topic=1, nPlot=10){
 
   dfPlot <- beta %>%
-    select(word, any_of(topic))
+    select(word, any_of(as.character(topic)))
   names(dfPlot)[2] <- "y"
   dfPlot <- dfPlot %>% arrange(desc(y)) %>%
     mutate(word = factor(word, levels = unique(word)[order(y, decreasing = FALSE)]))
