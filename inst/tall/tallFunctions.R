@@ -585,7 +585,7 @@ caClustering <- function(results, method = "ward.D2", nDim=2, nclusters=1){
 
 
 ## CA Plot ----
-ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = 20, threshold=0.03, labelsize=16, size=5){
+ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = Inf, threshold=0.03, labelsize=16, size=5){
 
   xlabel <- paste0("Dim",dimX)
   ylabel <- paste0("Dim",dimY)
@@ -627,6 +627,13 @@ ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = 20, threshold=0
     slice(chull(Dim1, Dim2)) %>%
     rename(color=font.color)
 
+  hull_data <- hull_data %>%
+    bind_rows(
+      hull_data %>% group_by(groups) %>% slice_head(n=1)
+    ) %>%
+    mutate(id = row_number()) %>%
+    arrange(groups,id)
+
 
   hoverText <- paste(" <b>", results$wordCoord$label,"</b>\n Inertia: ", round(results$wordCoord$inertia,3), "\n Mass:   ", round(results$wordCoord$mass,3), sep="")
 
@@ -660,7 +667,7 @@ ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = 20, threshold=0
       hull_df <- hull_data %>% dplyr::filter(.data$groups==i)
       fig <- fig  %>%
         add_polygons(x = hull_df$Dim1, y=hull_df$Dim2, inherit = FALSE, showlegend = FALSE,
-                     color = I(hull_df$color[1]), opacity=0.3, line=list(width=0),
+                     color = I(hull_df$color[1]), opacity=0.3, line=list(width=2),
                      text=paste0("Cluster ",i), hoverinfo = 'text', hoveron="points")
     }
 
@@ -1261,7 +1268,10 @@ tmEstimate <- function(dfTag, K, group=c("doc_id", "sentence_id"), term="lemma",
     select(word, all_of(variables))
 
   # for every document we have a probability distribution of its contained topics
-  theta <- tmResult$topics
+  theta <- tmResult$topics%>%
+    as.data.frame() %>%
+    mutate(doc=unique(x$doc_id)) %>%
+    select(doc, all_of(variables))
 
   results <- list(topicModel=topicModel, tmResult=tmResult, beta=beta, beta_norm=beta_norm, theta=theta)
 
@@ -1276,14 +1286,51 @@ tmTopicPlot <- function(beta, topic=1, nPlot=10){
     select(word, any_of(as.character(topic)))
   names(dfPlot)[2] <- "y"
   dfPlot <- dfPlot %>% arrange(desc(y)) %>%
-    mutate(word = factor(word, levels = unique(word)[order(y, decreasing = FALSE)]))
+    slice_max(y, n=nPlot, with_ties = FALSE) %>%
+    mutate(
+      y = y+runif(nPlot,0,1)/(10^7),
+      word = factor(word, levels = unique(word)[order(y, decreasing = FALSE)]))
 
   fig <- freqPlotly(dfPlot,x="y", y="word", n=nPlot, ylabel="Words", xlabel="Beta Probability",
                     scale="identity", topicmodel = TRUE, colorlist()[topic], decimal = 4) %>%
-    #layout(title = paste0("Topic ",topic))
     layout(annotations=list(text=paste0("Topic ",topic),xref="paper",x=0.5,
                      yref="paper",y=1,yshift=30,showarrow=FALSE,
                      font=list(size=24,color="gray30")))
+
+
+  fig <- fig %>% config(displaylogo = FALSE,
+                        modeBarButtonsToRemove = c(
+                          #'toImage',
+                          'sendDataToCloud',
+                          'pan2d',
+                          'select2d',
+                          'lasso2d',
+                          'toggleSpikelines',
+                          'hoverClosestCartesian',
+                          'hoverCompareCartesian'
+                        )) %>%
+    event_register("plotly_selecting")
+
+  return(fig)
+
+}
+
+tmDocPlot <- function(theta, topic=1, nPlot=10){
+
+  dfPlot <- theta %>%
+    select(doc, any_of(as.character(topic)))
+  names(dfPlot)[2] <- "y"
+  dfPlot <- dfPlot %>% arrange(desc(y)) %>%
+    slice_max(y, n=nPlot, with_ties = FALSE) %>%
+    mutate(
+      y = y+runif(nPlot,0,1)/(10^7),
+      doc = factor(doc, levels = unique(doc)[order(y, decreasing = FALSE)]))
+
+  fig <- freqPlotly(dfPlot,x="y", y="doc", n=nPlot, ylabel="Documents", xlabel="Theta Probability",
+                    scale="identity", topicmodel = TRUE, colorlist()[topic], decimal = 4) %>%
+    layout(annotations=list(text=paste0("Topic ",topic),xref="paper",x=0.5,
+                            yref="paper",y=1,yshift=30,showarrow=FALSE,
+                            font=list(size=24,color="gray30")))
 
 
   fig <- fig %>% config(displaylogo = FALSE,

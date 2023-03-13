@@ -1589,22 +1589,25 @@ body <- dashboardBody(
                            dropdown(
                              h4(strong("Options: ")),
                              hr(),
-                             fluidRow(column(6,
-                                             numericInput("KEstim",
-                                                          label = "N. of Topics (K)",
-                                                          value = 2,
-                                                          min = 2,
-                                                          step=1)
+                             materialSwitch(
+                               inputId = "tmKauto",
+                               label = "Automatic Topic Selection",
+                               value = TRUE,
+                               status = "success"
                              ),
-                             column(6,
-                                    selectInput(
-                                      inputId = "groupTmEstim",
-                                      label = "Groups",
-                                      choices = c("Docs"="doc_id",
-                                                  "Sentences"="sentence_id"),
-                                      selected = "doc_id")
-                             )
+                             conditionalPanel('!input.tmKauto',
+                                              numericInput("KEstim",
+                                                           label = "N. of Topics (K)",
+                                                           value = 2,
+                                                           min = 2,
+                                                           step=1)
                              ),
+                             selectInput(
+                               inputId = "groupTmEstim",
+                               label = "Groups",
+                               choices = c("Docs"="doc_id",
+                                           "Sentences"="sentence_id"),
+                               selected = "doc_id"),
                              fluidRow(
                                column(6,
                                       selectInput("termTmEstim", "Terms:",
@@ -1627,7 +1630,7 @@ body <- dashboardBody(
                                          selected = "freq"),
                              hr(),
                              numericInput("nTopicPlot",
-                                          label = "Word per Topic",
+                                          label = "Word/Docs per Topic",
                                           value = 10,
                                           min = 2,
                                           step=1),
@@ -1640,7 +1643,7 @@ body <- dashboardBody(
                 )
               ),
               tabsetPanel(type = "tabs",
-                            tabPanel("Topic Plot",
+                            tabPanel("Topic by Words Plot",
                                      fluidRow(
                                        column(4,
                                               shinycssloaders::withSpinner(plotlyOutput(outputId = "d_tm_estimTPlot1", height = "75vh",width ="98.9%"),
@@ -1655,17 +1658,31 @@ body <- dashboardBody(
                                      fluidRow(
                                        actionButton("TMplotLeft", icon("menu-left", lib = "glyphicon")),
                                        actionButton("TMplotRight", icon("menu-right", lib = "glyphicon")),
-                                       align="right"
+                                       align="center"
                                      )
                             ),
-                            tabPanel("Beta Probability",
-                                     shinycssloaders::withSpinner(DT::DTOutput("d_tm_estimBpTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            tabPanel("Topic by Docs Plot",
+                                     fluidRow(
+                                       column(4,
+                                              shinycssloaders::withSpinner(plotlyOutput(outputId = "d_tm_DocPlot1", height = "75vh",width ="98.9%"),
+                                                                           color = getOption("spinner.color", default = "#4F7942"))),
+                                       column(4,
+                                              shinycssloaders::withSpinner(plotlyOutput(outputId = "d_tm_DocPlot2", height = "75vh",width ="98.9%"),
+                                                                           color = getOption("spinner.color", default = "#4F7942"))),
+                                       column(4,
+                                              shinycssloaders::withSpinner(plotlyOutput(outputId = "d_tm_DocPlot3", height = "75vh",width ="98.9%"),
+                                                                           color = getOption("spinner.color", default = "#4F7942")))
+                                     ),
+                                     fluidRow(
+                                       actionButton("TMdocLeft", icon("menu-left", lib = "glyphicon")),
+                                       actionButton("TMdocRight", icon("menu-right", lib = "glyphicon")),
+                                       align="center"
+                                     )
                             ),
-                            tabPanel("Document Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "d_tm_estimDPlot", height = "75vh",width ="98.9%"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            ),
+                          tabPanel("Beta Probability",
+                                   shinycssloaders::withSpinner(DT::DTOutput("d_tm_estimBpTable"),
+                                                                color = getOption("spinner.color", default = "#4F7942"))
+                          ),
                             tabPanel("Theta Probability",
                                      shinycssloaders::withSpinner(DT::DTOutput("d_tm_estimTpTable"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))

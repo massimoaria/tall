@@ -38,6 +38,7 @@ server <- function(input, output, session){
   names(label_lang) <- languages$short
   values$label_lang <- label_lang
   values$TMplotIndex <- 1
+  values$TMdocIndex <- 1
 
   ## Setting plot values
   values$h <- 7
@@ -676,8 +677,11 @@ server <- function(input, output, session){
 
     ## Click on Plotly graphs: WORDS IN CONTEXT ----
     observeEvent(event_data("plotly_click"), {
-      #if (input$sidebarmenu=="freqList"){
-      if (input$sidebarmenu %in% c("w_noun","w_propn", "w_adj", "w_verb", "w_other", "ca")){
+      d <- event_data("plotly_click")
+      element <- d$y
+      if (input$sidebarmenu == "d_tm_estim" & element %in% unique(values$dfTag$doc_id)){
+        showModal(plotModalDoc(session))
+      } else if (input$sidebarmenu %in% c("w_noun","w_propn", "w_adj", "w_verb", "w_other", "ca", "d_tm_estim")){
         showModal(plotModalTerm(session))
       }
     })
@@ -687,6 +691,21 @@ server <- function(input, output, session){
       modalDialog(
         h3(strong(("Words in Context"))),
         DTOutput(ns("wordInContext")),
+        size = "l",
+        easyClose = TRUE,
+        footer = tagList(
+          # screenshotButton(label="Save", id = "cocPlotClust",
+          #                  scale = 2,
+          #                  file=paste("TMClusterGraph-", Sys.Date(), ".png", sep="")),
+          modalButton("Close")),
+      )
+    }
+
+    plotModalDoc <- function(session) {
+      ns <- session$ns
+      modalDialog(
+        h3(strong(("Docs in Context"))),
+        DTOutput(ns("docInContext")),
         size = "l",
         easyClose = TRUE,
         footer = tagList(
@@ -715,12 +734,21 @@ server <- function(input, output, session){
         sentences <- values$dfTag %>%
           filter(token %in% word_search) %>%
           ungroup() %>% select(lemma, token, sentence_hl)
-        } else {
+      } else {
         word_search <- unique(c(word, values$dfTag$token[values$dfTag$lemma==word]))
         sentences <- values$dfTag %>%
           filter(token %in% word_search) %>%
           ungroup() %>% select(lemma, token, sentence_hl)
       }
+      # find sentences containing the tokens/lemmas
+      DTformat(sentences, size='100%')
+    }, escape=FALSE)
+
+    output$docInContext <- renderDT({
+      values$d <- event_data("plotly_click")
+      doc <- values$d$y
+        sentences <- values$dfTag %>% filter(doc_id==doc) %>%
+          distinct(sentence_id, sentence)
       # find sentences containing the tokens/lemmas
       DTformat(sentences, size='100%')
     }, escape=FALSE)
@@ -1282,15 +1310,24 @@ server <- function(input, output, session){
       ignoreNULL = TRUE,
       eventExpr = {input$d_tm_estimApply},
       valueExpr ={
-        #values$TMplotIndex <- 1
-        values$TMplotList <- split(1:input$KEstim, ceiling(seq_along(1:input$KEstim)/3))
-        values$TMestim_result <- tmEstimate(values$dfTag, K=req(input$KEstim), group=input$groupTmEstim,
+        values$TMplotIndex <- 1
+        values$TMdocIndex <- 1
+        if (isTRUE(input$tmKauto)){
+          values$TMKresult <- tmTuning(values$dfTag, group=input$groupTmEstim, term=input$termTmEstim,
+                                       metric="CaoJuan2009", n=input$nTmEstim, top_by=input$top_byEstim, minK=2, maxK=40, Kby=2)
+          K <- values$TMKresult %>% slice_min(CaoJuan2009, n=1)
+          values$tmK <- K$topics
+        } else{
+          values$tmK <- input$KEstim
+        }
+        values$TMplotList <- split(1:values$tmK, ceiling(seq_along(1:values$tmK)/3))
+        values$TMestim_result <- tmEstimate(values$dfTag, K=values$tmK, group=input$groupTmEstim,
                                             term=input$termTmEstim, n=input$nTmEstim, top_by=input$top_byEstim)
       }
     )
 
     observeEvent(input$TMplotRight,{
-      if (values$TMplotIndex<ceiling(req(input$KEstim)/3)){
+      if (values$TMplotIndex<ceiling(req(values$tmK)/3)){
         values$TMplotIndex <- values$TMplotIndex+1
       }
     })
@@ -1332,19 +1369,47 @@ server <- function(input, output, session){
       DTformat(beta, left=1,numeric=c(2:ncol(values$TMestim_result$beta)), round=4, nrow=10, size="85%", filename = "TopicModel_BetaTable")
     })
 
-    # output$d_tm_estimDPlot <- renderPlotly({
-    #   netTMestim()
+    observeEvent(input$TMdocRight,{
+      if (values$TMdocIndex<ceiling(req(values$tmK)/3)){
+        values$TMdocIndex <- values$TMdocIndex+1
+      }
+    })
 
-    # ## DOCUMENT PLOT
+    observeEvent(input$TMdocLeft,{
+      if (req(values$TMdocIndex)>1){
+        values$TMdocIndex <- values$TMdocIndex-1
+      }
+    })
 
-    #   values$TMestim_plot
-    #   })
+    output$d_tm_DocPlot1 <- renderPlotly({
+      netTMestim()
+      if (!values$TMdocIndex %in% 1:length(values$TMplotList)) values$TMdocIndex <- 1
+      topic1 <- values$TMplotList[[values$TMdocIndex]]
+      values$TMdoc_plot1 <- tmDocPlot(values$TMestim_result$theta, topic=topic1[[1]], nPlot=input$nTopicPlot)
+      values$TMdoc_plot1
+    })
+
+    output$d_tm_DocPlot2 <- renderPlotly({
+      topic2 <- values$TMplotList[[values$TMdocIndex]]
+      if (length(topic2)>=2){
+        values$TMdoc_plot2 <- tmDocPlot(values$TMestim_result$theta, topic=topic2[[2]], nPlot=input$nTopicPlot)
+        values$TMdoc_plot2
+      }
+    })
+
+    output$d_tm_DocPlot3 <- renderPlotly({
+      topic3 <- values$TMplotList[[values$TMdocIndex]]
+      if (length(topic3)==3){
+        values$TMdoc_plot3 <- tmDocPlot(values$TMestim_result$theta, topic=topic3[[3]], nPlot=input$nTopicPlot)
+        values$TMdoc_plot3
+      }
+    })
 
     output$d_tm_estimTpTable <- renderDataTable({
-
       ### THETA PROBABILITY
-
-      #DTformat(df, numeric=c(2,3), round=2, nrow=nrow(df), size="110%")
+      theta <- values$TMestim_result$theta
+      names(theta)[2:ncol(theta)] <- paste0("Topic ",1:(ncol(theta)-1))
+      DTformat(theta, left=1,numeric=c(2:ncol(values$TMestim_result$theta)), round=4, nrow=10, size="85%", filename = "TopicModel_ThetaTable")
     })
 
 
