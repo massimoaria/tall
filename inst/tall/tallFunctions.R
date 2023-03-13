@@ -1167,6 +1167,11 @@ tmTuning <- function(dfTag, group=c("doc_id", "sentence_id"), term="lemma",
 }
 
 tmTuningPlot <- function(result, metric){
+  switch(metric,
+         CaoJuan2009={
+
+         },
+         )
   df <- result
   names(df) <- c("x","y")
   df <- df %>%
@@ -1185,7 +1190,10 @@ tmTuningPlot <- function(result, metric){
                  ),
                  text = hoverText,
                  hoverinfo = 'text') %>%
-    layout(title = paste0("K selection by ",metric," metric"),
+    layout(annotations=list(text=paste0("K selection by ",metric," metric: Optimal N. of Topics ", ),xref="paper",x=0.5,
+                            yref="paper",y=1,yshift=30,showarrow=FALSE,
+                            font=list(size=24,color="gray30")),
+    #title = paste0("K selection by ",metric," metric"),
            paper_bgcolor='rgb(255,255,255)', plot_bgcolor='rgb(255,255,255)',
            xaxis = list(title = "Topics",
                         gridcolor = 'rgb(229,229,229)',
