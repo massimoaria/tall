@@ -59,11 +59,13 @@ read_files <- function(files, ext=c("txt","csv", "xlsx"), subfolder=TRUE, line_s
          )
   if ("doc_id" %in% names(df)){
     if (sum(duplicated(df$doc_id), na.rm=T)>0){
+      num <- sprintf(paste0("%0",nchar(nrow(df)),"d"), 1:nrow(df))
     df <- df %>% mutate(original_doc_id = doc_id,
-      doc_id = paste0("doc_",row_number())) %>% select(doc_id, everything())
+      doc_id = paste0("doc_",num)) %>% select(doc_id, everything())
     }
   }else{
-    df <- df %>% mutate(doc_id = paste0("doc_",row_number())) %>% select(doc_id, everything())
+    num <- sprintf(paste0("%0",nchar(nrow(df)),"d"), 1:nrow(df))
+    df <- df %>% mutate(doc_id = paste0("doc_",num)) %>% select(doc_id, everything())
   }
 
 return(df)
@@ -1268,9 +1270,10 @@ tmEstimate <- function(dfTag, K, group=c("doc_id", "sentence_id"), term="lemma",
     select(word, all_of(variables))
 
   # for every document we have a probability distribution of its contained topics
+  row_label <- unique(dfTag$doc_id)[as.numeric(row.names(tmResult$topics))]
   theta <- tmResult$topics%>%
     as.data.frame() %>%
-    mutate(doc=unique(x$doc_id)) %>%
+    mutate(doc=row_label) %>%
     select(doc, all_of(variables))
 
   results <- list(topicModel=topicModel, tmResult=tmResult, beta=beta, beta_norm=beta_norm, theta=theta)

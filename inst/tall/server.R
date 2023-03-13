@@ -1314,7 +1314,7 @@ server <- function(input, output, session){
         values$TMdocIndex <- 1
         if (isTRUE(input$tmKauto)){
           values$TMKresult <- tmTuning(values$dfTag, group=input$groupTmEstim, term=input$termTmEstim,
-                                       metric="CaoJuan2009", n=input$nTmEstim, top_by=input$top_byEstim, minK=2, maxK=40, Kby=2)
+                                       metric="CaoJuan2009", n=input$nTmEstim, top_by=input$top_byEstim, minK=2, maxK=20, Kby=1)
           K <- values$TMKresult %>% slice_min(CaoJuan2009, n=1)
           values$tmK <- K$topics
         } else{
