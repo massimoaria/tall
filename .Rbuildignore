@@ -3,3 +3,6 @@
 ^LICENSE\.md$
 ^README\.Rmd$
 ^data-raw$
+temp_functions$
+file_test$
+inst/bbc$
