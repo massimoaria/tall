@@ -1609,8 +1609,9 @@ menuList <- function(menu){
   switch(as.character(menu),
          "0"={
            list(
-             menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),
+             menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),startExpanded = TRUE,
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
+                      menuSubItem("Random Texts Selection", tabName = "randomText", icon = icon("chevron-right")),
                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
@@ -1622,6 +1623,7 @@ menuList <- function(menu){
            list(
              menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
+                      menuSubItem("Random Texts Selection", tabName = "randomText", icon = icon("chevron-right")),
                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
@@ -1636,6 +1638,7 @@ menuList <- function(menu){
            list(
              menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
+                      menuSubItem("Random Texts Selection", tabName = "randomText", icon = icon("chevron-right")),
                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
@@ -1680,6 +1683,7 @@ menuList <- function(menu){
            list(
              menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
+                      menuSubItem("Random Texts Selection", tabName = "randomText", icon = icon("chevron-right")),
                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right")))
            )

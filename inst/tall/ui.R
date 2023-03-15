@@ -199,6 +199,59 @@ body <- dashboardBody(
             )
     ),
 
+    ### Random text selection ----
+
+    tabItem(tabName = "randomText",
+            fluidPage(
+              fluidRow(
+                column(9,
+                       shinycssloaders::withSpinner(DT::DTOutput("randomTextData"),color = getOption("spinner.color", default = "#4F7942"))
+                ),
+                column(3,
+                       fluidRow(
+                         box(
+                           width = 12,
+                           div(h3(strong(em("Random Text Selection"))), style="margin-top:-57px"),
+                           hr(),
+                           uiOutput("randomDescription"),
+                           br(),
+                           "Extract a random sample of texts to analyze",
+                           hr(),
+                           fluidRow(
+                             column(6,
+                                    numericInput("sampleSize",
+                                                 "Sample Size",
+                                                 value = 10,
+                                                 min = 1,
+                                                 step = 1
+                                    )),
+                             column(3,
+                                    title = t_run,
+                                    do.call("actionButton", c(run_bttn, list(
+                                      inputId = "randomTextRun")
+                                    ))
+                             ),
+                             column(3,
+                                    title = t_save,
+                                    do.call("downloadButton", c(list(
+                                      label=NULL,
+                                      style ="display:block; height: 43px; width: 43px; border-radius: 50%; border: 1px; margin-top: 15px",
+                                      icon = icon(name ="floppy-save", lib="glyphicon")
+                                    ), list(
+                                      outputId = "randomTextSave")
+                                    ))
+                             )
+
+
+                           )
+
+                         )
+                       )
+                )
+              )
+            )
+    ),
+
     ### ADD METADATA ----
 
     tabItem(tabName = "add_meta",
@@ -278,21 +331,21 @@ body <- dashboardBody(
                          fluidRow(column(6,
                                          uiOutput("optionsTokenization")),
                                   column(3,
-                                           title = t_run,
-                                                  do.call("actionButton", c(run_bttn, list(
-                                                    inputId = "tokPosRun")
-                                                  ))
-                                         ),
-                                         column(3,
-                                                  title = t_save,
-                                                      do.call("downloadButton", c(list(
-                                                        label=NULL,
-                                                        style ="display:block; height: 43px; width: 43px; border-radius: 50%; border: 1px; margin-top: 15px",
-                                                        icon = icon(name ="floppy-save", lib="glyphicon")
-                                                      ), list(
-                                                        outputId = "tokPosSave")
-                                                      ))
-                                                  ))
+                                         title = t_run,
+                                         do.call("actionButton", c(run_bttn, list(
+                                           inputId = "tokPosRun")
+                                         ))
+                                  ),
+                                  column(3,
+                                         title = t_save,
+                                         do.call("downloadButton", c(list(
+                                           label=NULL,
+                                           style ="display:block; height: 43px; width: 43px; border-radius: 50%; border: 1px; margin-top: 15px",
+                                           icon = icon(name ="floppy-save", lib="glyphicon")
+                                         ), list(
+                                           outputId = "tokPosSave")
+                                         ))
+                                  ))
                        )
                      ),style="margin-top:40px"
               )

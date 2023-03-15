@@ -210,6 +210,36 @@ server <- function(input, output, session){
   )
 
 
+  ### RANDOM TEXT SELECTION ----
+
+  output$randomDescription <- renderUI({
+
+    HTML(paste("Number of imported texts: <b>", nrow(values$txt), "</b>"))
+
+  })
+
+  randomTextSelection <- eventReactive({
+    input$randomTextRun
+  },
+  values$txt <-  dplyr::slice_sample(values$txt, n = input$sampleSize)
+  )
+
+  output$randomTextData <- DT::renderDT({
+    randomTextSelection()
+    DTformat(values$txt %>% mutate(text = paste0(substr(text,1,500),"...")),left=2, nrow=5, filter="none")
+  })
+
+  output$randomTextSave <- downloadHandler(
+    filename = function() {
+      paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
+    },
+    content <- function(file) {
+      saveTall(values$txt, values$custom_lists, values$menu, "RandomTextSample", file)
+      # D <- date()
+      # save(dfTag,menu,D,where, file=file)
+    }, contentType = "tall"
+  )
+
   ### PRE-PROCESSING ----
 
   ## Tokenization & PoS Tagging ----
