@@ -59,11 +59,13 @@ read_files <- function(files, ext=c("txt","csv", "xlsx"), subfolder=TRUE, line_s
          )
   if ("doc_id" %in% names(df)){
     if (sum(duplicated(df$doc_id), na.rm=T)>0){
+      num <- sprintf(paste0("%0",nchar(nrow(df)),"d"), 1:nrow(df))
     df <- df %>% mutate(original_doc_id = doc_id,
-      doc_id = paste0("doc_",row_number())) %>% select(doc_id, everything())
+      doc_id = paste0("doc_",num)) %>% select(doc_id, everything())
     }
   }else{
-    df <- df %>% mutate(doc_id = paste0("doc_",row_number())) %>% select(doc_id, everything())
+    num <- sprintf(paste0("%0",nchar(nrow(df)),"d"), 1:nrow(df))
+    df <- df %>% mutate(doc_id = paste0("doc_",num)) %>% select(doc_id, everything())
   }
 
 return(df)
@@ -1165,6 +1167,11 @@ tmTuning <- function(dfTag, group=c("doc_id", "sentence_id"), term="lemma",
 }
 
 tmTuningPlot <- function(result, metric){
+  switch(metric,
+         CaoJuan2009={
+
+         },
+         )
   df <- result
   names(df) <- c("x","y")
   df <- df %>%
@@ -1183,7 +1190,10 @@ tmTuningPlot <- function(result, metric){
                  ),
                  text = hoverText,
                  hoverinfo = 'text') %>%
-    layout(title = paste0("K selection by ",metric," metric"),
+    layout(annotations=list(text=paste0("K selection by ",metric," metric: Optimal N. of Topics ", ),xref="paper",x=0.5,
+                            yref="paper",y=1,yshift=30,showarrow=FALSE,
+                            font=list(size=24,color="gray30")),
+    #title = paste0("K selection by ",metric," metric"),
            paper_bgcolor='rgb(255,255,255)', plot_bgcolor='rgb(255,255,255)',
            xaxis = list(title = "Topics",
                         gridcolor = 'rgb(229,229,229)',
@@ -1268,9 +1278,10 @@ tmEstimate <- function(dfTag, K, group=c("doc_id", "sentence_id"), term="lemma",
     select(word, all_of(variables))
 
   # for every document we have a probability distribution of its contained topics
+  row_label <- unique(dfTag$doc_id)[as.numeric(row.names(tmResult$topics))]
   theta <- tmResult$topics%>%
     as.data.frame() %>%
-    mutate(doc=unique(x$doc_id)) %>%
+    mutate(doc=row_label) %>%
     select(doc, all_of(variables))
 
   results <- list(topicModel=topicModel, tmResult=tmResult, beta=beta, beta_norm=beta_norm, theta=theta)
@@ -1598,8 +1609,9 @@ menuList <- function(menu){
   switch(as.character(menu),
          "0"={
            list(
-             menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),
+             menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),startExpanded = TRUE,
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
+                      menuSubItem("Random Texts Selection", tabName = "randomText", icon = icon("chevron-right")),
                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
@@ -1611,6 +1623,7 @@ menuList <- function(menu){
            list(
              menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
+                      menuSubItem("Random Texts Selection", tabName = "randomText", icon = icon("chevron-right")),
                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
@@ -1625,6 +1638,7 @@ menuList <- function(menu){
            list(
              menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
+                      menuSubItem("Random Texts Selection", tabName = "randomText", icon = icon("chevron-right")),
                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
@@ -1669,6 +1683,7 @@ menuList <- function(menu){
            list(
              menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
+                      menuSubItem("Random Texts Selection", tabName = "randomText", icon = icon("chevron-right")),
                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right")))
            )
