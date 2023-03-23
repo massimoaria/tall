@@ -1361,6 +1361,64 @@ tmDocPlot <- function(theta, topic=1, nPlot=10){
 
 }
 
+### POLARITY DETECTION
+freqPlotlySentiment <- function(dfPlot,x,y, xlabel,ylabel, scale=c("identity", "log"), decimal=0){
+
+
+  polarity_colors <- c("#FF6666", "#FFB266", "#FFFF66", "#66FF66", "#00FF00")
+
+  # function to build and plot plotly horizontal barplot
+  dfPlot <- dfPlot %>%
+    group_by(lemma) %>%
+    mutate(tot=sum(n)) %>%
+    ungroup() %>%
+    arrange(tot,lemma, doc_pol_clas)
+
+
+  xmax <- max(dfPlot[[x]])
+
+  switch(scale,
+         log={
+           #dfPlot$scale <- log(obj$n)
+           dfPlot$n <- log(dfPlot$n)
+
+         }
+  )
+
+  fig1 <- plot_ly(data=dfPlot , x = dfPlot[[x]], y = ~reorder(dfPlot[[y]], dfPlot[["tot"]]),
+                  type = 'bar', orientation = 'h',
+                  hovertext = ~doc_pol_clas,
+                  marker = list(color = ~paste0(polarity_colors[as.numeric(doc_pol_clas)],"60"),
+                                line = list(color = color, width = 1)),
+                  hovertemplate = "<b><i>Word: %{hovertext}</i></b> <br> <b><i>N. Docs: %{x}</i></b><extra></extra>")
+
+  fig1 <- fig1 %>% layout(yaxis = list(title =ylabel, showgrid = FALSE, showline = FALSE, showticklabels = TRUE, domain= c(0, 1)),
+                          xaxis = list(title = xlabel, zeroline = FALSE, showline = FALSE, showticklabels = TRUE, showgrid = FALSE),
+                          plot_bgcolor  = "rgba(0, 0, 0, 0)",
+                          paper_bgcolor = "rgba(0, 0, 0, 0)")
+
+  fig1 <- fig1 %>%
+    # add_annotations(xref = 'x1', yref = 'y',
+    #                                x = dfPlot[[x]] + xmax*0.015,  y = dfPlot[[y]],
+    #                                text = ann_text,
+    #                                font = list(family = 'Arial', size = 12, color = color),
+    #                                showarrow = FALSE) %>%
+    config(displaylogo = FALSE,
+           modeBarButtonsToRemove = c(
+             #'toImage',
+             'sendDataToCloud',
+             'pan2d',
+             'select2d',
+             'lasso2d',
+             'toggleSpikelines',
+             'hoverClosestCartesian',
+             'hoverCompareCartesian'
+           )) %>%
+    event_register("plotly_selecting")
+
+  fig1
+}
+
 ### EXCEL REPORT FUNCTIONS ----
 addDataWb <- function(list_df, wb, sheetname){
   l <- length(list_df)
