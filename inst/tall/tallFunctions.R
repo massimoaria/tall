@@ -1361,11 +1361,48 @@ tmDocPlot <- function(theta, topic=1, nPlot=10){
 
 }
 
-### POLARITY DETECTION
+### POLARITY DETECTION ----
+
+# download sentiment lexicons
+loadSentimentLanguage <- function(language){
+  switch(Sys.info()[['sysname']],
+         Windows= {home <- Sys.getenv('R_USER')},
+         Linux  = {home <- Sys.getenv('HOME')},
+         Darwin = {home <- Sys.getenv('HOME')})
+
+  # setting up the main directory
+  path_tall <- file.path(home,"tall")
+  path_language_model <- file.path(path_tall, "language_models")
+  # check if sub directory exists
+  if (file.exists(path_tall)){
+    if (!file.exists(path_language_model)) dir.create(path_language_model)
+  } else {
+    dir.create(path_tall)
+    dir.create(path_language_model)
+  }
+
+  #check if the file model already exists
+  file_lang <- dir(path_language_model,pattern=paste0(language,".lexicon"))[1]
+
+  if (is.na(file_lang)){
+    download.file(url = paste0("https://www.bibliometrix.org/tall_lexicon/",language,".lexicon"), destfile = paste0(path_language_model,"/",language,".lexicon"))
+    load(file=paste0(path_language_model,"/",language,".lexicon"))
+    #
+  } else {
+    load(file=paste0(path_language_model,"/",language,".lexicon"))
+  }
+
+  return(sentimentData)
+}
+
+polarity_colors <- function(){
+  c("#FF6666", "#FFB266", "#FFFF66", "#66FF66", "#00FF00")
+}
+
 freqPlotlySentiment <- function(dfPlot,x,y, xlabel,ylabel, scale=c("identity", "log"), decimal=0){
 
 
-  polarity_colors <- c("#FF6666", "#FFB266", "#FFFF66", "#66FF66", "#00FF00")
+  polarity_colors <- polarity_colors()
 
   # function to build and plot plotly horizontal barplot
   dfPlot <- dfPlot %>%
@@ -1389,7 +1426,7 @@ freqPlotlySentiment <- function(dfPlot,x,y, xlabel,ylabel, scale=c("identity", "
                   type = 'bar', orientation = 'h',
                   hovertext = ~doc_pol_clas,
                   marker = list(color = ~paste0(polarity_colors[as.numeric(doc_pol_clas)],"60"),
-                                line = list(color = color, width = 1)),
+                                line = list(color = ~polarity_colors[as.numeric(doc_pol_clas)], width = 1)),
                   hovertemplate = "<b><i>Word: %{hovertext}</i></b> <br> <b><i>N. Docs: %{x}</i></b><extra></extra>")
 
   fig1 <- fig1 %>% layout(yaxis = list(title =ylabel, showgrid = FALSE, showline = FALSE, showticklabels = TRUE, domain= c(0, 1)),
@@ -1417,6 +1454,81 @@ freqPlotlySentiment <- function(dfPlot,x,y, xlabel,ylabel, scale=c("identity", "
     event_register("plotly_selecting")
 
   fig1
+}
+
+sentimentAnalysis <- function(dfTag, language="english", lexicon_model="huliu"){
+  # lexicon for polarity detection
+  if (!language %in% c("ancient_greek", "classical_chinese", "coptic", "gothic","north_sami","old_church_slavonic","old_french","old_russian","scottish_gaelic","wolof")){
+    sentimentData <- loadSentimentLanguage(language)
+  } else{
+    return(NA)
+  }
+
+  amplifiers <- attr(sentimentData, "amplifiers")
+  de_amplifiers <- attr(sentimentData, "de_amplifiers")
+  negators <- attr(sentimentData, "negators")
+
+  if (language == "english"){
+    sentimentData <- sentimentData %>%
+      filter(lexicon == lexicon_model)
+  }
+
+  polarity_terms<-data.frame(term=sentimentData$Word ,polarity=sentimentData$sentiment)
+
+  sentiment <- txt_sentiment(
+    dfTag,
+    term = "lemma",
+    polarity_terms=polarity_terms,
+    polarity_negators = negators,
+    polarity_amplifiers = amplifiers,
+    polarity_deamplifiers = de_amplifiers,
+    amplifier_weight = 0.8,
+    n_before = 4,
+    n_after = 2,
+    constrain = TRUE
+  )
+
+  s_data<-sentiment$data
+  s_overall<-sentiment$overall
+
+  s_data <- s_data %>%
+    left_join(s_overall %>% select(doc_id, sentiment_polarity) %>% rename(doc_polarity=sentiment_polarity), by="doc_id") %>%
+    filter(!is.na(polarity)) %>%
+    mutate(doc_pol_clas = cut(.data$doc_polarity*(-1), breaks=c(-1,-0.6,-0.2,0.2,0.6,1),
+                              labels=c("Very Negative", "Negative", "Neutral", "Positive", "Very Positive"),
+                              include.lowest = T, ordered_result = TRUE))
+
+  s_overall <- s_overall %>%
+    mutate(doc_pol_clas = cut(.data$sentiment_polarity, breaks=c(-1,-0.6,-0.2,0.2,0.6,1),
+                              labels=c("Very Negative", "Negative", "Neutral", "Positive", "Very Positive"),
+                              include.lowest = T, ordered_result = TRUE))
+
+  results <- list(sent_data=s_data, sent_overall=s_overall)
+  return(results)
+}
+
+sentimentWordPlot <- function(sent_data, n=10){
+
+  top_words <- sent_data %>%
+    group_by(polarity) %>%
+    count(lemma) %>%
+    slice_max(n, n=10)
+
+  voc_sent<-sent_data %>%
+    group_by(polarity, doc_pol_clas) %>%
+    count(lemma, sort = TRUE) %>%
+    filter(lemma %in% top_words$lemma)
+
+
+  fig_pos <- voc_sent %>% dplyr::filter(polarity==1) %>%
+    freqPlotlySentiment(x="n",y="lemma", xlabel="Polarized words count",ylabel="word", scale="identity", decimal=0)
+
+  fig_neg <- voc_sent %>% dplyr::filter(polarity==-1) %>%
+    freqPlotlySentiment(x="n",y="lemma", xlabel="Polarized words count",ylabel="word", scale="identity", decimal=0)
+
+  plots <- list(positive=fig_pos, negative=fig_neg)
+  return(plots)
+
 }
 
 ### EXCEL REPORT FUNCTIONS ----

@@ -1949,7 +1949,23 @@ body <- dashboardBody(
                            dropdown(
                              h4(strong("Options: ")),
                              hr(),
-                             # inserire opzioni....
+                             selectInput(
+                               inputId = 'languageD_polarity', label="Select language",
+                               choices = c("english","italian","french","german","spanish","afrikaans","arabic","armenian","basque","belarusian","bulgarian","catalan","chinese",
+                                           "croatian","czech","danish","dutch","estonian","finnish","galician","greek","hebrew","hindi","hungarian","indonesian","irish","japanese",
+                                           "korean","latin","latvian","lithuanian","maltese","marathi","norwegian","persian","polish","portuguese",
+                                           "romanian","russian","serbian","slovak","slovenian","swedish","tamil","telugu","turkish","ukrainian","urdu","uyghur","vietnamese"),
+                               multiple=FALSE,
+                               width = "100%"
+                             ),
+                             conditionalPanel('input.languageD_polarity=="english"',
+                                              selectInput(
+                                                inputId = "lexiconD_polarity", label="Select lexicon",
+                                                choices = c("huliu",
+                                                            "loughran_mcdonald",
+                                                            "nrc"),
+                                                selected = "huliu"
+                                              )),
                              tooltip = tooltipOptions(title = "Options"),
                              width = "220px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
@@ -1961,9 +1977,34 @@ body <- dashboardBody(
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "d_polDetPlot", height = "75vh",width ="98.9%"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            tabPanel("Polarity Distribution",
+                                     fluidRow(h4("Document Polarity Distribution"), align="center"),
+                                     fluidRow(
+                                       column(6,
+                                              shinycssloaders::withSpinner(plotlyOutput(outputId = "d_polPiePlot", height = "75vh", width ="98.9%"),
+                                                                           color = getOption("spinner.color", default = "#4F7942"))),
+                                       column(6,
+                                              #fluidRow(
+                                                shinycssloaders::withSpinner(plotlyOutput(outputId = "d_polDensPlot", width ="98.9%"),
+                                                                             color = getOption("spinner.color", default = "#4F7942")),#),
+                                              #fluidRow(
+                                              shinycssloaders::withSpinner(plotlyOutput(outputId = "d_polBoxPlot", width ="98.9%"),
+                                                                           color = getOption("spinner.color", default = "#4F7942"))#)
+                                       )
+                                     )
+
+                            ),
+                            tabPanel("Top Words",
+                                     fluidRow(
+                                       column(6, align="center",
+                                              h4("Top Positive Words by Document Polarity Distribution"),
+                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "d_polDetPlotPos", height = "75vh",width ="98.9%"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))),
+                                     column(6, align="center",
+                                            h4("Top Negative Words by Document Polarity Distribution"),
+                                            shinycssloaders::withSpinner(plotlyOutput(outputId = "d_polDetPlotNeg", height = "75vh",width ="98.9%"),
+                                                                         color = getOption("spinner.color", default = "#4F7942")))
+                                            )
                             ),
                             tabPanel("Table",
                                      shinycssloaders::withSpinner(DT::DTOutput("d_polDetTable"),

@@ -1451,6 +1451,89 @@ server <- function(input, output, session){
 
   ## Polarity detection ----
 
+    ## Model estimation ----
+    docPolarityEstim <- eventReactive(
+      ignoreNULL = TRUE,
+      eventExpr = {input$d_polDetApply},
+      valueExpr ={
+        values$docPolarity <- sentimentAnalysis(values$dfTag, language = input$languageD_polarity, lexicon_model=input$lexiconD_polarity)
+        values$docPolPlots <- sentimentWordPlot(values$docPolarity$sent_data, n=10)
+      }
+    )
+
+    output$d_polPiePlot <- renderPlotly({
+      docPolarityEstim()
+      df <- values$docPolarity$sent_overall %>%
+        count(doc_pol_clas) %>%
+        rename("Polarity" = doc_pol_clas)
+
+      plotly::plot_ly(data=df,values=~n,labels=~factor(Polarity),sort = FALSE,
+                      marker=list(colors=paste0(polarity_colors(),"60")), #insidetextorientation="horizontal",
+                      textposition = "outside",
+                      type="pie", hole=0.4,
+                      domain = list(x = c(0, 1), y = c(0, 1))) %>%
+        layout(legend = list(x = -0.1, y = 0.9)) %>%
+        config(displaylogo = FALSE,
+               modeBarButtonsToRemove = c(
+                 #'toImage',
+                 'sendDataToCloud',
+                 'pan2d',
+                 'select2d',
+                 'lasso2d',
+                 'toggleSpikelines',
+                 'hoverClosestCartesian',
+                 'hoverCompareCartesian'
+               ))
+    })
+
+    output$d_polDensPlot <- renderPlotly({
+      docPolarityEstim()
+      fit <- density(values$docPolarity$sent_overall$sentiment_polarity, from=-1,to=1)
+
+      plot_ly(x = fit$x, y = fit$y, type = 'scatter', mode = 'lines', color=I("#6CC283"), fill='tozeroy')
+    })
+
+    output$d_polBoxPlot <- renderPlotly({
+      docPolarityEstim()
+      plot_ly(data=values$docPolarity$sent_overall, x = ~sentiment_polarity, y="", type = "box",
+              boxpoints = "all", jitter = 0.3, color=I("#6CC283"),
+              pointpos = -1.8) %>% layout(yaxis = list(zeroline = FALSE, showgrid = TRUE, showline = FALSE, showticklabels = TRUE, domain= c(0, 1)),
+                                          xaxis = list(title ="Polarity score", zeroline = FALSE, showgrid = TRUE, showline = FALSE, showticklabels = TRUE, range = c(-1,1)),
+                                          plot_bgcolor  = "rgba(0, 0, 0, 0)",
+                                          paper_bgcolor = "rgba(0, 0, 0, 0)") %>%
+        config(displaylogo = FALSE,
+               modeBarButtonsToRemove = c(
+                 #'toImage',
+                 'sendDataToCloud',
+                 'pan2d',
+                 'select2d',
+                 'lasso2d',
+                 'toggleSpikelines',
+                 'hoverClosestCartesian',
+                 'hoverCompareCartesian'
+               ))
+    })
+
+    output$d_polDetPlotPos <- renderPlotly({
+      docPolarityEstim()
+      values$docPolPlots$positive
+    })
+    output$d_polDetPlotNeg <- renderPlotly({
+      docPolarityEstim()
+      values$docPolPlots$negative
+    })
+
+    output$d_polDetTable <- renderDataTable({
+      docPolarityEstim()
+      docPolarityOverall <- values$docPolarity$sent_overall %>%
+        select(doc_id, sentiment_polarity, doc_pol_clas, terms_positive, terms_negative) %>%
+        rename(Polarity = sentiment_polarity,
+        "Polarity Category" = doc_pol_clas,
+        "Positive Words" = terms_positive,
+        "Negative Words" = terms_negative)
+      DTformat(docPolarityOverall, filename = "DocPolarity", left=c(1,3,4,5), numeric = 2, round=4)
+    })
+
 
   ## GROUPS ----
 
