@@ -1977,8 +1977,8 @@ body <- dashboardBody(
               ),
               fluidRow(
                 tabsetPanel(type = "tabs",
-                            tabPanel("Polarity Distribution",
-                                     fluidRow(h4("Document Polarity Distribution"), align="center"),
+                            tabPanel("Document Polarity Distribution",
+                                     #fluidRow(h4("Document Polarity Distribution"), align="center"),
                                      fluidRow(
                                        column(6,
                                               shinycssloaders::withSpinner(plotlyOutput(outputId = "d_polPiePlot", height = "75vh", width ="98.9%"),

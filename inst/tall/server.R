@@ -39,6 +39,7 @@ server <- function(input, output, session){
   values$label_lang <- label_lang
   values$TMplotIndex <- 1
   values$TMdocIndex <- 1
+  values$tmTopSentences <- FALSE
 
   ## Setting plot values
   values$h <- 7
@@ -286,8 +287,9 @@ server <- function(input, output, session){
       posTagging()
 
       if(!is.null(values$dfTag)){
-      DTformat(values$dfTag%>% select(doc_id, sentence_id,sentence,token,lemma, upos) %>%
+      DTformat(values$dfTag%>% select(doc_id, paragraph_id, sentence_id,sentence,token,lemma, upos) %>%
                  rename(D_id=doc_id,
+                        P_id=paragraph_id,
                         S_id=sentence_id,
                         Sentence=sentence,
                         Token=token,
@@ -731,21 +733,6 @@ server <- function(input, output, session){
       )
     }
 
-    plotModalDoc <- function(session) {
-      ns <- session$ns
-      modalDialog(
-        h3(strong(("Docs in Context"))),
-        DTOutput(ns("docInContext")),
-        size = "l",
-        easyClose = TRUE,
-        footer = tagList(
-          # screenshotButton(label="Save", id = "cocPlotClust",
-          #                  scale = 2,
-          #                  file=paste("TMClusterGraph-", Sys.Date(), ".png", sep="")),
-          modalButton("Close")),
-      )
-    }
-
     output$wordInContext <- renderDT({
       values$d <- event_data("plotly_click")
       word <- values$d$y
@@ -774,14 +761,64 @@ server <- function(input, output, session){
       DTformat(sentences, size='100%')
     }, escape=FALSE)
 
+
+    ## Click on Plotly graphs: DOCS IN CONTEXT ----
+    plotModalDoc <- function(session) {
+      ns <- session$ns
+      modalDialog(
+        #h3(strong(("Docs in Context"))),
+        DTOutput(ns("docInContext")),
+        size = "l",
+        easyClose = TRUE,
+        footer = tagList(
+          actionButton(inputId="tmTopSentences",
+                       label = strong("Highlight Top Sentences"),
+                       icon = icon(name="play",lib = "glyphicon"),
+                       style = "border-radius: 20px; border-width: 1px; font-size: 17px; text-align: center; color: #ffff; padding-left: 20px; padding-right: 20px"),
+          modalButton("Close")),
+      )
+    }
+
+    plotModalDocHigh <- function(session) {
+      ns <- session$ns
+      modalDialog(
+        h3(strong(("Relevant sentences by TextRank"))),
+        DTOutput(ns("docInContextHigh")),
+        size = "l",
+        easyClose = TRUE,
+        footer = tagList(
+          modalButton("Close")),
+      )
+    }
+
+    observeEvent(input$tmTopSentences,{
+      showModal(plotModalDocHigh(session))
+    })
+
     output$docInContext <- renderDT({
       values$d <- event_data("plotly_click")
       doc <- values$d$y
-        sentences <- values$dfTag %>% filter(doc_id==doc) %>%
-          distinct(sentence_id, sentence)
-      # find sentences containing the tokens/lemmas
-      DTformat(sentences, size='100%')
-    }, escape=FALSE)
+      # sentences <- values$dfTag %>% filter(doc_id==doc) %>%
+      #   distinct(sentence_id, sentence)
+      paragraphs <- values$dfTag %>% filter(doc_id==doc) %>%
+        distinct(paragraph_id,sentence_id, sentence) %>%
+        group_by(paragraph_id) %>%
+        summarize(paragraph=paste0(sentence,collapse=" ")) %>%
+        ungroup() %>%
+        #select(paragraph_id,paragraph) %>%
+        rename("Paragraph ID" = paragraph_id,
+               "Paragraph" = paragraph)
+      DTformat(paragraphs, nrow=3, size='100%', title=paste0("Doc_id: ",doc))
+        # HTML(paste0(paste0("<h3>Doc_id: ",doc,"</h3><hr>"),
+        #   paste(sentences$sentence,collapse=" ")))
+    })
+
+    output$docInContextHigh <- renderDT({
+      values$d <- event_data("plotly_click")
+      doc <- values$d$y
+      DTformat(highlightSentences(values$dfTag, id=doc), nrow=3, size='100%', title=paste0("Doc_id: ",doc))
+      #HTML(paste0(paste0("<h3>Doc_id: ",doc,"</h3><hr>"), highlightSentences(values$dfTag, id=doc, n=3)))
+    })
 
   ## Frequency List ----
 
@@ -1466,52 +1503,18 @@ server <- function(input, output, session){
       df <- values$docPolarity$sent_overall %>%
         count(doc_pol_clas) %>%
         rename("Polarity" = doc_pol_clas)
-
-      plotly::plot_ly(data=df,values=~n,labels=~factor(Polarity),sort = FALSE,
-                      marker=list(colors=paste0(polarity_colors(),"60")), #insidetextorientation="horizontal",
-                      textposition = "outside",
-                      type="pie", hole=0.4,
-                      domain = list(x = c(0, 1), y = c(0, 1))) %>%
-        layout(legend = list(x = -0.1, y = 0.9)) %>%
-        config(displaylogo = FALSE,
-               modeBarButtonsToRemove = c(
-                 #'toImage',
-                 'sendDataToCloud',
-                 'pan2d',
-                 'select2d',
-                 'lasso2d',
-                 'toggleSpikelines',
-                 'hoverClosestCartesian',
-                 'hoverCompareCartesian'
-               ))
+      sentimentPieChart(df)
     })
 
     output$d_polDensPlot <- renderPlotly({
       docPolarityEstim()
-      fit <- density(values$docPolarity$sent_overall$sentiment_polarity, from=-1,to=1)
-
-      plot_ly(x = fit$x, y = fit$y, type = 'scatter', mode = 'lines', color=I("#6CC283"), fill='tozeroy')
+      sentimentDensityPlot(values$docPolarity$sent_overall$sentiment_polarity, from = -1, to=1)
     })
 
     output$d_polBoxPlot <- renderPlotly({
       docPolarityEstim()
-      plot_ly(data=values$docPolarity$sent_overall, x = ~sentiment_polarity, y="", type = "box",
-              boxpoints = "all", jitter = 0.3, color=I("#6CC283"),
-              pointpos = -1.8) %>% layout(yaxis = list(zeroline = FALSE, showgrid = TRUE, showline = FALSE, showticklabels = TRUE, domain= c(0, 1)),
-                                          xaxis = list(title ="Polarity score", zeroline = FALSE, showgrid = TRUE, showline = FALSE, showticklabels = TRUE, range = c(-1,1)),
-                                          plot_bgcolor  = "rgba(0, 0, 0, 0)",
-                                          paper_bgcolor = "rgba(0, 0, 0, 0)") %>%
-        config(displaylogo = FALSE,
-               modeBarButtonsToRemove = c(
-                 #'toImage',
-                 'sendDataToCloud',
-                 'pan2d',
-                 'select2d',
-                 'lasso2d',
-                 'toggleSpikelines',
-                 'hoverClosestCartesian',
-                 'hoverCompareCartesian'
-               ))
+      sentimentBoxPlot(values$docPolarity$sent_overall)
+
     })
 
     output$d_polDetPlotPos <- renderPlotly({

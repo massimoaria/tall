@@ -40,7 +40,9 @@ read_files <- function(files, ext=c("txt","csv", "xlsx"), subfolder=TRUE, line_s
 
            df <- data.frame(doc_id=doc_id,text=NA, folder=folder, file=file) %>%
              group_by(doc_id) %>%
-             mutate(text = gsub("\\.\\.","\\.",paste(read_lines(file,skip_empty_rows = TRUE),sep="",collapse=line_sep))) %>%
+             mutate(text=readtext::readtext(file)$text) %>%
+             #mutate(text=gsub("\n\n","\n  \n",text)) %>%
+             #mutate(text = gsub("\\.\\.","\\.",paste(read_lines(file,skip_empty_rows = FALSE),sep="",collapse=line_sep))) %>%
              select(-file)
          },
          csv={
@@ -56,19 +58,19 @@ read_files <- function(files, ext=c("txt","csv", "xlsx"), subfolder=TRUE, line_s
          xlsx={
            df <- readxl::read_excel(file, col_types = "text")
          }
-         )
+  )
   if ("doc_id" %in% names(df)){
     if (sum(duplicated(df$doc_id), na.rm=T)>0){
       num <- sprintf(paste0("%0",nchar(nrow(df)),"d"), 1:nrow(df))
-    df <- df %>% mutate(original_doc_id = doc_id,
-      doc_id = paste0("doc_",num)) %>% select(doc_id, everything())
+      df <- df %>% mutate(original_doc_id = doc_id,
+                          doc_id = paste0("doc_",num)) %>% select(doc_id, everything())
     }
   }else{
     num <- sprintf(paste0("%0",nchar(nrow(df)),"d"), 1:nrow(df))
     df <- df %>% mutate(doc_id = paste0("doc_",num)) %>% select(doc_id, everything())
   }
 
-return(df)
+  return(df)
 }
 
 ### PRE_PROCESSING ----
@@ -536,16 +538,17 @@ wordCA <- function(dfTag, n=50,  term="lemma"){
   res <- ca::ca(mat)
 
   # Contribute
-  contrib <- data.frame((res$colcoord[,1:10]^2)*res$colmass)
+  Ncol <- min(10,sum(substr(names(results$wordCoord),1,3)=="Dim"))
+  contrib <- data.frame((res$colcoord[,1:Ncol]^2)*res$colmass)
   colnames(contrib) <- paste0("Contrib",1:ncol(contrib))
 
 
   # Cosines squared
-  cosine <- data.frame(((res$colcoord[,1:10]^2)/(res$coldist)))
+  cosine <- data.frame(((res$colcoord[,1:Ncol]^2)/(res$coldist)))
   colnames(cosine) <- paste0("Cosine",1:ncol(contrib))
 
   # Word Coordinates
-  wordCoord <- res$colcoord[,1:10] %>%
+  wordCoord <- res$colcoord[,1:Ncol] %>%
     data.frame() %>%
     mutate(label = res$colnames,
            inertia = res$colinertia,
@@ -603,8 +606,9 @@ ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = Inf, threshold=
   #Threshold labels to plot
   thres <- sort(dotScale, decreasing = TRUE)[min(topWordPlot, nrow(results$wordCoord))]
 
+  Ncol <- sum(substr(names(results$wordCoord),1,3)=="Dim")
   # coordinates to plot
-  noCol <- setdiff(1:10,c(dimX,dimY))
+  noCol <- setdiff(1:Ncol,c(dimX,dimY))
 
   results$wordCoord <- results$wordCoord %>%
     select(-any_of(noCol))
@@ -961,7 +965,7 @@ net2vis <- function(nodes,edges){
     ) %>%
     #visNetwork::visPhysics(barnesHut=list(avoidOverlap=1)) %>%
     visNetwork::visOptions(manipulation = FALSE, height ="100%", width = "100%") #%>%
-    #visNetwork::addFontAwesome()
+  #visNetwork::addFontAwesome()
 }
 
 ## GRAKO ----
@@ -1171,7 +1175,7 @@ tmTuningPlot <- function(result, metric){
          CaoJuan2009={
 
          },
-         )
+  )
   df <- result
   names(df) <- c("x","y")
   df <- df %>%
@@ -1193,7 +1197,7 @@ tmTuningPlot <- function(result, metric){
     layout(annotations=list(text=paste0("K selection by ",metric," metric: Optimal N. of Topics ", ),xref="paper",x=0.5,
                             yref="paper",y=1,yshift=30,showarrow=FALSE,
                             font=list(size=24,color="gray30")),
-    #title = paste0("K selection by ",metric," metric"),
+           #title = paste0("K selection by ",metric," metric"),
            paper_bgcolor='rgb(255,255,255)', plot_bgcolor='rgb(255,255,255)',
            xaxis = list(title = "Topics",
                         gridcolor = 'rgb(229,229,229)',
@@ -1219,17 +1223,17 @@ tmTuningPlot <- function(result, metric){
                         tick0 = 0),
            showlegend = FALSE)
 
-    fig <- fig %>% config(displaylogo = FALSE,
-                          modeBarButtonsToRemove = c(
-                            #'toImage',
-                            'sendDataToCloud',
-                            'pan2d',
-                            'select2d',
-                            'lasso2d',
-                            'toggleSpikelines',
-                            'hoverClosestCartesian',
-                            'hoverCompareCartesian'
-                          )) %>%
+  fig <- fig %>% config(displaylogo = FALSE,
+                        modeBarButtonsToRemove = c(
+                          #'toImage',
+                          'sendDataToCloud',
+                          'pan2d',
+                          'select2d',
+                          'lasso2d',
+                          'toggleSpikelines',
+                          'hoverClosestCartesian',
+                          'hoverCompareCartesian'
+                        )) %>%
     event_register("plotly_selecting")
 
   return(fig)
@@ -1305,8 +1309,8 @@ tmTopicPlot <- function(beta, topic=1, nPlot=10){
   fig <- freqPlotly(dfPlot,x="y", y="word", n=nPlot, ylabel="Words", xlabel="Beta Probability",
                     scale="identity", topicmodel = TRUE, colorlist()[topic], decimal = 4) %>%
     layout(annotations=list(text=paste0("Topic ",topic),xref="paper",x=0.5,
-                     yref="paper",y=1,yshift=30,showarrow=FALSE,
-                     font=list(size=24,color="gray30")))
+                            yref="paper",y=1,yshift=30,showarrow=FALSE,
+                            font=list(size=24,color="gray30")))
 
 
   fig <- fig %>% config(displaylogo = FALSE,
@@ -1328,6 +1332,7 @@ tmTopicPlot <- function(beta, topic=1, nPlot=10){
 
 tmDocPlot <- function(theta, topic=1, nPlot=10){
 
+  nPlot <- min(nPlot, nrow(theta))
   dfPlot <- theta %>%
     select(doc, any_of(as.character(topic)))
   names(dfPlot)[2] <- "y"
@@ -1531,6 +1536,147 @@ sentimentWordPlot <- function(sent_data, n=10){
 
 }
 
+sentimentPieChart <- function(df){
+  plotly::plot_ly(data=df,values=~n,labels=~factor(Polarity),sort = FALSE,
+                  marker=list(colors=paste0(polarity_colors(),"60")),
+                  textposition = "outside",
+                  type="pie", hole=0.4,
+                  domain = list(x = c(0, 1), y = c(0, 1))) %>%
+    layout(legend = list(x = -0.1, y = 0.9),
+           xaxis = list(
+             ticktext = list("Very Negative", "Negative", "Neutral", "Positive", "Very Positive"),
+             tickvals = list(-0.8, -0.4, 0, 0.4, 0.8),
+             tickmode = "array"
+           )) %>%
+    config(displaylogo = FALSE,
+           modeBarButtonsToRemove = c(
+             #'toImage',
+             'sendDataToCloud',
+             'pan2d',
+             'select2d',
+             'lasso2d',
+             'toggleSpikelines',
+             'hoverClosestCartesian',
+             'hoverCompareCartesian'
+           ))
+}
+
+sentimentDensityPlot <- function(x, from=-1, to=1){
+  fit <- density(x, from=from,to=to)
+
+  plot_ly(x = fit$x, y = fit$y, type = 'scatter', mode = 'lines', color=I("#6CC283"), fill='tozeroy',
+          text=NULL,
+          hoverinfo="text") %>%
+    layout(xaxis = list(
+      ticktext = list("Very Negative", "Negative", "Neutral", "Positive", "Very Positive"),
+      tickvals = list(-0.8, -0.4, 0, 0.4, 0.8),
+      tickmode = "array",
+      zeroline = FALSE
+    ),
+    yaxis = list(domain=c(0,0.90)),
+    annotations=list(text="Density Plot",xref="paper",x=0.5,
+                     yref="paper",y=0.95,yshift=30,showarrow=FALSE,
+                     font=list(size=20,color="gray30"))) %>%
+    config(displaylogo = FALSE,
+           modeBarButtonsToRemove = c(
+             #'toImage',
+             'sendDataToCloud',
+             'pan2d',
+             'select2d',
+             'lasso2d',
+             'toggleSpikelines',
+             'hoverClosestCartesian',
+             'hoverCompareCartesian'
+           ))
+}
+
+sentimentBoxPlot <- function(sent_overall){
+  plot_ly(data=sent_overall, x = ~round(sentiment_polarity,4), y="",type = "box",
+          hoverinfo = 'x',
+          boxpoints = "all", jitter = 0.3, color=I("#6CC283"),
+          pointpos = -1.8) %>% layout(yaxis = list(zeroline = FALSE, showgrid = TRUE, showline = FALSE, showticklabels = TRUE, domain= c(0, 0.9)),
+                                      xaxis = list(title ="", zeroline = FALSE, showgrid = TRUE, showline = FALSE, showticklabels = TRUE, range = c(-1,1),
+                                                   ticktext = list("Very Negative", "Negative", "Neutral", "Positive", "Very Positive"),
+                                                   tickvals = list(-0.8, -0.4, 0, 0.4, 0.8),
+                                                   tickmode = "array"),
+                                      plot_bgcolor  = "rgba(0, 0, 0, 0)",
+                                      paper_bgcolor = "rgba(0, 0, 0, 0)",
+                                      annotations=list(text="Box Plot",xref="paper",x=0.5,
+                                                       yref="paper",y=0.95,yshift=30,showarrow=FALSE,
+                                                       font=list(size=20,color="gray30"))) %>%
+    config(displaylogo = FALSE,
+           modeBarButtonsToRemove = c(
+             #'toImage',
+             'sendDataToCloud',
+             'pan2d',
+             'select2d',
+             'lasso2d',
+             'toggleSpikelines',
+             'hoverClosestCartesian',
+             'hoverCompareCartesian'
+           ))
+}
+
+### TEXT SUMMARIZATION: TEXTRANK -----
+# highlightSentences <- function(dfTag, id, n = 3){
+#   df <- dfTag %>% filter(doc_id==id)
+#   sentences <- df %>%
+#     select(sentence_id,sentence) %>%
+#     distinct()
+#
+#   terminology <- df %>%
+#     filter(POSSelected) %>%
+#     select(sentence_id, lemma)
+#
+#   tr <- textrank_sentences(data = sentences, terminology = terminology)
+#   s <- tr$sentences %>%
+#     arrange(desc(textrank))
+#
+#   n <- min(n,nrow(s))
+#
+#   s$h <- c(rep(1,n),rep(0,nrow(s)-n))
+#   s <- s %>%
+#     mutate(sentence = ifelse(h==1, paste0("<mark><strong>", sentence, "</strong></mark>"), sentence)) %>%
+#     arrange(textrank_id) %>%
+#     summarize(doc=paste(sentence, collapse=" "))
+#   s$doc
+# }
+highlightSentences <- function(dfTag, id){
+  df <- dfTag %>%
+    filter(doc_id==id)
+
+  n <- max(3,round(0.05*max(df$sentence_id)))
+
+  sentences <- df %>%
+    select(sentence_id,sentence) %>%
+    distinct()
+
+  terminology <- df %>%
+    filter(POSSelected) %>%
+    select(sentence_id, lemma)
+
+  tr <- textrank_sentences(data = sentences, terminology = terminology)
+  s <- tr$sentences %>%
+    arrange(desc(textrank))
+
+  n <- min(n,nrow(s))
+
+  s$h <- c(rep(1,n),rep(0,nrow(s)-n))
+  s <- s %>%
+    left_join(df %>% select(paragraph_id,sentence_id) %>% distinct(), by = c("textrank_id"="sentence_id")) %>%
+    mutate(sentence = ifelse(h==1, paste0("<mark><strong>", sentence, "</strong></mark>"), sentence)) %>%
+    arrange(textrank_id) %>%
+    group_by(paragraph_id) %>%
+    summarize(paragraph=paste(sentence, collapse=" "),
+              highlighted=ifelse(sum(h)>0,"Yes","No")) %>%
+    filter(highlighted=="Yes") %>%
+    arrange(paragraph_id) %>%
+    select(paragraph_id,paragraph) %>%
+    rename("Paragraph ID" = paragraph_id,
+           "Paragraph" = paragraph)
+  return(s)
+}
+
 ### EXCEL REPORT FUNCTIONS ----
 addDataWb <- function(list_df, wb, sheetname){
   l <- length(list_df)
@@ -1668,23 +1814,23 @@ popUp <- function(title=NULL, type="success", btn_labels="OK"){
            title <- paste(title,"\n added to report",sep="")
            subtitle <- ""
            btn_colors = "#1d8fe1"
-             showButton = TRUE
-             timer = 3000
+           showButton = TRUE
+           timer = 3000
          },
          error={
            title <- "No results to add to the report "
            subtitle <- "Please Run the analysis and then Add it to the report"
            btn_colors = "#913333"
-             showButton = TRUE
-             timer = 3000
+           showButton = TRUE
+           timer = 3000
          },
          waiting={
            title <- "Please wait... "
            subtitle <- "Adding results to report"
            btn_colors = "#FFA800"
-             showButton = FALSE
-             btn_labels = NA
-             timer = NA
+           showButton = FALSE
+           btn_labels = NA
+           timer = NA
          })
 
   show_alert(
@@ -1710,8 +1856,8 @@ popUp <- function(title=NULL, type="success", btn_labels="OK"){
 ## Color palette for plots
 colorlist <- function(){
   c("#E41A1C","#377EB8","#4DAF4A","#984EA3","#FF7F00","#A65628","#F781BF","#999999","#66C2A5","#FC8D62","#8DA0CB","#E78AC3","#A6D854","#FFD92F"
-             ,"#B3B3B3","#A6CEE3","#1F78B4","#B2DF8A","#33A02C","#FB9A99","#E31A1C","#FDBF6F","#FF7F00","#CAB2D6","#6A3D9A","#B15928","#8DD3C7","#BEBADA"
-             ,"#FB8072","#80B1D3","#FDB462","#B3DE69","#D9D9D9","#BC80BD","#CCEBC5")
+    ,"#B3B3B3","#A6CEE3","#1F78B4","#B2DF8A","#33A02C","#FB9A99","#E31A1C","#FDBF6F","#FF7F00","#CAB2D6","#6A3D9A","#B15928","#8DD3C7","#BEBADA"
+    ,"#FB8072","#80B1D3","#FDB462","#B3DE69","#D9D9D9","#BC80BD","#CCEBC5")
 }
 
 
@@ -1831,22 +1977,22 @@ menuList <- function(menu){
                       menuItem("Network", tabName = "w_network", icon = icon("chevron-right"),
                                menuSubItem("Word co-occurence", tabName = "w_networkCooc", icon = icon("chevron-right")),
                                menuSubItem("Grako", tabName = "w_networkGrako", icon = icon("chevron-right")))),
-                      menuItem("Documents",tabName = "documents", icon = icon(name="duplicate", lib="glyphicon"),
-                               menuItem("Topic Modeling", tabName = "d_topicMod", icon = icon("chevron-right"),
-                                        menuSubItem("K choice", tabName = "d_tm_select", icon = icon("chevron-right")),
-                                        menuSubItem("Model Estimation", tabName = "d_tm_estim", icon = icon("chevron-right"))),
-                               menuSubItem("Clustering", tabName = "d_clustering", icon = icon("chevron-right")),
-                               menuSubItem("Network", tabName = "d_network", icon = icon("chevron-right")),
-                               menuSubItem("Summarization", tabName = "d_summarization", icon = icon("chevron-right")),
-                               menuSubItem("Polarity Detection", tabName = "d_polDet", icon = icon("chevron-right"))),
-                      menuItem("Groups",tabName = "groups", icon = icon("th", lib="glyphicon"),
-                               menuSubItem("Topic Modeling", tabName = "g_topicMod", icon = icon("chevron-right")),
-                               menuSubItem("Clustering", tabName = "g_clustering", icon = icon("chevron-right")),
-                               menuSubItem("Network", tabName = "g_network", icon = icon("chevron-right")),
-                               menuSubItem("Summarization", tabName = "g_summarization", icon = icon("chevron-right")),
-                               menuSubItem("Polarity Detection", tabName = "g_polDet", icon = icon("chevron-right"))),
-                      menuItem("Report",tabName = "report", icon = icon("list-alt")),
-                      menuItem("Settings",tabName = "settings", icon = icon("tasks"))
+             menuItem("Documents",tabName = "documents", icon = icon(name="duplicate", lib="glyphicon"),
+                      menuItem("Topic Modeling", tabName = "d_topicMod", icon = icon("chevron-right"),
+                               menuSubItem("K choice", tabName = "d_tm_select", icon = icon("chevron-right")),
+                               menuSubItem("Model Estimation", tabName = "d_tm_estim", icon = icon("chevron-right"))),
+                      menuSubItem("Clustering", tabName = "d_clustering", icon = icon("chevron-right")),
+                      menuSubItem("Network", tabName = "d_network", icon = icon("chevron-right")),
+                      menuSubItem("Summarization", tabName = "d_summarization", icon = icon("chevron-right")),
+                      menuSubItem("Polarity Detection", tabName = "d_polDet", icon = icon("chevron-right"))),
+             menuItem("Groups",tabName = "groups", icon = icon("th", lib="glyphicon"),
+                      menuSubItem("Topic Modeling", tabName = "g_topicMod", icon = icon("chevron-right")),
+                      menuSubItem("Clustering", tabName = "g_clustering", icon = icon("chevron-right")),
+                      menuSubItem("Network", tabName = "g_network", icon = icon("chevron-right")),
+                      menuSubItem("Summarization", tabName = "g_summarization", icon = icon("chevron-right")),
+                      menuSubItem("Polarity Detection", tabName = "g_polDet", icon = icon("chevron-right"))),
+             menuItem("Report",tabName = "report", icon = icon("list-alt")),
+             menuItem("Settings",tabName = "settings", icon = icon("tasks"))
            )
          },
          {
@@ -1857,25 +2003,25 @@ menuList <- function(menu){
                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right")))
            )
-           }
+         }
   )
 }
 
 # DATA TABLE FORMAT ----
 DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, right=NULL, numeric=NULL, dom=TRUE, size='85%', filter="top",
-                     columnShort=NULL, columnSmall=NULL, round=2){
+                     columnShort=NULL, columnSmall=NULL, round=2, title=""){
 
   if (length(columnShort)>0){
     columnDefs = list(list(
       className = 'dt-center', targets = 0:(length(names(df)) - 1)),
       list(
-      targets = columnShort-1,
-      render = JS(
-        "function(data, type, row, meta) {",
-        "return type === 'display' && data.length > 500 ?",
-        "'<span title=\"' + data + '\">' + data.substr(0, 500) + '...</span>' : data;",
-        "}")
-    ))
+        targets = columnShort-1,
+        render = JS(
+          "function(data, type, row, meta) {",
+          "return type === 'display' && data.length > 500 ?",
+          "'<span title=\"' + data + '\">' + data.substr(0, 500) + '...</span>' : data;",
+          "}")
+      ))
   } else{
     columnDefs = list(list(
       className = 'dt-center', targets = 0:(length(names(df)) - 1)
@@ -1909,21 +2055,29 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
     dom <- "Bt"
   }
 
-  tab <- DT::datatable(df, escape = FALSE,rownames = FALSE, extensions = c("Buttons", "ColReorder", "FixedHeader"),
+  if (nchar(title)>0){
+    caption = htmltools::tags$caption( style = 'caption-side: top; text-align: center; color:black;  font-size:140% ;',title)
+  } else {
+    caption = FALSE
+  }
+
+  tab <- DT::datatable(df, escape = FALSE,rownames = FALSE,
+                       caption = caption,
+                       extensions = c("Buttons", "ColReorder", "FixedHeader"),
                        filter = filter,
-                options = list(
-                  colReorder = TRUE,
-                  fixedHeader = TRUE,
-                  pageLength = nrow,
-                  autoWidth = FALSE, scrollX = TRUE,
-                  dom = dom,
-                  buttons = buttons,
-                  lengthMenu = list(c(10, 25, 50, -1),
-                                    c('10 rows', '25 rows', '50 rows', 'Show all')),
-                  columnDefs = columnDefs
-                ),
-                class = 'cell-border compact stripe',
-                callback = JS('table.page(3).draw(false);')
+                       options = list(
+                         colReorder = TRUE,
+                         fixedHeader = TRUE,
+                         pageLength = nrow,
+                         autoWidth = FALSE, scrollX = TRUE,
+                         dom = dom,
+                         buttons = buttons,
+                         lengthMenu = list(c(10, 25, 50, -1),
+                                           c('10 rows', '25 rows', '50 rows', 'Show all')),
+                         columnDefs = columnDefs
+                       ),
+                       class = 'cell-border compact stripe',
+                       callback = JS('table.page(3).draw(false);')
   ) %>%
     DT::formatStyle(
       names(df),
@@ -1965,7 +2119,6 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
 
 
 ### FUNCTIONS FOR UI ----
-
 
 
 
