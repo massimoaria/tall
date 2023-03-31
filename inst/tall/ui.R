@@ -1949,23 +1949,24 @@ body <- dashboardBody(
                            dropdown(
                              h4(strong("Options: ")),
                              hr(),
-                             selectInput(
-                               inputId = 'languageD_polarity', label="Select language",
-                               choices = c("english","italian","french","german","spanish","afrikaans","arabic","armenian","basque","belarusian","bulgarian","catalan","chinese",
-                                           "croatian","czech","danish","dutch","estonian","finnish","galician","greek","hebrew","hindi","hungarian","indonesian","irish","japanese",
-                                           "korean","latin","latvian","lithuanian","maltese","marathi","norwegian","persian","polish","portuguese",
-                                           "romanian","russian","serbian","slovak","slovenian","swedish","tamil","telugu","turkish","ukrainian","urdu","uyghur","vietnamese"),
-                               multiple=FALSE,
-                               width = "100%"
-                             ),
-                             conditionalPanel('input.languageD_polarity=="english"',
-                                              selectInput(
-                                                inputId = "lexiconD_polarity", label="Select lexicon",
-                                                choices = c("huliu",
-                                                            "loughran_mcdonald",
-                                                            "nrc"),
-                                                selected = "huliu"
-                                              )),
+                             uiOutput("lexiconD_polarity"),
+                             # selectInput(
+                             #   inputId = 'languageD_polarity', label="Select language",
+                             #   choices = c("english","italian","french","german","spanish","afrikaans","arabic","armenian","basque","belarusian","bulgarian","catalan","chinese",
+                             #               "croatian","czech","danish","dutch","estonian","finnish","galician","greek","hebrew","hindi","hungarian","indonesian","irish","japanese",
+                             #               "korean","latin","latvian","lithuanian","maltese","marathi","norwegian","persian","polish","portuguese",
+                             #               "romanian","russian","serbian","slovak","slovenian","swedish","tamil","telugu","turkish","ukrainian","urdu","uyghur","vietnamese"),
+                             #   multiple=FALSE,
+                             #   width = "100%"
+                             # ),
+                             # conditionalPanel('input.languageD_polarity=="english"',
+                             #                  selectInput(
+                             #                    inputId = "lexiconD_polarity", label="Select lexicon",
+                             #                    choices = c("huliu",
+                             #                                "loughran_mcdonald",
+                             #                                "nrc"),
+                             #                    selected = "huliu"
+                             #                  )),
                              tooltip = tooltipOptions(title = "Options"),
                              width = "220px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,

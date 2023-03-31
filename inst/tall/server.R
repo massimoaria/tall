@@ -1491,13 +1491,46 @@ server <- function(input, output, session){
 
   ## Polarity detection ----
 
+    output$lexiconD_polarity <- renderUI({
+      # selectInput(
+      #   inputId = 'languageD_polarity', label="Select language",
+      #   choices = c("english","italian","french","german","spanish","afrikaans","arabic","armenian","basque","belarusian","bulgarian","catalan","chinese",
+      #               "croatian","czech","danish","dutch","estonian","finnish","galician","greek","hebrew","hindi","hungarian","indonesian","irish","japanese",
+      #               "korean","latin","latvian","lithuanian","maltese","marathi","norwegian","persian","polish","portuguese",
+      #               "romanian","russian","serbian","slovak","slovenian","swedish","tamil","telugu","turkish","ukrainian","urdu","uyghur","vietnamese"),
+      #   multiple=FALSE,
+      #   width = "100%"
+      # ),
+      # conditionalPanel('values$language=="english"',
+      if (values$language == "english"){
+                       selectInput(
+                         inputId = "lexiconD_polarity", label="Select lexicon",
+                         choices = c("huliu",
+                                     "loughran_mcdonald",
+                                     "nrc"),
+                         selected = "huliu"
+                       )
+      }
+      # )
+    })
     ## Model estimation ----
     docPolarityEstim <- eventReactive(
       ignoreNULL = TRUE,
       eventExpr = {input$d_polDetApply},
       valueExpr ={
-        values$docPolarity <- sentimentAnalysis(values$dfTag, language = input$languageD_polarity, lexicon_model=input$lexiconD_polarity)
+        choices = c("english","italian","french","german","spanish","afrikaans","arabic","armenian","basque","belarusian","bulgarian","catalan","chinese",
+                    "croatian","czech","danish","dutch","estonian","finnish","galician","greek","hebrew","hindi","hungarian","indonesian","irish","japanese",
+                    "korean","latin","latvian","lithuanian","maltese","marathi","norwegian","persian","polish","portuguese",
+                    "romanian","russian","serbian","slovak","slovenian","swedish","tamil","telugu","turkish","ukrainian","urdu","uyghur","vietnamese")
+        if (values$language %in% choices){
+          if (is.null(input$lexiconD_polarity)){
+            lexiconD_polarity <- "huliu"
+          }  else {
+            lexiconD_polarity <- input$lexiconD_polarity
+          }
+        values$docPolarity <- sentimentAnalysis(values$dfTag, language = values$language, lexicon_model=lexiconD_polarity)
         values$docPolPlots <- sentimentWordPlot(values$docPolarity$sent_data, n=10)
+        }
       }
     )
 
