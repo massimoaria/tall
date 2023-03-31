@@ -105,6 +105,7 @@ server <- function(input, output, session){
               values$menu <- menu
               values$dfTag <- dfTag
               values$custom_lists <- custom_lists
+              values$language <- language
               values$D <- D
               values$where <- where
               if (values$menu==1) updateTabItems(session, "sidebarmenu", "custTermList")
@@ -154,6 +155,7 @@ server <- function(input, output, session){
     ndocs <- length(unique(values$dfTag$doc_id))
     txt1 <- (paste0("Tall file contains: ",strong(ndocs),strong(" documents")))
     txt2 <- (paste0("Last modified date: ", strong(values$D)))
+    txt2b <- (paste0("Language: ", strong(values$language)))
     if(!is.null(dim(values$custom_lists))){
       ncust <- nrow(values$custom_lists)
       txt3 <- (paste0("Tall file includes a custom list of: ",strong(ncust), strong(" words")))
@@ -161,7 +163,7 @@ server <- function(input, output, session){
       txt3 <- (paste0("Tall file does not include a custom word list"))
     }
     txt4 <- (paste0("The last pre-processing step performed is: ",strong(values$where)))
-    text <- paste0(txt1,"<br><br>",txt2,"<br><br>",txt3,"<br><br>",txt4)
+    text <- paste0(txt1,"<br><br>",txt2,"<br><br>",txt2b,"<br><br>",txt3,"<br><br>",txt4)
     tagList(
       div(
         h4(HTML(text)),
@@ -256,6 +258,7 @@ server <- function(input, output, session){
     posTagging <- eventReactive({
       input$tokPosRun
     },{
+      values$language <- sub("-.*","",input$language_model)
         ## download and load model language
         udmodel_lang <- loadLanguageModel(language = input$language_model)
 
@@ -304,7 +307,7 @@ server <- function(input, output, session){
         paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
       },
       content <- function(file) {
-        saveTall(values$dfTag, values$custom_lists, values$menu, "Custom Term Lists", file)
+        saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "Custom Term Lists", file)
         # D <- date()
         # save(dfTag,menu,D,where, file=file)
       }, contentType = "tall"
@@ -371,7 +374,7 @@ server <- function(input, output, session){
         paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
       },
       content <- function(file) {
-        saveTall(values$dfTag, values$custom_lists, values$menu, "Custom Term Lists", file)
+        saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "Custom Term Lists", file)
         # D <- date()
         # save(dfTag,menu,D,where, file=file)
       }, contentType = "tall"
@@ -435,7 +438,7 @@ server <- function(input, output, session){
         paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
       },
       content <- function(file) {
-        saveTall(values$dfTag, values$custom_lists, values$menu, "Multi-Word Creation", file)
+        saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "Multi-Word Creation", file)
         # D <- date()
         # save(dfTag,menu,D,where, file=file)
       }, contentType = "tall"
@@ -483,7 +486,7 @@ server <- function(input, output, session){
         paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
       },
       content <- function(file) {
-        saveTall(values$dfTag, values$custom_lists, values$menu, "POS Tag Selection", file)
+        saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "POS Tag Selection", file)
         # D <- date()
         # save(dfTag,menu,D,where, file=file)
       }, contentType = "tall"
@@ -772,9 +775,9 @@ server <- function(input, output, session){
         easyClose = TRUE,
         footer = tagList(
           actionButton(inputId="tmTopSentences",
-                       label = strong("Highlight Top Sentences"),
-                       icon = icon(name="play",lib = "glyphicon"),
-                       style = "border-radius: 20px; border-width: 1px; font-size: 17px; text-align: center; color: #ffff; padding-left: 20px; padding-right: 20px"),
+                       label = strong("Relevant Sentences"),
+                       icon = icon(name="text-background",lib = "glyphicon"),
+                       style = "border-radius: 20px; border-width: 1px; font-size: 16px; text-align: center; color: #ffff; padding-left: 20px; padding-right: 20px"),
           modalButton("Close")),
       )
     }

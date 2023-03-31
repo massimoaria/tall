@@ -1895,11 +1895,11 @@ highlight <- function(df){
 
 
 ## saveTall function ----
-saveTall <- function(dfTag,custom_lists,menu,where,file){
+saveTall <- function(dfTag,custom_lists,language,menu,where,file){
   D <- date()
   D <- strsplit(gsub("\\s+", " ", D)," ")
   D <- paste(unlist(D)[c(1,2,3,5)],collapse=" ")
-  save(dfTag,custom_lists,menu,D,where, file=file)
+  save(dfTag,custom_lists,language,menu,D,where, file=file)
 }
 
 ###Export Tall analysis in .tall file ----
