@@ -1764,23 +1764,6 @@ body <- dashboardBody(
                              h4(strong("Options: ")),
                              hr(),
                              uiOutput("lexiconD_polarity"),
-                             # selectInput(
-                             #   inputId = 'languageD_polarity', label="Select language",
-                             #   choices = c("english","italian","french","german","spanish","afrikaans","arabic","armenian","basque","belarusian","bulgarian","catalan","chinese",
-                             #               "croatian","czech","danish","dutch","estonian","finnish","galician","greek","hebrew","hindi","hungarian","indonesian","irish","japanese",
-                             #               "korean","latin","latvian","lithuanian","maltese","marathi","norwegian","persian","polish","portuguese",
-                             #               "romanian","russian","serbian","slovak","slovenian","swedish","tamil","telugu","turkish","ukrainian","urdu","uyghur","vietnamese"),
-                             #   multiple=FALSE,
-                             #   width = "100%"
-                             # ),
-                             # conditionalPanel('input.languageD_polarity=="english"',
-                             #                  selectInput(
-                             #                    inputId = "lexiconD_polarity", label="Select lexicon",
-                             #                    choices = c("huliu",
-                             #                                "loughran_mcdonald",
-                             #                                "nrc"),
-                             #                    selected = "huliu"
-                             #                  )),
                              tooltip = tooltipOptions(title = "Options"),
                              width = "220px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
@@ -1793,16 +1776,13 @@ body <- dashboardBody(
               fluidRow(
                 tabsetPanel(type = "tabs",
                             tabPanel("Document Polarity Distribution",
-                                     #fluidRow(h4("Document Polarity Distribution"), align="center"),
                                      fluidRow(
                                        column(6,
                                               shinycssloaders::withSpinner(plotlyOutput(outputId = "d_polPiePlot", height = "75vh", width ="98.9%"),
                                                                            color = getOption("spinner.color", default = "#4F7942"))),
                                        column(6,
-                                              #fluidRow(
                                               shinycssloaders::withSpinner(plotlyOutput(outputId = "d_polDensPlot", width ="98.9%"),
                                                                            color = getOption("spinner.color", default = "#4F7942")),#),
-                                              #fluidRow(
                                               shinycssloaders::withSpinner(plotlyOutput(outputId = "d_polBoxPlot", width ="98.9%"),
                                                                            color = getOption("spinner.color", default = "#4F7942"))#)
                                        )
@@ -1837,42 +1817,20 @@ body <- dashboardBody(
               fluidRow(
                 column(8,
                        h3(strong("Summarization"), align = "center")),
-                # div(#style=style_bttn,
-                #   title = t_run,
-                #   column(1,
-                #          do.call("actionButton", c(run_bttn, list(
-                #            inputId = "d_summarizationApply")
-                #          ))
-                #   )),
-                # div(#style=style_bttn,
-                #   title = t_export,
-                #   column(1,
-                #          do.call("downloadButton", c(export_bttn, list(
-                #            outputId = "d_summarizationExport")
-                #          ))
-                #
-                #   )),
-
-                div(#style=style_bttn,
+                div(
+                  title = t_run,
+                  column(1,
+                         do.call("actionButton", c(run_bttn, list(
+                           inputId = "d_summarizationApply")
+                         ))
+                  )),
+               div(
                   title = t_report,
                   column(1,
                          do.call("actionButton", c(report_bttn, list(
                            inputId = "d_summarizationReport")
                          ))
-                  ))#,
-                # div(column(1,
-                #            dropdown(
-                #              h4(strong("Options: ")),
-                #              hr(),
-                #              # inserire opzioni....
-                #              tooltip = tooltipOptions(title = "Options"),
-                #              width = "220px", icon = icon("cog", lib="glyphicon"),
-                #              right = TRUE, animate = TRUE,
-                #              style = "material-circle"
-                #            )
-                # ),
-                # style = style_opt
-                # )
+                  ))
               ),
               br(),
               br(),
@@ -1898,22 +1856,14 @@ body <- dashboardBody(
                            tags$hr(),
                            fluidRow(column(6,
                                            uiOutput("optionsSummarization")),
-                                    column(3,
-                                           title = t_run,
-                                           do.call("actionButton", c(run_bttn, list(
-                                             inputId = "SummarizationRun")
-                                           ))
-                                    ),
-                                    column(3,
-                                           title = t_save,
-                                           do.call("downloadButton", c(list(
-                                             label=NULL,
-                                             style ="display:block; height: 43px; width: 43px; border-radius: 50%; border: 1px; margin-top: 15px",
-                                             icon = icon(name ="floppy-save", lib="glyphicon")
-                                           ), list(
-                                             outputId = "SummarizationSave")
-                                           ))
-                                    ))
+                                    column(6,
+                                           numericInput("nTopSent",
+                                                        label = "N of Senteces",
+                                                        value = 2,
+                                                        min = 1,
+                                                        step = 1
+                                                        ))
+                                    )
                          )
                        ),style="margin-top:40px"
                 )

@@ -1578,7 +1578,23 @@ server <- function(input, output, session){
       )
     })
 
+    ## input$nTopSent
 
+    output$TopSentData <- eventReactive(
+      ignoreNULL = TRUE,
+      eventExpr = {input$d_summarizationApply},
+      valueExpr ={
+        ## input$nTopSent
+
+      })
+
+    output$DocFullTextData <- eventReactive(
+      ignoreNULL = TRUE,
+      eventExpr = {input$d_summarizationApply},
+      valueExpr ={
+        ## input$nTopSent
+
+      })
 
   ## GROUPS ----
 
