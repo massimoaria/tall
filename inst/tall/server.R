@@ -1580,7 +1580,7 @@ server <- function(input, output, session){
 
     ## input$nTopSent
 
-    output$TopSentData <- eventReactive(
+    output$RelSentData <- eventReactive(
       ignoreNULL = TRUE,
       eventExpr = {input$d_summarizationApply},
       valueExpr ={
@@ -1588,7 +1588,7 @@ server <- function(input, output, session){
 
       })
 
-    output$DocFullTextData <- eventReactive(
+    output$DocumentData <- eventReactive(
       ignoreNULL = TRUE,
       eventExpr = {input$d_summarizationApply},
       valueExpr ={
