@@ -1483,12 +1483,6 @@ server <- function(input, output, session){
     })
 
 
-  ## Clustering ----
-
-  ## Network ----
-
-  ## Summarization ----
-
   ## Polarity detection ----
 
     output$lexiconD_polarity <- renderUI({
@@ -1572,6 +1566,18 @@ server <- function(input, output, session){
         "Negative Words" = terms_negative)
       DTformat(docPolarityOverall, filename = "DocPolarity", left=c(1,3,4,5), numeric = 2, round=4)
     })
+
+
+    ## Summarization ----
+
+    output$optionsSummarization <- renderUI({
+      selectInput(
+        inputId = 'documents_selection', label="Select Documents", choices = unique(values$dfTag$doc_id),
+        multiple=FALSE,
+        width = "100%"
+      )
+    })
+
 
 
   ## GROUPS ----

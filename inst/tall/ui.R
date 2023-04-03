@@ -1507,20 +1507,7 @@ body <- dashboardBody(
                          do.call("actionButton", c(report_bttn, list(
                            inputId = "d_tm_selectReport")
                          ))
-                  ))#,
-                # div(column(1,
-                #            dropdown(
-                #              h4(strong("Options: ")),
-                #              hr(),
-                #              # inserire opzioni....
-                #              tooltip = tooltipOptions(title = "Options"),
-                #              width = "220px", icon = icon("cog", lib="glyphicon"),
-                #              right = TRUE, animate = TRUE,
-                #              style = "material-circle"
-                #            )
-                # ),
-                # style = style_opt
-                # )
+                  ))
               ),
               fluidRow(
                 column(9,
@@ -1743,179 +1730,6 @@ body <- dashboardBody(
             )
     ),
 
-    ### Clustering ----
-
-    tabItem(tabName = "d_clustering",
-            fluidPage(
-              fluidRow(
-                column(8,
-                       h3(strong("Clustering"), align = "center")),
-                div(
-                  title = t_run,
-                  column(1,
-                         do.call("actionButton", c(run_bttn, list(
-                           inputId = "d_clusteringApply")
-                         ))
-                  )),
-                div(
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "d_clusteringExport")
-                         ))
-                  )),
-                div(
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "d_clusteringReport")
-                         ))
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             hr(),
-                             # inserire opzioni....
-                             tooltip = tooltipOptions(title = "Options"),
-                             width = "220px", icon = icon("cog", lib="glyphicon"),
-                             right = TRUE, animate = TRUE,
-                             style = "material-circle"
-                           )
-                ),
-                style = style_opt
-                )
-              ),
-              fluidRow(
-                tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "d_clusteringPlot", height = "75vh",width ="98.9%"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            ),
-                            tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("d_clusteringTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            )
-                )
-              )
-            )
-    ),
-
-    ### Network ----
-
-    tabItem(tabName = "d_network",
-            fluidPage(
-              fluidRow(
-                column(8,
-                       h3(strong("Network"), align = "center")),
-                div(
-                  title = t_run,
-                  column(1,
-                         do.call("actionButton", c(run_bttn, list(
-                           inputId = "d_networkApply")
-                         ))
-                  )),
-                div(
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "d_networkExport")
-                         ))
-                  )),
-                div(
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "d_networkReport")
-                         ))
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             hr(),
-                             # inserire opzioni....
-                             tooltip = tooltipOptions(title = "Options"),
-                             width = "220px", icon = icon("cog", lib="glyphicon"),
-                             right = TRUE, animate = TRUE,
-                             style = "material-circle"
-                           )
-                ),
-                style = style_opt
-                )
-              ),
-              fluidRow(
-                tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "d_networkPlot", height = "75vh",width ="98.9%"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            ),
-                            tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("d_networkTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            )
-                )
-              )
-            )
-    ),
-
-    ### Summarization ----
-
-    tabItem(tabName = "d_summarization",
-            fluidPage(
-              fluidRow(
-                column(8,
-                       h3(strong("Summarization"), align = "center")),
-                div(#style=style_bttn,
-                  title = t_run,
-                  column(1,
-                         do.call("actionButton", c(run_bttn, list(
-                           inputId = "d_summarizationApply")
-                         ))
-                  )),
-                div(#style=style_bttn,
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "d_summarizationExport")
-                         ))
-
-                  )),
-
-                div(#style=style_bttn,
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "d_summarizationReport")
-                         ))
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             hr(),
-                             # inserire opzioni....
-                             tooltip = tooltipOptions(title = "Options"),
-                             width = "220px", icon = icon("cog", lib="glyphicon"),
-                             right = TRUE, animate = TRUE,
-                             style = "material-circle"
-                           )
-                ),
-                style = style_opt
-                )
-              ),
-              fluidRow(
-                tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "d_summarizationPlot", height = "75vh",width ="98.9%"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            ),
-                            tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("d_summarizationTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            )
-                )
-              )
-            )
-    ),
-
     ### Polarity detection ----
 
     tabItem(tabName = "d_polDet",
@@ -1986,8 +1800,8 @@ body <- dashboardBody(
                                                                            color = getOption("spinner.color", default = "#4F7942"))),
                                        column(6,
                                               #fluidRow(
-                                                shinycssloaders::withSpinner(plotlyOutput(outputId = "d_polDensPlot", width ="98.9%"),
-                                                                             color = getOption("spinner.color", default = "#4F7942")),#),
+                                              shinycssloaders::withSpinner(plotlyOutput(outputId = "d_polDensPlot", width ="98.9%"),
+                                                                           color = getOption("spinner.color", default = "#4F7942")),#),
                                               #fluidRow(
                                               shinycssloaders::withSpinner(plotlyOutput(outputId = "d_polBoxPlot", width ="98.9%"),
                                                                            color = getOption("spinner.color", default = "#4F7942"))#)
@@ -1999,18 +1813,109 @@ body <- dashboardBody(
                                      fluidRow(
                                        column(6, align="center",
                                               h4("Top Positive Words by Document Polarity Distribution"),
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "d_polDetPlotPos", height = "75vh",width ="98.9%"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))),
-                                     column(6, align="center",
-                                            h4("Top Negative Words by Document Polarity Distribution"),
-                                            shinycssloaders::withSpinner(plotlyOutput(outputId = "d_polDetPlotNeg", height = "75vh",width ="98.9%"),
-                                                                         color = getOption("spinner.color", default = "#4F7942")))
-                                            )
+                                              shinycssloaders::withSpinner(plotlyOutput(outputId = "d_polDetPlotPos", height = "75vh",width ="98.9%"),
+                                                                           color = getOption("spinner.color", default = "#4F7942"))),
+                                       column(6, align="center",
+                                              h4("Top Negative Words by Document Polarity Distribution"),
+                                              shinycssloaders::withSpinner(plotlyOutput(outputId = "d_polDetPlotNeg", height = "75vh",width ="98.9%"),
+                                                                           color = getOption("spinner.color", default = "#4F7942")))
+                                     )
                             ),
                             tabPanel("Table",
                                      shinycssloaders::withSpinner(DT::DTOutput("d_polDetTable"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             )
+                )
+              )
+            )
+    ),
+
+    ### Summarization ----
+
+    tabItem(tabName = "d_summarization",
+            fluidPage(
+              fluidRow(
+                column(8,
+                       h3(strong("Summarization"), align = "center")),
+                # div(#style=style_bttn,
+                #   title = t_run,
+                #   column(1,
+                #          do.call("actionButton", c(run_bttn, list(
+                #            inputId = "d_summarizationApply")
+                #          ))
+                #   )),
+                # div(#style=style_bttn,
+                #   title = t_export,
+                #   column(1,
+                #          do.call("downloadButton", c(export_bttn, list(
+                #            outputId = "d_summarizationExport")
+                #          ))
+                #
+                #   )),
+
+                div(#style=style_bttn,
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "d_summarizationReport")
+                         ))
+                  ))#,
+                # div(column(1,
+                #            dropdown(
+                #              h4(strong("Options: ")),
+                #              hr(),
+                #              # inserire opzioni....
+                #              tooltip = tooltipOptions(title = "Options"),
+                #              width = "220px", icon = icon("cog", lib="glyphicon"),
+                #              right = TRUE, animate = TRUE,
+                #              style = "material-circle"
+                #            )
+                # ),
+                # style = style_opt
+                # )
+              ),
+              br(),
+              br(),
+              fluidRow(
+                column(9,
+                       tabsetPanel(type = "tabs",
+                                   tabPanel("Top-sentences",
+                                            shinycssloaders::withSpinner(DT::DTOutput("TopSentData"),
+                                                                         color = getOption("spinner.color", default = "#4F7942"))
+                                   ),
+                                   tabPanel("Doc Full-text",
+                                            shinycssloaders::withSpinner(DT::DTOutput("DocFullTextData"),
+                                                                         color = getOption("spinner.color", default = "#4F7942"))
+                                   )
+
+                       )
+                ),
+                column(3,
+                       div(
+                         box(
+                           width = 12,
+                           div(h3(strong(em("Sentences extraction"))), style="margin-top:-57px"),
+                           tags$hr(),
+                           fluidRow(column(6,
+                                           uiOutput("optionsSummarization")),
+                                    column(3,
+                                           title = t_run,
+                                           do.call("actionButton", c(run_bttn, list(
+                                             inputId = "SummarizationRun")
+                                           ))
+                                    ),
+                                    column(3,
+                                           title = t_save,
+                                           do.call("downloadButton", c(list(
+                                             label=NULL,
+                                             style ="display:block; height: 43px; width: 43px; border-radius: 50%; border: 1px; margin-top: 15px",
+                                             icon = icon(name ="floppy-save", lib="glyphicon")
+                                           ), list(
+                                             outputId = "SummarizationSave")
+                                           ))
+                                    ))
+                         )
+                       ),style="margin-top:40px"
                 )
               )
             )
