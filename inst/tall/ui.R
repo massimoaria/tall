@@ -170,7 +170,7 @@ body <- dashboardBody(
                                                        br(),
                                                        actionButton(inputId="runImport",
                                                                     label = strong("START"),
-                                                                    icon = icon(name="play",lib = "font-awesome"),
+                                                                    icon = icon(name="play",lib = "glyphicon"),
                                                                     style = style_bttn
                                                        ))
                                               )
@@ -185,7 +185,7 @@ body <- dashboardBody(
                                                        width=12,
                                                        downloadButton(outputId="collection.save",
                                                                       label = strong("Export Raw Texts in Excel"),
-                                                                      icon = icon(name="download", lib = "font-awesome"),
+                                                                      icon = icon(name="download", lib = "glyphicon"),
                                                                       style ="border-radius: 15px; border-width: 1px; font-size: 17px;
                                                                     text-align: center; color: #ffff; "
                                                        ))
@@ -393,7 +393,7 @@ body <- dashboardBody(
                                              width=12,
                                              actionButton(inputId="custTermListRun",
                                                           label = strong("APPLY"),
-                                                          icon = icon(name="play", lib = "font-awesome"),
+                                                          icon = icon(name="play", lib = "glyphicon"),
                                                           style = style_bttn
                                              ))
                            ),
@@ -480,7 +480,7 @@ body <- dashboardBody(
                                              width=12,
                                              actionButton(inputId="multiwordCreatRun",
                                                           label = strong("APPLY"),
-                                                          icon = icon(name="play", lib = "font-awesome"),
+                                                          icon = icon(name="play", lib = "glyphicon"),
                                                           style = style_bttn
                                              ))
                            ),
@@ -536,7 +536,7 @@ body <- dashboardBody(
                                              width=12,
                                              actionButton(inputId="posTagSelectRun",
                                                           label = strong("APPLY"),
-                                                          icon = icon(name="play", lib = "font-awesome"),
+                                                          icon = icon(name="play", lib = "glyphicon"),
                                                           style = style_bttn
                                              ))
                            ),
@@ -618,7 +618,7 @@ body <- dashboardBody(
                                                             selected = "token"),
                                                 actionButton(inputId="dictionaryApply",
                                                              label = strong("APPLY"),
-                                                             icon = icon(name="play", lib = "font-awesome"),
+                                                             icon = icon(name="play", lib = "glyphicon"),
                                                              style = style_bttn))
                                               ,align="left")
                                      )
@@ -1837,12 +1837,12 @@ body <- dashboardBody(
               fluidRow(
                 column(9,
                        tabsetPanel(type = "tabs",
-                                   tabPanel("Top-sentences",
-                                            shinycssloaders::withSpinner(DT::DTOutput("TopSentData"),
+                                   tabPanel("Relevant sentences",
+                                            shinycssloaders::withSpinner(DT::DTOutput("RelSentData"),
                                                                          color = getOption("spinner.color", default = "#4F7942"))
                                    ),
-                                   tabPanel("Doc Full-text",
-                                            shinycssloaders::withSpinner(DT::DTOutput("DocFullTextData"),
+                                   tabPanel("Document",
+                                            shinycssloaders::withSpinner(DT::DTOutput("DocumentData"),
                                                                          color = getOption("spinner.color", default = "#4F7942"))
                                    )
 
