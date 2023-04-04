@@ -1837,12 +1837,12 @@ body <- dashboardBody(
               fluidRow(
                 column(9,
                        tabsetPanel(type = "tabs",
-                                   tabPanel("Relevant sentences",
-                                            shinycssloaders::withSpinner(DT::DTOutput("RelSentData"),
-                                                                         color = getOption("spinner.color", default = "#4F7942"))
-                                   ),
                                    tabPanel("Document",
-                                            shinycssloaders::withSpinner(DT::DTOutput("DocumentData"),
+                                            shinycssloaders::withSpinner(DT::DTOutput("documentData"),
+                                                                         color = getOption("spinner.color", default = "#4F7942"))
+                                            ),
+                                   tabPanel("Sentence Ranking",
+                                            shinycssloaders::withSpinner(DT::DTOutput("RelSentData"),
                                                                          color = getOption("spinner.color", default = "#4F7942"))
                                    )
 
@@ -1859,7 +1859,7 @@ body <- dashboardBody(
                                     column(6,
                                            numericInput("nTopSent",
                                                         label = "N of Senteces",
-                                                        value = 2,
+                                                        value = 5,
                                                         min = 1,
                                                         step = 1
                                                         ))

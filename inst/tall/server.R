@@ -713,11 +713,13 @@ server <- function(input, output, session){
     ## Click on Plotly graphs: WORDS IN CONTEXT ----
     observeEvent(event_data("plotly_click"), {
       d <- event_data("plotly_click")
-      element <- d$y
-      if (input$sidebarmenu == "d_tm_estim" & element %in% unique(values$dfTag$doc_id)){
-        showModal(plotModalDoc(session))
-      } else if (input$sidebarmenu %in% c("w_noun","w_propn", "w_adj", "w_verb", "w_other", "ca", "d_tm_estim")){
-        showModal(plotModalTerm(session))
+      elementY <- d$y[1]
+      if (!is.null(elementY)){
+        if (input$sidebarmenu == "d_tm_estim" & elementY %in% unique(values$dfTag$doc_id)){
+          showModal(plotModalDoc(session))
+        } else if (input$sidebarmenu %in% c("w_noun","w_propn", "w_adj", "w_verb", "w_other", "ca", "d_tm_estim")){
+          showModal(plotModalTerm(session))
+        }
       }
     })
 
@@ -801,14 +803,11 @@ server <- function(input, output, session){
     output$docInContext <- renderDT({
       values$d <- event_data("plotly_click")
       doc <- values$d$y
-      # sentences <- values$dfTag %>% filter(doc_id==doc) %>%
-      #   distinct(sentence_id, sentence)
       paragraphs <- values$dfTag %>% filter(doc_id==doc) %>%
         distinct(paragraph_id,sentence_id, sentence) %>%
         group_by(paragraph_id) %>%
         summarize(paragraph=paste0(sentence,collapse=" ")) %>%
         ungroup() %>%
-        #select(paragraph_id,paragraph) %>%
         rename("Paragraph ID" = paragraph_id,
                "Paragraph" = paragraph)
       DTformat(paragraphs, nrow=3, size='100%', title=paste0("Doc_id: ",doc))
@@ -1486,16 +1485,6 @@ server <- function(input, output, session){
   ## Polarity detection ----
 
     output$lexiconD_polarity <- renderUI({
-      # selectInput(
-      #   inputId = 'languageD_polarity', label="Select language",
-      #   choices = c("english","italian","french","german","spanish","afrikaans","arabic","armenian","basque","belarusian","bulgarian","catalan","chinese",
-      #               "croatian","czech","danish","dutch","estonian","finnish","galician","greek","hebrew","hindi","hungarian","indonesian","irish","japanese",
-      #               "korean","latin","latvian","lithuanian","maltese","marathi","norwegian","persian","polish","portuguese",
-      #               "romanian","russian","serbian","slovak","slovenian","swedish","tamil","telugu","turkish","ukrainian","urdu","uyghur","vietnamese"),
-      #   multiple=FALSE,
-      #   width = "100%"
-      # ),
-      # conditionalPanel('values$language=="english"',
       if (values$language == "english"){
                        selectInput(
                          inputId = "lexiconD_polarity", label="Select lexicon",
@@ -1572,29 +1561,31 @@ server <- function(input, output, session){
 
     output$optionsSummarization <- renderUI({
       selectInput(
-        inputId = 'documents_selection', label="Select Documents", choices = unique(values$dfTag$doc_id),
+        inputId = 'document_selection', label="Select Documents", choices = unique(values$dfTag$doc_id),
         multiple=FALSE,
         width = "100%"
       )
     })
 
-    ## input$nTopSent
 
-    output$RelSentData <- eventReactive(
+    docExtraction <- eventReactive(
       ignoreNULL = TRUE,
       eventExpr = {input$d_summarizationApply},
       valueExpr ={
         ## input$nTopSent
+        values$docExtraction <- textrankDocument(values$dfTag, id=input$document_selection, n=input$nTopSent)
 
       })
 
-    output$DocumentData <- eventReactive(
-      ignoreNULL = TRUE,
-      eventExpr = {input$d_summarizationApply},
-      valueExpr ={
-        ## input$nTopSent
+    output$RelSentData <- renderDT({
+      docExtraction()
+      DTformat(values$docExtraction$sentences %>% rename(S_id=textrank_id, Ranking=textrank), nrow=10, size='85%', title=paste0("Doc_id: ",input$document_selection), left=1:2,numeric=3, round=4)
+    })
 
-      })
+    output$documentData <- renderDT({
+      docExtraction()
+      DTformat(values$docExtraction$document, nrow=3, size='100%', title=paste0("Doc_id: ",input$document_selection), left=2)
+    })
 
   ## GROUPS ----
 
