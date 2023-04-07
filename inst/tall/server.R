@@ -37,6 +37,7 @@ server <- function(input, output, session){
   label_lang <- languages$repo
   names(label_lang) <- languages$short
   values$label_lang <- label_lang
+  values$chapter <- languages$chapter
   values$TMplotIndex <- 1
   values$TMdocIndex <- 1
   values$tmTopSentences <- FALSE
@@ -118,7 +119,7 @@ server <- function(input, output, session){
   output$dataImported <- DT::renderDT({
     DATAloading()
     if (values$menu==0){
-      DTformat(values$txt %>% mutate(text = paste0(substr(text,1,500),"...")),left=2, nrow=5, filter="none")
+      DTformat(values$txt %>% mutate(text = paste0(substr(text,1,500),"...")),left=2, nrow=5, filter="none", button=TRUE)
     }
   })
 ### shortpath for folder path ----
@@ -211,6 +212,19 @@ server <- function(input, output, session){
       suppressWarnings(openxlsx::write.xlsx(values$txt, file=file))
     }, contentType = "xlsx"
   )
+
+
+  ### SPLIT TEXTS ----
+
+  splitDocFunc <- eventReactive(input$splitTextRun,{
+    values$txt_original <- values$txt
+    values$txt <- splitDoc(values$txt, word=input$txSplitWord, txSplitBy=input$txSplitBy)
+  })
+
+  output$splitTextData <- DT::renderDT({
+    splitDocFunc()
+    DTformat(values$txt %>% mutate(text = paste0(substr(text,1,500),"...")),left=2, nrow=5, filter="none", button=TRUE)
+  })
 
 
   ### RANDOM TEXT SELECTION ----
@@ -1553,9 +1567,54 @@ server <- function(input, output, session){
         "Polarity Category" = doc_pol_clas,
         "Positive Words" = terms_positive,
         "Negative Words" = terms_negative)
-      DTformat(docPolarityOverall, filename = "DocPolarity", left=c(1,3,4,5), numeric = 2, round=4)
+      DTformat(docPolarityOverall, filename = "DocPolarity", left=c(2,4,5,6), numeric = 3, round=4, button=TRUE)
     })
 
+    ## table click button ----
+    observeEvent(input$button_id, {
+      showModal(showDocumentModal(session))
+    })
+
+    showDocumentModal <- function(session) {
+      ns <- session$ns
+      modalDialog(
+        h3(strong(("Document corpus"))),
+        br(),
+        uiOutput("showDocument"),
+        size = "l",
+        easyClose = TRUE,
+        footer = tagList(
+          actionButton(label="Close", inputId = "closeShowDocument", style="color: #ffff;",
+                       icon = icon("remove", lib = "glyphicon"))
+        ),
+      )
+    }
+
+    observeEvent(input$closeShowDocument,{
+      removeModal(session = getDefaultReactiveDomain())
+    })
+
+    output$showDocument <- renderUI({
+      if (input$sidebarmenu %in% c("import_tx","split_tx")){
+        text <- values$txt %>% filter(doc_id==input$button_id)
+        text <- gsub("\n\n","<br><br>",text$text)
+      } else{
+        txt1 <- (paste0("Document ID: ",input$button_id))
+        doc <- values$dfTag %>% filter(doc_id==input$button_id) %>%
+          distinct(paragraph_id,sentence_id, sentence) %>%
+          group_by(paragraph_id) %>%
+          summarize(paragraph=paste0(sentence,collapse=" ")) %>%
+          ungroup()
+        txt2 <- paste(doc$paragraph,collapse="<br><br>")
+        text <- paste0(txt1,"<br><br>",txt2)
+        }
+
+      tagList(
+        div(
+          h4(HTML(text)),
+          style="text-align:left")
+      )
+    })
 
     ## Summarization ----
 

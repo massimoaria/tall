@@ -35,9 +35,18 @@ known_models<- c(
 
 default_models <-  gsub("-.*","",known_models)
 
+chapter_vec <- c(
+"CHAPTER","CAPITOLO","CHAPITRE","KAPITEL","CAPÍTULO","HOOFSTUK"  ,"ΚΕΦΑΛΑΙΟ","فصل","ԳԼՈՒԽ","KAPITULU","ГЛАВА","ГЛАВА",
+"CAPÍTOL","章","章","ⲡⲏⲡⲟⲗⲁⲓⲟⲥ", "POGLAVLJE", "KAPITOLA",  "KAPITEL",   "HOOFDSTUK", "PEATÜKK",   "LUKU",      "CAPÍTULO",  "KAPITULS",
+"ΚΕΦΑΛΑΙΟ",  "פרק",       "अध्याय",     "FEJEZET",   "BAB",       "CAIBIDIL",  "章"  ,      "장"  ,      "CAPITULUM", "NODAĻA",    "SKYRIUS",   "KAPITOLU",
+"अध्याय",     "CAŊÁLAŠ",   "KAPITTEL",  "ГЛАВА" ,    "CHAPITRE",  "ГЛАВА" ,    "فصل"  ,     "ROZDZIAŁ",  "CAPÍTULO",  "CAPITOL",   "ГЛАВА"  ,   "CAIBIDIL" ,
+"ГЛАВА" ,    "KAPITOLA" , "POGLAVJE"  ,"KAPITEL"  , "அதிர்வேகம்",  "అధ్యాయం"  ,   "BÖLÜM",     "ГЛАВА",     "باب",       "BAB",       "CHƯƠNG",    "KOW")
+
 languages <- tibble(short=default_models, repo=known_models) %>%
   group_by(short) %>%
   mutate(repo=repo[1]) %>%
   distinct()
+
+languages$chapter <- chapter_vec
 
 usethis::use_data(languages, overwrite = TRUE)

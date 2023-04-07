@@ -199,6 +199,56 @@ body <- dashboardBody(
             )
     ),
 
+    ### Split texts ----
+
+    tabItem(tabName = "split_tx",
+            fluidPage(
+              fluidRow(
+                column(9,
+                       shinycssloaders::withSpinner(DT::DTOutput("splitTextData"),color = getOption("spinner.color", default = "#4F7942"))
+                ),
+                column(3,
+                       fluidRow(
+                         box(
+                           width = 12,
+                           div(h3(strong(em("Split texts"))), style="margin-top:-57px"),
+                           hr(),
+                           #uiOutput("randomDescription"),
+                           selectInput(inputId="txSplitBy",
+                                       label="Split texts by:",
+                                       choices = c("by a word at the beginning of a line" = "starting",
+                                                   "by a sequence of special characters" = "into"),
+                                       selected = "starting"),
+                           textInput(inputId="txSplitWord",
+                                                      label="Insert a word or a sequence of special chars (e.g. H1__)",
+                                                      value=NULL),
+                           hr(),
+                           fluidRow(
+                             column(6,
+                                    title = t_run,
+                                    do.call("actionButton", c(run_bttn, list(
+                                      inputId = "splitTextRun")
+                                    ))
+                             ),
+                             column(6,
+                                    title = t_save,
+                                    do.call("downloadButton", c(list(
+                                      label=NULL,
+                                      style ="display:block; height: 43px; width: 43px; border-radius: 50%; border: 1px; margin-top: 15px",
+                                      icon = icon(name ="floppy-save", lib="glyphicon")
+                                    ), list(
+                                      outputId = "splitTextSave")
+                                    ))
+                             )
+                           )
+                         )
+                       )
+                )
+              )
+            )
+
+    ),
+
     ### Random text selection ----
 
     tabItem(tabName = "randomText",

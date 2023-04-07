@@ -73,6 +73,42 @@ read_files <- function(files, ext=c("txt","csv", "xlsx"), subfolder=TRUE, line_s
   return(df)
 }
 
+### SPLIT TEXT INTO SUB-DOCS
+splitDoc <- function(df, word, txSplitBy="starting"){
+  df_splitted <- list()
+  n <- length(unique(df$doc_id))
+  switch(txSplitBy,
+         # Row starting with a pattern (e.g. 'CHAPTER ')
+         starting={
+           pattern <- paste0("\n\n",word,"*")
+           for (i in seq_len(n)){
+             testo <- df$text[[i]]
+             ind <- unlist((gregexpr(pattern,testo)))
+             if (ind[1]>1){
+               start <- c(1,ind[-length(ind)])
+               end <- c(ind-1,nchar(testo))
+             } else{
+               start <- ind
+               end <- c(ind[-1]-1,nchar(testo))
+             }
+             text <- substr(rep(testo,length(ind)),start,end)
+             df_splitted[[i]] <- text
+           }
+         },
+         # split by a special char sequence e.g. H1__
+         into={
+           testo <- df$text[i]
+           testo <- unlist(strsplit(testo, word))
+           df_splitted[[i]] <- testo[nchar(testo)>0]
+         })
+  doc_id_old <- rep(df$doc_id,lengths(df_splitted))
+  df_splitted <- unlist(df_splitted)
+  df <- data.frame(doc_id=paste0("doc_",sprintf(paste0("%0",nchar(length(df_splitted)),"d"), 1:length(df_splitted))),
+                   text = df_splitted,
+                   doc_id_old=doc_id_old)
+  return(df)
+}
+
 ### PRE_PROCESSING ----
 
 ### 1. TOKENIZATION ----
@@ -538,7 +574,7 @@ wordCA <- function(dfTag, n=50,  term="lemma"){
   res <- ca::ca(mat)
 
   # Contribute
-  Ncol <- min(10,sum(substr(names(results$wordCoord),1,3)=="Dim"))
+  Ncol <- min(10,ncol(res$rowcoord))
   contrib <- data.frame((res$colcoord[,1:Ncol]^2)*res$colmass)
   colnames(contrib) <- paste0("Contrib",1:ncol(contrib))
 
@@ -799,11 +835,19 @@ coocMatrix <- function(x, term="lemma", group="doc_id", n=50, pos=TRUE){
   dtm <- dtm %>%
     mutate(binary=1)
 
-  mat <- document_term_matrix(dtm, weight="binary")
-  mat <- dtm_remove_lowfreq(mat, maxterms=n)
+  if (length(unique(x$doc_id))==1){
+    mat <- document_term_matrix(dtm, weight="freq")
+    lab <- colnames(mat)
+    mat <- as.numeric(mat)
+    names(mat) <- lab
+    mat <- sort(mat, decreasing = TRUE)[1:min(n,length(mat))]
+    mat <- matrix(mat, 1, length(mat), dimnames = list(x$doc_id[1],names(mat)))
+  } else{
+    mat <- document_term_matrix(dtm, weight="binary")
+    mat <- dtm_remove_lowfreq(mat, maxterms=n)
+  }
 
   mat <- Matrix::crossprod(mat)
-
   mat <- as_cooccurrence(mat)
   mat <- mat %>%
     group_by(term1) %>%
@@ -1965,6 +2009,7 @@ menuList <- function(menu){
            list(
              menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),startExpanded = TRUE,
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
+                      menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
                       menuSubItem("Random Texts Selection", tabName = "randomText", icon = icon("chevron-right")),
                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
@@ -1977,6 +2022,7 @@ menuList <- function(menu){
            list(
              menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
+                      menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
                       menuSubItem("Random Texts Selection", tabName = "randomText", icon = icon("chevron-right")),
                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
@@ -1992,6 +2038,7 @@ menuList <- function(menu){
            list(
              menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
+                      menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
                       menuSubItem("Random Texts Selection", tabName = "randomText", icon = icon("chevron-right")),
                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
@@ -2035,6 +2082,7 @@ menuList <- function(menu){
            list(
              menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
+                      menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
                       menuSubItem("Random Texts Selection", tabName = "randomText", icon = icon("chevron-right")),
                       menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right")))
@@ -2045,7 +2093,7 @@ menuList <- function(menu){
 
 # DATA TABLE FORMAT ----
 DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, right=NULL, numeric=NULL, dom=TRUE, size='85%', filter="top",
-                     columnShort=NULL, columnSmall=NULL, round=2, title=""){
+                     columnShort=NULL, columnSmall=NULL, round=2, title="", button=FALSE){
 
   if (length(columnShort)>0){
     columnDefs = list(list(
@@ -2094,7 +2142,13 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
   if (nchar(title)>0){
     caption = htmltools::tags$caption( style = 'caption-side: top; text-align: center; color:black;  font-size:140% ;',title)
   } else {
-    caption = FALSE
+    caption = htmltools::tags$caption( style = 'caption-side: top; text-align: center; color:black;  font-size:140% ;',"")
+  }
+
+  if (isTRUE(button)){
+    df <- df %>%
+      mutate(Document = glue::glue('<button id="custom_btn" onclick="Shiny.onInputChange(\'button_id\', \'{doc_id}\')">View</button>')) %>%
+      select(Document, everything())
   }
 
   tab <- DT::datatable(df, escape = FALSE,rownames = FALSE,
