@@ -1193,7 +1193,8 @@ server <- function(input, output, session){
       valueExpr ={
         values$network <- network(values$dfTag, group=input$groupNet, n=input$nMax, minEdges=input$minEdges,
                                   labelsize=input$labelSize, opacity=input$opacity,
-                                  interLinks=input$interLinks, normalization=input$normalizationCooc)
+                                  interLinks=input$interLinks, normalization=input$normalizationCooc,
+                                  remove.isolated=input$removeIsolated)
       }
     )
 

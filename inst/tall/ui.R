@@ -1368,6 +1368,12 @@ body <- dashboardBody(
                                value = FALSE,
                                status = "success"
                              ),
+                             materialSwitch(
+                               inputId = "removeIsolated",
+                               label = "Delete isolated nodes",
+                               value = FALSE,
+                               status = "success"
+                             ),
                              selectInput("normalizationCooc",
                                          label = "Normalization by:",
                                          choices = c("None"="none",

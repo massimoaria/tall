@@ -883,7 +883,7 @@ cooc_freq <- function(cooc){
 }
 
 network <- function(dfTag, term="lemma", group=c("doc_id", "sentence_id"), n, minEdges, labelsize=4, opacity=0.6,
-                    interLinks=FALSE, normalization="none"){
+                    interLinks=FALSE, normalization="none", remove.isolated=FALSE){
 
   colorlist <- colorlist()
 
@@ -962,6 +962,16 @@ network <- function(dfTag, term="lemma", group=c("doc_id", "sentence_id"), n, mi
     select(term1, term2, from,to,value, s, sA, sC, sJ) %>%
     rename(term_from=term1,
            term_to=term2)
+
+  ### remove isolated
+  if (isTRUE(remove.isolated)){
+    id_remove <- setdiff(nodes$id,unique(c(edges$from,edges$to)))
+    if (length(id_remove)>0){
+      nodes <- nodes %>%
+        filter(!id %in% id_remove)
+      opacity_font <- opacity_font[-id_remove]
+    }
+  }
 
   ### COMMUNITY DETECTION
   graph <- igraph::graph_from_data_frame(edges %>% select(-term_from, -term_to), directed = FALSE)
