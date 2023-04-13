@@ -2131,7 +2131,8 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
            header = TRUE,
            exportOptions = list(
              modifier = list(page = "all")
-           )))
+           ))
+      )
   } else{
     buttons = list(
       list(extend = 'excel',

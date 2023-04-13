@@ -6,8 +6,8 @@ libraries()
 
 ## button style and contents
 
-style_bttn <- "border-radius: 20px; border-width: 1px; font-size: 17px; text-align: center; color: #ffff; padding-left: 20px; padding-right: 20px"
-style_opt <-  "border-radius: 35px; border-width: 3px; font-size: 15px; margin-top: 15px;" # (option button)
+style_bttn <- "border-radius: 20px; border-width: 1px; font-size: 15px; text-align: center; color: #ffff; padding-left: 7px; padding-right: 20px"
+style_opt <-  "border-radius: 20px; border-width: 1px; font-size: 15px; margin-top: 15px" # (option button)
 style_start <-  "border-radius: 15px; border-width: 3px; font-size: 15px; width:100% " # (start button)
 #style_bttn <- "border-radius: 15px; border-width: 3px; font-size: 15px; margin-top: 15px;" # (action buttons)
 t_report  <-  "Add Results to the Report"
@@ -17,22 +17,22 @@ t_save <- "Save the Analysis"
 
 run_bttn <- list(
   label = NULL,
-  style ="display:block; height: 45px; width: 45px; border-radius: 50%; border: 3px; margin-top: 15px",
+  style ="display:block; height: 37px; width: 37px; border-radius: 50%; border: 3px; margin-top: 15px",
   icon = icon(name ="play", lib="glyphicon")
 )
 export_bttn <- list(
   label=NULL,
-  style ="display:block; height: 45px; width: 45px; border-radius: 50%; border: 3px; margin-top: 15px",
+  style ="display:block; height: 37px; width: 37px; border-radius: 50%; border: 3px; margin-top: 15px",
   icon = icon(name ="download-alt", lib="glyphicon")
 )
 report_bttn <- list(
   label = NULL,
-  style ="display:block; height: 45px; width: 45px; border-radius: 50%; border: 3px; margin-top: 15px",
+  style ="display:block; height: 37px; width: 37px; border-radius: 50%; border: 3px; margin-top: 15px",
   icon = icon(name ="plus", lib="glyphicon")
 )
 save_bttn <- list(
   label=NULL,
-  style ="display:block; height: 43px; width: 43px; border-radius: 50%; border: 1px;",# margin-top: 15px",
+  style ="display:block; height: 37px; width: 37px; border-radius: 50%; border: 1px;",# margin-top: 15px",
   icon = icon(name ="floppy-save", lib="glyphicon")
 )
 
@@ -41,8 +41,7 @@ save_bttn <- list(
 
 title_tall <- tags$link(tags$a(href = 'https://www.unina.it/',target="_blank",
                                #tags$img(src="unina_logo.png", height = '30',width='30')
-),
-strong("TALL"))
+), strong("TALL"))
 
 header <- shinydashboardPlus::dashboardHeader(title = title_tall,
                                               titleWidth = 250, controlbarIcon = NULL)
@@ -63,12 +62,13 @@ sidebar <- dashboardSidebar(
 
 body <- dashboardBody(
   customTheme(),
-  tags$style(".glyphicon-download-alt {color:#ffffff; font-size: 24px; align: center; margin-left: -2.5px}"),
-  tags$style(".glyphicon-play {color:#ffffff; font-size: 24px; align: center}"),
-  tags$style(".glyphicon-plus {color:#ffffff; font-size: 24px;align: center; margin-left: -0.5px}"),
-  tags$style(".glyphicon-cog {color:#4F794290; font-size: 27px; margin-top: 2.5px; margin-left: -3px}"),
-  tags$style(".glyphicon-floppy-save {color:#ffffff; font-size: 23px; text-align:center; padding-right: -10px;
+  tags$style(".glyphicon-download-alt {color:#ffffff; font-size: 18px; align: center; margin-left: -3.5px}"),
+  tags$style(".glyphicon-play {color:#ffffff; font-size: 18px; align: center;margin-left: -0.5px}"),
+  tags$style(".glyphicon-plus {color:#ffffff; font-size: 18px;align: center; margin-left: -2px}"),
+  tags$style(".glyphicon-cog {color:#4F794290; font-size: 21px; margin-top: 2.3px; margin-left: -3px}"),
+  tags$style(".glyphicon-floppy-save {color:#ffffff; font-size: 18px; text-align:center; padding-right: -10px;
              margin-top: 1px;}"),#margin-top: 4px; margin-down: 22px; margin-right: 25px}"),
+  tags$style(".glyphicon-download {color:#ffffff; font-size: 18px; align: center;margin-top: 3px}"),
 
   tags$style(".glyphicon-folder-open {color:#ffffff; font-size: 17px}"),
   tags$head(
@@ -89,9 +89,9 @@ body <- dashboardBody(
     ### TALL PAGE ----
     tabItem(tabName = "tall",
             fluidRow(
-              h1(strong("TAll"), align="center"),
+              h1(HTML("TA<i>ll</i>"), align="center", style = "font-family: 'Times New Roman'; font-size: 70px;"),
               br(),
-              h3("Text analysis for All",align = "center"),
+              h3(("Text analysis for All"), align="center", style = "font-family: 'Times New Roman';"),
               br(),
               div(p("Powered by ",
                     em(a("K-Synth",
@@ -162,33 +162,27 @@ body <- dashboardBody(
                              )
                            ),
                            conditionalPanel(condition = "input.load != 'null'",
-                                            fluidRow(
-                                              column(12,
                                                      div(
                                                        align = "center",
                                                        width=12,
-                                                       br(),
                                                        actionButton(inputId="runImport",
-                                                                    label = strong("START"),
-                                                                    icon = icon(name="play",lib = "glyphicon"),
-                                                                    style = style_bttn
-                                                       ))
-                                              )
+                                                                    label = div(icon(name="play",lib = "glyphicon"),strong("START")),
+                                                                    icon = NULL,
+                                                                    style = "border-radius: 20px; border-width: 1px;
+                                                                    font-size: 17px; color: #ffff;")
                                             )
                            ),
                            conditionalPanel(condition="input.load != 'null'",
                                             tags$hr(),
-                                            fluidRow(
-                                              column(12,
                                                      div(
                                                        align = "center",
                                                        width=12,
                                                        downloadButton(outputId="collection.save",
                                                                       label = strong("Export Raw Texts in Excel"),
-                                                                      icon = icon(name="download", lib = "glyphicon"),
-                                                                      style ="border-radius: 15px; border-width: 1px; font-size: 17px;
+                                                                      icon = NULL,
+                                                                      style ="border-radius: 15px; border-width: 1px; font-size: 15px;
                                                                     text-align: center; color: #ffff; "
-                                                       ))
+
                                               )
                                             )
                            )
@@ -213,40 +207,44 @@ body <- dashboardBody(
                            width = 12,
                            div(h3(strong(em("Split texts"))), style="margin-top:-57px"),
                            hr(),
-                           #uiOutput("randomDescription"),
                            selectInput(inputId="txSplitBy",
                                        label="Split texts by:",
-                                       choices = c("by a word at the beginning of a line" = "starting",
-                                                   "by a sequence of special characters" = "into"),
+                                       choices = c("a word at the beginning of a line" = "starting",
+                                                   "a sequence of special characters" = "into"),
                                        selected = "starting"),
                            textInput(inputId="txSplitWord",
-                                                      label="Insert a word or a sequence of special chars (e.g. H1__)",
-                                                      value=NULL),
-                           hr(),
+                                     label="Insert a word or a sequence of special chars (e.g. H1__)",
+                                     value=NULL),
                            fluidRow(
                              column(6,
+                                    div(align="center",
                                     title = t_run,
                                     do.call("actionButton", c(run_bttn, list(
                                       inputId = "splitTextRun")
                                     ))
+                                    )
                              ),
                              column(6,
+                                    div(align="center",
                                     title = t_save,
                                     do.call("downloadButton", c(list(
                                       label=NULL,
-                                      style ="display:block; height: 43px; width: 43px; border-radius: 50%; border: 1px; margin-top: 15px",
-                                      icon = icon(name ="floppy-save", lib="glyphicon")
-                                    ), list(
+                                      style ="display:block; height: 37px; width: 37px; border-radius: 50%;
+                                      border: 1px; margin-top: 16px;",
+                                      icon = icon(name ="floppy-save", lib="glyphicon"),
                                       outputId = "splitTextSave")
-                                    ))
+                                    )
+                                    )
+                                    )
                              )
                            )
+
                          )
                        )
                 )
+
               )
             )
-
     ),
 
     ### Random text selection ----
@@ -269,12 +267,15 @@ body <- dashboardBody(
                            hr(),
                            fluidRow(
                              column(6,
+                                    div(
                                     numericInput("sampleSize",
                                                  "Sample Size",
                                                  value = 10,
                                                  min = 1,
                                                  step = 1
-                                    )),
+                                    )
+                                    ,style="margin-top:-9px")
+                                    ),
                              column(3,
                                     title = t_run,
                                     do.call("actionButton", c(run_bttn, list(
@@ -285,7 +286,8 @@ body <- dashboardBody(
                                     title = t_save,
                                     do.call("downloadButton", c(list(
                                       label=NULL,
-                                      style ="display:block; height: 43px; width: 43px; border-radius: 50%; border: 1px; margin-top: 15px",
+                                      style ="display:block; height: 37px; width: 37px; border-radius: 50%;
+                                      border: 1px; margin-top: 16px;",
                                       icon = icon(name ="floppy-save", lib="glyphicon")
                                     ), list(
                                       outputId = "randomTextSave")
@@ -379,7 +381,9 @@ body <- dashboardBody(
                          style="text-align: left; text-color: #989898",
                          br(),
                          fluidRow(column(6,
-                                         uiOutput("optionsTokenization")),
+                                         div(
+                                         uiOutput("optionsTokenization"))
+                                         ,style="margin-top:-9px"),
                                   column(3,
                                          title = t_run,
                                          do.call("actionButton", c(run_bttn, list(
@@ -390,7 +394,8 @@ body <- dashboardBody(
                                          title = t_save,
                                          do.call("downloadButton", c(list(
                                            label=NULL,
-                                           style ="display:block; height: 43px; width: 43px; border-radius: 50%; border: 1px; margin-top: 15px",
+                                           style ="display:block; height: 37px; width: 37px; border-radius: 50%;
+                                      border: 1px; margin-top: 15px;",
                                            icon = icon(name ="floppy-save", lib="glyphicon")
                                          ), list(
                                            outputId = "tokPosSave")
@@ -439,13 +444,11 @@ body <- dashboardBody(
                            )),
                            fluidRow(column(6,
                                            div(
-                                             align = "center",
+                                             align = "center",style="margin-top:-15px",
                                              width=12,
-                                             actionButton(inputId="custTermListRun",
-                                                          label = strong("APPLY"),
-                                                          icon = icon(name="play", lib = "glyphicon"),
-                                                          style = style_bttn
-                                             ))
+                                             do.call("actionButton", c(run_bttn, list(
+                                               inputId = "custTermListRun")
+                                             )))
                            ),
                            column(6,
                                   div(
@@ -526,13 +529,13 @@ body <- dashboardBody(
                            uiOutput("multiwordPosSel"),
                            fluidRow(column(6,
                                            div(
-                                             align = "center",
+                                             align = "center",style="margin-top:-15px",
                                              width=12,
-                                             actionButton(inputId="multiwordCreatRun",
-                                                          label = strong("APPLY"),
-                                                          icon = icon(name="play", lib = "glyphicon"),
-                                                          style = style_bttn
+                                             do.call("actionButton", c(run_bttn, list(
+                                               inputId = "multiwordCreatRun")
                                              ))
+                                             )
+
                            ),
                            column(6,
                                   div(
@@ -582,13 +585,12 @@ body <- dashboardBody(
                            )),
                            fluidRow(column(6,
                                            div(
-                                             align = "center",
+                                             align = "center",style="margin-top:-15px",
                                              width=12,
-                                             actionButton(inputId="posTagSelectRun",
-                                                          label = strong("APPLY"),
-                                                          icon = icon(name="play", lib = "glyphicon"),
-                                                          style = style_bttn
+                                             do.call("actionButton", c(run_bttn, list(
+                                               inputId = "posTagSelectRun")
                                              ))
+                                             )
                            ),
                            column(6,
                                   div(
@@ -661,15 +663,27 @@ body <- dashboardBody(
                                             div(
                                               box(
                                                 width = 12,
+                                                fluidRow(
+                                                  column(9,
+                                                         div(
                                                 selectInput("termDict",
                                                             label = "Dictionary by:",
                                                             choices = c("Tokens"="token",
                                                                         "Lemmas"="lemma"),
-                                                            selected = "token"),
-                                                actionButton(inputId="dictionaryApply",
-                                                             label = strong("APPLY"),
-                                                             icon = icon(name="play", lib = "glyphicon"),
-                                                             style = style_bttn))
+                                                            selected = "token"), style="margin-top:-3px"
+                                                         )
+                                                ),
+                                                column(3,
+                                                       div(
+                                                         align = "center",style="margin-top:15px",
+                                                         width=12,
+                                                         do.call("actionButton", c(run_bttn, list(
+                                                           inputId = "dictionaryApply")
+                                                         ))
+                                                       )
+                                                )
+                                                )
+                                              )
                                               ,align="left")
                                      )
                             ),
@@ -722,7 +736,7 @@ body <- dashboardBody(
                              width = "220px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
                              tooltip = tooltipOptions(title = "Options"),
-                             style = "material-circle"
+                             style = "material-circle", size = "sm"
                            )
 
                 ),
@@ -783,7 +797,7 @@ body <- dashboardBody(
                            width = "220px", icon = icon("cog", lib="glyphicon"),
                            right = TRUE, animate = TRUE,
                            tooltip = tooltipOptions(title = "Options"),
-                           style = "material-circle"
+                           style = "material-circle", size = "sm"
                          )
 
               ),
@@ -843,7 +857,7 @@ body <- dashboardBody(
                              width = "220px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
                              tooltip = tooltipOptions(title = "Options"),
-                             style = "material-circle"
+                             style = "material-circle", size = "sm"
                            )
 
                 ),
@@ -903,7 +917,7 @@ body <- dashboardBody(
                              width = "220px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
                              tooltip = tooltipOptions(title = "Options"),
-                             style = "material-circle"
+                             style = "material-circle", size = "sm"
                            )
 
                 ),
@@ -964,7 +978,7 @@ body <- dashboardBody(
                              width = "220px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
                              tooltip = tooltipOptions(title = "Options"),
-                             style = "material-circle"
+                             style = "material-circle", size = "sm"
                            )
 
                 ),
@@ -1024,7 +1038,7 @@ body <- dashboardBody(
                              width = "220px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
                              tooltip = tooltipOptions(title = "Options"),
-                             style = "material-circle"
+                             style = "material-circle", size = "sm"
                            )
                 ),
                 style = style_opt
@@ -1118,14 +1132,6 @@ body <- dashboardBody(
                            dropdown(
                              h4(strong("Options: ")),
                              hr(),
-                             # checkboxGroupInput(
-                             #   inputId = "groupClustering",
-                             #   label = "Groups",
-                             #   choices = c("Docs"="doc_id",
-                             #               "Sentences"="sentence_id"),
-                             #   selected = c("doc_id", "sentence_id"),
-                             #   inline = TRUE
-                             # ),
                              selectInput("w_clusteringSimilarity",
                                          label = "Words Similarity by:",
                                          choices = c("None"="none",
@@ -1166,7 +1172,7 @@ body <- dashboardBody(
                              tooltip = tooltipOptions(title = "Options"),
                              width = "300px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
-                             style = "material-circle"
+                             style = "material-circle", size = "sm"
                            )
                 ),
                 style = style_opt
@@ -1282,7 +1288,7 @@ body <- dashboardBody(
                              tooltip = tooltipOptions(title = "Options"),
                              width = "300px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
-                             style = "material-circle"
+                             style = "material-circle", size = "sm"
                            ),
                 ),
                 style = style_opt
@@ -1409,7 +1415,7 @@ body <- dashboardBody(
                              tooltip = tooltipOptions(title = "Options"),
                              width = "300px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
-                             style = "material-circle"
+                             style = "material-circle", size = "sm"
                            )
                 ),
                 style = style_opt
@@ -1508,7 +1514,7 @@ body <- dashboardBody(
                              tooltip = tooltipOptions(title = "Options"),
                              width = "300px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
-                             style = "material-circle"
+                             style = "material-circle", size = "sm"
                            )
                 ),
                 style = style_opt
@@ -1730,7 +1736,7 @@ body <- dashboardBody(
                              tooltip = tooltipOptions(title = "Options"),
                              width = "300px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
-                             style = "material-circle")
+                             style = "material-circle", size = "sm")
                 ),
                 style = style_opt
                 )
@@ -1823,7 +1829,7 @@ body <- dashboardBody(
                              tooltip = tooltipOptions(title = "Options"),
                              width = "220px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
-                             style = "material-circle"
+                             style = "material-circle", size = "sm"
                            )
                 ),
                 style = style_opt
@@ -1914,7 +1920,7 @@ body <- dashboardBody(
                                            uiOutput("optionsSummarization")),
                                     column(6,
                                            numericInput("nTopSent",
-                                                        label = "N of Senteces",
+                                                        label = "N of Sentences",
                                                         value = 5,
                                                         min = 1,
                                                         step = 1
@@ -1965,7 +1971,7 @@ body <- dashboardBody(
                              tooltip = tooltipOptions(title = "Options"),
                              width = "220px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
-                             style = "material-circle"
+                             style = "material-circle", size = "sm"
                            )
                 ),
                 style = style_opt
@@ -2022,7 +2028,7 @@ body <- dashboardBody(
                              tooltip = tooltipOptions(title = "Options"),
                              width = "220px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
-                             style = "material-circle"
+                             style = "material-circle", size = "sm"
                            )
                 ),
                 style = style_opt
@@ -2080,7 +2086,7 @@ body <- dashboardBody(
                              tooltip = tooltipOptions(title = "Options"),
                              width = "220px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
-                             style = "material-circle"
+                             style = "material-circle", size = "sm"
                            )
                 ),
                 style = style_opt
@@ -2138,7 +2144,7 @@ body <- dashboardBody(
                              tooltip = tooltipOptions(title = "Options"),
                              width = "220px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
-                             style = "material-circle"
+                             style = "material-circle", size = "sm"
                            )
                 ),
                 style = style_opt
@@ -2196,7 +2202,7 @@ body <- dashboardBody(
                              tooltip = tooltipOptions(title = "Options"),
                              width = "220px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
-                             style = "material-circle"
+                             style = "material-circle", size = "sm"
                            )
                 ),
                 style = style_opt
