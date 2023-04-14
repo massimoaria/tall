@@ -136,9 +136,9 @@ body <- dashboardBody(
                              ),
                              column(6,
                                     selectizeInput(
-                                      'line_sep', label="Line Separator",choices = c(
-                                        "Dot (.)"="no",
-                                        "Return (\\n)"="yes"),
+                                      'line_sep', label="CSV Separator",choices = c(
+                                        " , "=",",
+                                        " ; "=";"),
                                       tags$style("height: 50px")
                                     )
                              )
@@ -283,16 +283,22 @@ body <- dashboardBody(
                                     ))
                              ),
                              column(3,
-                                    title = t_save,
-                                    do.call("downloadButton", c(list(
-                                      label=NULL,
-                                      style ="display:block; height: 37px; width: 37px; border-radius: 50%;
-                                      border: 1px; margin-top: 16px;",
-                                      icon = icon(name ="floppy-save", lib="glyphicon")
-                                    ), list(
-                                      outputId = "randomTextSave")
+                                    title = t_run,
+                                    do.call("actionButton", c(run_bttn, list(
+                                      inputId = "randomTextBack")
                                     ))
                              )
+                             # column(3,
+                             #        title = t_save,
+                             #        do.call("downloadButton", c(list(
+                             #          label=NULL,
+                             #          style ="display:block; height: 37px; width: 37px; border-radius: 50%;
+                             #          border: 1px; margin-top: 16px;",
+                             #          icon = icon(name ="floppy-save", lib="glyphicon")
+                             #        ), list(
+                             #          outputId = "randomTextSave")
+                             #        ))
+                             # )
 
 
                            )

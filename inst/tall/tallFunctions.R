@@ -15,7 +15,7 @@ getFileNameExtension <- function (fn) {
   ext
 }
 
-read_files <- function(files, ext=c("txt","csv", "xlsx"), subfolder=TRUE, line_sep=FALSE){
+read_files <- function(files, ext=c("txt","csv", "xlsx"), subfolder=TRUE, line_sep=","){
 
   #files <- list.files(path=path, pattern = paste0(".",ext,"$"), recursive = subfolder)
   if (is.null(files)) return(data.frame(doc_id=NA,text=NA, folder=NA))
@@ -36,7 +36,7 @@ read_files <- function(files, ext=c("txt","csv", "xlsx"), subfolder=TRUE, line_s
 
   switch(ext,
          txt={
-           if (isTRUE(line_sep)){line_sep <- ". "}else{line_sep <- " "}
+           #if (isTRUE(line_sep)){line_sep <- ". "}else{line_sep <- " "}
 
            df <- data.frame(doc_id=doc_id,text=NA, folder=folder, file=file) %>%
              group_by(doc_id) %>%
@@ -48,15 +48,23 @@ read_files <- function(files, ext=c("txt","csv", "xlsx"), subfolder=TRUE, line_s
          csv={
            listdf <- list()
            for (i in seq_len(length(file))){
-             listdf[[i]] <- readtext::readtext(file[i], fill=TRUE, text_field="text") %>%
+             # listdf[[i]] <- readtext::readtext(file[i], fill=TRUE, text_field="text", quote='"') %>%
+             #   mutate(doc_id = doc_id[i])
+             listdf[[i]] <- read_delim(file[i], delim=line_sep, quote='"') %>%
                mutate(doc_id = doc_id[i])
            }
 
            df <- do.call(rbind,listdf)
          },
-
          xlsx={
-           df <- readxl::read_excel(file, col_types = "text")
+           listdf <- list()
+           for (i in seq_len(length(file))){
+             # listdf[[i]] <- readtext::readtext(file[i], fill=TRUE, text_field="text", quote='"') %>%
+             #   mutate(doc_id = doc_id[i])
+             listdf[[i]] <- readxl::read_excel(file[i], col_types = "text") %>%
+               mutate(doc_id = doc_id[i])
+           }
+           df <- do.call(rbind,listdf)
          }
   )
   if ("doc_id" %in% names(df)){
@@ -2024,7 +2032,7 @@ highlight <- function(df){
 
 
 ## saveTall function ----
-saveTall <- function(dfTag,custom_lists,language,menu,where,file){
+saveTall <- function(dfTag,custom_lists,language,menu,where,metadata,file){
   D <- date()
   D <- strsplit(gsub("\\s+", " ", D)," ")
   D <- paste(unlist(D)[c(1,2,3,5)],collapse=" ")

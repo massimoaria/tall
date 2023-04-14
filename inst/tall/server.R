@@ -45,6 +45,7 @@ server <- function(input, output, session){
   ## Setting plot values
   values$h <- 7
   dpi <- 300
+  set.seed(0)
 
 
 
@@ -92,10 +93,11 @@ server <- function(input, output, session){
            import={
              if (!is.null(req(input$file_raw))){
                file <- input$file_raw
-               txt <- read_files(file,ext=input$ext, subfolder=FALSE, line_sep=input$line_sep=="yes")
+               txt <- read_files(file,ext=input$ext, subfolder=FALSE, line_sep=input$line_sep)
                values$menu <- 0
                values$custom_lists <- NULL
                values$txt <- txt %>% arrange(doc_id)
+               values$metadata <- setdiff(names(values$txt), c("text", "doc_id","original_doc_id"))
              }
            },
            load_tall={
@@ -109,6 +111,7 @@ server <- function(input, output, session){
               values$language <- language
               values$D <- D
               values$where <- where
+              values$metadata <- metadata
               if (values$menu==1) updateTabItems(session, "sidebarmenu", "custTermList")
               if (values$menu==2) updateTabItems(session, "sidebarmenu", "posTagSelect")
               if (ncol(values$dfTag)>1){showModal(loadTallgModal(session))}
@@ -119,7 +122,7 @@ server <- function(input, output, session){
   output$dataImported <- DT::renderDT({
     DATAloading()
     if (values$menu==0){
-      DTformat(values$txt %>% mutate(text = paste0(substr(text,1,500),"...")),left=2, nrow=5, filter="none", button=TRUE)
+      DTformat(values$txt %>% mutate(text = paste0(substr(text,1,500),"...")) %>% select(doc_id, text, everything()),left=2, nrow=5, filter="none", button=TRUE)
     }
   })
 ### shortpath for folder path ----
@@ -246,16 +249,16 @@ server <- function(input, output, session){
     DTformat(values$txt %>% mutate(text = paste0(substr(text,1,500),"...")),left=2, nrow=5, filter="none")
   })
 
-  output$randomTextSave <- downloadHandler(
-    filename = function() {
-      paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
-    },
-    content <- function(file) {
-      saveTall(values$txt, values$custom_lists, values$menu, "RandomTextSample", file)
-      # D <- date()
-      # save(dfTag,menu,D,where, file=file)
-    }, contentType = "tall"
-  )
+  # output$randomTextSave <- downloadHandler(
+  #   filename = function() {
+  #     paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
+  #   },
+  #   content <- function(file) {
+  #     saveTall(values$txt, values$custom_lists, values$menu, "RandomTextSample", values$metadata,file)
+  #     # D <- date()
+  #     # save(dfTag,menu,D,where, file=file)
+  #   }, contentType = "tall"
+  # )
 
   ### PRE-PROCESSING ----
 
@@ -321,7 +324,7 @@ server <- function(input, output, session){
         paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
       },
       content <- function(file) {
-        saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "Custom Term Lists", file)
+        saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "Custom Term Lists", values$metadata,file)
         # D <- date()
         # save(dfTag,menu,D,where, file=file)
       }, contentType = "tall"
@@ -388,7 +391,7 @@ server <- function(input, output, session){
         paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
       },
       content <- function(file) {
-        saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "Custom Term Lists", file)
+        saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "Custom Term Lists", values$metadata,file)
         # D <- date()
         # save(dfTag,menu,D,where, file=file)
       }, contentType = "tall"
@@ -452,7 +455,7 @@ server <- function(input, output, session){
         paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
       },
       content <- function(file) {
-        saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "Multi-Word Creation", file)
+        saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "Multi-Word Creation", values$metadata, file)
         # D <- date()
         # save(dfTag,menu,D,where, file=file)
       }, contentType = "tall"
@@ -500,7 +503,7 @@ server <- function(input, output, session){
         paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
       },
       content <- function(file) {
-        saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "POS Tag Selection", file)
+        saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "POS Tag Selection", values$metadata,file)
         # D <- date()
         # save(dfTag,menu,D,where, file=file)
       }, contentType = "tall"
