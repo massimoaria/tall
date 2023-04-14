@@ -91,7 +91,7 @@ customTheme <- function(){
   ,sidebarTabBorderWidthHover = 1
   ,sidebarTabRadiusHover = "0px 0px 0px 0px"
 
-  ,boxBackColor = "#F5F5F5" #"rgb(255,255,255)"
+  ,boxBackColor = "#F5F5F560" #"rgb(255,255,255)"
   ,boxBorderRadius = 5
   ,boxShadowSize = "0px 0px 0px"
   ,boxShadowColor = "rgba(0,0,0,.1)"

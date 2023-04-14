@@ -1649,15 +1649,38 @@ server <- function(input, output, session){
 
   ## GROUPS ----
 
-  ## Topic Modeling ----
+    ### Group by metadata ----
 
-  ## Clustering ----
+    output$groupByMetadataList <- renderUI({
 
-  ## Network ----
+      multiInput(
+        inputId = "groupByMetadataList",
+        label = NULL,
+        choices = NULL,
+        choiceNames = names(values$dfTag),
+        choiceValues = names(values$dfTag),
+        width = "100%"
+      )
 
-  ## Summarization ----
+    })
 
-  ## Polarity detection ----
+    groupMetadata <- eventReactive(
+      ignoreNULL = TRUE,
+      eventExpr = {input$groupByMetadataRun},
+      valueExpr ={
+
+        # values$groupMetadata <- FUNZIONE PER RAGGRUPPARE
+
+      })
+
+    output$groupedData <- renderDT({
+      groupMetadata()
+      #DTformat(values$groupMetadata, nrow=3, size='100%', title="Table Group By Metadata")
+    })
+
+    ### Group Correspondence Analysis ----
+
+    ### Group Network ----
 
 
 

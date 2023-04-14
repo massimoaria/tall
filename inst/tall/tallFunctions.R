@@ -2021,7 +2021,9 @@ menuList <- function(menu){
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
                       menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
                       menuSubItem("Random Texts Selection", tabName = "randomText", icon = icon("chevron-right")),
-                      menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
+                      menuItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right"),
+                               menuSubItem("Add metadata extracted from..", tabName = "add_metadataExt", icon = icon("chevron-right")),
+                               menuSubItem("Add metadata from 2", tabName = "add_meta2", icon = icon("chevron-right"))),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
                       menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right"), selected = TRUE)
@@ -2034,7 +2036,9 @@ menuList <- function(menu){
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
                       menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
                       menuSubItem("Random Texts Selection", tabName = "randomText", icon = icon("chevron-right")),
-                      menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
+                      menuItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right"),
+                               menuSubItem("Add metadata extracted from..", tabName = "add_metadataExt", icon = icon("chevron-right")),
+                               menuSubItem("Add metadata from 2", tabName = "add_meta2", icon = icon("chevron-right"))),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
                       menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
@@ -2079,11 +2083,9 @@ menuList <- function(menu){
                       menuSubItem("Polarity Detection", tabName = "d_polDet", icon = icon("chevron-right")),
                       menuSubItem("Summarization", tabName = "d_summarization", icon = icon("chevron-right"))),
              menuItem("Groups",tabName = "groups", icon = icon("th", lib="glyphicon"),
-                      menuSubItem("Topic Modeling", tabName = "g_topicMod", icon = icon("chevron-right")),
-                      menuSubItem("Clustering", tabName = "g_clustering", icon = icon("chevron-right")),
-                      menuSubItem("Network", tabName = "g_network", icon = icon("chevron-right")),
-                      menuSubItem("Summarization", tabName = "g_summarization", icon = icon("chevron-right")),
-                      menuSubItem("Polarity Detection", tabName = "g_polDet", icon = icon("chevron-right"))),
+                      menuSubItem("Group by metadata",tabName = "groupByMetadata", icon = icon("chevron-right")),
+                      menuSubItem("Correspondence Analysis", tabName = "g_ca", icon = icon("chevron-right")),
+                      menuSubItem("Network", tabName = "g_networkCooc", icon = icon("chevron-right"))),
              menuItem("Report",tabName = "report", icon = icon("list-alt")),
              menuItem("Settings",tabName = "settings", icon = icon("tasks"))
            )
@@ -2131,7 +2133,8 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
            header = TRUE,
            exportOptions = list(
              modifier = list(page = "all")
-           )))
+           ))
+      )
   } else{
     buttons = list(
       list(extend = 'excel',
