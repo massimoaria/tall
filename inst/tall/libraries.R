@@ -20,6 +20,7 @@ libraries <- function(){
   if (!require(textrank)){install.packages("textrank"); require(textrank, quietly=TRUE)}
   if (!require(igraph)){install.packages("igraph")}
   if (!require(glue)){install.packages("glue")}
+  if (!require(readtext)){install.packages("readtext")}
 }
 
 # Custom Theme ----

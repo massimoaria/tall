@@ -48,7 +48,7 @@ read_files <- function(files, ext=c("txt","csv", "xlsx"), subfolder=TRUE, line_s
          csv={
            listdf <- list()
            for (i in seq_len(length(file))){
-             listdf[[i]] <- read_csv(file[i], show_col_types=FALSE) %>%
+             listdf[[i]] <- readtext::readtext(file[i], fill=TRUE, text_field="text") %>%
                mutate(doc_id = doc_id[i])
            }
 
@@ -97,9 +97,11 @@ splitDoc <- function(df, word, txSplitBy="starting"){
          },
          # split by a special char sequence e.g. H1__
          into={
-           testo <- df$text[i]
-           testo <- unlist(strsplit(testo, word))
-           df_splitted[[i]] <- testo[nchar(testo)>0]
+           for (i in seq_len(n)){
+             testo <- df$text[i]
+             testo <- unlist(strsplit(testo, word))
+             df_splitted[[i]] <- testo[nchar(testo)>0]
+           }
          })
   doc_id_old <- rep(df$doc_id,lengths(df_splitted))
   df_splitted <- unlist(df_splitted)
