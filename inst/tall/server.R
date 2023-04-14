@@ -281,8 +281,8 @@ server <- function(input, output, session){
 
         ## set cores for windows machines
         if (Sys.info()[["sysname"]]=="Windows") {
-          cl <- doParallel::makeCluster(ncores)
-          doParallel::registerDoParallel(cl)
+          cl <- makeCluster(ncores)
+          registerDoParallel(cl)
         }
 
         #Lemmatization and POS Tagging
