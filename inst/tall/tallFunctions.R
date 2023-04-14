@@ -1771,6 +1771,41 @@ textrankDocument <- function(dfTag, id, n){
   return(results)
 }
 
+### GROUP MENU FUNCTIONS -----
+
+groupByMetadata <- function(dfTag, metadata){
+  ## group texts by a metadata
+  newDoc_id <- sprintf(paste0("%0",nchar(length(unique(dfTag$doc_id))),"d"), unique_identifier(dfTag, fields=metadata, start_from = 1L))
+
+  if (!"originalDoc_id" %in% names(dfTag)){
+    dfTag <- dfTag %>%
+      mutate(ungroupDoc_id = doc_id,
+             ungroupP_id = paragraph_id,
+             ungroupS_id = sentence_id)
+    dfTag$paragraph_id <- paste0(dfTag$doc_id,"_",dfTag$paragraph_id)
+    dfTag$sentence_id <- paste0(dfTag$doc_id,"_",dfTag$sentence_id)
+  }
+
+  dfTag <- dfTag %>%
+    mutate(doc_id = paste0("doc_",newDoc_id)) %>%
+    group_by(doc_id) %>%
+    mutate(paragraph_id = unique_identifier(paragraph_id),
+           sentence_id = unique_identifier(sentence_id)) %>%
+    ungroup()
+
+  return(dfTag)
+}
+
+backToOriginalGroups <- function(dfTag){
+  # back to original ungrouped data frame
+  dfTag <- dfTag %>%
+    mutate(doc_id = ungroupDoc_id,
+           paragraph_id = ungroupP_id,
+           sentence_id = ungroupS_id) %>%
+    select(-ungroupDoc_id,-ungroupP_id,-ungroupS_id)
+}
+
+
 ### EXCEL REPORT FUNCTIONS ----
 addDataWb <- function(list_df, wb, sheetname){
   l <- length(list_df)
