@@ -310,22 +310,30 @@ body <- dashboardBody(
             )
     ),
 
-    ### ADD METADATA ----
+    ### EXTERNAL INFORMATION ----
 
-    ### Add metdata extracted from...----
-
-    tabItem(tabName = "add_metadataExt",
+    tabItem(tabName = "extInfo",
             fluidPage(
               fluidRow(
                 column(9,
-                       shinycssloaders::withSpinner(DT::DTOutput("addMetadataExtData"),color = getOption("spinner.color", default = "#4F7942"))
+                       shinycssloaders::withSpinner(DT::DTOutput("extInfoData"),color = getOption("spinner.color", default = "#4F7942"))
                 ),
                 column(3,
                        fluidRow(
                          box(
                            width = 12,
-                           div(h3(strong(em("Add Metadata Extracted...."))), style="margin-top:-57px"),
+                           div(h3(strong(em("Add from a file"))), style="margin-top:-57px"),
                            hr(),
+                           fileInput(
+                             inputId="extInfoFile",
+                             label=NULL,
+                             multiple = FALSE,
+                             accept = c(
+                               ".xls",
+                               ".xlsx"
+                             )
+                           ),
+
                            #uiOutput("randomDescription"),
                            # br(),
                            # "Extract a random sample of texts to analyze",
@@ -333,18 +341,18 @@ body <- dashboardBody(
                            fluidRow(
                              column(6,
                                     div(
-                                      # numericInput("sampleSize",
-                                      #              "Sample Size",
-                                      #              value = 10,
-                                      #              min = 1,
-                                      #              step = 1
-                                      # )
-                                      #,style="margin-top:-9px")
+                                      downloadButton(outputId="doc_idExport",
+                                                     label = strong("Export Docs_id in Excel"),
+                                                     icon = NULL,
+                                                     style ="border-radius: 15px; border-width: 1px; font-size: 15px;
+                                                                    text-align: center; color: #ffff; "
+
+                                      )
                              )),
                              column(3,
                                     title = t_run,
                                     do.call("actionButton", c(run_bttn, list(
-                                      inputId = "addMetaExtRun")
+                                      inputId = "extInfoRun")
                                     ))
                              ),
                              column(3,
@@ -355,7 +363,7 @@ body <- dashboardBody(
                                       border: 1px; margin-top: 16px;",
                                       icon = icon(name ="floppy-save", lib="glyphicon")
                                     ), list(
-                                      outputId = "addMetaExtSave")
+                                      outputId = "extInfoSave")
                                     ))
                              )
 
@@ -367,62 +375,6 @@ body <- dashboardBody(
                 )
               )
             )
-    ),
-
-    ### add metadata from2 -----
-    tabItem(tabName = "add_meta2",
-            fluidPage(
-              fluidRow(
-                column(9,
-                       shinycssloaders::withSpinner(DT::DTOutput("addmeta2Data"),color = getOption("spinner.color", default = "#4F7942"))
-                ),
-                column(3,
-                       fluidRow(
-                         box(
-                           width = 12,
-                           div(h3(strong(em("Add Metadata 2...."))), style="margin-top:-57px"),
-                           hr(),
-                           #uiOutput("randomDescription"),
-                           # br(),
-                           # "Extract a random sample of texts to analyze",
-                           # hr(),
-                           fluidRow(
-                             column(6,
-                                    div(
-                                      # numericInput("sampleSize",
-                                      #              "Sample Size",
-                                      #              value = 10,
-                                      #              min = 1,
-                                      #              step = 1
-                                      # )
-                                      #,style="margin-top:-9px")
-                                    )),
-                                    column(3,
-                                           title = t_run,
-                                           do.call("actionButton", c(run_bttn, list(
-                                             inputId = "addMeta2Run")
-                                           ))
-                                    ),
-                                    column(3,
-                                           title = t_save,
-                                           do.call("downloadButton", c(list(
-                                             label=NULL,
-                                             style ="display:block; height: 37px; width: 37px; border-radius: 50%;
-                                      border: 1px; margin-top: 16px;",
-                                             icon = icon(name ="floppy-save", lib="glyphicon")
-                                           ), list(
-                                             outputId = "addMeta2Save")
-                                           ))
-                                    )
-
-
-                             )
-
-                           )
-                         )
-                       )
-                )
-              )
     ),
 
     ### FILTER TEXT ----
@@ -2034,29 +1986,29 @@ body <- dashboardBody(
 
     ### GROUPS ----
 
-    ### Group by metadata ----
+    ### Define Groups ----
 
-    tabItem(tabName = "groupByMetadata",
+    tabItem(tabName = "defineGroups",
             fluidPage(
               fluidRow(
                 column(9,
-                       shinycssloaders::withSpinner(DT::DTOutput("groupedData"),color = getOption("spinner.color", default = "#4F7942"))
+                       shinycssloaders::withSpinner(DT::DTOutput("defineGroupsData"),color = getOption("spinner.color", default = "#4F7942"))
                 ),
                 column(3,
                        fluidRow(
                          box(
                            width = 12,
-                           div(h3(strong(em("Group by metadata"))), style="margin-top:-57px"),
+                           div(h3(strong(em("Define groups by available external information"))), style="margin-top:-57px"),
                            hr(),
-                           helpText(h5("Group by metadata by selecting them from the following list:")),
-                           uiOutput("groupByMetadataList"),
+                           helpText(h5("Select an external information to define new document groups:")),
+                           uiOutput("defineGroupsList"),
                            hr(),
                            fluidRow(
                              column(6,
                                     div(align="center",
                                         title = t_run,
                                         do.call("actionButton", c(run_bttn, list(
-                                          inputId = "groupByMetadataRun")
+                                          inputId = "defineGroupsRun")
                                         ))
                                     )
                              ),
@@ -2068,7 +2020,7 @@ body <- dashboardBody(
                                           style ="display:block; height: 37px; width: 37px; border-radius: 50%;
                                       border: 1px; margin-top: 16px;",
                                           icon = icon(name ="floppy-save", lib="glyphicon"),
-                                          outputId = "groupByMetadataSave")
+                                          outputId = "defineGroupsSave")
                                         )
                                         )
                                     )

@@ -2066,9 +2066,7 @@ menuList <- function(menu){
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
                       menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
                       menuSubItem("Random Texts Selection", tabName = "randomText", icon = icon("chevron-right")),
-                      menuItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right"),
-                               menuSubItem("Add metadata extracted from..", tabName = "add_metadataExt", icon = icon("chevron-right")),
-                               menuSubItem("Add metadata from 2", tabName = "add_meta2", icon = icon("chevron-right"))),
+                      menuSubItem("External information", tabName = "extInfo", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
                       menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right"), selected = TRUE)
@@ -2081,9 +2079,7 @@ menuList <- function(menu){
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
                       menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
                       menuSubItem("Random Texts Selection", tabName = "randomText", icon = icon("chevron-right")),
-                      menuItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right"),
-                               menuSubItem("Add metadata extracted from..", tabName = "add_metadataExt", icon = icon("chevron-right")),
-                               menuSubItem("Add metadata from 2", tabName = "add_meta2", icon = icon("chevron-right"))),
+                      menuSubItem("External information", tabName = "extInfo", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
                       menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
@@ -2099,7 +2095,7 @@ menuList <- function(menu){
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
                       menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
                       menuSubItem("Random Texts Selection", tabName = "randomText", icon = icon("chevron-right")),
-                      menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
+                      menuSubItem("External information", tabName = "extInfo", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
                       menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
@@ -2128,7 +2124,7 @@ menuList <- function(menu){
                       menuSubItem("Polarity Detection", tabName = "d_polDet", icon = icon("chevron-right")),
                       menuSubItem("Summarization", tabName = "d_summarization", icon = icon("chevron-right"))),
              menuItem("Groups",tabName = "groups", icon = icon("th", lib="glyphicon"),
-                      menuSubItem("Group by metadata",tabName = "groupByMetadata", icon = icon("chevron-right")),
+                      menuSubItem("Define groups",tabName = "defineGroups", icon = icon("chevron-right")),
                       menuSubItem("Correspondence Analysis", tabName = "g_ca", icon = icon("chevron-right")),
                       menuSubItem("Network", tabName = "g_networkCooc", icon = icon("chevron-right"))),
              menuItem("Report",tabName = "report", icon = icon("list-alt")),
@@ -2141,7 +2137,7 @@ menuList <- function(menu){
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
                       menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
                       menuSubItem("Random Texts Selection", tabName = "randomText", icon = icon("chevron-right")),
-                      menuSubItem("Add metadata", tabName = "add_meta", icon = icon("chevron-right")),
+                      menuSubItem("External information", tabName = "extInfo", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right")))
            )
          }

@@ -260,6 +260,17 @@ server <- function(input, output, session){
   #   }, contentType = "tall"
   # )
 
+  ### EXTERNAL INFORMATION ----
+
+  output$doc_idExport <- downloadHandler(
+    filename = function() {
+      paste("Tall-Export-File-", Sys.Date(), ".xlsx", sep="")
+    },
+    content <- function(file) {
+      suppressWarnings(openxlsx::write.xlsx(values$txt %>% select(doc_id), file=file))
+    }, contentType = "xlsx"
+  )
+
   ### PRE-PROCESSING ----
 
   ## Tokenization & PoS Tagging ----
@@ -1652,12 +1663,12 @@ server <- function(input, output, session){
 
   ## GROUPS ----
 
-    ### Group by metadata ----
+    ### Define groups ----
 
-    output$groupByMetadataList <- renderUI({
+    output$defineGroupsList <- renderUI({
 
       multiInput(
-        inputId = "groupByMetadataList",
+        inputId = "defineGroupsList",
         label = NULL,
         choices = NULL,
         choiceNames = names(values$dfTag),
@@ -1669,14 +1680,14 @@ server <- function(input, output, session){
 
     groupMetadata <- eventReactive(
       ignoreNULL = TRUE,
-      eventExpr = {input$groupByMetadataRun},
+      eventExpr = {input$defineGroupsRun},
       valueExpr ={
 
         # values$groupMetadata <- FUNZIONE PER RAGGRUPPARE
 
       })
 
-    output$groupedData <- renderDT({
+    output$defineGroupsData <- renderDT({
       groupMetadata()
       #DTformat(values$groupMetadata, nrow=3, size='100%', title="Table Group By Metadata")
     })
