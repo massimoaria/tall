@@ -130,7 +130,8 @@ body <- dashboardBody(
                                                'ext', label="File format",choices = c(
                                                  "txt"="txt",
                                                  "csv"="csv",
-                                                 "excel"="xlsx"),
+                                                 "excel"="xlsx",
+                                                 "pdf"="pdf"),
                                                tags$style("height: 50px")
                                              )
                              ),

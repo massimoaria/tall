@@ -89,6 +89,9 @@ server <- function(input, output, session){
            },
            xlsx = {
              ext <- c("excel", ".xlsx", ".xls")
+           },
+           pdf = {
+             ext <- ".pdf"
            })
 
     fileInput(

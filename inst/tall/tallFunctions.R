@@ -15,7 +15,7 @@ getFileNameExtension <- function (fn) {
   ext
 }
 
-read_files <- function(files, ext=c("txt","csv", "xlsx"), subfolder=TRUE, line_sep=","){
+read_files <- function(files, ext=c("txt","csv", "xlsx", "pdf"), subfolder=TRUE, line_sep=","){
 
   #files <- list.files(path=path, pattern = paste0(".",ext,"$"), recursive = subfolder)
   if (is.null(files)) return(data.frame(doc_id=NA,text=NA, folder=NA))
@@ -65,6 +65,15 @@ read_files <- function(files, ext=c("txt","csv", "xlsx"), subfolder=TRUE, line_s
                mutate(filename = doc_id[i])
            }
            df <- do.call(rbind,listdf)
+         },
+         pdf={
+           listdf <- list()
+           for (i in seq_len(length(file))){
+             # listdf[[i]] <- readtext::readtext(file[i], fill=TRUE, text_field="text", quote='"') %>%
+             #   mutate(doc_id = doc_id[i])
+             listdf[[i]] <- data.frame(text=pdf2txt(file), filename = doc_id[i])
+           }
+           df <- do.call(rbind,listdf)
          }
   )
   if ("doc_id" %in% names(df)){
@@ -79,6 +88,34 @@ read_files <- function(files, ext=c("txt","csv", "xlsx"), subfolder=TRUE, line_s
   }
 
   return(df)
+}
+
+## pdf to txt ----
+pdf2txt <- function(file){
+  if (!poppler_config()$has_pdf_data){
+    message("Pdf import feature requires a recent version of libpoppler. Please install it. ")
+    return(NA)
+  }
+
+  # 1. Estrazione di tutto il testo
+
+  pages <- pdftools::pdf_length(file)
+
+  txt <- pdftools::pdf_text(file)
+
+  # remove \n at the end of the rows
+  txt <- gsub("(?<![\\s\\.])\\n(?!\\s)", " ", txt, perl = TRUE)
+
+  # remove word sep -
+  txt <- gsub("-\\s", "", txt)
+
+  # replace \n and spaces with \n\n
+  txt <- gsub("\n  ","\n\n",txt)
+
+  txt <- paste(txt, collapse = " ")
+
+  return(txt)
+
 }
 
 ### SPLIT TEXT INTO SUB-DOCS
