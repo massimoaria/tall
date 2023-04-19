@@ -341,44 +341,43 @@ body <- dashboardBody(
                            fluidRow(
                              column(12,
                                     div(align="center",
-                                      downloadButton(outputId="doc_idExport",
-                                                     label = strong("Export doc_id list"),
-                                                     icon = NULL,
-                                                     style ="border-radius: 15px; border-width: 1px; font-size: 15px;
+                                        downloadButton(outputId="doc_idExport",
+                                                       label = strong("Export doc_id list"),
+                                                       icon = NULL,
+                                                       style ="border-radius: 15px; border-width: 1px; font-size: 15px;
                                                                     text-align: center; color: #ffff; ")
+                                    )
                              )
-                             )
-                             ),
+                           ),
                            hr(),
                            fluidRow(
                              column(6,div(
-                                    title = t_run,
-                                    do.call("actionButton", c(run_bttn, list(
-                                      inputId = "extInfoRun")
-                                    )), align="center"
+                               title = t_run,
+                               do.call("actionButton", c(run_bttn, list(
+                                 inputId = "extInfoRun")
+                               )), align="center"
                              )
                              ),
                              column(6,
                                     div(
-                                    title = t_save,
-                                    do.call("downloadButton", c(list(
-                                      label=NULL,
-                                      style ="display:block; height: 37px; width: 37px; border-radius: 50%;
+                                      title = t_save,
+                                      do.call("downloadButton", c(list(
+                                        label=NULL,
+                                        style ="display:block; height: 37px; width: 37px; border-radius: 50%;
                                       border: 1px; margin-top: 16px;",
-                                      icon = icon(name ="floppy-save", lib="glyphicon")
-                                    ), list(
-                                      outputId = "extInfoSave")
-                                    )),align="center"
-                             )
+                                        icon = icon(name ="floppy-save", lib="glyphicon")
+                                      ), list(
+                                        outputId = "extInfoSave")
+                                      )),align="center"
+                                    )
                              )
                            )
-                           )
-
                          )
+
                        )
                 )
               )
-            #)
+            )
     ),
 
     ### FILTER TEXT ----
