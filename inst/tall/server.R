@@ -80,14 +80,35 @@ server <- function(input, output, session){
 ### DATA ----
 
   output$file_raw <- renderUI({
+    switch(input$ext,
+           txt = {
+             ext <- c("text/plain", ".txt")
+           },
+           csv = {
+             ext <- c("text/csv", ".csv")
+           },
+           xlsx = {
+             ext <- c("excel", ".xlsx", ".xls")
+           })
+
     fileInput(
       "file_raw",
       "Select file(s) containing text",
       multiple = TRUE,
-      accept = c(input$ext)
+      accept = ext,
+      placeholder = "No file(s) selected"
     )
   })
 
+  output$infoImport <- renderUI({
+    if (getFileNameExtension(req(input$file_raw$datapath[1]))!=input$ext){
+      shinyWidgets::alert(
+        icon("info"),
+        " You selected a file(s) with an incorrect extention",
+        status = "danger"
+      )
+    }
+  })
 
   ### dataImported ----
   DATAloading<- eventReactive(input$runImport,{
