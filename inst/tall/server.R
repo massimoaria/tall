@@ -1739,6 +1739,7 @@ server <- function(input, output, session){
         #print(input$defineGroupsList)
         values$selectedGroups <- input$defineGroupsList
           values$dfTag <- groupByMetadata(values$dfTag, metadata=input$defineGroupsList)
+          showModal(groupModal(session))
       })
 
     output$defineGroupsData <- renderDT({
@@ -1746,11 +1747,27 @@ server <- function(input, output, session){
       DTformat(values$dfTag, nrow=3, size='100%', title="Table Group By Metadata")
     })
 
-    ### Group Correspondence Analysis ----
-
-    ### Group Network ----
-
-
+    groupModal <- function(session) {
+      ns <- session$ns
+      values$newGr <- values$dfTag %>% count(doc_id, ungroupDoc_id) %>%
+        group_by(doc_id) %>%
+        count()
+      txt <- paste0("<hr><br><br>The original <b>", sum(values$newGr$n),
+                     "</b> documents have been grouped into <b>",
+                     nrow(values$newGr),"</b> groups <br><br>")
+      modalDialog(
+        h3(strong(paste0("Documents grouped by ",input$defineGroupsList))),
+        #DTOutput(ns("wordInContext")),
+        h4(HTML(txt)),
+        size = "m",
+        easyClose = TRUE,
+        footer = tagList(
+          # screenshotButton(label="Save", id = "cocPlotClust",
+          #                  scale = 2,
+          #                  file=paste("TMClusterGraph-", Sys.Date(), ".png", sep="")),
+          modalButton("Close")),
+      )
+    }
 
   ## REPORT ----
   ### Report Save xlsx ----
