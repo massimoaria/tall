@@ -143,7 +143,8 @@ body <- dashboardBody(
                                     )
                              )
                              ),
-                             uiOutput("file_raw")
+                             uiOutput("file_raw"),
+                             uiOutput(outputId = "infoImport"),
                            ),
                            conditionalPanel(
                              condition="input.load=='demo'",
@@ -323,7 +324,9 @@ body <- dashboardBody(
                          box(
                            width = 12,
                            div(h3(strong(em("Add from a file"))), style="margin-top:-57px"),
-                           hr(),
+                           helpText(h5("To import external information, please make sure that the file
+                           to be uploaded is in Excel format and contains a column labeled
+                           'doc_id' to identify the associated documents.")),
                            fileInput(
                              inputId="extInfoFile",
                              label=NULL,
@@ -331,31 +334,32 @@ body <- dashboardBody(
                              accept = c(
                                ".xls",
                                ".xlsx"
-                             )
+                             ),
+                             placeholder = "No file(s) selected"
                            ),
-
-                           #uiOutput("randomDescription"),
-                           # br(),
-                           # "Extract a random sample of texts to analyze",
-                           # hr(),
+                           helpText(h5("You can download the list of IDs associated with the imported text files below.")),
                            fluidRow(
-                             column(6,
-                                    div(
+                             column(12,
+                                    div(align="center",
                                       downloadButton(outputId="doc_idExport",
-                                                     label = strong("Export Docs_id in Excel"),
+                                                     label = strong("Export doc_id list"),
                                                      icon = NULL,
                                                      style ="border-radius: 15px; border-width: 1px; font-size: 15px;
-                                                                    text-align: center; color: #ffff; "
-
-                                      )
-                             )),
-                             column(3,
+                                                                    text-align: center; color: #ffff; ")
+                             )
+                             )
+                             ),
+                           hr(),
+                           fluidRow(
+                             column(6,div(
                                     title = t_run,
                                     do.call("actionButton", c(run_bttn, list(
                                       inputId = "extInfoRun")
-                                    ))
+                                    )), align="center"
+                             )
                              ),
-                             column(3,
+                             column(6,
+                                    div(
                                     title = t_save,
                                     do.call("downloadButton", c(list(
                                       label=NULL,
@@ -364,17 +368,17 @@ body <- dashboardBody(
                                       icon = icon(name ="floppy-save", lib="glyphicon")
                                     ), list(
                                       outputId = "extInfoSave")
-                                    ))
+                                    )),align="center"
                              )
-
-
+                             )
+                           )
                            )
 
                          )
                        )
                 )
               )
-            )
+            #)
     ),
 
     ### FILTER TEXT ----
@@ -656,6 +660,60 @@ body <- dashboardBody(
                            )
                            )
                          ), style="margin-top:40px"
+                       )
+                )
+
+              )
+            )
+    ),
+
+    ### GROUPS ----
+
+    tabItem(tabName = "defineGroups",
+            fluidPage(
+              fluidRow(
+                column(12,
+                       h3(strong("Define groups by available external information"), align = "center"))
+              ),
+              fluidRow(
+                column(9,
+                       shinycssloaders::withSpinner(DT::DTOutput("defineGroupsData"),color = getOption("spinner.color", default = "#4F7942"))
+                ),
+                column(3,
+                       fluidRow(
+                         box(
+                           width = 12,
+                           div(h3(strong(em("Select external information"))), style="margin-top:-57px"),
+                           hr(),
+                           helpText(h5("Select an external information to define new document groups:")),
+                           uiOutput("defineGroupsList"),
+                           uiOutput(outputId = "infoGroups"),
+                           hr(),
+                           fluidRow(
+                             column(6,
+                                    div(align="center",
+                                        title = t_run,
+                                        do.call("actionButton", c(run_bttn, list(
+                                          inputId = "defineGroupsRun")
+                                        ))
+                                    )
+                             ),
+                             column(6,
+                                    div(align="center",
+                                        title = t_save,
+                                        do.call("downloadButton", c(list(
+                                          label=NULL,
+                                          style ="display:block; height: 37px; width: 37px; border-radius: 50%;
+                                      border: 1px; margin-top: 16px;",
+                                          icon = icon(name ="floppy-save", lib="glyphicon"),
+                                          outputId = "defineGroupsSave")
+                                        )
+                                        )
+                                    )
+                             )
+                           )
+
+                         )
                        )
                 )
 
@@ -1988,403 +2046,6 @@ body <- dashboardBody(
               )
             )
     ),
-
-    ### GROUPS ----
-
-    ### Define Groups ----
-
-    tabItem(tabName = "defineGroups",
-            fluidPage(
-              fluidRow(
-                column(9,
-                       shinycssloaders::withSpinner(DT::DTOutput("defineGroupsData"),color = getOption("spinner.color", default = "#4F7942"))
-                ),
-                column(3,
-                       fluidRow(
-                         box(
-                           width = 12,
-                           div(h3(strong(em("Define groups by available external information"))), style="margin-top:-57px"),
-                           hr(),
-                           helpText(h5("Select an external information to define new document groups:")),
-                           uiOutput("defineGroupsList"),
-                           uiOutput(outputId = "infoGroups"),
-                           hr(),
-                           fluidRow(
-                             column(6,
-                                    div(align="center",
-                                        title = t_run,
-                                        do.call("actionButton", c(run_bttn, list(
-                                          inputId = "defineGroupsRun")
-                                        ))
-                                    )
-                             ),
-                             column(6,
-                                    div(align="center",
-                                        title = t_save,
-                                        do.call("downloadButton", c(list(
-                                          label=NULL,
-                                          style ="display:block; height: 37px; width: 37px; border-radius: 50%;
-                                      border: 1px; margin-top: 16px;",
-                                          icon = icon(name ="floppy-save", lib="glyphicon"),
-                                          outputId = "defineGroupsSave")
-                                        )
-                                        )
-                                    )
-                             )
-                           )
-
-                         )
-                       )
-                )
-
-              )
-            )
-    ),
-
-    ### Group Correspondence Analysis ----
-    tabItem(tabName = "g_ca",
-            fluidPage(
-              fluidRow(
-                column(8,
-                       h3(strong("Correspondence Analysis"), align = "center")),
-                div(
-                  title = t_run,
-                  column(1,
-                         do.call("actionButton", c(run_bttn, list(
-                           inputId = "g_caApply")
-                         ))
-                  )),
-                div(
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "g_caExport")
-                         ))
-                  )),
-                div(
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "g_caReport")
-                         ))
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             hr(),
-                             fluidRow(
-                               column(6,
-                                      numericInput("g_nCA",
-                                                   label = "Words",
-                                                   value = 50,
-                                                   min = 2,
-                                                   step=1)
-                               ),
-                               column(6,
-                                      selectInput("g_termCA",
-                                                  "Terms:",
-                                                  choices = c("Tokens" = "token",
-                                                              "Lemmas" = "lemma"),
-                                                  selected = "lemma"))),
-                             fluidRow(
-                               column(6,
-                                      numericInput("g_nClustersCA",
-                                                   label = "Clusters",
-                                                   value = 1,
-                                                   min = 1,
-                                                   step = 1)
-                               ),
-                               column(6,
-                                      numericInput("g_nDimsCA",
-                                                   label = "Dims for Clustering",
-                                                   value = 2,
-                                                   min = 1,
-                                                   max = 10,
-                                                   step = 1)
-                               )
-                             ),
-                             hr(),
-                             h4(strong("Graphical options: ")),
-                             br(),
-                             selectInput("g_dimPlotCA",
-                                         "Select plane to plot:",
-                                         choices = c("1° Factorial Plane" = "1",
-                                                     "2° Factorial Plane" = "2",
-                                                     "3° Factorial Plane" = "3",
-                                                     "4° Factorial Plane" = "4",
-                                                     "5° Factorial Plane" = "5"),
-                                         selected = "1"),
-                             fluidRow(
-                               column(6,
-                                      numericInput("g_labelsizeCA",
-                                                   label = "Label size",
-                                                   value = 16,
-                                                   min = 2,
-                                                   step=1)
-                               ),
-                               column(6,
-                                      numericInput("g_sizeCA",
-                                                   label = "Min. Dot Size",
-                                                   value = 2,
-                                                   min = 0,
-                                                   max = 20,
-                                                   step = 1)
-                               )
-                             ),
-
-                             tooltip = tooltipOptions(title = "Options"),
-                             width = "300px", icon = icon("cog", lib="glyphicon"),
-                             right = TRUE, animate = TRUE,
-                             style = "material-circle", size = "sm"
-                           ),
-                ),
-                style = style_opt
-                )
-              ),
-              fluidRow(
-                tabsetPanel(type = "tabs",
-                            tabPanel("Factorial Plane",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "g_caPlot", height = "75vh",width ="98.9%"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            ),
-                            tabPanel("Dendrogram",
-                                     shinycssloaders::withSpinner(visNetworkOutput("g_caDendrogram", width="auto", height = "75vh"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            ),
-                            tabPanel("Coordinates",
-                                     shinycssloaders::withSpinner(DT::DTOutput("g_caCoordTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            ),
-                            tabPanel("Contributes",
-                                     shinycssloaders::withSpinner(DT::DTOutput("g_caContribTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            ),
-                            tabPanel("Cosines Squared",
-                                     shinycssloaders::withSpinner(DT::DTOutput("g_caCosineTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            ),
-                            tabPanel("Singular Values",
-                                     shinycssloaders::withSpinner(DT::DTOutput("g_caSingularValueTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            )
-                )
-              )
-            )
-    ),
-
-
-    ### Network ----
-
-    ## WORD CO-OCCURENCE ----
-
-    tabItem(tabName = "g_networkCooc",
-            fluidPage(
-              fluidRow(
-                column(8,
-                       h3(strong("Word co-occurence"), align = "center")),
-                div(
-                  title = t_run,
-                  column(1,
-                         do.call("actionButton", c(run_bttn, list(
-                           inputId = "g_networkCoocApply")
-                         ))
-                  )),
-                div(
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "g_networkCoocExport")
-                         ))
-                  )),
-                div(
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "g_networkCoocReport")
-                         ))
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             hr(),
-                             checkboxGroupInput(
-                               inputId = "g_groupNet",
-                               label = "Groups",
-                               choices = c("Docs"="doc_id",
-                                           "Sentences"="sentence_id"),
-                               selected = c("doc_id", "sentence_id"),
-                               inline = TRUE
-                             ),
-                             materialSwitch(
-                               inputId = "g_interLinks",
-                               label = "Inter-group links",
-                               value = FALSE,
-                               status = "success"
-                             ),
-                             materialSwitch(
-                               inputId = "g_removeIsolated",
-                               label = "Delete isolated nodes",
-                               value = FALSE,
-                               status = "success"
-                             ),
-                             selectInput("g_normalizationCooc",
-                                         label = "Normalization by:",
-                                         choices = c("None"="none",
-                                                     "Association Index"="association",
-                                                     "Cosine Similarity"="cosine",
-                                                     "Jaccard Index"="jaccard"),
-                                         selected = "association"),
-                             fluidRow(
-                               column(6,
-                                      numericInput("g_nMax",
-                                                   label = "Words",
-                                                   value = 100,
-                                                   min = 2,
-                                                   step=1),
-                                      numericInput("g_labelSize",
-                                                   label = "Label Size",
-                                                   value = 4,
-                                                   min = 1,
-                                                   step = 0.5)
-                               ),column(6,
-                                        numericInput("g_minEdges",
-                                                     label = "Top Link (%)",
-                                                     value = 50,
-                                                     min = 0,
-                                                     max = 100,
-                                                     step = 1),
-                                        numericInput("g_opacity",
-                                                     label = "Opacity",
-                                                     value = 0.6,
-                                                     min = 0,
-                                                     step = 0.1)
-                               )),
-                             tooltip = tooltipOptions(title = "Options"),
-                             width = "300px", icon = icon("cog", lib="glyphicon"),
-                             right = TRUE, animate = TRUE,
-                             style = "material-circle", size = "sm"
-                           )
-                ),
-                style = style_opt
-                )
-              ),
-              fluidRow(
-                tabsetPanel(type = "tabs",
-                            tabPanel("Network",
-                                     shinycssloaders::withSpinner(visNetworkOutput("g_networkCoocPlot", width="auto", height = "75vh"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            ),
-                            tabPanel("Words",
-                                     shinycssloaders::withSpinner(DT::DTOutput("g_networkCoocNodesTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            ),
-                            tabPanel("Links",
-                                     shinycssloaders::withSpinner(DT::DTOutput("g_networkCoocEdgesTable"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            )
-
-                )
-              )
-            )
-    ),
-
-    # ## GRAKO ----
-    #
-    # tabItem(tabName = "g_networkGrako",
-    #         fluidPage(
-    #           fluidRow(
-    #             column(8,
-    #                    h3(strong("Grako"), align = "center")),
-    #             div(
-    #               title = t_run,
-    #               column(1,
-    #                      do.call("actionButton", c(run_bttn, list(
-    #                        inputId = "g_networkGrakoApply")
-    #                      ))
-    #               )),
-    #             div(
-    #               title = t_export,
-    #               column(1,
-    #                      do.call("downloadButton", c(export_bttn, list(
-    #                        outputId = "g_networkGrakoExport")
-    #                      ))
-    #               )),
-    #             div(
-    #               title = t_report,
-    #               column(1,
-    #                      do.call("actionButton", c(report_bttn, list(
-    #                        inputId = "g_networkGrakoReport")
-    #                      ))
-    #               )),
-    #             div(column(1,
-    #                        dropdown(
-    #                          h4(strong("Options: ")),
-    #                          br(),
-    #                          selectInput("g_grakoNormalization",
-    #                                      label = "Normalization by:",
-    #                                      choices = c("None"="none",
-    #                                                  "Association Index"="association",
-    #                                                  "Cosine Similarity"="cosine",
-    #                                                  "Jaccard Index"="jaccard"),
-    #                                      selected = "association"),
-    #                          materialSwitch(
-    #                            inputId = "g_grakoUnigram",
-    #                            label = "Include Single words",
-    #                            value = FALSE,
-    #                            status = "success"
-    #                          ),
-    #                          fluidRow(
-    #                            column(6,
-    #                                   numericInput("g_grakoNMax",
-    #                                                label = "Words",
-    #                                                value = 30,
-    #                                                min = 2,
-    #                                                step=1),
-    #                                   numericInput("g_grakoMinEdges",
-    #                                                label = "Top Link (%)",
-    #                                                value = 10,
-    #                                                min = 0,
-    #                                                max = 100,
-    #                                                step = 1)
-    #                            ),column(6,
-    #                                     numericInput("g_grakoLabelSize",
-    #                                                  label = "Label Size",
-    #                                                  value = 4,
-    #                                                  min = 0.0,
-    #                                                  step = 0.5),
-    #                                     numericInput("g_grakoOpacity",
-    #                                                  label = "Opacity",
-    #                                                  value = 0.6,
-    #                                                  min = 0,
-    #                                                  step = 0.1)
-    #                            )),
-    #                          tooltip = tooltipOptions(title = "Options"),
-    #                          width = "300px", icon = icon("cog", lib="glyphicon"),
-    #                          right = TRUE, animate = TRUE,
-    #                          style = "material-circle", size = "sm"
-    #                        )
-    #             ),
-    #             style = style_opt
-    #             )
-    #           ),
-    #           fluidRow(
-    #             tabsetPanel(type = "tabs",
-    #                         tabPanel("Network",
-    #                                  shinycssloaders::withSpinner(visNetworkOutput("g_networkGrakoPlot", width="auto", height = "75vh"),
-    #                                                               color = getOption("spinner.color", default = "#4F7942"))
-    #                         ),
-    #                         tabPanel("Words",
-    #                                  shinycssloaders::withSpinner(DT::DTOutput("g_networkGrakoNodesTable"),
-    #                                                               color = getOption("spinner.color", default = "#4F7942"))
-    #                         ),
-    #                         tabPanel("Links",
-    #                                  shinycssloaders::withSpinner(DT::DTOutput("g_networkGrakoEdgesTable"),
-    #                                                               color = getOption("spinner.color", default = "#4F7942"))
-    #                         )
-    #             )
-    #           )
-    #         )
-    # ),
 
     ### REPORT ----
     tabItem(tabName = "report",

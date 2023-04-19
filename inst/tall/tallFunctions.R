@@ -428,7 +428,7 @@ valueBoxesIndices <- function(x){
               avgChars = round(mean(nChars),1))
 
   # 8. TTR: il rapporto tra la varietà del dizionario (Dictionary) e il numero totale di token in una raccolta testuale (# terms); in altre parole, misura la diversità lessicale in un corpus
-  TTR = round(nDictionary/nTokens,2)
+  TTR = round(nDictionary/nTokens*100,2)
 
   # 9.  %hapax
   hapax <- x %>% group_by(token) %>%
@@ -2153,7 +2153,7 @@ menuList <- function(menu){
              menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),startExpanded = TRUE,
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
                       menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
-                      menuSubItem("Random Texts Selection", tabName = "randomText", icon = icon("chevron-right")),
+                      menuSubItem("Random Text Selection", tabName = "randomText", icon = icon("chevron-right")),
                       menuSubItem("External information", tabName = "extInfo", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
@@ -2166,7 +2166,7 @@ menuList <- function(menu){
              menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
                       menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
-                      menuSubItem("Random Texts Selection", tabName = "randomText", icon = icon("chevron-right")),
+                      menuSubItem("Random Text Selection", tabName = "randomText", icon = icon("chevron-right")),
                       menuSubItem("External information", tabName = "extInfo", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
@@ -2182,7 +2182,7 @@ menuList <- function(menu){
              menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
                       menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
-                      menuSubItem("Random Texts Selection", tabName = "randomText", icon = icon("chevron-right")),
+                      menuSubItem("Random Text Selection", tabName = "randomText", icon = icon("chevron-right")),
                       menuSubItem("External information", tabName = "extInfo", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
@@ -2190,6 +2190,7 @@ menuList <- function(menu){
                       menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right")),
                       menuSubItem("Multi-Word Creation", tabName = "multiwordCreat",icon = icon("chevron-right")),
                       menuSubItem("PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right")), selected = TRUE),
+             menuItem("Groups",tabName = "defineGroups", icon = icon("th", lib="glyphicon")),
              menuItem("Overview", tabName = "overview", icon = icon("search", lib="glyphicon")),
              menuItem("Words", tabName = "words", icon = icon("font", lib = "glyphicon"),
                       menuItem("Most Used Words", tabName = "freqList", icon = icon("chevron-right"),
@@ -2211,10 +2212,6 @@ menuList <- function(menu){
                                menuSubItem("Model Estimation", tabName = "d_tm_estim", icon = icon("chevron-right"))),
                       menuSubItem("Polarity Detection", tabName = "d_polDet", icon = icon("chevron-right")),
                       menuSubItem("Summarization", tabName = "d_summarization", icon = icon("chevron-right"))),
-             menuItem("Groups",tabName = "groups", icon = icon("th", lib="glyphicon"),
-                      menuSubItem("Define groups",tabName = "defineGroups", icon = icon("chevron-right")),
-                      menuSubItem("Correspondence Analysis", tabName = "g_ca", icon = icon("chevron-right")),
-                      menuSubItem("Network", tabName = "g_networkCooc", icon = icon("chevron-right"))),
              menuItem("Report",tabName = "report", icon = icon("list-alt")),
              menuItem("Settings",tabName = "settings", icon = icon("tasks"))
            )
@@ -2224,7 +2221,7 @@ menuList <- function(menu){
              menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),
                       menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
                       menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
-                      menuSubItem("Random Texts Selection", tabName = "randomText", icon = icon("chevron-right")),
+                      menuSubItem("Random Text Selection", tabName = "randomText", icon = icon("chevron-right")),
                       menuSubItem("External information", tabName = "extInfo", icon = icon("chevron-right")),
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right")))
            )
