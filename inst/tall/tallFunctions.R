@@ -51,7 +51,7 @@ read_files <- function(files, ext=c("txt","csv", "xlsx"), subfolder=TRUE, line_s
              # listdf[[i]] <- readtext::readtext(file[i], fill=TRUE, text_field="text", quote='"') %>%
              #   mutate(doc_id = doc_id[i])
              listdf[[i]] <- read_delim(file[i], delim=line_sep, quote='"') %>%
-               mutate(doc_id = doc_id[i])
+               mutate(filename = doc_id[i])
            }
 
            df <- do.call(rbind,listdf)
@@ -62,7 +62,7 @@ read_files <- function(files, ext=c("txt","csv", "xlsx"), subfolder=TRUE, line_s
              # listdf[[i]] <- readtext::readtext(file[i], fill=TRUE, text_field="text", quote='"') %>%
              #   mutate(doc_id = doc_id[i])
              listdf[[i]] <- readxl::read_excel(file[i], col_types = "text") %>%
-               mutate(doc_id = doc_id[i])
+               mutate(filename = doc_id[i])
            }
            df <- do.call(rbind,listdf)
          }
@@ -117,6 +117,16 @@ splitDoc <- function(df, word, txSplitBy="starting"){
                    text = df_splitted,
                    doc_id_old=doc_id_old)
   return(df)
+}
+
+### EXTERNAL INFORMATION ----
+loadExtInfo <- function(file, txt){
+  df <- readxl::read_excel(file)
+
+  txt <- txt %>%
+    left_join(df, by = "doc_id")
+
+  return(txt)
 }
 
 ### PRE_PROCESSING ----
@@ -601,13 +611,21 @@ wordCA <- function(dfTag, n=50,  term="lemma"){
            dist = res$coldist,
            mass = res$colmass)
 
+  docContrib <- data.frame((res$rowcoord[,1:Ncol]^2)*res$rowmass)
+  docCoord <- res$rowcoord[,1:Ncol] %>%
+    data.frame() %>%
+    mutate(label = res$rownames,
+           inertia = res$rowinertia,
+           dist = res$rowdist,
+           mass = res$rowmass)
+
   ## Benzecrì correction
   res$eigCorrected <- ((n/(n-1))^2*(res$sv-1/n)^2)
   res$eigCorrected[res$eigCorrected<=1/length(res$eigCorrected)] <- 0
   res$eigCorrectedNorm <- res$eigCorrected/sum(res$eigCorrected)*100
 
   ## result object
-  results <- list(ca=res, wordCoord=wordCoord, contrib = contrib, cosine=cosine)
+  results <- list(ca=res, wordCoord=wordCoord, contrib = contrib, cosine=cosine, docContrib=docContrib, docCoord=docCoord)
 
   return(results)
 }
@@ -636,7 +654,7 @@ caClustering <- function(results, method = "ward.D2", nDim=2, nclusters=1){
 
 
 ## CA Plot ----
-ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = Inf, threshold=0.03, labelsize=16, size=5){
+ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = Inf, topDocPlot=20, threshold=0.03, labelsize=16, size=5){
 
   xlabel <- paste0("Dim",dimX)
   ylabel <- paste0("Dim",dimY)
@@ -669,7 +687,7 @@ ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = Inf, threshold=
            font.size = round(dotSize*2 ,0))
 
   ## Avoid label overlapping
-  labelToRemove <- avoidOverlaps(results$wordCoord, threshold = threshold2, dimX=1, dimY=2)
+  labelToRemove <- avoidOverlaps(results$wordCoord, threshold = threshold2)
   results$wordCoord <- results$wordCoord %>%
     mutate(labelToPlot = ifelse(labelToPlot %in% labelToRemove, "",labelToPlot))
 
@@ -686,9 +704,10 @@ ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = Inf, threshold=
     mutate(id = row_number()) %>%
     arrange(groups,id)
 
-
   hoverText <- paste(" <b>", results$wordCoord$label,"</b>\n Inertia: ", round(results$wordCoord$inertia,3), "\n Mass:   ", round(results$wordCoord$mass,3), sep="")
 
+
+  ## Plot
   fig <- plot_ly(data = results$wordCoord, x = results$wordCoord$Dim1, y = results$wordCoord$Dim2, #customdata=results$wordCoord,
                  type="scatter",
                  mode   = 'markers',
@@ -708,7 +727,8 @@ ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = Inf, threshold=
                         xaxis = list(title = paste0("Dim ",dimX," (",round(results$ca$eigCorrectedNorm[1],2),"%)"),
                                      zeroline = TRUE, showgrid = TRUE, showline = FALSE, showticklabels = TRUE),
                         plot_bgcolor  = "rgba(0, 0, 0, 0)",
-                        paper_bgcolor = "rgba(0, 0, 0, 0)")
+                        paper_bgcolor = "rgba(0, 0, 0, 0)",
+                        showlegend = F)
 
   for (i in seq_len(max(results$wordCoord$groups))){
     w <- results$wordCoord %>% dplyr::filter(groups == i) %>%
@@ -730,6 +750,52 @@ ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = Inf, threshold=
                       showarrow = FALSE)
   }
 
+  ## Doc to plot
+  if (topDocPlot>0){
+    results$docContrib <- results$docContrib %>%
+      select(-any_of(noCol))
+    docContrib <- (results$docContrib[,1]+results$docContrib[,2])/2
+
+    results$docCoord <- results$docCoord %>%
+      mutate(contrib = docContrib)
+
+    docCoord <- results$docCoord %>%
+      select(all_of(c(dimX,dimY)), label, contrib) %>%
+      slice_max(order_by = contrib, n=topDocPlot) %>%
+      mutate(dotScaleDoc = contrib*50+size) %>%
+      rename(labelToPlot = label,
+             dotSize = contrib)
+
+    names(docCoord)[1:2] <- c("Dim1", "Dim2")
+
+    docLabelToRemove <- avoidOverlaps(docCoord, threshold = threshold2*1.5)
+    docCoord <- docCoord %>%
+      mutate(label = labelToPlot,
+             labelToPlot = ifelse(labelToPlot %in% docLabelToRemove, "",labelToPlot),
+             symbol = "hexagon")
+
+    wDoc <- docCoord %>%
+      mutate(Dim1 = Dim1+dotScaleDoc*0.01,
+             Dim2 = Dim2+dotScaleDoc*0.015)
+
+    fig <- fig %>%
+      add_markers(data = docCoord, x = ~Dim1, y = ~Dim2,
+                text = ~label,
+                #type = "scatter", mode = "markers",
+                marker = list(
+                  symbol = docCoord$symbol,
+                  size = docCoord$dotScaleDoc,
+                  color = adjustcolor("#6F7378", alpha.f = 0.3),
+                  line = list(color = adjustcolor("#6F7378", alpha.f = 0.3),
+                              width = 2)
+                )
+      ) %>%
+      add_annotations(data = wDoc, x = ~Dim1, y = ~Dim2, xref = 'x1', yref = 'y',
+                      text = ~labelToPlot,
+                      font = list(family = 'sans serif', size = labelsize, color = adjustcolor("#000000", alpha.f = 0.5)), #4C4E52
+                      showarrow = FALSE)
+  }
+
   fig <- fig %>% config(displaylogo = FALSE,
                         modeBarButtonsToRemove = c(
                           #'toImage',
@@ -746,9 +812,8 @@ ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = Inf, threshold=
 
 }
 
-
 ## function to avoid label overlapping ----
-avoidOverlaps <- function(w,threshold=0.10, dimX=1, dimY=2){
+avoidOverlaps <- function(w,threshold=0.10){
 
   w[,2] <- w[,2]/2
 
@@ -774,36 +839,40 @@ avoidOverlaps <- function(w,threshold=0.10, dimX=1, dimY=2){
     rename(w_to = dotSize) %>%
     filter(dist<threshold)
 
-  st <- TRUE
-  i <- 1
-  label <- NULL
-  case <- "n"
-
-  while(isTRUE(st)){
-    if (Ds$w_from[i]>Ds$w_to[i] & Ds$dist[i]<threshold){
-      case <- "y"
-      lab <- Ds$to[i]
-
-    } else if (Ds$w_from[i]<=Ds$w_to[i] & Ds$dist[i]<threshold){
-      case <- "y"
-      lab <- Ds$from[i]
-    }
-
-    switch(case,
-           "y"={
-             Ds <- Ds[Ds$from != lab,]
-             Ds <- Ds[Ds$to != lab,]
-             label <- c(label,lab)
-           },
-           "n"={
-             Ds <- Ds[-1,]
-           })
-
-    if (i>=nrow(Ds)){
-      st <- FALSE
-    }
+  if (nrow(Ds)>0){
+    st <- TRUE
+    i <- 1
+    label <- NULL
     case <- "n"
-    #print(nrow(Ds))
+
+    while(isTRUE(st)){
+      if (Ds$w_from[i]>Ds$w_to[i] & Ds$dist[i]<threshold){
+        case <- "y"
+        lab <- Ds$to[i]
+
+      } else if (Ds$w_from[i]<=Ds$w_to[i] & Ds$dist[i]<threshold){
+        case <- "y"
+        lab <- Ds$from[i]
+      }
+
+      switch(case,
+             "y"={
+               Ds <- Ds[Ds$from != lab,]
+               Ds <- Ds[Ds$to != lab,]
+               label <- c(label,lab)
+             },
+             "n"={
+               Ds <- Ds[-1,]
+             })
+
+      if (i>=nrow(Ds)){
+        st <- FALSE
+      }
+      case <- "n"
+      #print(nrow(Ds))
+    }
+  } else {
+    label <-  NULL
   }
 
   label
@@ -1780,37 +1849,56 @@ textrankDocument <- function(dfTag, id, n){
 }
 
 ### GROUP MENU FUNCTIONS -----
+noGroupLabels <- function(label){
+  setdiff(label, c("doc_id","paragraph_id","sentence_id","sentence","start","end","term_id",
+                   "token_id","token","lemma","upos","xpos","feats","head_token_id","dep_rel",
+                   "deps","misc","original_doc_id","ungroupDoc_id","ungroupP_id", "ungroupS_id",
+                   "POSSelected","token_hl","start_hl","end_hl","sentence_hl","lemma_original_nomultiwords",
+                   "filename")
+  )
+}
 
 groupByMetadata <- function(dfTag, metadata){
-  ## group texts by a metadata
-  newDoc_id <- sprintf(paste0("%0",nchar(length(unique(dfTag$doc_id))),"d"), unique_identifier(dfTag, fields=metadata, start_from = 1L))
+  if (length(metadata)==1){
+    ## group texts by a metadata
 
-  if (!"originalDoc_id" %in% names(dfTag)){
+    if (!"ungroupDoc_id" %in% names(dfTag)){
+      dfTag <- dfTag %>%
+        mutate(ungroupDoc_id = doc_id,
+               ungroupP_id = paragraph_id,
+               ungroupS_id = sentence_id)
+    }
+
+    #newDoc_id <- sprintf(paste0("%0",nchar(length(unique(dfTag$ungroupDoc_id))),"d"), unique_identifier(dfTag, fields=metadata, start_from = 1L))
+    dfTag$paragraph_id <- paste0(dfTag$ungroupDoc_id,"_",dfTag$ungroupP_id)
+    dfTag$sentence_id <- paste0(dfTag$ungroupDoc_id,"_",dfTag$ungroupS_id)
+
+    #newDoc_id <-dfTag[[metadata]]
+    newDoc_id <- ifelse(!is.na(dfTag[[metadata]]),dfTag[[metadata]],"Not Available")
+
     dfTag <- dfTag %>%
-      mutate(ungroupDoc_id = doc_id,
-             ungroupP_id = paragraph_id,
-             ungroupS_id = sentence_id)
-    dfTag$paragraph_id <- paste0(dfTag$doc_id,"_",dfTag$paragraph_id)
-    dfTag$sentence_id <- paste0(dfTag$doc_id,"_",dfTag$sentence_id)
+      mutate(doc_id = newDoc_id) %>%
+      group_by(doc_id) %>%
+      mutate(paragraph_id = unique_identifier(paragraph_id),
+             sentence_id = unique_identifier(sentence_id)) %>%
+      ungroup()
+  } else {
+    dfTag <- backToOriginalGroups(dfTag)
   }
-
-  dfTag <- dfTag %>%
-    mutate(doc_id = paste0("doc_",newDoc_id)) %>%
-    group_by(doc_id) %>%
-    mutate(paragraph_id = unique_identifier(paragraph_id),
-           sentence_id = unique_identifier(sentence_id)) %>%
-    ungroup()
 
   return(dfTag)
 }
 
 backToOriginalGroups <- function(dfTag){
   # back to original ungrouped data frame
-  dfTag <- dfTag %>%
-    mutate(doc_id = ungroupDoc_id,
-           paragraph_id = ungroupP_id,
-           sentence_id = ungroupS_id) %>%
-    select(-ungroupDoc_id,-ungroupP_id,-ungroupS_id)
+  if ("ungroupDoc_id" %in% names(dfTag)){
+    dfTag <- dfTag %>%
+      mutate(doc_id = ungroupDoc_id,
+             paragraph_id = ungroupP_id,
+             sentence_id = ungroupS_id) %>%
+      select(-ungroupDoc_id,-ungroupP_id,-ungroupS_id)
+  }
+  return(dfTag)
 }
 
 
@@ -2032,11 +2120,11 @@ highlight <- function(df){
 
 
 ## saveTall function ----
-saveTall <- function(dfTag,custom_lists,language,menu,where,metadata,file){
+saveTall <- function(dfTag,custom_lists,language,menu,where,file){
   D <- date()
   D <- strsplit(gsub("\\s+", " ", D)," ")
   D <- paste(unlist(D)[c(1,2,3,5)],collapse=" ")
-  save(dfTag,custom_lists,language,menu,D,where, file=file)
+  save(dfTag,custom_lists,language,menu,D,where,file=file)
 }
 
 ###Export Tall analysis in .tall file ----

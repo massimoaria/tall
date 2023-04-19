@@ -41,6 +41,8 @@ server <- function(input, output, session){
   values$TMplotIndex <- 1
   values$TMdocIndex <- 1
   values$tmTopSentences <- FALSE
+  values$selectedGroups <- NULL
+
 
   ## Setting plot values
   values$h <- 7
@@ -97,7 +99,7 @@ server <- function(input, output, session){
                values$menu <- 0
                values$custom_lists <- NULL
                values$txt <- txt %>% arrange(doc_id)
-               values$metadata <- setdiff(names(values$txt), c("text", "doc_id","original_doc_id"))
+               #values$metadata <- setdiff(names(values$txt), c("text", "doc_id","original_doc_id"))
              }
            },
            load_tall={
@@ -111,7 +113,7 @@ server <- function(input, output, session){
               values$language <- language
               values$D <- D
               values$where <- where
-              values$metadata <- metadata
+              #values$metadata <- metadata
               if (values$menu==1) updateTabItems(session, "sidebarmenu", "custTermList")
               if (values$menu==2) updateTabItems(session, "sidebarmenu", "posTagSelect")
               if (ncol(values$dfTag)>1){showModal(loadTallgModal(session))}
@@ -262,6 +264,19 @@ server <- function(input, output, session){
 
   ### EXTERNAL INFORMATION ----
 
+  EXTINFOloading<- eventReactive(input$extInfoRun,{
+             req(input$extInfoFile)
+             file_extinfo <- input$extInfoFile$datapath
+             #print(file_tall)
+             values$txt <- loadExtInfo(file_extinfo, values$txt)
+  })
+
+  output$extInfoData <- DT::renderDT({
+    EXTINFOloading()
+    DTformat(values$txt %>% mutate(text = paste0(substr(text,1,500),"...")),left=2, nrow=3, filter="none")
+  })
+
+
   output$doc_idExport <- downloadHandler(
     filename = function() {
       paste("Tall-Export-File-", Sys.Date(), ".xlsx", sep="")
@@ -335,7 +350,7 @@ server <- function(input, output, session){
         paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
       },
       content <- function(file) {
-        saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "Custom Term Lists", values$metadata,file)
+        saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "Custom Term Lists", file)
         # D <- date()
         # save(dfTag,menu,D,where, file=file)
       }, contentType = "tall"
@@ -402,7 +417,7 @@ server <- function(input, output, session){
         paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
       },
       content <- function(file) {
-        saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "Custom Term Lists", values$metadata,file)
+        saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "Custom Term Lists", file)
         # D <- date()
         # save(dfTag,menu,D,where, file=file)
       }, contentType = "tall"
@@ -466,7 +481,7 @@ server <- function(input, output, session){
         paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
       },
       content <- function(file) {
-        saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "Multi-Word Creation", values$metadata, file)
+        saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "Multi-Word Creation", file)
         # D <- date()
         # save(dfTag,menu,D,where, file=file)
       }, contentType = "tall"
@@ -514,7 +529,7 @@ server <- function(input, output, session){
         paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
       },
       content <- function(file) {
-        saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "POS Tag Selection", values$metadata,file)
+        saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "POS Tag Selection", file)
         # D <- date()
         # save(dfTag,menu,D,where, file=file)
       }, contentType = "tall"
@@ -1142,7 +1157,7 @@ server <- function(input, output, session){
         values$CAdimY <- as.numeric(input$dimPlotCA)*2
         values$CAdimX <- values$CAdimY-1
         values$plotCA <- ca2plotly(values$CA, dimX = values$CAdimX, dimY = values$CAdimY,
-                                   topWordPlot = input$nCA, threshold=0.03, labelsize = input$labelsizeCA, size=input$sizeCA)
+                                   topWordPlot = input$nCA, topDocPlot=input$nDocCA, threshold=0.03, labelsize = input$labelsizeCA, size=input$sizeCA)
         values$CADendrogram <- dend2vis(values$CA$clustering$h, labelsize=input$labelsizeCA, nclusters=input$nClustersCA, community=FALSE)
       }
     )
@@ -1666,30 +1681,45 @@ server <- function(input, output, session){
     ### Define groups ----
 
     output$defineGroupsList <- renderUI({
-
+      label <- noGroupLabels(names(values$dfTag))
       multiInput(
         inputId = "defineGroupsList",
         label = NULL,
-        choices = NULL,
-        choiceNames = names(values$dfTag),
-        choiceValues = names(values$dfTag),
+        choices = label,
+        selected = values$selectedGroups,
+        # options = list(
+        #   limit = 1
+        #   #enable_search = FALSE,
+        # ),
+        # choiceNames = label,
+        # choiceValues = label,
         width = "100%"
       )
 
+    })
+
+    output$infoGroups <- renderUI({
+      if (length(input$defineGroupsList) >1) {
+        shinyWidgets::alert(
+          icon("info"),
+          " You need to select only one field",
+          status = "danger"
+        )
+      }
     })
 
     groupMetadata <- eventReactive(
       ignoreNULL = TRUE,
       eventExpr = {input$defineGroupsRun},
       valueExpr ={
-
-        # values$groupMetadata <- FUNZIONE PER RAGGRUPPARE
-
+        #print(input$defineGroupsList)
+        values$selectedGroups <- input$defineGroupsList
+          values$dfTag <- groupByMetadata(values$dfTag, metadata=input$defineGroupsList)
       })
 
     output$defineGroupsData <- renderDT({
       groupMetadata()
-      #DTformat(values$groupMetadata, nrow=3, size='100%', title="Table Group By Metadata")
+      DTformat(values$dfTag, nrow=3, size='100%', title="Table Group By Metadata")
     })
 
     ### Group Correspondence Analysis ----

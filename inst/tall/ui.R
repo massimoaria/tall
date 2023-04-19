@@ -1318,6 +1318,11 @@ body <- dashboardBody(
                                                      "4° Factorial Plane" = "4",
                                                      "5° Factorial Plane" = "5"),
                                          selected = "1"),
+                             numericInput("nDocCA",
+                                          label = "Docs/Groups",
+                                          value = 0,
+                                          min = 0,
+                                          step = 1),
                              fluidRow(
                                column(6,
                                       numericInput("labelsizeCA",
@@ -2002,6 +2007,7 @@ body <- dashboardBody(
                            hr(),
                            helpText(h5("Select an external information to define new document groups:")),
                            uiOutput("defineGroupsList"),
+                           uiOutput(outputId = "infoGroups"),
                            hr(),
                            fluidRow(
                              column(6,
