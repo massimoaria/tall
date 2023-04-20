@@ -46,6 +46,7 @@ server <- function(input, output, session){
 
   ## Setting plot values
   values$h <- 7
+  values$zoom <- 2
   dpi <- 300
   set.seed(0)
 
@@ -681,13 +682,13 @@ server <- function(input, output, session){
     output$wordcloudPlot <- renderWordcloud2({
 
       n <- 200 #showing the first 200 lemmas
-      wcDfPlot <- freqByPos(values$dfTag, term="lemma",pos=unique(values$dfTag$upos[values$dfTag$POSSelected==TRUE])) %>%
+      wcDfPlot <- freqByPos(values$dfTag, term=input$termWC,pos=unique(values$dfTag$upos[values$dfTag$POSSelected==TRUE])) %>%
         slice_head(n=n) %>%
         #mutate(n=log(n)) %>%
         rename(text = term,
                freq = n)
 
-      wcPlot <- wordcloud2::wordcloud2(wcDfPlot,
+      values$wcPlot <- wordcloud2::wordcloud2(wcDfPlot,
                                        fontFamily = "Impact", fontWeight = "normal", minSize=0,
                                        minRotation = 0, maxRotation = 0, shuffle = TRUE,
                                        rotateRatio = 0.7, shape = "circle",ellipticity = 0.65,
@@ -695,7 +696,7 @@ server <- function(input, output, session){
                                        figPath = NULL,
                                        size = ifelse(length(wcDfPlot$text)>100,1.5,1.8),
                                        color = "random-dark", backgroundColor = "transparent")
-      return(wcPlot)
+      values$wcPlot
     })
 
 
@@ -710,6 +711,15 @@ server <- function(input, output, session){
 
     })
 
+    ## export PNG button
+    observeEvent(input$wcSave,{
+      switch(Sys.info()[['sysname']],
+             Windows= {home <- Sys.getenv('R_USER')},
+             Linux  = {home <- Sys.getenv('HOME')},
+             Darwin = {home <- Sys.getenv('HOME')})
+                   filename <- paste(home,"/Downloads/WordCloud-", Sys.Date(), ".png", sep="")
+                   plot2png(values$wcPlot, filename=filename, zoom = values$zoom, type="plotly")
+                 })
 
     observeEvent(input$reportMI,{
       if(!is.null(values$TABvb)){
@@ -904,7 +914,8 @@ server <- function(input, output, session){
     )
 
     output$nounPlot <- renderPlotly({
-      nounFreq()
+      values$nounPlotly <- nounFreq()
+      values$nounPlotly
     })
 
     output$nounTable <- renderDT({
@@ -923,7 +934,7 @@ server <- function(input, output, session){
       content <- function(file) {
         values$nounGgplot <- freqGgplot(values$freqNoun,x=2, y=1,n=input$nounN,
                                         title = "Noun Frequency")
-        ggsave(filename = file, plot = values$nounGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="white")
+        ggsave(filename = file, plot = values$nounGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
       },
       contentType = "png"
     )
@@ -961,7 +972,7 @@ server <- function(input, output, session){
       content <- function(file) {
         values$propnGgplot <- freqGgplot(values$freqPropn,x=2, y=1,n=input$propnN,
                                         title = "Proper Noun Frequency")
-        ggsave(filename = file, plot = values$propnGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="white")
+        ggsave(filename = file, plot = values$propnGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
       },
       contentType = "png"
     )
@@ -997,7 +1008,7 @@ server <- function(input, output, session){
       content <- function(file) {
         values$adjGgplot <- freqGgplot(values$freqAdj,x=2, y=1,n=input$adjN,
                                          title = "Adjective Frequency")
-        ggsave(filename = file, plot = values$adjGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="white")
+        ggsave(filename = file, plot = values$adjGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
       },
       contentType = "png"
     )
@@ -1033,7 +1044,7 @@ server <- function(input, output, session){
       content <- function(file) {
         values$verbGgplot <- freqGgplot(values$freqVerb,x=2, y=1,n=input$verbN,
                                        title = "Verb Frequency")
-        ggsave(filename = file, plot = values$verbGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="white")
+        ggsave(filename = file, plot = values$verbGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
       },
       contentType = "png"
     )
@@ -1070,7 +1081,7 @@ server <- function(input, output, session){
       content <- function(file) {
         values$otherGgplot <- freqGgplot(values$freqOther,x=2, y=1,n=input$otherN,
                                        title = "Multi-Word Frequency")
-        ggsave(filename = file, plot = values$otherGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="white")
+        ggsave(filename = file, plot = values$otherGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
       },
       contentType = "png"
     )
@@ -1112,7 +1123,7 @@ server <- function(input, output, session){
       content <- function(file) {
         values$posGgplot <- freqGgplot(data.frame(values$freqPOS),x=2, y=1,n=length(values$freqPOS$PoS),
                                          title = "PoS Frequency")
-        ggsave(filename = file, plot = values$posGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="white")
+        ggsave(filename = file, plot = values$posGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
       },
       contentType = "png"
     )
@@ -1168,6 +1179,17 @@ server <- function(input, output, session){
                numeric=NULL, dom=TRUE, filter="top")
     })
 
+    ## export CLustering button
+    output$w_clusteringExport <- downloadHandler(
+      filename = function() {
+        paste("Dendrogram-", Sys.Date(), ".png", sep="")
+      },
+      content <- function(file) {
+        plot2png(values$WordDendrogram, filename=file, zoom = values$zoom)
+      },
+      contentType = "png"
+    )
+
 
   ## Correspondence Analysis ----
 
@@ -1195,6 +1217,21 @@ server <- function(input, output, session){
       caPlotFunction()
       values$CADendrogram
     })
+
+    output$caExport <- downloadHandler(
+      filename = function() {
+        paste("CAPlots-", Sys.Date(), ".zip", sep="")
+      },
+      content <- function(file) {
+        #go to a temp dir to avoid permission issues
+        owd <- setwd(tempdir())
+        on.exit(setwd(owd))
+        plot2png(values$plotCA, filename="CAMap.png", type="plotly")
+        plot2png(values$CADendrogram, filename="CADendrogram.png", type="vis")
+        zip(file,c("CAMap.png","CADendrogram.png"))
+      },
+      contentType = "zip"
+    )
 
     # CA Table
     output$caCoordTable <- renderDT({
@@ -1253,7 +1290,8 @@ server <- function(input, output, session){
 
     output$w_networkCoocPlot <- renderVisNetwork({
       netFunction()
-      net2vis(nodes=values$network$nodes, edges=values$network$edges)
+      values$netVis <- net2vis(nodes=values$network$nodes, edges=values$network$edges)
+      values$netVis
     })
 
     output$w_networkCoocNodesTable <- renderDT({
@@ -1281,6 +1319,25 @@ server <- function(input, output, session){
                         "Group From"=group_from,
                         "Group To"=group_to),
                size='100%',filename="NetworkLinksTable", numeric=6:8, round=4)
+    })
+
+    ## export Network button
+    output$w_networkCoocExport <- downloadHandler(
+      filename = function() {
+        paste("Network-Docs-", Sys.Date(), ".png", sep="")
+      },
+      content <- function(file) {
+        plot2png(values$netVis, filename=file, zoom = values$zoom)
+      },
+      contentType = "png"
+    )
+
+    output$textLog <- renderUI({
+      k=dim(values$M)[1]
+      if (k==1){k=0}
+      log=paste("Number of Documents ",k)
+      textInput("textLog", "Conversion results",
+                value=log)
     })
 
 
@@ -1369,6 +1426,7 @@ server <- function(input, output, session){
       DTformat(sentences, size='100%')
     }, escape=FALSE)
 
+
     ## GRAKO ----
     grakoFunction <- eventReactive(
       ignoreNULL = TRUE,
@@ -1382,7 +1440,8 @@ server <- function(input, output, session){
 
     output$w_networkGrakoPlot <- renderVisNetwork({
       grakoFunction()
-      grako2vis(nodes=values$grako$nodes, edges=values$grako$edges)
+      values$grakoVis <- grako2vis(nodes=values$grako$nodes, edges=values$grako$edges)
+      values$grakoVis
     })
 
     output$w_networkGrakoNodesTable <- renderDT({
@@ -1410,6 +1469,17 @@ server <- function(input, output, session){
                         "Action"=role),
                size='100%',filename="GrakoLinksTable", numeric=7:9, round=4)
     })
+
+    ## export Network button
+    output$w_networkGrakoExport <- downloadHandler(
+      filename = function() {
+        paste("Grako-", Sys.Date(), ".png", sep="")
+      },
+      content <- function(file) {
+        plot2png(values$grakoVis, filename=file, zoom = values$zoom)
+      },
+      contentType = "png"
+    )
 
 
   ## DOCUMENTS ----
@@ -1440,6 +1510,16 @@ server <- function(input, output, session){
 
       DTformat(df, numeric=c(2,3), round=2, nrow=nrow(df), size="110%")
     })
+
+    output$d_tm_selectExport <- downloadHandler(
+      filename = function() {
+        paste("TMTopicSelection-", Sys.Date(), ".png", sep="")
+      },
+      content <- function(file) {
+        plot2png(values$TMKplot, filename=file, zoom = values$zoom)
+      },
+      contentType = "png"
+    )
 
 
     ## Model estimation ----
@@ -1549,6 +1629,23 @@ server <- function(input, output, session){
       DTformat(theta, left=1,numeric=c(2:ncol(values$TMestim_result$theta)), round=4, nrow=10, size="85%", filename = "TopicModel_ThetaTable")
     })
 
+    output$d_tm_estimExport <- downloadHandler(
+      filename = function() {
+
+        paste("TopicModeling-", Sys.Date(), ".zip", sep="")
+      },
+      content <- function(file) {
+        #go to a temp dir to avoid permission issues
+        owd <- setwd(tempdir())
+        on.exit(setwd(owd))
+        values$tmGplotBeta <- topicGplot(values$TMestim_result$beta, nPlot=input$nTopicPlot, type="beta")
+        values$tmGplotTheta <- topicGplot(values$TMestim_result$theta, nPlot=input$nTopicPlot, type="theta")
+        ggsave(filename = "TMTermPlots.png", plot = values$tmGplotBeta, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
+        ggsave(filename = "TMDocPlots.png", plot = values$tmGplotTheta, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
+        zip(file,c("TMTermPlots.png","TMDocPlots.png"))
+        },
+      contentType = "zip"
+    )
 
   ## Polarity detection ----
 

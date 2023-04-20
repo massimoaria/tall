@@ -400,28 +400,6 @@ freqPlotly <- function(dfPlot,x,y,n=10, xlabel,ylabel, scale=c("identity", "log"
   fig1
 }
 
-## freqGgplot ----
-## ggplot for frequency plots to download
-
-freqGgplot <- function(df,x=2,y=1,n=20, title="NOUN Frequency"){
-
-  df <- df %>% dplyr::slice_head(n=n) %>%
-    data.frame()
-  g <- ggplot(df, aes(x =df[,x], y = df[,y], label = df[,x])) +
-    geom_col(color = "#c3d1be", fill="#96af8e")+
-    geom_text(aes(label=df[,x]), position=position_dodge(width=0.9), hjust=-0.4, color="#4f7942", size=3.7)+
-    labs(title=title, y="", x = "Frequency")+
-    scale_y_discrete(limits = rev(df[,y]))+
-    scale_x_continuous(limits=c(0,df[,x]+max(df[,x])*0.06), expand = c(0,0))+
-    theme(axis.text.y  = element_text(angle=0, hjust=0, size=9),
-          axis.text.x  = element_text(size=10),
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          panel.background = element_blank())
-  return(g)
-}
-
-
 # ValueBoxes Indices ----
 valueBoxesIndices <- function(x){
 
@@ -1141,7 +1119,7 @@ net2vis <- function(nodes,edges){
 ## GRAKO ----
 grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity=0.6, minEdges=50, singleWords=FALSE, term="lemma"){
 
-  opacity.min=0.6
+  opacity.min=0.5
 
   # n is the number of NOUNS AND PROPER NOUNS
   if (singleWords){
@@ -1152,10 +1130,6 @@ grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity
     ngram_min <- 2
     dfTag <- rake(dfTag, group = "doc_id", ngram_max=5, ngram_min=ngram_min, relevant = c("PROPN"), rake.min=-Inf)$dfTag
   }
-
-
-
-
 
   x <- dfTag %>% highlight() %>% dplyr::filter(upos %in% c("MULTIWORD", "VERB"))
 
@@ -1205,7 +1179,8 @@ grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity
     nodes <- nodes %>%
       mutate(
         opacity.nodes = ifelse(opacity.nodes>=100,99,opacity.nodes),
-        font.color = ifelse(upos=="VERB", paste0("#E41A1C",opacity.nodes), paste0("#4F7942",opacity.nodes)))
+        font.color = ifelse(upos=="VERB", "#E41A1C", "#4F7942"))
+        #font.color = ifelse(upos=="VERB", paste0("#E41A1C",opacity.nodes), paste0("#4F7942",opacity.nodes)))
     #nodes$font.color <- unlist(lapply(opacity_font, function(x) adjustcolor("black",alpha.f = x)))
   }else{
     nodes <- nodes %>%
@@ -1343,8 +1318,14 @@ tmTuning <- function(dfTag, group=c("doc_id", "sentence_id"), term="lemma",
 tmTuningPlot <- function(result, metric){
   switch(metric,
          CaoJuan2009={
-
+           bestT <- df$topics[which.min(df[,2])][1]
          },
+         Arun2010={
+           bestT <- df$topics[which.min(df[,2])][1]
+         },
+         {
+           bestT <- df$topics[which.max(df[,2])][1]
+         }
   )
   df <- result
   names(df) <- c("x","y")
@@ -1358,13 +1339,13 @@ tmTuningPlot <- function(result, metric){
                  line = list(color="#6CC28360", width=2),
                  marker = list(
                    size = 5,
-                   color = "#6CC283", #'rgb(79, 121, 66, .5)',
-                   line = list(color = "#6CC283", #'rgb(79, 121, 66, .8)',
+                   color = "#6CC283",
+                   line = list(color = "#6CC283",
                                width = 2)
                  ),
                  text = hoverText,
                  hoverinfo = 'text') %>%
-    layout(annotations=list(text=paste0("K selection by ",metric," metric: Optimal N. of Topics ", ),xref="paper",x=0.5,
+    layout(annotations=list(text=paste0("K selection by ",metric," metric: Optimal N. of Topics ",bestT ),xref="paper",x=0.5,
                             yref="paper",y=1,yshift=30,showarrow=FALSE,
                             font=list(size=24,color="gray30")),
            #title = paste0("K selection by ",metric," metric"),
@@ -2386,13 +2367,66 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
 
 ### FUNCTIONS FOR EXPORTING PLOTS ----
 
-vis2png <- function(VIS, filename, zoom = 4){
+plot2png <- function(p, filename, zoom = 2, type="vis"){
   html_name <- tempfile(fileext = ".html")
-  visSave(VIS, html_name)
+  switch(type,
+         vis={
+           visSave(p, html_name)
+         },
+         plotly={
+           htmlwidgets::saveWidget(p, file=html_name)
+         })
+
   webshot2::webshot(html_name, zoom = zoom, file = filename)
 }
 
+## freqGgplot ----
+## ggplot for frequency plots to download
 
+freqGgplot <- function(df,x=2,y=1,n=20, title="NOUN Frequency"){
+
+  df <- df %>% dplyr::slice_head(n=n) %>%
+    data.frame()
+  g <- ggplot(df, aes(x =df[,x], y = df[,y], label = df[,x])) +
+    geom_col(color = "#c3d1be", fill="#96af8e")+
+    geom_text(aes(label=df[,x]), position=position_dodge(width=0.9), hjust=-0.4, color="#4f7942", size=3.7)+
+    labs(title=title, y="", x = "Frequency")+
+    scale_y_discrete(limits = rev(df[,y]))+
+    scale_x_continuous(limits=c(0,df[,x]+max(df[,x])*0.06), expand = c(0,0))+
+    theme(axis.text.y  = element_text(angle=0, hjust=0, size=9),
+          axis.text.x  = element_text(size=10),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank())
+  return(g)
+}
+
+topicGplot <- function(x, nPlot=10, type="beta"){
+
+  beta_long <- x %>%
+    pivot_longer(cols=2:ncol(.), names_to = "topic", values_to = "probability") %>%
+    group_by(topic) %>%
+    slice_max(order_by=probability, n=nPlot) %>%
+    arrange(desc(probability), .by_group = T) %>%
+    ungroup() %>%
+    mutate(topic = paste0("topic ", topic))
+
+  switch(type,
+         beta={
+           g <- ggplot(beta_long, aes(x=probability, y=word, fill = factor(topic)))
+         },
+         theta={
+           g <- ggplot(beta_long, aes(x=probability, y=doc, fill = factor(topic)))
+         })
+  g + geom_col(show.legend = FALSE) +
+    facet_wrap(~ topic, scales = "free") +
+    theme(axis.text.y  = element_text(angle=0, hjust=0, size=9),
+          axis.text.x  = element_text(size=10),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank())
+
+}
 
 
 

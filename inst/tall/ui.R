@@ -765,7 +765,37 @@ body <- dashboardBody(
                                      shinycssloaders::withSpinner(DT::DTOutput(outputId = "overviewData", width = 700))
                             ),
                             tabPanel("WordCloud",
-                                     wordcloud2::wordcloud2Output("wordcloudPlot", height = "75vh")),# width = 700),
+                                       column(9,
+                                              wordcloud2::wordcloud2Output("wordcloudPlot", height = "75vh")
+                                              ),
+                                     column(3,
+                                            div(
+                                              box(
+                                                width = 12,
+                                                fluidRow(
+                                                  column(9,
+                                                         div(
+                                                           selectInput("termWC",
+                                                                       label = "Dictionary by:",
+                                                                       choices = c("Tokens"="token",
+                                                                                   "Lemmas"="lemma"),
+                                                                       selected = "token"), style="margin-top:-3px"
+                                                         )
+                                                  ),
+                                                  column(3,
+                                                         div(
+                                                           align = "center",style="margin-top:15px",
+                                                           width=12,
+                                                         do.call("actionButton", c(export_bttn, list(
+                                                           inputId = "wcSave")
+                                                         ))
+                                                  )
+                                                )
+                                              )
+                                              ,align="left")
+                                            )
+                                     )
+                            ),
                             tabPanel("Dictionary",
                                      column(9,shinycssloaders::withSpinner(DT::DTOutput(outputId = "dictionaryData", width = 700))),
                                      column(3,
