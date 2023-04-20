@@ -18,6 +18,7 @@ libraries <- function(){
   if (!require(udpipe)){install.packages("udpipe"); require(udpipe, quietly=TRUE)}
   if (!require(topicmodels)){install.packages("topicmodels"); require(topicmodels, quietly=TRUE)}
   if (!require(textrank)){install.packages("textrank"); require(textrank, quietly=TRUE)}
+  if (!require(pdftools)){install.packages("pdftools"); require(pdftools, quietly=TRUE)}
   if (!require(igraph)){install.packages("igraph")}
   if (!require(glue)){install.packages("glue")}
   if (!require(readtext)){install.packages("readtext")}

@@ -1739,12 +1739,16 @@ server <- function(input, output, session){
         #print(input$defineGroupsList)
         values$selectedGroups <- input$defineGroupsList
           values$dfTag <- groupByMetadata(values$dfTag, metadata=input$defineGroupsList)
-          showModal(groupModal(session))
+          if (length(input$defineGroupsList) == 1){
+            showModal(groupModal(session))
+          } else {
+            showModal(ungroupModal(session))
+          }
       })
 
     output$defineGroupsData <- renderDT({
       groupMetadata()
-      DTformat(values$dfTag, nrow=3, size='100%', title="Table Group By Metadata")
+      DTformat(values$dfTag, nrow=3, size='100%', title="Data Grouped By External Information")
     })
 
     groupModal <- function(session) {
@@ -1752,22 +1756,37 @@ server <- function(input, output, session){
       values$newGr <- values$dfTag %>% count(doc_id, ungroupDoc_id) %>%
         group_by(doc_id) %>%
         count()
-      txt <- paste0("<hr><br><br>The original <b>", sum(values$newGr$n),
-                     "</b> documents have been grouped into <b>",
+      names(values$newGr) = c(input$defineGroupsList, "N. of Docs")
+      txt <- paste0("<hr><br><br>The original <b>", sum(values$newGr[,2]),
+                     "</b> documents have been partitioned into <b>",
                      nrow(values$newGr),"</b> groups <br><br>")
       modalDialog(
         h3(strong(paste0("Documents grouped by ",input$defineGroupsList))),
-        #DTOutput(ns("wordInContext")),
         h4(HTML(txt)),
+        br(),
+        DTOutput(ns("groupData")),
         size = "m",
         easyClose = TRUE,
         footer = tagList(
-          # screenshotButton(label="Save", id = "cocPlotClust",
-          #                  scale = 2,
-          #                  file=paste("TMClusterGraph-", Sys.Date(), ".png", sep="")),
           modalButton("Close")),
       )
     }
+
+    ungroupModal <- function(session) {
+      ns <- session$ns
+      txt <- paste0("<hr><br><br>The original partitioning<br>into documents has been correctly restored.<br><br><hr>")
+      modalDialog(
+        h3(HTML(txt)),
+        size = "m",
+        easyClose = TRUE,
+        footer = tagList(
+          modalButton("Close")),
+      )
+    }
+
+    output$groupData <- renderDT({
+      DTformat(values$newGr,nrow=nrow(values$newGr), size='100%', title="Groups By External Information", left=1)
+    })
 
   ## REPORT ----
   ### Report Save xlsx ----
