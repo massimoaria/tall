@@ -2384,7 +2384,13 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
 }
 
 
-### FUNCTIONS FOR UI ----
+### FUNCTIONS FOR EXPORTING PLOTS ----
+
+vis2png <- function(VIS, filename, zoom = 4){
+  html_name <- tempfile(fileext = ".html")
+  visSave(VIS, html_name)
+  webshot2::webshot(html_name, zoom = zoom, file = filename)
+}
 
 
 

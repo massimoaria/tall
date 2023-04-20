@@ -22,6 +22,7 @@ libraries <- function(){
   if (!require(igraph)){install.packages("igraph")}
   if (!require(glue)){install.packages("glue")}
   if (!require(readtext)){install.packages("readtext")}
+  if (!require(webshot2)){install.packages("webshot2")}
   if (Sys.info()[["sysname"]]=="Windows") {
     if (!require(doParallel)){install.packages("doParallel"); require(doParallel, quietly=TRUE)}}
 
