@@ -144,6 +144,30 @@ server <- function(input, output, session){
               if (values$menu==1) updateTabItems(session, "sidebarmenu", "custTermList")
               if (values$menu==2) updateTabItems(session, "sidebarmenu", "posTagSelect")
               if (ncol(values$dfTag)>1){showModal(loadTallgModal(session))}
+           },
+           demo={
+             switch(input$demo_file,
+                    bibliometrix={
+                      file_tall <- loadSampleCollection("bibliometrix")
+                      load(file_tall)
+                      values$menu <- menu
+                      values$dfTag <- dfTag
+                      values$custom_lists <- custom_lists
+                      values$language <- language
+                      values$D <- D
+                      values$where <- where
+                      if (values$menu==1) updateTabItems(session, "sidebarmenu", "custTermList")
+                      if (values$menu==2) updateTabItems(session, "sidebarmenu", "posTagSelect")
+                      if (ncol(values$dfTag)>1){showModal(loadTallgModal(session))}
+                    },
+                    bbc={
+                      file_tall <- loadSampleCollection("bbc")
+                      files <- list(name="bbc.zip", datapath=file_tall)
+                      txt <- read_files(files,ext="txt", subfolder=FALSE)
+                      values$menu <- 0
+                      values$custom_lists <- NULL
+                      values$txt <- txt %>% arrange(doc_id)
+                    })
            }
     )
   })
@@ -696,7 +720,7 @@ server <- function(input, output, session){
                                        rotateRatio = 0.7, shape = "circle",ellipticity = 0.65,
                                        widgetsize = NULL,
                                        figPath = NULL,
-                                       size = ifelse(length(wcDfPlot$text)>100,1.5,1.8),
+                                       size = ifelse(length(wcDfPlot$text)>100,1,1.3),
                                        color = "random-dark", backgroundColor = "transparent")
       values$wcPlot
     })
@@ -715,13 +739,18 @@ server <- function(input, output, session){
 
     ## export PNG button
     observeEvent(input$wcSave,{
+      # remove old file
       switch(Sys.info()[['sysname']],
              Windows= {home <- Sys.getenv('R_USER')},
              Linux  = {home <- Sys.getenv('HOME')},
              Darwin = {home <- Sys.getenv('HOME')})
-                   filename <- paste(home,"/Downloads/WordCloud-", Sys.Date(), ".png", sep="")
-                   plot2png(values$wcPlot, filename=filename, zoom = values$zoom, type="plotly")
-                 })
+      filename <- paste(home,"/Downloads/WordCloud-", paste0(Sys.Date(),"_",format(Sys.time(),'%H:%M:%S')), ".png", sep="")
+      file_old <- dir(paste0(home,"/Downloads"), pattern=paste("WordCloud-", Sys.Date(), ".png", sep=""))[1]
+      if(!is.na(file_old)){
+        file.remove(filename)
+      }
+      plot2png(values$wcPlot, filename=filename, zoom = values$zoom, type="plotly")
+    })
 
     observeEvent(input$reportMI,{
       if(!is.null(values$TABvb)){

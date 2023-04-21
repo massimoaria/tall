@@ -149,7 +149,22 @@ body <- dashboardBody(
                            ),
                            conditionalPanel(
                              condition="input.load=='demo'",
-                             helpText(h4("This is a sample collection ...."))
+                             selectInput("demo_file",
+                                         label="Select sample texts",
+                                            choices=c(
+                                              "Bibliometrix publicationts" = "bibliometrix",
+                                              "BBC short entertainment news" = "bbc"
+                                            ),
+                                            selected = "bibliometrix"
+                                         ),
+                             conditionalPanel(
+                               condition = "input.demo_file=='bibliometrix'",
+                               helpText(h5("Bibliometrix sample description...."))
+                             ),
+                             conditionalPanel(
+                               condition = "input.demo_file=='bbc'",
+                               helpText(h5("BBC sample description...."))
+                             )
                            ),
                            conditionalPanel(
                              condition = "input.load == 'load_tall'",

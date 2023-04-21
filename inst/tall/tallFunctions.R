@@ -118,6 +118,47 @@ pdf2txt <- function(file){
 
 }
 
+### download sample data
+loadSampleCollection <- function(sampleName){
+  switch(Sys.info()[['sysname']],
+         Windows= {home <- Sys.getenv('R_USER')},
+         Linux  = {home <- Sys.getenv('HOME')},
+         Darwin = {home <- Sys.getenv('HOME')})
+
+  # setting up the main directory
+  path_tall <- file.path(home,"tall")
+  path_language_model <- file.path(path_tall, "language_models")
+  # check if sub directory exists
+  if (file.exists(path_tall)){
+    if (!file.exists(path_language_model)) dir.create(path_language_model)
+  } else {
+    dir.create(path_tall)
+    dir.create(path_language_model)
+  }
+
+  switch(sampleName,
+         bibliometrix={
+           #check if the file model already exists
+           file_lang <- dir(path_language_model,pattern="tall_bibliometrix.tall")[1]
+           url <- paste0("https://www.bibliometrix.org/tall_lexicon/sampleData/tall_bibliometrix.tall")
+           destfile <- paste0(path_language_model,"/tall_bibliometrix.tall")
+           file <- paste0(path_language_model,"/tall_bibliometrix.tall")
+         },
+         bbc={
+           file_lang <- dir(path_language_model,pattern="bbc.zip")[1]
+           url <- paste0("https://www.bibliometrix.org/tall_lexicon/sampleData/bbc.zip")
+           destfile <- paste0(path_language_model,"/bbc.zip")
+           file <- paste0(path_language_model,"/bbc.zip")
+         })
+
+
+  if (is.na(file_lang)){
+    download.file(url = url, destfile = destfile)
+  }
+
+  return(file)
+}
+
 ### SPLIT TEXT INTO SUB-DOCS
 splitDoc <- function(df, word, txSplitBy="starting"){
   df_splitted <- list()
