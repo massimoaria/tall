@@ -1546,7 +1546,7 @@ body <- dashboardBody(
                                ),column(6,
                                         numericInput("minEdges",
                                                      label = "Top Link (%)",
-                                                     value = 50,
+                                                     value = 10,
                                                      min = 0,
                                                      max = 100,
                                                      step = 1),

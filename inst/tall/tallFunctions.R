@@ -1103,7 +1103,25 @@ net2vis <- function(nodes,edges){
   VIS<-
     visNetwork::visNetwork(nodes = nodes, edges = edges, type="full", smooth=TRUE, physics=FALSE) %>%
     visNetwork::visNodes(shadow=TRUE, shape=nodes$shape, font=list(color=nodes$font.color, size=nodes$font.size,vadjust=nodes$font.vadjust)) %>%
-    visNetwork::visIgraphLayout(layout = layout, type = "full") %>%
+    visNetwork::visIgraphLayout(layout = layout, type = "full")
+
+# avoid overlaps among node labels
+  ## avoid label overlaps
+  coords <- VIS$x$nodes %>%
+    select(x,y)
+
+  threshold <- 0.03
+  ymax <- diff(range(coords[,2]))
+  xmax <- diff(range(coords[,1]))
+  threshold2 <- threshold*mean(xmax,ymax)
+  w <- data.frame(x=coords[,1],y=coords[,2],labelToPlot=VIS$x$nodes$label, dotSize=VIS$x$nodes$font.size, row.names = VIS$x$nodes$label)
+  labelToRemove <- avoidNetOverlaps(w, threshold = threshold2)
+
+   VIS$x$nodes <- VIS$x$nodes %>%
+    mutate(title = label,
+      label = ifelse(label %in% labelToRemove, "",label))
+
+  VIS <- VIS %>%
     visNetwork::visEdges(smooth = list(type="horizontal")) %>%
     visNetwork::visOptions(highlightNearest =list(enabled = T, hover = T, degree=1), nodesIdSelection = T) %>%
     visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed = 0.2) %>%
@@ -1114,6 +1132,69 @@ net2vis <- function(nodes,edges){
     #visNetwork::visPhysics(barnesHut=list(avoidOverlap=1)) %>%
     visNetwork::visOptions(manipulation = FALSE, height ="100%", width = "100%") #%>%
   #visNetwork::addFontAwesome()
+}
+
+## function to avoid label overlapping ----
+avoidNetOverlaps <- function(w,threshold=0.10){
+
+  w[,2] <- w[,2]/3
+
+  Ds <- dist(w %>%
+               dplyr::filter(labelToPlot!="") %>%
+               select(1:2),
+             method="manhattan", upper=T) %>%
+    dist2df() %>%
+    rename(from = row,
+           to = col,
+           dist = value) %>%
+    left_join(
+      w %>% dplyr::filter(labelToPlot!="") %>%
+        select(labelToPlot, dotSize),
+      by=c("from" = "labelToPlot")
+    ) %>%
+    rename(w_from = dotSize) %>%
+    left_join(
+      w %>% dplyr::filter(labelToPlot!="") %>%
+        select(labelToPlot, dotSize),
+      by=c("to" = "labelToPlot")
+    ) %>%
+    rename(w_to = dotSize) %>%
+    filter(dist<threshold)
+
+  st <- TRUE
+  i <- 1
+  label <- NULL
+  case <- "n"
+
+  while(isTRUE(st)){
+    if (Ds$w_from[i]>Ds$w_to[i] & Ds$dist[i]<threshold){
+      case <- "y"
+      lab <- Ds$to[i]
+
+    } else if (Ds$w_from[i]<=Ds$w_to[i] & Ds$dist[i]<threshold){
+      case <- "y"
+      lab <- Ds$from[i]
+    }
+
+    switch(case,
+           "y"={
+             Ds <- Ds[Ds$from != lab,]
+             Ds <- Ds[Ds$to != lab,]
+             label <- c(label,lab)
+           },
+           "n"={
+             Ds <- Ds[-1,]
+           })
+
+    if (i>=nrow(Ds)){
+      st <- FALSE
+    }
+    case <- "n"
+    #print(nrow(Ds))
+  }
+
+  label
+
 }
 
 ## GRAKO ----
@@ -1872,7 +1953,7 @@ noGroupLabels <- function(label){
                    "token_id","token","lemma","upos","xpos","feats","head_token_id","dep_rel",
                    "deps","misc","original_doc_id","ungroupDoc_id","ungroupP_id", "ungroupS_id",
                    "POSSelected","token_hl","start_hl","end_hl","sentence_hl","lemma_original_nomultiwords",
-                   "filename")
+                   "filename", "upos_original")
   )
 }
 

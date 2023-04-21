@@ -24,7 +24,7 @@ libraries <- function(){
   if (!require(readtext)){install.packages("readtext")}
   if (!require(webshot2)){install.packages("webshot2")}
   if (Sys.info()[["sysname"]]=="Windows") {
-    if (!require(doParallel)){install.packages("doParallel"); require(doParallel, quietly=TRUE)}}
+  if (!require(doParallel)){install.packages("doParallel"); require(doParallel, quietly=TRUE)}}
 
 }
 

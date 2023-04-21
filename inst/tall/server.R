@@ -105,7 +105,9 @@ server <- function(input, output, session){
   })
 
   output$infoImport <- renderUI({
-    if (getFileNameExtension(req(input$file_raw$datapath[1]))!=input$ext){
+    extReal <- getFileNameExtension(req(input$file_raw$datapath[1]))
+    if (extReal!=input$ext & extReal!="xls"){
+
       shinyWidgets::alert(
         icon("info"),
         " You selected a file(s) with an incorrect extention",
