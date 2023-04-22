@@ -451,7 +451,7 @@ server <- function(input, output, session){
       }
     })
 
-    output$customListData<- DT::renderDT({
+    output$customListData<- DT::renderDT(server=FALSE,{
       customListMerging()
 
       if (is.null(values$custom_lists)){
@@ -519,7 +519,7 @@ server <- function(input, output, session){
       )
     })
 
-    output$multiwordList <- renderDT({
+    output$multiwordList <- renderDT(server=FALSE,{
       multiword()
       DTformat(values$multiwords %>%  rename("Multi-Words" = keyword,
                                              "Lenght" = ngram, "Freq"=freq,
@@ -726,7 +726,7 @@ server <- function(input, output, session){
     })
 
 
-    output$wcDfData <- renderDT({
+    output$wcDfData <- renderDT(server=FALSE,{
       n=200
       wcDfTable <- freqByPos(values$dfTag, term="lemma",pos=unique(values$dfTag$upos[values$dfTag$POSSelected==TRUE])) %>%
         slice_head(n=n) %>%
@@ -796,14 +796,14 @@ server <- function(input, output, session){
     })
 
 
-    output$dictionaryData <- renderDT({
+    output$dictionaryData <- renderDT(server=FALSE,{
       dictionary()
       DTformat(values$dictFreq,
                left=c(1,2), nrow=15, pagelength=TRUE, filename="Dictionary", dom=TRUE, size="110%")
     })
 
     ## TF-IDF ----
-    output$tfidfData <- renderDT({
+    output$tfidfData <- renderDT(server=FALSE,{
       DTformat(values$dfTag %>%
         dplyr::filter(POSSelected) %>%
         tfidf(term="lemma") %>%
@@ -846,7 +846,7 @@ server <- function(input, output, session){
       )
     }
 
-    output$wordInContext <- renderDT({
+    output$wordInContext <- renderDT(server=FALSE,{
       values$d <- event_data("plotly_click")
       word <- values$d$y
       if (input$sidebarmenu=="w_other"){
@@ -908,7 +908,7 @@ server <- function(input, output, session){
       showModal(plotModalDocHigh(session))
     })
 
-    output$docInContext <- renderDT({
+    output$docInContext <- renderDT(server=FALSE,{
       values$d <- event_data("plotly_click")
       doc <- values$d$y
       paragraphs <- values$dfTag %>% filter(doc_id==doc) %>%
@@ -923,7 +923,7 @@ server <- function(input, output, session){
         #   paste(sentences$sentence,collapse=" ")))
     })
 
-    output$docInContextHigh <- renderDT({
+    output$docInContextHigh <- renderDT(server=FALSE,{
       values$d <- event_data("plotly_click")
       doc <- values$d$y
       DTformat(highlightSentences(values$dfTag, id=doc), nrow=3, size='100%', title=paste0("Doc_id: ",doc))
@@ -949,7 +949,7 @@ server <- function(input, output, session){
       values$nounPlotly
     })
 
-    output$nounTable <- renderDT({
+    output$nounTable <- renderDT(server=FALSE,{
       nounFreq()
       DTformat(values$freqNoun %>%
                  rename(Term = term,
@@ -987,7 +987,7 @@ server <- function(input, output, session){
       propnFreq()
     })
 
-    output$propnTable <- renderDT({
+    output$propnTable <- renderDT(server=FALSE,{
       propnFreq()
       DTformat(values$freqPropn %>%
                  rename(Term = term,
@@ -1023,7 +1023,7 @@ server <- function(input, output, session){
       adjFreq()
     })
 
-    output$adjTable <- renderDT({
+    output$adjTable <- renderDT(server=FALSE,{
       adjFreq()
       DTformat(values$freqAdj %>%
                  rename(Term = term,
@@ -1059,7 +1059,7 @@ server <- function(input, output, session){
       verbFreq()
     })
 
-    output$verbTable <- renderDT({
+    output$verbTable <- renderDT(server=FALSE,{
       verbFreq()
       DTformat(values$freqVerb %>%
                  rename(Term = term,
@@ -1096,7 +1096,7 @@ server <- function(input, output, session){
       otherFreq()
     })
 
-    output$otherTable <- renderDT({
+    output$otherTable <- renderDT(server=FALSE,{
       otherFreq()
       DTformat(values$freqOther %>%
                  rename(Term = term,
@@ -1139,7 +1139,7 @@ server <- function(input, output, session){
       posFreq()
     })
 
-    output$posTable <- renderDT({
+    output$posTable <- renderDT(server=FALSE,{
       posFreq()
       DTformat(values$freqPOS %>%
                  rename(Frequency = n),
@@ -1172,7 +1172,7 @@ server <- function(input, output, session){
           rename(Lemma=lemma, Token=token, Sentence=sentence_hl)
       })
 
-    output$wordsContData <- renderDT({
+    output$wordsContData <- renderDT(server=FALSE,{
       wordsInContextMenu()
       DTformat(values$wordInContext, size='100%')
     }, escape=FALSE)
@@ -1204,7 +1204,7 @@ server <- function(input, output, session){
       values$WordDendrogram
     })
 
-    output$w_clusteringTable <- renderDT({
+    output$w_clusteringTable <- renderDT(server=FALSE,{
       dendFunction()
       DTformat(values$wordCluster, size='100%',filename="ClusterWordsTable", pagelength=TRUE, left=1, right=NULL,
                numeric=NULL, dom=TRUE, filter="top")
@@ -1265,7 +1265,7 @@ server <- function(input, output, session){
     )
 
     # CA Table
-    output$caCoordTable <- renderDT({
+    output$caCoordTable <- renderDT(server=FALSE,{
       caPlotFunction()
       DTformat(values$CA$wordCoord %>%
                  select(label, everything()) %>%
@@ -1277,7 +1277,7 @@ server <- function(input, output, session){
                numeric=2:ncol(values$CA$wordCoord), dom=TRUE, filter="top", round=3)
     })
 
-    output$caContribTable <- renderDT({
+    output$caContribTable <- renderDT(server=FALSE,{
       caPlotFunction()
       DTformat(values$CA$contrib %>%
                  rownames_to_column() %>%
@@ -1286,7 +1286,7 @@ server <- function(input, output, session){
                numeric=2:(ncol(values$CA$contrib)+1), dom=TRUE, filter="top", round=3)
     })
 
-    output$caCosineTable <- renderDT({
+    output$caCosineTable <- renderDT(server=FALSE,{
       caPlotFunction()
       DTformat(values$CA$cosine %>%
                  rownames_to_column() %>%
@@ -1295,7 +1295,7 @@ server <- function(input, output, session){
                numeric=2:(ncol(values$CA$cosine)+1), dom=TRUE, filter="top", round=3)
     })
 
-    output$caSingularValueTable <- renderDT({
+    output$caSingularValueTable <- renderDT(server=FALSE,{
       caPlotFunction()
       df <- data.frame(dim=paste0("Dim ",1:10),sv=(values$CA$ca$sv/sum(values$CA$ca$sv)*100)[1:10], svcorr=values$CA$ca$eigCorrectedNorm[1:10])
       DTformat(df %>%
@@ -1325,7 +1325,7 @@ server <- function(input, output, session){
       values$netVis
     })
 
-    output$w_networkCoocNodesTable <- renderDT({
+    output$w_networkCoocNodesTable <- renderDT(server=FALSE,{
       netFunction()
       DTformat(values$network$nodes %>%
                  select(upos, label, value, group, color) %>%
@@ -1337,7 +1337,7 @@ server <- function(input, output, session){
                numeric=NULL, dom=TRUE, filter="top")
     })
 
-    output$w_networkCoocEdgesTable <- renderDT({
+    output$w_networkCoocEdgesTable <- renderDT(server=FALSE,{
       netFunction()
       DTformat(values$network$edges %>%
                  select(term_from, term_to,group_from, group_to, s,sA, sC, sJ) %>%
@@ -1394,7 +1394,7 @@ server <- function(input, output, session){
       )
     }
 
-    output$wordInContextNet <- renderDT({
+    output$wordInContextNet <- renderDT(server=FALSE,{
       id <- input$click
       if (input$sidebarmenu=="w_networkGrako") {
         word_search<- values$grako$nodes$title[values$grako$nodes$id==id]
@@ -1435,7 +1435,7 @@ server <- function(input, output, session){
       )
     }
 
-    output$wordInContextDend <- renderDT({
+    output$wordInContextDend <- renderDT(server=FALSE,{
       id <- unlist(input$click_dend)
       switch(input$sidebarmenu,
              "w_clustering"={
@@ -1475,7 +1475,7 @@ server <- function(input, output, session){
       values$grakoVis
     })
 
-    output$w_networkGrakoNodesTable <- renderDT({
+    output$w_networkGrakoNodesTable <- renderDT(server=FALSE,{
       grakoFunction()
       DTformat(values$grako$nodes %>%
                  select(upos, label, value) %>%
@@ -1485,7 +1485,7 @@ server <- function(input, output, session){
                numeric=NULL, dom=TRUE, filter="top")
     })
 
-    output$w_networkGrakoEdgesTable <- renderDT({
+    output$w_networkGrakoEdgesTable <- renderDT(server=FALSE,{
       grakoFunction()
       DTformat(values$grako$edges %>%
                  select(term_from, term_to,upos_from, upos_to, role, s,sA, sC, sJ) %>%
@@ -1839,12 +1839,12 @@ server <- function(input, output, session){
 
       })
 
-    output$RelSentData <- renderDT({
+    output$RelSentData <- renderDT(server=FALSE,{
       docExtraction()
       DTformat(values$docExtraction$sentences %>% rename(S_id=textrank_id, Ranking=textrank), nrow=10, size='85%', title=paste0("Doc_id: ",input$document_selection), left=1:2,numeric=3, round=4)
     })
 
-    output$documentData <- renderDT({
+    output$documentData <- renderDT(server=FALSE,{
       docExtraction()
       DTformat(values$docExtraction$document, nrow=3, size='100%', title=paste0("Doc_id: ",input$document_selection), left=2)
     })
@@ -1933,8 +1933,8 @@ server <- function(input, output, session){
       )
     }
 
-    output$groupData <- renderDT({
-      DTformat(values$newGr,nrow=nrow(values$newGr), size='100%', title="Groups By External Information", left=1)
+    output$groupData <- renderDT(server=FALSE,{
+      DTformat(values$newGr,nrow=nrow(10), size='100%', title="Groups By External Information", left=1)
     })
 
   ## REPORT ----
