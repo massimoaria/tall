@@ -152,7 +152,7 @@ body <- dashboardBody(
                              selectInput("demo_file",
                                          label="Select sample texts",
                                             choices=c(
-                                              "Bibliometrix publicationts" = "bibliometrix",
+                                              "Bibliometrix publications" = "bibliometrix",
                                               "BBC short entertainment news" = "bbc"
                                             ),
                                             selected = "bibliometrix"
@@ -2002,9 +2002,9 @@ body <- dashboardBody(
                                               shinycssloaders::withSpinner(plotlyOutput(outputId = "d_polPiePlot", height = "75vh", width ="98.9%"),
                                                                            color = getOption("spinner.color", default = "#4F7942"))),
                                        column(6,
-                                              shinycssloaders::withSpinner(plotlyOutput(outputId = "d_polDensPlot", width ="98.9%"),
+                                              shinycssloaders::withSpinner(plotlyOutput(outputId = "d_polDensPlot", height = "37vh", width ="98.9%"),
                                                                            color = getOption("spinner.color", default = "#4F7942")),#),
-                                              shinycssloaders::withSpinner(plotlyOutput(outputId = "d_polBoxPlot", width ="98.9%"),
+                                              shinycssloaders::withSpinner(plotlyOutput(outputId = "d_polBoxPlot", height = "37vh", width ="98.9%"),
                                                                            color = getOption("spinner.color", default = "#4F7942"))#)
                                        )
                                      )

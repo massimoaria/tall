@@ -1718,18 +1718,20 @@ server <- function(input, output, session){
       df <- values$docPolarity$sent_overall %>%
         count(doc_pol_clas) %>%
         rename("Polarity" = doc_pol_clas)
-      sentimentPieChart(df)
+      values$sentimentPieChart <- sentimentPieChart(df)
+      values$sentimentPieChart
     })
 
     output$d_polDensPlot <- renderPlotly({
       docPolarityEstim()
-      sentimentDensityPlot(values$docPolarity$sent_overall$sentiment_polarity, from = -1, to=1)
+      values$sentimentDensityPlot <- sentimentDensityPlot(values$docPolarity$sent_overall$sentiment_polarity, from = -1, to=1)
+      values$sentimentDensityPlot
     })
 
     output$d_polBoxPlot <- renderPlotly({
       docPolarityEstim()
-      sentimentBoxPlot(values$docPolarity$sent_overall)
-
+      values$sentimentBoxPlot <- sentimentBoxPlot(values$docPolarity$sent_overall)
+      values$sentimentBoxPlot
     })
 
     output$d_polDetPlotPos <- renderPlotly({
@@ -1740,6 +1742,25 @@ server <- function(input, output, session){
       docPolarityEstim()
       values$docPolPlots$negative
     })
+
+    output$d_polDetExport <- downloadHandler(
+      filename = function() {
+        paste("PolarityPlots-", Sys.Date(), ".zip", sep="")
+      },
+      content <- function(file) {
+        #go to a temp dir to avoid permission issues
+        owd <- setwd(tempdir())
+        on.exit(setwd(owd))
+        files <- c("PieChart.png", "DensDensity.png","BoxPlot.png", "Positive.png", "Negative.png")
+        plot2png(values$sentimentPieChart, filename=files[1], zoom = values$zoom)
+        plot2png(values$sentimentDensityPlot, filename=files[2], zoom = values$zoom)
+        plot2png(values$sentimentBoxPlot, filename=files[3], zoom = values$zoom)
+        plot2png(values$docPolPlots$positive, filename=files[4], zoom = values$zoom)
+        plot2png(values$docPolPlots$negative, filename=files[5], zoom = values$zoom)
+        zip(file,files)
+      },
+      contentType = "zip"
+    )
 
     output$d_polDetTable <- renderDataTable({
       docPolarityEstim()

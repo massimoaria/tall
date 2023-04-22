@@ -2021,7 +2021,8 @@ groupByMetadata <- function(dfTag, metadata){
       group_by(doc_id) %>%
       mutate(paragraph_id = unique_identifier(paragraph_id),
              sentence_id = unique_identifier(sentence_id)) %>%
-      ungroup()
+      ungroup() %>%
+      arrange(doc_id,paragraph_id,sentence_id)
   } else {
     dfTag <- backToOriginalGroups(dfTag)
   }
@@ -2036,7 +2037,8 @@ backToOriginalGroups <- function(dfTag){
       mutate(doc_id = ungroupDoc_id,
              paragraph_id = ungroupP_id,
              sentence_id = ungroupS_id) %>%
-      select(-ungroupDoc_id,-ungroupP_id,-ungroupS_id)
+      select(-ungroupDoc_id,-ungroupP_id,-ungroupS_id) %>%
+      arrange(doc_id,paragraph_id,sentence_id)
   }
   return(dfTag)
 }
