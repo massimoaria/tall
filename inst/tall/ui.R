@@ -14,6 +14,7 @@ t_report  <-  "Add Results to the Report"
 t_export  <-  "Export Plot as PNG"
 t_run <- "Run the Analysis"
 t_save <- "Save the Analysis"
+t_back <- "Back to the original text(s)"
 
 run_bttn <- list(
   label = NULL,
@@ -34,6 +35,11 @@ save_bttn <- list(
   label=NULL,
   style ="display:block; height: 37px; width: 37px; border-radius: 50%; border: 1px;",# margin-top: 15px",
   icon = icon(name ="floppy-save", lib="glyphicon")
+)
+back_bttn <- list(
+  label = NULL,
+  style ="display:block; height: 37px; width: 37px; border-radius: 50%; border: 3px; margin-top: 15px",
+  icon = icon(name ="repeat", lib="glyphicon")
 )
 
 
@@ -64,6 +70,7 @@ body <- dashboardBody(
   customTheme(),
   tags$style(".glyphicon-download-alt {color:#ffffff; font-size: 18px; align: center; margin-left: -3.5px}"),
   tags$style(".glyphicon-play {color:#ffffff; font-size: 18px; align: center;margin-left: -0.5px}"),
+  tags$style(".glyphicon-repeat {color:#ffffff; font-size: 18px; align: center;margin-left: -3px; padding-left: -15px}"),
   tags$style(".glyphicon-plus {color:#ffffff; font-size: 18px;align: center; margin-left: -2px}"),
   tags$style(".glyphicon-cog {color:#4F794290; font-size: 21px; margin-top: 2.3px; margin-left: -3px}"),
   tags$style(".glyphicon-floppy-save {color:#ffffff; font-size: 18px; text-align:center; padding-right: -10px;
@@ -229,9 +236,11 @@ body <- dashboardBody(
                                        choices = c("a word at the beginning of a line" = "starting",
                                                    "a sequence of special characters" = "into"),
                                        selected = "starting"),
+                           conditionalPanel(condition="input.txSplitBy=='into'",
                            textInput(inputId="txSplitWord",
                                      label="Insert a word or a sequence of special chars (e.g. H1__)",
-                                     value=NULL),
+                                     value=NULL)
+                           ),
                            fluidRow(
                              column(6,
                                     div(align="center",
@@ -300,10 +309,21 @@ body <- dashboardBody(
                                     ))
                              ),
                              column(3,
-                                    title = t_run,
-                                    do.call("actionButton", c(run_bttn, list(
+                                    title = t_back,
+                                    do.call("actionButton", c(back_bttn, list(
                                       inputId = "randomTextBack")
                                     ))
+                                    # title = t_run,
+                                    # div(
+                                    # actionButton("randomTextBack",
+                                    #              label=NULL,
+                                    #              icon = icon("repeat", lib="glyphicon")),
+                                    # style="display:block; height: 37px; width: 37px;
+                                    # border-radius: 50%; border: 3px; margin-top: 15px"
+                                    # )
+                                    # do.call("actionButton", c(run_bttn, list(
+                                    #   inputId = "randomTextBack")
+                                    # ))
                              )
                              # column(3,
                              #        title = t_save,

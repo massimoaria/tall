@@ -372,6 +372,62 @@ posTagAll <- function(df){
   return(obj)
 }
 
+### GROUP MENU FUNCTIONS -----
+noGroupLabels <- function(label){
+  setdiff(label, c("doc_id","paragraph_id","sentence_id","sentence","start","end","term_id",
+                   "token_id","token","lemma","upos","xpos","feats","head_token_id","dep_rel",
+                   "deps","misc","original_doc_id","ungroupDoc_id","ungroupP_id", "ungroupS_id",
+                   "POSSelected","token_hl","start_hl","end_hl","sentence_hl","lemma_original_nomultiwords",
+                   "filename", "upos_original")
+  )
+}
+
+groupByMetadata <- function(dfTag, metadata){
+  if (length(metadata)==1){
+    ## group texts by a metadata
+
+    if (!"ungroupDoc_id" %in% names(dfTag)){
+      dfTag <- dfTag %>%
+        mutate(ungroupDoc_id = doc_id,
+               ungroupP_id = paragraph_id,
+               ungroupS_id = sentence_id)
+    }
+
+    #newDoc_id <- sprintf(paste0("%0",nchar(length(unique(dfTag$ungroupDoc_id))),"d"), unique_identifier(dfTag, fields=metadata, start_from = 1L))
+    dfTag$paragraph_id <- paste0(dfTag$ungroupDoc_id,"_",dfTag$ungroupP_id)
+    dfTag$sentence_id <- paste0(dfTag$ungroupDoc_id,"_",dfTag$ungroupS_id)
+
+    #newDoc_id <-dfTag[[metadata]]
+    newDoc_id <- ifelse(!is.na(dfTag[[metadata]]),dfTag[[metadata]],"Not Available")
+
+    dfTag <- dfTag %>%
+      mutate(doc_id = newDoc_id) %>%
+      group_by(doc_id) %>%
+      mutate(paragraph_id = unique_identifier(paragraph_id),
+             sentence_id = unique_identifier(sentence_id)) %>%
+      ungroup() %>%
+      arrange(doc_id,paragraph_id,sentence_id)
+  } else {
+    dfTag <- backToOriginalGroups(dfTag)
+  }
+
+  return(dfTag)
+}
+
+backToOriginalGroups <- function(dfTag){
+  # back to original ungrouped data frame
+  if ("ungroupDoc_id" %in% names(dfTag)){
+    dfTag <- dfTag %>%
+      mutate(doc_id = ungroupDoc_id,
+             paragraph_id = ungroupP_id,
+             sentence_id = ungroupS_id) %>%
+      select(-ungroupDoc_id,-ungroupP_id,-ungroupS_id) %>%
+      arrange(doc_id,paragraph_id,sentence_id)
+  }
+  return(dfTag)
+}
+
+
 
 ### OVERVIEW ----
 
@@ -1986,61 +2042,6 @@ textrankDocument <- function(dfTag, id, n){
            "Paragraph" = paragraph)
   results <- list(document=s, sentences=tr$sentences %>% arrange(desc(textrank)))
   return(results)
-}
-
-### GROUP MENU FUNCTIONS -----
-noGroupLabels <- function(label){
-  setdiff(label, c("doc_id","paragraph_id","sentence_id","sentence","start","end","term_id",
-                   "token_id","token","lemma","upos","xpos","feats","head_token_id","dep_rel",
-                   "deps","misc","original_doc_id","ungroupDoc_id","ungroupP_id", "ungroupS_id",
-                   "POSSelected","token_hl","start_hl","end_hl","sentence_hl","lemma_original_nomultiwords",
-                   "filename", "upos_original")
-  )
-}
-
-groupByMetadata <- function(dfTag, metadata){
-  if (length(metadata)==1){
-    ## group texts by a metadata
-
-    if (!"ungroupDoc_id" %in% names(dfTag)){
-      dfTag <- dfTag %>%
-        mutate(ungroupDoc_id = doc_id,
-               ungroupP_id = paragraph_id,
-               ungroupS_id = sentence_id)
-    }
-
-    #newDoc_id <- sprintf(paste0("%0",nchar(length(unique(dfTag$ungroupDoc_id))),"d"), unique_identifier(dfTag, fields=metadata, start_from = 1L))
-    dfTag$paragraph_id <- paste0(dfTag$ungroupDoc_id,"_",dfTag$ungroupP_id)
-    dfTag$sentence_id <- paste0(dfTag$ungroupDoc_id,"_",dfTag$ungroupS_id)
-
-    #newDoc_id <-dfTag[[metadata]]
-    newDoc_id <- ifelse(!is.na(dfTag[[metadata]]),dfTag[[metadata]],"Not Available")
-
-    dfTag <- dfTag %>%
-      mutate(doc_id = newDoc_id) %>%
-      group_by(doc_id) %>%
-      mutate(paragraph_id = unique_identifier(paragraph_id),
-             sentence_id = unique_identifier(sentence_id)) %>%
-      ungroup() %>%
-      arrange(doc_id,paragraph_id,sentence_id)
-  } else {
-    dfTag <- backToOriginalGroups(dfTag)
-  }
-
-  return(dfTag)
-}
-
-backToOriginalGroups <- function(dfTag){
-  # back to original ungrouped data frame
-  if ("ungroupDoc_id" %in% names(dfTag)){
-    dfTag <- dfTag %>%
-      mutate(doc_id = ungroupDoc_id,
-             paragraph_id = ungroupP_id,
-             sentence_id = ungroupS_id) %>%
-      select(-ungroupDoc_id,-ungroupP_id,-ungroupS_id) %>%
-      arrange(doc_id,paragraph_id,sentence_id)
-  }
-  return(dfTag)
 }
 
 
