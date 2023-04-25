@@ -26,14 +26,14 @@ server <- function(input, output, session){
   values$menu <- -1
   values$custom_lists <- NULL
   values$txt <- data.frame()
+  values$txtOriginal <- data.frame()
   values$list_file <- data.frame(sheet=NULL,file=NULL,n=NULL)
   values$POSTagSelected <- ""
   values$wb <-  openxlsx::createWorkbook()
   values$dfLabel <- dfLabel()
   values$posMwSel <- c("ADJ", "NOUN", "PROPN") # POS selected by default for multiword creation
   values$myChoices <- "Empty Report"
-  #values$token <- token
-  values$df <- df
+  #values$df <- df
   label_lang <- languages$repo
   names(label_lang) <- languages$short
   values$label_lang <- label_lang
@@ -292,18 +292,22 @@ server <- function(input, output, session){
   })
 
   randomTextFunc <- eventReactive(input$randomTextRun,{
-    values$randomTxt <- slice_sample(values$txt, n=input$sampleSize)
+    values$txt <- samplingText(values$txt, n=input$sampleSize)
   })
 
   output$randomTextData <- DT::renderDT({
     randomTextFunc()
-    DTformat(values$randomTxt %>% mutate(text = paste0(substr(text,1,500),"...")),left=2, nrow=5, filter="none", button=TRUE)
+    DTformat(values$txt %>%
+               filter(doc_selected) %>%
+               mutate(text = paste0(substr(text,1,500),"...")),
+             left=2, nrow=5, filter="none", button=TRUE)
   })
 
 
   ## back to the original txt
   observeEvent(input$randomTextBack, {
-    values$txt <- values$randomTxt <- values$txt
+    values$txt <- values$txt %>%
+      mutate(doc_selected = TRUE)
   })
 
 
@@ -318,7 +322,10 @@ server <- function(input, output, session){
 
   output$extInfoData <- DT::renderDT({
     EXTINFOloading()
-    DTformat(values$txt %>% mutate(text = paste0(substr(text,1,500),"...")),left=2, nrow=3, filter="none")
+    DTformat(values$txt %>%
+               filter(doc_selected) %>%
+               mutate(text = paste0(substr(text,1,500),"...")),
+             left=2, nrow=3, filter="none")
   })
 
 
@@ -327,7 +334,10 @@ server <- function(input, output, session){
       paste("Tall-Export-File-", Sys.Date(), ".xlsx", sep="")
     },
     content <- function(file) {
-      suppressWarnings(openxlsx::write.xlsx(values$txt %>% select(doc_id), file=file))
+      suppressWarnings(openxlsx::write.xlsx(values$txt %>%
+                                              filter(doc_selected) %>%
+                                              select(doc_id),
+                                            file=file))
     }, contentType = "xlsx"
   )
 
@@ -360,7 +370,9 @@ server <- function(input, output, session){
         }
 
         #Lemmatization and POS Tagging
-        values$dfTag <- udpipe(object=udmodel_lang, x = values$txt , parallel.cores=ncores)
+        values$dfTag <- udpipe(object=udmodel_lang, x = values$txt %>%
+                                 filter(doc_selected),
+                               parallel.cores=ncores)
 
         # Merge metadata from the original txt object
         values$dfTag <- values$dfTag %>%

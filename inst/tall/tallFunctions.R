@@ -87,6 +87,9 @@ read_files <- function(files, ext=c("txt","csv", "xlsx", "pdf"), subfolder=TRUE,
     df <- df %>% mutate(doc_id = paste0("doc_",num)) %>% select(doc_id, everything())
   }
 
+  df <- df %>%
+    mutate(doc_selected = TRUE)
+
   return(df)
 }
 
@@ -161,6 +164,7 @@ loadSampleCollection <- function(sampleName){
 
 ### SPLIT TEXT INTO SUB-DOCS
 splitDoc <- function(df, word, txSplitBy="starting"){
+  df <- df %>% filter(doc_selected)
   df_splitted <- list()
   n <- length(unique(df$doc_id))
   switch(txSplitBy,
@@ -196,6 +200,14 @@ splitDoc <- function(df, word, txSplitBy="starting"){
                    doc_id_old=doc_id_old)
   return(df)
 }
+
+### TEXT SAMPLING ----
+samplingText <- function(txt, n){
+  id <- sample(txt$doc_id,n)
+  txt$doc_selected <- (txt$doc_id %in% id)
+  return(txt)
+}
+
 
 ### EXTERNAL INFORMATION ----
 loadExtInfo <- function(file, txt){
