@@ -1030,7 +1030,7 @@ coocMatrix <- function(x, term="lemma", group="doc_id", n=50, pos=TRUE){
     x$new_var <- paste0(x[[term]],"_",x$upos)
     term="new_var"
   } else {
-    term <- old_term
+    term <- term_old
   }
 
   dtm <- document_term_frequencies(x, term=term, group=group)
@@ -1082,7 +1082,11 @@ cooc_freq <- function(cooc){
   term_freq <- data.frame(term=c(cooc$term1,cooc$term2),
                           upos = c(cooc$upos_from,cooc$upos_to),
                           n=c(cooc$s_from,cooc$s_to)) %>%
-    distinct()
+    distinct() %>%
+    group_by(term,upos) %>%
+    summarize(n = sum(n)) %>%
+    ungroup()
+
 }
 
 network <- function(dfTag, term="lemma", group=c("doc_id", "sentence_id"), n, minEdges, labelsize=4, opacity=0.6,
@@ -1096,7 +1100,7 @@ network <- function(dfTag, term="lemma", group=c("doc_id", "sentence_id"), n, mi
 
   x <- dfTag %>% dplyr::filter(POSSelected)
 
-  cooc <- coocMatrix(x, term=term, group=group, n=n, pos=TRUE)
+  cooc <- coocMatrix(x, term=term, group=group, n=n, pos=FALSE)
 
   nodes <- cooc_freq(cooc) %>%
     mutate(id = row_number(),
@@ -1209,6 +1213,8 @@ net2vis <- function(nodes,edges){
 
   layout <- "layout_nicely"
 
+
+
   VIS<-
     visNetwork::visNetwork(nodes = nodes, edges = edges, type="full", smooth=TRUE, physics=FALSE) %>%
     visNetwork::visNodes(shadow=TRUE, shape=nodes$shape, font=list(color=nodes$font.color, size=nodes$font.size,vadjust=nodes$font.vadjust)) %>%
@@ -1226,7 +1232,7 @@ net2vis <- function(nodes,edges){
   w <- data.frame(x=coords[,1],y=coords[,2],labelToPlot=VIS$x$nodes$label, dotSize=VIS$x$nodes$font.size, row.names = VIS$x$nodes$label)
   labelToRemove <- avoidNetOverlaps(w, threshold = threshold2)
 
-   VIS$x$nodes <- VIS$x$nodes %>%
+  VIS$x$nodes <- VIS$x$nodes %>%
     mutate(title = label,
       label = ifelse(label %in% labelToRemove, "",label))
 
@@ -1270,38 +1276,41 @@ avoidNetOverlaps <- function(w,threshold=0.10){
     rename(w_to = dotSize) %>%
     filter(dist<threshold)
 
-  st <- TRUE
-  i <- 1
-  label <- NULL
-  case <- "n"
-
-  while(isTRUE(st)){
-    if (Ds$w_from[i]>Ds$w_to[i] & Ds$dist[i]<threshold){
-      case <- "y"
-      lab <- Ds$to[i]
-
-    } else if (Ds$w_from[i]<=Ds$w_to[i] & Ds$dist[i]<threshold){
-      case <- "y"
-      lab <- Ds$from[i]
-    }
-
-    switch(case,
-           "y"={
-             Ds <- Ds[Ds$from != lab,]
-             Ds <- Ds[Ds$to != lab,]
-             label <- c(label,lab)
-           },
-           "n"={
-             Ds <- Ds[-1,]
-           })
-
-    if (i>=nrow(Ds)){
-      st <- FALSE
-    }
+  if (nrow(Ds)>0){
+    st <- TRUE
+    i <- 1
+    label <- NULL
     case <- "n"
-    #print(nrow(Ds))
-  }
 
+    while(isTRUE(st)){
+      if (Ds$w_from[i]>Ds$w_to[i] & Ds$dist[i]<threshold){
+        case <- "y"
+        lab <- Ds$to[i]
+
+      } else if (Ds$w_from[i]<=Ds$w_to[i] & Ds$dist[i]<threshold){
+        case <- "y"
+        lab <- Ds$from[i]
+      }
+
+      switch(case,
+             "y"={
+               Ds <- Ds[Ds$from != lab,]
+               Ds <- Ds[Ds$to != lab,]
+               label <- c(label,lab)
+             },
+             "n"={
+               Ds <- Ds[-1,]
+             })
+
+      if (i>=nrow(Ds)){
+        st <- FALSE
+      }
+      case <- "n"
+      #print(nrow(Ds))
+    }
+  } else{
+    label = NULL
+  }
   label
 
 }
@@ -1323,7 +1332,7 @@ grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity
 
   x <- dfTag %>% highlight() %>% dplyr::filter(upos %in% c("MULTIWORD", "VERB"))
 
-  cooc <- coocMatrix(dfTag %>% dplyr::filter(upos %in% c("MULTIWORD", "VERB")), term=term, group=group, n=Inf, pos=TRUE)
+  cooc <- coocMatrix(dfTag %>% dplyr::filter(upos %in% c("MULTIWORD", "VERB")), term=term, group=group, n=n*10, pos=TRUE)
 
   ### NODES
   nodes <- cooc_freq(cooc) %>%
@@ -1383,7 +1392,7 @@ grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity
   ### EDGES
   x2 <- dfTag %>%
     dplyr::filter(upos %in% c("MULTIWORD", "NOUN", "PROPN", "ADJ", "VERB"))
-  cooc <- coocMatrix(x2, term=term, group=group, n=Inf, pos=TRUE)
+  cooc <- coocMatrix(x2, term=term, group=group, n=n^2, pos=TRUE)
 
   edges <- cooc %>%
     dplyr::filter(term1 %in% nodes$label & term2 %in% nodes$label)
@@ -1587,7 +1596,7 @@ tmEstimate <- function(dfTag, K, group=c("doc_id", "sentence_id"), term="lemma",
   x <- dfTag %>% dplyr::filter(POSSelected)
   x$topic_level_id <- unique_identifier(x, fields = group)
 
-  dtf <- document_term_frequencies(x, document = "topic_level_id", term = "lemma")
+  dtf <- document_term_frequencies(x, document = "topic_level_id", term = term)
 
   dtm <- document_term_matrix(x = dtf)
 
