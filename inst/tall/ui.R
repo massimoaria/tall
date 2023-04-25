@@ -159,18 +159,29 @@ body <- dashboardBody(
                              selectInput("demo_file",
                                          label="Select sample texts",
                                             choices=c(
-                                              "Bibliometrix publications" = "bibliometrix",
-                                              "BBC short entertainment news" = "bbc"
+                                              "BBC news" = "bbc",
+                                              "Bibliometrix" = "bibliometrix"
                                             ),
                                             selected = "bibliometrix"
                                          ),
                              conditionalPanel(
                                condition = "input.demo_file=='bibliometrix'",
-                               helpText(h5("Bibliometrix sample description...."))
+                               helpText(em("The dataset is composed of a collection of 444 scientific articles written in English
+                                           in which the authors used the Bibliometrix R package to perform systematic literature reviews."),
+                                        br(),
+                                        br(),
+                                        em("The textual data consists of the article abstracts, while the additional information includes
+                                           metadata such as the list of co-authors, first author, year of publication, and journal name."),
+                                        br(),
+                                        br(),
+                                        em("The abstracts have already been tokenized and POS tagged."))
                              ),
                              conditionalPanel(
                                condition = "input.demo_file=='bbc'",
-                               helpText(h5("BBC sample description...."))
+                               helpText(em("A collection of 386 short news stories published in the entertainment section of the BBC News website."),
+                                        br(),
+                                        br(),
+                                        em("The texts are in English."))
                              )
                            ),
                            conditionalPanel(
