@@ -48,7 +48,7 @@ server <- function(input, output, session){
   values$h <- 7
   values$zoom <- 2
   dpi <- 300
-  set.seed(0)
+  set.seed(5)
 
 
 
@@ -273,7 +273,7 @@ server <- function(input, output, session){
   ### SPLIT TEXTS ----
 
   splitDocFunc <- eventReactive(input$splitTextRun,{
-    values$txt_original <- values$txt
+    #values$txt_original <- values$txt
     values$txt <- splitDoc(values$txt, word=input$txSplitWord, txSplitBy=input$txSplitBy)
   })
 
@@ -291,27 +291,21 @@ server <- function(input, output, session){
 
   })
 
-  randomTextSelection <- eventReactive({
-    input$randomTextRun
-  },
-  values$txt <-  dplyr::slice_sample(values$txt, n = input$sampleSize)
-  )
-
-  output$randomTextData <- DT::renderDT({
-    randomTextSelection()
-    DTformat(values$txt %>% mutate(text = paste0(substr(text,1,500),"...")),left=2, nrow=5, filter="none")
+  randomTextFunc <- eventReactive(input$randomTextRun,{
+    values$randomTxt <- slice_sample(values$txt, n=input$sampleSize)
   })
 
-  # output$randomTextSave <- downloadHandler(
-  #   filename = function() {
-  #     paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
-  #   },
-  #   content <- function(file) {
-  #     saveTall(values$txt, values$custom_lists, values$menu, "RandomTextSample", values$metadata,file)
-  #     # D <- date()
-  #     # save(dfTag,menu,D,where, file=file)
-  #   }, contentType = "tall"
-  # )
+  output$randomTextData <- DT::renderDT({
+    randomTextFunc()
+    DTformat(values$randomTxt %>% mutate(text = paste0(substr(text,1,500),"...")),left=2, nrow=5, filter="none", button=TRUE)
+  })
+
+
+  ## back to the original txt
+  observeEvent(input$randomTextBack, {
+    values$txt <- values$randomTxt <- values$txt
+  })
+
 
   ### EXTERNAL INFORMATION ----
 
