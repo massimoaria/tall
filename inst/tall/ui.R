@@ -50,7 +50,9 @@ title_tall <- tags$link(tags$a(href = 'https://www.unina.it/',target="_blank",
 ), strong("TALL"))
 
 header <- shinydashboardPlus::dashboardHeader(title = title_tall,
-                                              titleWidth = 250, controlbarIcon = NULL)
+                                              titleWidth = 250, controlbarIcon = NULL,
+                                              tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("dataGroupedBy")))))
+                                              )
 
 
 
@@ -373,18 +375,8 @@ body <- dashboardBody(
                            div(h3(strong(em("Add from a file"))), style="margin-top:-57px"),
                            helpText(h5("To import external information, please make sure that the file
                            to be uploaded is in Excel format and contains a column labeled
-                           'doc_id' to identify the associated documents.")),
-                           fileInput(
-                             inputId="extInfoFile",
-                             label=NULL,
-                             multiple = FALSE,
-                             accept = c(
-                               ".xls",
-                               ".xlsx"
-                             ),
-                             placeholder = "No file(s) selected"
-                           ),
-                           helpText(h5("You can download the list of IDs associated with the imported text files below.")),
+                           'doc_id' to identify documents associated to the text(s) imported.")),
+                           helpText(h5("You can download the list of doc_id associated with the imported text files below.")),
                            fluidRow(
                              column(12,
                                     div(align="center",
@@ -396,6 +388,18 @@ body <- dashboardBody(
                                     )
                              )
                            ),
+                           hr(),
+                           fileInput(
+                             inputId="extInfoFile",
+                             label="Import external information",
+                             multiple = FALSE,
+                             accept = c(
+                               ".xls",
+                               ".xlsx"
+                             ),
+                             placeholder = "No file(s) selected"
+                           ),
+
                            hr(),
                            fluidRow(
                              column(6,div(
@@ -791,6 +795,7 @@ body <- dashboardBody(
                                        br(),
                                        column(3,
                                               valueBoxOutput("nDoc", width = "33vh"),
+                                              bsTooltip("nDoc", "Number of Docs included", "bottom"), ## TO CHECK ----
                                               valueBoxOutput("avgDocLengthChar", width = "33vh"),
                                               valueBoxOutput("avgDocLengthTokens", width = "33vh")),
                                        column(3,
