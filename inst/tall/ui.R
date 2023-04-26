@@ -1413,6 +1413,12 @@ body <- dashboardBody(
                            dropdown(
                              h4(strong("Options: ")),
                              hr(),
+                             selectInput(
+                               inputId = "groupCA",
+                               label = "Co-occurrences in ",
+                               choices = c("Documents", "Paragraphs", "Sentences"),
+                               selected = "Documents"
+                             ),
                              fluidRow(
                                column(6,
                                       numericInput("nCA",
@@ -1553,14 +1559,27 @@ body <- dashboardBody(
                            dropdown(
                              h4(strong("Options: ")),
                              hr(),
-                             checkboxGroupInput(
-                               inputId = "groupNet",
-                               label = "Groups",
-                               choices = c("Docs"="doc_id",
-                                           "Sentences"="sentence_id"),
-                               selected = c("doc_id", "sentence_id"),
-                               inline = TRUE
+                             selectInput(inputId="w_term",
+                                         label = "Terms:",
+                                         choices = c(
+                                           "Tokens"="token",
+                                           "Lemmas"="lemma"),
+                                         selected = "lemma"
                              ),
+                             selectInput(
+                               inputId = "w_groupNet",
+                               label = "Co-occurrences in ",
+                               choices = c("Documents", "Paragraphs", "Sentences"),
+                               selected = "Sentences"
+                             ),
+                             # checkboxGroupInput(
+                             #   inputId = "groupNet",
+                             #   label = "Groups",
+                             #   choices = c("Docs"="doc_id",
+                             #               "Sentences"="sentence_id"),
+                             #   selected = c("doc_id", "sentence_id"),
+                             #   inline = TRUE
+                             # ),
                              materialSwitch(
                                inputId = "interLinks",
                                label = "Inter-group links",
@@ -1595,7 +1614,7 @@ body <- dashboardBody(
                                ),column(6,
                                         numericInput("minEdges",
                                                      label = "Top Link (%)",
-                                                     value = 10,
+                                                     value = 100,
                                                      min = 0,
                                                      max = 100,
                                                      step = 1),
@@ -1666,6 +1685,13 @@ body <- dashboardBody(
                            dropdown(
                              h4(strong("Options: ")),
                              br(),
+                             selectInput(inputId="grako_term",
+                                         label = "Terms:",
+                                         choices = c(
+                                           "Tokens"="token",
+                                           "Lemmas"="lemma"),
+                                         selected = "lemma"
+                             ),
                              selectInput("grakoNormalization",
                                          label = "Normalization by:",
                                          choices = c("None"="none",
@@ -1676,19 +1702,19 @@ body <- dashboardBody(
                              materialSwitch(
                                inputId = "grakoUnigram",
                                label = "Include Single words",
-                               value = FALSE,
+                               value = TRUE,
                                status = "success"
                              ),
                              fluidRow(
                                column(6,
                                       numericInput("grakoNMax",
-                                                   label = "Words",
+                                                   label = "Links",
                                                    value = 30,
                                                    min = 2,
                                                    step=1),
                                       numericInput("grakoMinEdges",
                                                    label = "Top Link (%)",
-                                                   value = 10,
+                                                   value = 100,
                                                    min = 0,
                                                    max = 100,
                                                    step = 1)

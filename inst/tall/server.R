@@ -1235,7 +1235,7 @@ server <- function(input, output, session){
       ignoreNULL = TRUE,
       eventExpr = {input$caApply},
       valueExpr ={
-        values$CA <- wordCA(values$dfTag, n=input$nCA, term=input$termCA)
+        values$CA <- wordCA(values$dfTag, n=input$nCA, term=input$termCA, group = input$groupCA)
         values$CA <- caClustering(values$CA, nclusters = input$nClustersCA, nDim=input$nDimsCA)
         values$CAdimY <- as.numeric(input$dimPlotCA)*2
         values$CAdimX <- values$CAdimY-1
@@ -1318,7 +1318,12 @@ server <- function(input, output, session){
       ignoreNULL = TRUE,
       eventExpr = {input$w_networkCoocApply},
       valueExpr ={
-        values$network <- network(values$dfTag, group=input$groupNet, n=input$nMax, minEdges=input$minEdges,
+        switch(input$w_groupNet,
+               Documents={group <- "doc_id"},
+               Paragraphs={group <- c("doc_id", "paragraph_id")},
+               Sentences={group <- c("doc_id", "sentence_id")})
+        values$network <- network(values$dfTag, term=input$w_term, group=group,
+                                  n=input$nMax, minEdges=input$minEdges,
                                   labelsize=input$labelSize, opacity=input$opacity,
                                   interLinks=input$interLinks, normalization=input$normalizationCooc,
                                   remove.isolated=input$removeIsolated)
@@ -1470,8 +1475,8 @@ server <- function(input, output, session){
       eventExpr = {input$w_networkGrakoApply},
       valueExpr ={
         values$grako <- grako(values$dfTag, n=input$grakoNMax, minEdges=input$grakoMinEdges,
-                                  labelsize=input$grakoLabelSize, opacity=input$grakoOpacity,term="lemma",
-                                  normalization=input$grakoNormalization, singleWords=input$grakoUnigram)
+                                  labelsize=input$grakoLabelSize, opacity=input$grakoOpacity,
+                                  normalization=input$grakoNormalization, singleWords=input$grakoUnigram,term=input$grako_term)
       }
     )
 

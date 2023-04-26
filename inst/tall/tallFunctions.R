@@ -272,25 +272,38 @@ mergeCustomLists <- function(df,custom_lists){
 
 # rake function to create multi-words
 
-rake <- function(x, group = "doc_id", ngram_max=5, ngram_min=2,relevant = c("PROPN", "NOUN", "ADJ", "VERB"), rake.min=2){
+rake <- function(x, group = "doc_id", ngram_max=5, ngram_min=2,relevant = c("PROPN", "NOUN", "ADJ", "VERB"), rake.min=2, term="lemma"){
 
   if ("upos_original" %in% names(x)){
     x <- x %>%
       mutate(upos = upos_original) %>%
       select(-upos_original)
   }
-  if ("lemma_original_nomultiwords" %in% names(x)){
-    x <- x %>%
-      mutate(lemma = lemma_original_nomultiwords) %>%
-      select(-"lemma_original_nomultiwords")
-  }
+
+  switch(term,
+         lemma={
+           if ("lemma_original_nomultiwords" %in% names(x)){
+             x <- x %>%
+               mutate(lemma = lemma_original_nomultiwords) %>%
+               select(-"lemma_original_nomultiwords")
+           }
+         },
+         token={
+           if ("token_original_nomultiwords" %in% names(x)){
+             x <- x %>%
+               mutate(token = token_original_nomultiwords) %>%
+               select(-"token_original_nomultiwords")
+           }
+         })
+
+
   if ("ngram" %in% names(x)){
     x <- x %>%
       select(-"ngram")
   }
 
   # rake multi-word creation
-  stats <- keywords_rake(x = x, term = "lemma", group = group, ngram_max = ngram_max,
+  stats <- keywords_rake(x = x, term = term, group = group, ngram_max = ngram_max,
                          relevant = x$upos %in% relevant)
 
   # identify ngrams>1 with reka index>reka.min
@@ -300,27 +313,55 @@ rake <- function(x, group = "doc_id", ngram_max=5, ngram_min=2,relevant = c("PRO
   # filter original token df removing POS excluded in reka
   x2 <- x %>% filter(upos %in% relevant)
 
-  # combine lemmas into multi-words
-  x2$multiword <- txt_recode_ngram(x2$lemma, compound=stats$keyword, ngram=stats$ngram, sep = " ")
+  # combine lemmas or tokens into multi-words
 
-  # assign new POS tags "MULTIWORD" for combined lemmas and "NGRAM_MERGED" for lemmas to be removed because combined
-  x2 <- x2 %>%
-    mutate(upos_multiword = ifelse(lemma==multiword,upos,"MULTIWORD"),
-           upos_multiword =ifelse(is.na(multiword), "NGRAM_MERGED",upos_multiword)) %>%
-    left_join(stats %>% select(keyword, ngram), by = c("multiword" = "keyword"))
+  switch(term,
+         lemma={
+           x2$multiword <- txt_recode_ngram(x2$lemma, compound=stats$keyword, ngram=stats$ngram, sep = " ")
 
-  # rebuild the original tokenized df
-  x <- x %>%
-    left_join(x2 %>% select(doc_id,term_id,multiword,upos_multiword, ngram), by = c("doc_id","term_id")) %>%
-    mutate(multiword = ifelse(is.na(multiword),lemma,multiword),
-           upos_multiword = ifelse(is.na(upos_multiword),upos,upos_multiword),
-           POSSelected = ifelse(upos_multiword == "MULTIWORD", TRUE, POSSelected),
-           POSSelected = ifelse(upos_multiword == "NGRAM_MERGED", FALSE, POSSelected)) %>%
-    rename(upos_original = upos,
-           upos = upos_multiword)
+           # assign new POS tags "MULTIWORD" for combined lemmas and "NGRAM_MERGED" for lemmas to be removed because combined
+           x2 <- x2 %>%
+             mutate(upos_multiword = ifelse(lemma==multiword,upos,"MULTIWORD"),
+                    upos_multiword =ifelse(is.na(multiword), "NGRAM_MERGED",upos_multiword)) %>%
+             left_join(stats %>% select(keyword, ngram), by = c("multiword" = "keyword"))
 
-  names(x)[names(x) == "lemma"] <- "lemma_original_nomultiwords"
-  names(x)[names(x) == "multiword"] <- "lemma"
+           # rebuild the original tokenized df
+           x <- x %>%
+             left_join(x2 %>% select(doc_id,term_id,multiword,upos_multiword, ngram), by = c("doc_id","term_id")) %>%
+             mutate(multiword = ifelse(is.na(multiword),lemma,multiword),
+                    upos_multiword = ifelse(is.na(upos_multiword),upos,upos_multiword),
+                    POSSelected = ifelse(upos_multiword == "MULTIWORD", TRUE, POSSelected),
+                    POSSelected = ifelse(upos_multiword == "NGRAM_MERGED", FALSE, POSSelected)) %>%
+             rename(upos_original = upos,
+                    upos = upos_multiword)
+
+           names(x)[names(x) == "lemma"] <- "lemma_original_nomultiwords"
+           names(x)[names(x) == "multiword"] <- "lemma"
+         },
+         token={
+           x2$multiword <- txt_recode_ngram(x2$token, compound=stats$keyword, ngram=stats$ngram, sep = " ")
+
+           # assign new POS tags "MULTIWORD" for combined lemmas and "NGRAM_MERGED" for lemmas to be removed because combined
+           x2 <- x2 %>%
+             mutate(upos_multiword = ifelse(token==multiword,upos,"MULTIWORD"),
+                    upos_multiword =ifelse(is.na(multiword), "NGRAM_MERGED",upos_multiword)) %>%
+             left_join(stats %>% select(keyword, ngram), by = c("multiword" = "keyword"))
+
+           # rebuild the original tokenized df
+           x <- x %>%
+             left_join(x2 %>% select(doc_id,term_id,multiword,upos_multiword, ngram), by = c("doc_id","term_id")) %>%
+             mutate(multiword = ifelse(is.na(multiword),token,multiword),
+                    upos_multiword = ifelse(is.na(upos_multiword),upos,upos_multiword),
+                    POSSelected = ifelse(upos_multiword == "MULTIWORD", TRUE, POSSelected),
+                    POSSelected = ifelse(upos_multiword == "NGRAM_MERGED", FALSE, POSSelected)) %>%
+             rename(upos_original = upos,
+                    upos = upos_multiword)
+
+           names(x)[names(x) == "token"] <- "token_original_nomultiwords"
+           names(x)[names(x) == "multiword"] <- "token"
+         })
+
+
 
   ## calculate new start end values for multiwords
   ind <- which(!is.na(x$ngram))
@@ -330,9 +371,6 @@ rake <- function(x, group = "doc_id", ngram_max=5, ngram_min=2,relevant = c("PRO
   obj <- list(dfTag=x, multiwords=stats)
 
 }
-
-
-
 
 
 ### POS TAG SELECTION ----
@@ -708,10 +746,22 @@ dend2vis <- function(hc, labelsize, nclusters=1, community=TRUE){
 ### CORRESPONDENCE ANALYSIS -----
 
 ## Correspondence Analysis on Words ----
-wordCA <- function(dfTag, n=50,  term="lemma"){
+wordCA <- function(dfTag, n=50,  term="lemma", group=c("Documents")){
+  switch(group,
+         Documents={group <- "doc_id"},
+         Paragraphs={group <- c("doc_id", "paragraph_id")},
+         Sentences={group <- c("doc_id", "sentence_id")})
 
   x <- dfTag %>% dplyr::filter(POSSelected)
-  dtm <- document_term_frequencies(x, term=term)
+
+  if (length(group)>1){
+    new_doc_id <- unique_identifier(x, fields = group)
+  }else {
+    new_doc_id <- x$doc_id
+  }
+  dtm <- document_term_frequencies(x %>% mutate(doc_id=new_doc_id), term=term)
+
+  #dtm <- document_term_frequencies(x, term=term)
   mat <- document_term_matrix(dtm, weight="freq")
   mat <- as.matrix(dtm_remove_lowfreq(mat, maxterms=n))
 
@@ -1033,12 +1083,13 @@ coocMatrix <- function(x, term="lemma", group="doc_id", n=50, pos=TRUE){
     term <- term_old
   }
 
-  dtm <- document_term_frequencies(x, term=term, group=group)
+  new_doc_id <- unique_identifier(x, fields = group)
+  dtm <- document_term_frequencies(x %>% mutate(doc_id=new_doc_id), term=term)
 
   dtm <- dtm %>%
     mutate(binary=1)
 
-  if (length(unique(x$doc_id))==1){
+  if (length(unique(new_doc_id))==1){
     mat <- document_term_matrix(dtm, weight="freq")
     lab <- colnames(mat)
     mat <- as.numeric(mat)
@@ -1323,95 +1374,42 @@ grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity
   # n is the number of NOUNS AND PROPER NOUNS
   if (singleWords){
     ngram_min <- 1
-    dfTag <- rake(dfTag, group = "doc_id", ngram_max=5, ngram_min=ngram_min, relevant = c("PROPN"), rake.min=-Inf)$dfTag %>%
-      mutate(upos = ifelse(upos =="PROPN", "MULTIWORD", upos))
+    dfTag <- rake(dfTag, group = "doc_id", ngram_max=5, ngram_min=ngram_min, relevant = c("PROPN"), rake.min=-Inf, term=term)$dfTag %>%
+      mutate(upos = ifelse(upos =="PROPN", "MULTIWORD", upos),
+             ngram = ifelse(upos=="MULTIWORD" & is.na(ngram), 1, ngram))
   } else {
     ngram_min <- 2
-    dfTag <- rake(dfTag, group = "doc_id", ngram_max=5, ngram_min=ngram_min, relevant = c("PROPN"), rake.min=-Inf)$dfTag
+    dfTag <- rake(dfTag, group = "doc_id", ngram_max=5, ngram_min=ngram_min, relevant = c("PROPN"), rake.min=-Inf, term=term)$dfTag
   }
 
-  x <- dfTag %>% highlight() %>% dplyr::filter(upos %in% c("MULTIWORD", "VERB"))
+  #x <- dfTag %>% highlight() %>% dplyr::filter(upos %in% c("MULTIWORD", "VERB"))
 
-  cooc <- coocMatrix(dfTag %>% dplyr::filter(upos %in% c("MULTIWORD", "VERB")), term=term, group=group, n=n*10, pos=TRUE)
+  ### EDGES
+  x2 <- dfTag %>% highlight() %>%
+    dplyr::filter(upos %in% c("MULTIWORD", "NOUN", "PROPN", "ADJ", "VERB"))
+  cooc <- coocMatrix(x2, term=term, group=c("doc_id", "sentence_id"), n=n^2, pos=TRUE)
 
-  ### NODES
+  # calculate local occurrences for nodes
+
   nodes <- cooc_freq(cooc) %>%
     rename(label = term,
            value = n) %>%
-    mutate(n_nouns = ifelse(upos %in% c("MULTIWORD"), 1,0),
-           n_nouns = cumsum(n_nouns)) %>%
-    dplyr::filter(n_nouns<=n) %>%
-    select(-n_nouns) %>%
+    filter(upos %in% c("MULTIWORD", "VERB")) %>%
     mutate(id=row_number(),
            shape=ifelse(upos =="VERB", "text", "text"),
            color = ifelse(upos =="VERB", "#E41A1C", "#4F7942"))
 
-  nodes$font.size <- log(nodes$value)
-  scalemin <- 30
-  scalemax <- 60
-  Min <- min(nodes$font.size)
-  Max <- max(nodes$font.size)
-  if (Max>Min){
-    size <- (nodes$font.size-Min)/(Max-Min)*15*labelsize+10
-  } else {size=10*labelsize}
-  size[size<scalemin]=scalemin
-  size[size>scalemax]=scalemax
-  nodes$font.size <- size
-
-  # if (shape %in% c("dot","square")){
-  #   nodes$font.vadjust <- -0.7*nodes$font.size
-  # }else{
-  nodes$font.vadjust <- ifelse(nodes$shape=="box",-0.7*nodes$font.size, 0)
-  #nodes$font.vadjust <-0
-  # }
-
-
-  ## opacity for label
-  opacity_font <- sqrt((nodes$font.size-min(nodes$font.size))/diff(range(nodes$font.size)))*opacity+opacity.min+0.1
-
-  if(is.nan(opacity_font[1])) opacity_font <- rep(opacity.min,length(opacity_font))
-
-  # node colors
-  nodes$opacity.nodes <- round(((opacity_font-min(opacity_font))/(diff(range(opacity_font)))*0.5+opacity.min)*100,0)
-
-  if (labelsize>0){
-    nodes <- nodes %>%
-      mutate(
-        opacity.nodes = ifelse(opacity.nodes>=100,99,opacity.nodes),
-        font.color = ifelse(upos=="VERB", "#E41A1C", "#4F7942"))
-        #font.color = ifelse(upos=="VERB", paste0("#E41A1C",opacity.nodes), paste0("#4F7942",opacity.nodes)))
-    #nodes$font.color <- unlist(lapply(opacity_font, function(x) adjustcolor("black",alpha.f = x)))
-  }else{
-    nodes <- nodes %>%
-      mutate(font.color = ifelse(upos=="VERB", adjustcolor("#E41A1C",alpha.f = 0), adjustcolor("#4F7942",alpha.f = 0)))
-  }
-
-
-  #nodes$color <- paste0(nodes$color,round(nodes$opacity.nodes,2)*100)
-
-  ### EDGES
-  x2 <- dfTag %>%
-    dplyr::filter(upos %in% c("MULTIWORD", "NOUN", "PROPN", "ADJ", "VERB"))
-  cooc <- coocMatrix(x2, term=term, group=group, n=n^2, pos=TRUE)
 
   edges <- cooc %>%
-    dplyr::filter(term1 %in% nodes$label & term2 %in% nodes$label)
-
-
-  # calculate local occurrences for nodes
-  #nodes <- localOcc(nodes, edges)
-
-
-  edges <- edges %>%
     dplyr::filter(upos_from %in% c("VERB", "MULTIWORD") & upos_to %in% c("VERB", "MULTIWORD")) %>%
-    left_join(nodes %>% select(id,label), by = c("term1" = "label")) %>%
+    dplyr::filter(!upos_from==upos_to & !(upos_from == "MULTIWORD" & upos_to == "PROPN") &
+                    !(upos_to == "MULTIWORD" & upos_from == "PROPN")) %>%
+    left_join(nodes %>% select(id,label, upos), by = c("term1" = "label", "upos_from" = "upos")) %>%
     rename(from = id) %>%
-    left_join(nodes %>% select(id,label), by = c("term2" = "label")) %>%
+    left_join(nodes %>% select(id,label,upos), by = c("term2" = "label", "upos_to" = "upos")) %>%
     rename(to = id,
            s= cooc) %>%
     drop_na() %>%
-    dplyr::filter(!upos_from==upos_to & !(upos_from == "MULTIWORD" & upos_to == "PROPN") &
-                    !(upos_to == "MULTIWORD" & upos_from == "PROPN")) %>%
     mutate(sA = s/(s_from*s_to),
            sC = s/(sqrt(s_from*s_to)),
            sJ = s/(s_from+s_to-s),
@@ -1429,6 +1427,9 @@ grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity
          cosine={edges$value <- edges$sCNorm},
          jaccard={edges$value <- edges$sJNorm})
 
+  edges <- edges %>%
+    slice_max(value, n=n)
+
   tailEdges <- quantile(edges$value,1-(minEdges/100))
 
   edges <- edges %>%
@@ -1438,12 +1439,50 @@ grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity
            term_to=term2)
 
   nodes <- nodes %>%
-    dplyr::filter(!id %in% setdiff(nodes$id,c(edges$from,edges$to))) %>%
+    filter(nodes$id %in% c(edges$from,edges$to))
+
+  nodes$font.size <- log(nodes$value)
+  scalemin <- 30
+  scalemax <- 60
+  Min <- min(nodes$font.size)
+  Max <- max(nodes$font.size)
+  if (Max>Min){
+    size <- (nodes$font.size-Min)/(Max-Min)*15*labelsize+10
+  } else {size=10*labelsize}
+  size[size<scalemin]=scalemin
+  size[size>scalemax]=scalemax
+  nodes$font.size <- size
+
+  nodes$font.vadjust <- ifelse(nodes$shape=="box",-0.7*nodes$font.size, 0)
+
+  ## opacity for label
+  opacity_font <- sqrt((nodes$font.size-min(nodes$font.size))/diff(range(nodes$font.size)))*opacity+opacity.min+0.1
+
+  if(is.nan(opacity_font[1])) opacity_font <- rep(opacity.min,length(opacity_font))
+
+  # node colors
+  nodes$opacity.nodes <- round(((opacity_font-min(opacity_font))/(diff(range(opacity_font)))*0.5+opacity.min)*100,0)
+
+  if (labelsize>0){
+    nodes <- nodes %>%
+      mutate(
+        opacity.nodes = ifelse(opacity.nodes>=100,99,opacity.nodes),
+        font.color = ifelse(upos=="VERB", "#E41A1C", "#4F7942"))
+    #font.color = ifelse(upos=="VERB", paste0("#E41A1C",opacity.nodes), paste0("#4F7942",opacity.nodes)))
+    #nodes$font.color <- unlist(lapply(opacity_font, function(x) adjustcolor("black",alpha.f = x)))
+  }else{
+    nodes <- nodes %>%
+      mutate(font.color = ifelse(upos=="VERB", adjustcolor("#E41A1C",alpha.f = 0), adjustcolor("#4F7942",alpha.f = 0)))
+  }
+
+  nodes <- nodes %>%
     mutate(title = label,
            label = ifelse(upos=="VERB", paste0("<i>",label,"</i>"), paste0("<b>",label,"</b>")),
            font.multi = "html")
 
-  obj <- list(nodes=nodes, edges=edges, multiwords=x %>% select(doc_id, sentence_id, sentence_hl, token, lemma, upos))
+  obj <- list(nodes=nodes, edges=edges, multiwords=x2 %>%
+                dplyr::filter(upos %in% c("MULTIWORD", "VERB")) %>%
+                select(doc_id, sentence_id, sentence_hl, token, lemma, upos))
 }
 
 grako2vis <- function(nodes, edges){
