@@ -249,11 +249,9 @@ body <- dashboardBody(
                                        choices = c("a word at the beginning of a line" = "starting",
                                                    "a sequence of special characters" = "into"),
                                        selected = "starting"),
-                           conditionalPanel(condition="input.txSplitBy=='into'",
                            textInput(inputId="txSplitWord",
                                      label="Insert a word or a sequence of special chars (e.g. H1__)",
-                                     value=NULL)
-                           ),
+                                     value=NULL),
                            fluidRow(
                              column(6,
                                     div(align="center",
