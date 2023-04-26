@@ -1901,6 +1901,17 @@ server <- function(input, output, session){
           }
       })
 
+    ## Data grouped by dynamic text on dashboardHeader
+    output$dataGroupedBy <- renderText({
+      if (length(input$defineGroupsList) == 1){
+        req(input$defineGroupsRun)
+        HTML(paste("Documents grouped by: <b>", input$defineGroupsList, "</b>"))
+      } else {
+        HTML("")
+      }
+    })
+
+
     output$defineGroupsData <- renderDT({
       groupMetadata()
       DTformat(values$dfTag, nrow=3, size='100%', title="Data Grouped By External Information")
