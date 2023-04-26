@@ -109,7 +109,7 @@ body <- dashboardBody(
             )
     ),
 
-    ### IMPORT TEXT ----
+    ### IMPORT ----
 
     tabItem(tabName = "import_tx",
             fluidPage(
@@ -230,6 +230,7 @@ body <- dashboardBody(
             )
     ),
 
+    ## EDIT ----
     ### Split texts ----
 
     tabItem(tabName = "split_tx",
@@ -792,9 +793,8 @@ body <- dashboardBody(
                                      fluidRow(
                                        br(),
                                        column(3,
-                                              valueBoxOutput("nDoc", width = "33vh"),
-                                              bsTooltip("nDoc", "Number of Docs included", "bottom"), ## TO CHECK ----
-                                              valueBoxOutput("avgDocLengthChar", width = "33vh"),
+                                              div(title="Numbers of Documents", valueBoxOutput("nDoc", width = "33vh")),
+                                              div(title= "Average Document's Lenght by characters", valueBoxOutput("avgDocLengthChar", width = "33vh")),
                                               valueBoxOutput("avgDocLengthTokens", width = "33vh")),
                                        column(3,
                                               valueBoxOutput("nSentences", width = "33vh"),
@@ -825,7 +825,7 @@ body <- dashboardBody(
                                                   column(9,
                                                          div(
                                                            selectInput("termWC",
-                                                                       label = "Dictionary by:",
+                                                                       label = "WordCloud by:",
                                                                        choices = c("Tokens"="token",
                                                                                    "Lemmas"="lemma"),
                                                                        selected = "token"), style="margin-top:-3px"
@@ -845,7 +845,7 @@ body <- dashboardBody(
                                             )
                                      )
                             ),
-                            tabPanel("Dictionary",
+                            tabPanel("Vocabulary",
                                      column(9,shinycssloaders::withSpinner(DT::DTOutput(outputId = "dictionaryData", width = 700))),
                                      column(3,
                                             div(
@@ -855,7 +855,7 @@ body <- dashboardBody(
                                                   column(9,
                                                          div(
                                                 selectInput("termDict",
-                                                            label = "Dictionary by:",
+                                                            label = "Vocabulary by:",
                                                             choices = c("Tokens"="token",
                                                                         "Lemmas"="lemma"),
                                                             selected = "token"), style="margin-top:-3px"
@@ -1320,6 +1320,11 @@ body <- dashboardBody(
                            dropdown(
                              h4(strong("Options: ")),
                              hr(),
+                             selectInput("termClustering",
+                                         "Terms:",
+                                         choices = c("Tokens" = "token",
+                                                     "Lemmas" = "lemma"),
+                                         selected = "lemma"),
                              selectInput("w_clusteringSimilarity",
                                          label = "Words Similarity by:",
                                          choices = c("None"="none",
@@ -1428,11 +1433,12 @@ body <- dashboardBody(
                                                    step=1)
                                       ),
                                column(6,
-                                             selectInput("termCA",
-                                                         "Terms:",
-                                                         choices = c("Tokens" = "token",
-                                                                     "Lemmas" = "lemma"),
-                                                         selected = "lemma"))),
+                                      selectInput("termCA",
+                                                  "Terms:",
+                                                  choices = c("Tokens" = "token",
+                                                              "Lemmas" = "lemma"),
+                                                  selected = "lemma")
+                               )),
                              fluidRow(
                                column(6,
                                       numericInput("nClustersCA",

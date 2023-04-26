@@ -2353,8 +2353,8 @@ menuList <- function(menu){
   switch(as.character(menu),
          "0"={
            list(
-             menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),startExpanded = TRUE,
-                      menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
+             menuItem("Import", tabName = "import_tx", icon = icon("open-file", lib="glyphicon")),
+             menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
                       menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
                       menuSubItem("Random Text Selection", tabName = "randomText", icon = icon("chevron-right")),
                       menuSubItem("External information", tabName = "extInfo", icon = icon("chevron-right")),
@@ -2366,8 +2366,8 @@ menuList <- function(menu){
          },
          "1"={
            list(
-             menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),
-                      menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
+             menuItem("Import", tabName = "import_tx", icon = icon("open-file", lib="glyphicon")),
+             menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
                       menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
                       menuSubItem("Random Text Selection", tabName = "randomText", icon = icon("chevron-right")),
                       menuSubItem("External information", tabName = "extInfo", icon = icon("chevron-right")),
@@ -2382,8 +2382,8 @@ menuList <- function(menu){
          },
          "2"={
            list(
-             menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),
-                      menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
+             menuItem("Import", tabName = "import_tx", icon = icon("open-file", lib="glyphicon")),
+             menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
                       menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
                       menuSubItem("Random Text Selection", tabName = "randomText", icon = icon("chevron-right")),
                       menuSubItem("External information", tabName = "extInfo", icon = icon("chevron-right")),
@@ -2421,12 +2421,12 @@ menuList <- function(menu){
          },
          {
            list(
-             menuItem("Data", tabName = "data", icon = icon("open-file", lib="glyphicon"),
-                      menuSubItem("Import texts", tabName = "import_tx", icon = icon("chevron-right")),
-                      menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
-                      menuSubItem("Random Text Selection", tabName = "randomText", icon = icon("chevron-right")),
-                      menuSubItem("External information", tabName = "extInfo", icon = icon("chevron-right")),
-                      menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right")))
+             menuItem("Import", tabName = "import_tx", icon = icon("open-file", lib="glyphicon"))#,
+             # menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
+             #          menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
+             #          menuSubItem("Random Text Selection", tabName = "randomText", icon = icon("chevron-right")),
+             #          menuSubItem("External information", tabName = "extInfo", icon = icon("chevron-right")),
+             #          menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right")))
            )
          }
   )

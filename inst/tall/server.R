@@ -78,7 +78,7 @@ server <- function(input, output, session){
   })
 
 
-### DATA ----
+### IMPORT ----
 
   output$file_raw <- renderUI({
     switch(input$ext,
@@ -269,6 +269,7 @@ server <- function(input, output, session){
     }, contentType = "xlsx"
   )
 
+  ## EDIT ----
 
   ### SPLIT TEXTS ----
 
@@ -611,7 +612,7 @@ server <- function(input, output, session){
 
     #### box2 ---------------
     output$avgDocLengthChar <- renderValueBox({
-      valueBox(value = p("Doc Avg Length in Chars", style = 'font-size:16px;color:white;'),
+        valueBox(value = p("Doc Avg Length in Chars", style = 'font-size:16px;color:white;'),
                subtitle = p(strong(values$vb$avgDocLengthChars), style = 'font-size:36px;color:white;', align="center"),
                icon = icon("duplicate", lib="glyphicon"), color = "olive",
                width = NULL)
@@ -651,7 +652,7 @@ server <- function(input, output, session){
 
     #### box7 ----------------
     output$nDictionary <- renderValueBox({
-      valueBox(value = p("Dictionary", style = 'font-size:16px;color:white;'),
+      valueBox(value = p("Types", style = 'font-size:16px;color:white;'),
                subtitle = p(strong(values$vb$nDictionary), style = 'font-size:36px;color:white;', align="center"),
                icon = icon(name="font", lib="glyphicon"), color = "olive",
                width = NULL)
@@ -771,7 +772,7 @@ server <- function(input, output, session){
       }
     })
 
-    ## DICTIONARY ----
+    ## VOCABULARY ----
     dictionary <- eventReactive({
       input$dictionaryApply
     },
@@ -1192,7 +1193,7 @@ server <- function(input, output, session){
       eventExpr = {input$w_clusteringApply},
       valueExpr ={
         results <- clustering(values$dfTag, n=input$w_clusteringNMax,
-                   group="doc_id", minEdges=25, term="lemma",
+                   group="doc_id", minEdges=25, term=input$termClustering,
                    normalization=input$w_clusteringSimilarity)
         values$wordCluster <- results$cluster
         values$wordComm <- results$comm
