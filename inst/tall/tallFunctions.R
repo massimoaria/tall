@@ -27,6 +27,8 @@ read_files <- function(files, ext=c("txt","csv", "xlsx", "pdf"), subfolder=TRUE,
   }
 
   if (getFileNameExtension(file[1])=="zip"){
+    owd <- setwd(tempdir())
+    on.exit(setwd(owd))
     zip_file <-  unzip(file[1])
     zip_file <- zip_file[(substr(zip_file,nchar(zip_file)-nchar(ext)+1,nchar(zip_file))==ext)]
     file <- zip_file[regexpr("__MACOSX",zip_file)==-1]
@@ -197,7 +199,8 @@ splitDoc <- function(df, word, txSplitBy="starting"){
   df_splitted <- unlist(df_splitted)
   df <- data.frame(doc_id=paste0("doc_",sprintf(paste0("%0",nchar(length(df_splitted)),"d"), 1:length(df_splitted))),
                    text = df_splitted,
-                   doc_id_old=doc_id_old)
+                   doc_id_old=doc_id_old,
+                   doc_selected=TRUE)
   return(df)
 }
 
@@ -2087,7 +2090,17 @@ textrankDocument <- function(dfTag, id, n){
 
   s$h <- c(rep(1,n),rep(0,nrow(s)-n))
   s <- s %>%
-    left_join(df %>% select(paragraph_id,sentence_id) %>% distinct(), by = c("textrank_id"="sentence_id")) %>%
+    left_join(df %>% select(paragraph_id,sentence_id) %>% distinct(), by = c("textrank_id"="sentence_id"))
+
+  abstract <- s %>%
+    filter(h==1) %>%
+    group_by(paragraph_id) %>%
+    summarize(paragraph = paste(sentence, collapse=" ")) %>%
+    ungroup %>%
+    summarize(text=paste(paragraph, collapse="<br><br>&nbsp&nbsp&nbsp&nbsp&nbsp")) %>%
+    mutate(text= paste0("<h3>Document: <strong>",id,"</strong></h3><hr><br><em>",text,"</em>"))
+
+  s <- s %>%
     mutate(sentence = ifelse(h==1, paste0("<mark><strong>", sentence, "</strong></mark>"), sentence)) %>%
     arrange(textrank_id) %>%
     group_by(paragraph_id) %>%
@@ -2098,7 +2111,8 @@ textrankDocument <- function(dfTag, id, n){
     select(paragraph_id,paragraph) %>%
     rename("Paragraph ID" = paragraph_id,
            "Paragraph" = paragraph)
-  results <- list(document=s, sentences=tr$sentences %>% arrange(desc(textrank)))
+
+  results <- list(document=s, sentences=tr$sentences %>% arrange(desc(textrank)), abstract=abstract$text[1])
   return(results)
 }
 

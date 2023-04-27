@@ -1851,6 +1851,12 @@ server <- function(input, output, session){
 
       })
 
+    output$abstractData <- renderUI({
+      docExtraction()
+      #HTML(" ")
+      HTML((values$docExtraction$abstract))
+    })
+
     output$RelSentData <- renderDT(server=FALSE,{
       docExtraction()
       DTformat(values$docExtraction$sentences %>% rename(S_id=textrank_id, Ranking=textrank), nrow=10, size='85%', title=paste0("Doc_id: ",input$document_selection), left=1:2,numeric=3, round=4)
