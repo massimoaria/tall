@@ -3,7 +3,6 @@ source("tallFunctions.R", local=TRUE)
 
 ### da rimuovere alla fine
 library(tall)
-###
 
 ## suppress warnings
 options(warn = -1)

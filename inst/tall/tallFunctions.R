@@ -497,7 +497,6 @@ freqPlotly <- function(dfPlot,x,y,n=10, xlabel,ylabel, scale=c("identity", "log"
 
   switch(scale,
          log={
-           #dfPlot$scale <- log(obj$n)
            dfPlot$n <- log(dfPlot$n)
 
          }
@@ -533,7 +532,6 @@ freqPlotly <- function(dfPlot,x,y,n=10, xlabel,ylabel, scale=c("identity", "log"
                                    showarrow = FALSE) %>%
     config(displaylogo = FALSE,
            modeBarButtonsToRemove = c(
-             #'toImage',
              'sendDataToCloud',
              'pan2d',
              'select2d',
