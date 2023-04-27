@@ -300,6 +300,7 @@ server <- function(input, output, session){
     randomTextFunc()
     DTformat(values$txt %>%
                filter(doc_selected) %>%
+               select(-doc_selected) %>%
                mutate(text = paste0(substr(text,1,500),"...")),
              left=2, nrow=5, filter="none", button=TRUE)
   })

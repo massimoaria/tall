@@ -428,7 +428,7 @@ noGroupLabels <- function(label){
                    "token_id","token","lemma","upos","xpos","feats","head_token_id","dep_rel",
                    "deps","misc","original_doc_id","ungroupDoc_id","ungroupP_id", "ungroupS_id",
                    "POSSelected","token_hl","start_hl","end_hl","sentence_hl","lemma_original_nomultiwords",
-                   "filename", "upos_original")
+                   "filename", "upos_original", "folder", "doc_selected")
   )
 }
 
