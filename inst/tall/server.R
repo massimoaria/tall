@@ -174,7 +174,7 @@ server <- function(input, output, session){
   output$dataImported <- DT::renderDT({
     DATAloading()
     if (values$menu==0){
-      DTformat(values$txt %>% mutate(text = paste0(substr(text,1,500),"...")) %>% select(doc_id, text, everything()),left=2, nrow=5, filter="none", button=TRUE)
+      DTformat(values$txt %>% mutate(text = paste0(substr(text,1,500),"...")) %>% select(doc_id, text, everything()) %>% select(-doc_selected),left=2, nrow=5, filter="none", button=TRUE)
     }
   })
   ### shortpath for folder path ----
