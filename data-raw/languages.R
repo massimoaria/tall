@@ -1,7 +1,7 @@
 ## code to prepare `df_languages` dataset goes here
 known_models<- c(
   "english-ewt", "english-gum", "english-lines",
-  "english-partut",
+  "english-partut","italian-isdt",
   "italian-partut", "italian-postwita",
   "italian-twittiro", "italian-vit",
   "french-gsd", "french-partut", "french-sequoia",
