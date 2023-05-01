@@ -1507,9 +1507,15 @@ server <- function(input, output, session){
     id <- input$click
     if (input$sidebarmenu=="w_networkGrako") {
       word_search<- values$grako$nodes$title[values$grako$nodes$id==id]
+
+      selectedEdges <- values$grako$edges %>%
+        filter(term_from %in% word_search | term_to %in% word_search) %>%
+        mutate(grako = paste0(term_from, " ",term_to))
+
       sentences <- values$grako$multiwords %>%
-        filter(lemma %in% word_search) %>%
-        ungroup() %>% select(lemma, token, sentence_hl)
+        filter(grako %in% selectedEdges$grako) %>%
+        select(sentence_hl) %>%
+        distinct()
     } else {
       word_search<- values$network$nodes$label[values$network$nodes$id==id]
       sentences <- values$dfTag %>%
@@ -1574,7 +1580,8 @@ server <- function(input, output, session){
     valueExpr ={
       values$grako <- grako(values$dfTag, n=input$grakoNMax, minEdges=input$grakoMinEdges,
                             labelsize=input$grakoLabelSize, opacity=input$grakoOpacity,
-                            normalization=input$grakoNormalization, singleWords=input$grakoUnigram,term=input$grako_term)
+                            normalization=input$grakoNormalization,
+                            singleWords=input$grakoUnigram,term=input$grako_term)
     }
   )
 

@@ -1386,9 +1386,9 @@ grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity
   #x <- dfTag %>% highlight() %>% dplyr::filter(upos %in% c("MULTIWORD", "VERB"))
 
   ### EDGES
-  x2 <- dfTag %>% highlight() %>%
-    dplyr::filter(upos %in% c("MULTIWORD", "NOUN", "PROPN", "ADJ", "VERB"))
-  cooc <- coocMatrix(x2, term=term, group=c("doc_id", "sentence_id"), n=n^2, pos=TRUE)
+  x <- dfTag %>% highlight() %>%
+    dplyr::filter(upos %in% c("MULTIWORD", "NOUN", "PROPN", "ADJ", "VERB", "PUNCT"))
+  cooc <- grakoCoocMatrix(x, term=term, group=c("doc_id", "sentence_id"), n=n^2, pos=TRUE)
 
   # calculate local occurrences for nodes
 
@@ -1414,21 +1414,19 @@ grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity
     mutate(sA = s/(s_from*s_to),
            sC = s/(sqrt(s_from*s_to)),
            sJ = s/(s_from+s_to-s),
-           sNorm = ((s-min(s))/diff(range(s)))*14+1,
-           sANorm = ((sA-min(sA))/diff(range(sA)))*14+1,
-           sCNorm = ((sC-min(sC))/diff(range(sC)))*14+1,
-           sJNorm = ((sJ-min(sJ))/diff(range(sJ)))*14+1,
+           sNorm = ((s-min(s))/diff(range(s))),
            role = ifelse(upos_from!="VERB","active","passive"),
            color = ifelse(role=="active", "#4F794250", "#E41A1C50")
     )
 
   switch(normalization,
-         none={edges$value <- edges$sNorm},
-         association={edges$value <- edges$sANorm},
-         cosine={edges$value <- edges$sCNorm},
-         jaccard={edges$value <- edges$sJNorm})
+         none={edges$value <- edges$sNorm*14+1},
+         association={edges$value <- edges$sA*14+1},
+         cosine={edges$value <- edges$sC*14+1},
+         jaccard={edges$value <- edges$sJ*14+1})
 
   edges <- edges %>%
+    filter(s>1) %>%
     slice_max(value, n=n)
 
   tailEdges <- quantile(edges$value,1-(minEdges/100))
@@ -1481,11 +1479,50 @@ grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity
            label = ifelse(upos=="VERB", paste0("<i>",label,"</i>"), paste0("<b>",label,"</b>")),
            font.multi = "html")
 
-  obj <- list(nodes=nodes, edges=edges, multiwords=x2 %>%
+  # info for word in context
+  x$grako <- paste0(x[[term]]," ",c(x[[term]][-1],""))
+
+  obj <- list(nodes=nodes, edges=edges, multiwords=x %>%
                 dplyr::filter(upos %in% c("MULTIWORD", "VERB")) %>%
-                select(doc_id, sentence_id, sentence_hl, token, lemma, upos))
+                select(doc_id, sentence_id, sentence_hl, token, lemma, upos, grako))
 }
 
+grakoCoocMatrix <- function(x, term="lemma", group="doc_id", n=50, pos=TRUE){
+  term_old <- term
+  if (pos){
+    #new_var <- paste0(term,"_upos")
+    x$new_var <- paste0(x[[term]],"_",x$upos)
+    term="new_var"
+  } else {
+    term <- term_old
+  }
+
+  mat <- cooccurrence(x[[term]], relevant = rep(TRUE,nrow(x)), skipgram = 0)
+  mat <- mat %>%
+    group_by(term1) %>%
+    mutate(s_from=max(cooc)) %>%
+    ungroup() %>%
+    group_by(term2) %>%
+    mutate(s_to=max(cooc)) %>%
+    ungroup() %>%
+    filter(term1 != term2) %>%
+    data.frame()
+
+  if (pos){
+    mat <- mat %>%
+      mutate(label1 = gsub("_.*","",term1),
+             label2 = gsub("_.*","",term2),
+             upos_from = gsub(".*_","",term1),
+             upos_to = gsub(".*_","",term2)) %>%
+      select(-term1,-term2) %>%
+      rename(term1=label1,
+             term2=label2)
+  } else{
+    mat$upos_from <- mat$upos_to <-  ""
+  }
+
+  return(mat)
+}
 grako2vis <- function(nodes, edges){
   # nodes data.frame for legend
   lnodes <- data.frame(label = c("<b>Proper Noun</b>", "<i>Verb</i>"),
@@ -1510,12 +1547,12 @@ grako2vis <- function(nodes, edges){
     visNetwork::visEdges(smooth = list(type="horizontal")) %>%
     visNetwork::visOptions(highlightNearest =list(enabled = T, hover = T, degree=1), nodesIdSelection = T) %>%
     visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed = 0.2) %>%
-    visEvents(click = "function(nodes){
+    visNetwork::visEvents(click = "function(nodes){
                   Shiny.onInputChange('click', nodes.nodes[0]);
                   ;}"
     ) %>%
     visNetwork::visOptions(manipulation = FALSE, height ="100%", width = "100%") %>%
-    visLegend(addEdges = ledges, addNodes = lnodes, useGroups = FALSE, width = 0.1)
+    visNetwork::visLegend(addEdges = ledges, addNodes = lnodes, useGroups = FALSE, width = 0.1)
 }
 
 
