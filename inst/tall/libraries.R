@@ -20,6 +20,8 @@ libraries <- function(){
   if (!require(textrank)){install.packages("textrank"); require(textrank, quietly=TRUE)}
   if (!require(pdftools)){install.packages("pdftools"); require(pdftools, quietly=TRUE)}
   if (!require(igraph)){install.packages("igraph")}
+  if (!require(tidygraph)){install.packages("tidygraph")}
+  if (!require(ggraph)){install.packages("ggraph")}
   if (!require(glue)){install.packages("glue")}
   if (!require(readtext)){install.packages("readtext")}
   if (!require(webshot2)){install.packages("webshot2")}

@@ -210,18 +210,43 @@ body <- dashboardBody(
                                                                     font-size: 17px; color: #ffff;")
                                             )
                            ),
-                           conditionalPanel(condition="input.load != 'null'",
+                           conditionalPanel(condition="input.runImport > 0",
                                             tags$hr(),
                                             div(
-                                              align = "center",
-                                              width=12,
-                                              downloadButton(outputId="collection.save",
-                                                             label = strong("Export Raw Texts in Excel"),
-                                                             icon = NULL,
-                                                             style ="border-radius: 15px; border-width: 1px; font-size: 15px;
-                                                                    text-align: center; color: #ffff; "
-
+                                              # align = "center",
+                                              # width=12,
+                                              # downloadButton(outputId="collection.save",
+                                              #                label = strong("Export Raw Texts in Excel"),
+                                              #                icon = NULL,
+                                              #                style ="border-radius: 15px; border-width: 1px; font-size: 15px;
+                                              #                       text-align: center; color: #ffff; "
+                                              #
+                                              # )
+                                              fluidRow(
+                                                column(6,
+                                                       div(align="center",
+                                                           title = "Export raw text(s) in Excel",
+                                                           do.call("downloadButton", c(list(
+                                                             label=NULL,
+                                                             style ="display:block; height: 37px; width: 37px; border-radius: 50%;
+                                      border: 1px; margin-top: 16px;",
+                                                             icon = icon(name ="download-alt", lib="glyphicon"),
+                                                             outputId = "collection.save")
+                                                           )
+                                                           )
+                                                       )
+                                                ),
+                                                column(6,
+                                                       div(align="center",
+                                                           title = "Back to imported text(s) ",
+                                                           do.call("actionButton", c(back_bttn, list(
+                                                             inputId = "importTextBack")
+                                                           )
+                                                           )
+                                                       )
+                                                )
                                               )
+                                              ,style="margin-top: -15px"
                                             )
                            )
                          )
@@ -2260,6 +2285,34 @@ body <- dashboardBody(
               fluidRow(
                 h3(strong("Settings"), align="center"),
                 br(),
+              ),
+              fluidRow(column(6,
+                              h3("Settings:"),
+                              br(),
+                              actionButton(inputId="cache",
+                                           label="Clean temporary folder")
+                              # sliderTextInput(
+                              #   inputId = "dpi",
+                              #   label = "Please select the desired DPI",
+                              #   grid = TRUE,
+                              #   force_edges = TRUE,
+                              #   choices = c("75", "150", "300", "600"),
+                              #   width = "70%",
+                              #   selected = "300"
+                              # ),
+                              # br(),
+                              # sliderTextInput(
+                              #   inputId = "h",
+                              #   label = "Please select the desired heigth in inches",
+                              #   grid = TRUE,
+                              #   force_edges = TRUE,
+                              #   width = "70%",
+                              #   choices = seq(5,15),
+                              #   selected = "7"
+                              # )
+              ), column(6
+                        ### To insert settings for default path, etc.
+              )
               )
             )
     )

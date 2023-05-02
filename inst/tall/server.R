@@ -2,7 +2,9 @@
 source("tallFunctions.R", local=TRUE)
 
 ### da rimuovere alla fine
-library(tall)
+#if (!require(remotes)){install.packages("remotes")}
+#if (!require(tall)){remotes::install_github("massimoaria/tall", ref="develop"); require(tall, quietly=TRUE)}
+#library(tall)
 
 ## suppress warnings
 options(warn = -1)
@@ -18,6 +20,7 @@ server <- function(input, output, session){
 
   ## suppress summarise message
   options(dplyr.summarise.inform = FALSE)
+  languages <- langrepo()
 
   ### Initial values ----
   values <- reactiveValues()
@@ -273,6 +276,11 @@ server <- function(input, output, session){
     }, contentType = "xlsx"
   )
 
+  # Back to the original import text ----
+  observeEvent(input$importTextBack, {
+    values$txt <- values$txt %>%
+      mutate(doc_selected = TRUE)
+  })
   ## EDIT ----
 
   ### SPLIT TEXTS ----
@@ -2094,5 +2102,10 @@ server <- function(input, output, session){
     })
   })
 
+  ### SETTINGS ----
+  observeEvent(input$cache,{
+      deleteCache()
+    }
+  )
 
 } # END SERVER

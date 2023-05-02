@@ -2046,29 +2046,7 @@ sentimentBoxPlot <- function(sent_overall){
 }
 
 ### TEXT SUMMARIZATION: TEXTRANK -----
-# highlightSentences <- function(dfTag, id, n = 3){
-#   df <- dfTag %>% filter(doc_id==id)
-#   sentences <- df %>%
-#     select(sentence_id,sentence) %>%
-#     distinct()
-#
-#   terminology <- df %>%
-#     filter(POSSelected) %>%
-#     select(sentence_id, lemma)
-#
-#   tr <- textrank_sentences(data = sentences, terminology = terminology)
-#   s <- tr$sentences %>%
-#     arrange(desc(textrank))
-#
-#   n <- min(n,nrow(s))
-#
-#   s$h <- c(rep(1,n),rep(0,nrow(s)-n))
-#   s <- s %>%
-#     mutate(sentence = ifelse(h==1, paste0("<mark><strong>", sentence, "</strong></mark>"), sentence)) %>%
-#     arrange(textrank_id) %>%
-#     summarize(doc=paste(sentence, collapse=" "))
-#   s$doc
-# }
+
 highlightSentences <- function(dfTag, id){
   df <- dfTag %>%
     filter(doc_id==id)
@@ -2268,12 +2246,6 @@ short2long <- function(df, myC){
 }
 
 
-
-
-
-
-
-
 ## Labels sheets Report
 dfLabel <- function(){
   short <- c("Empty Report")#, "MainInfo",            "AnnualSciProd",       "AnnualCitPerYear",    "ThreeFieldsPlot",     "MostRelSources",      "MostLocCitSources",   "BradfordLaw",         "SourceLocImpact",
@@ -2410,7 +2382,8 @@ menuList <- function(menu){
                       menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
                       menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right"), selected = TRUE)
-             )
+             ),
+             menuItem("Settings",tabName = "settings", icon = icon("tasks"))
            )
          },
          "1"={
@@ -2426,7 +2399,8 @@ menuList <- function(menu){
                       menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right"), selected = TRUE),
                       menuSubItem("Multi-Word Creation", tabName = "multiwordCreat",icon = icon("chevron-right")),
                       menuSubItem("PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right"))
-             )
+             ),
+             menuItem("Settings",tabName = "settings", icon = icon("tasks"))
            )
          },
          "2"={
@@ -2470,12 +2444,8 @@ menuList <- function(menu){
          },
          {
            list(
-             menuItem("Import", tabName = "import_tx", icon = icon("open-file", lib="glyphicon"))#,
-             # menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
-             #          menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
-             #          menuSubItem("Random Text Selection", tabName = "randomText", icon = icon("chevron-right")),
-             #          menuSubItem("External information", tabName = "extInfo", icon = icon("chevron-right")),
-             #          menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right")))
+             menuItem("Import", tabName = "import_tx", icon = icon("open-file", lib="glyphicon")),
+             menuItem("Settings",tabName = "settings", icon = icon("tasks"))
            )
          }
   )
@@ -2667,6 +2637,103 @@ topicGplot <- function(x, nPlot=10, type="beta"){
 
 }
 
+### deleteCache ------
+deleteCache <- function(){
+  switch(Sys.info()[['sysname']],
+         Windows= {home <- Sys.getenv('R_USER')},
+         Linux  = {home <- Sys.getenv('HOME')},
+         Darwin = {home <- Sys.getenv('HOME')})
+
+  # setting up the main directory
+  path_tall <- file.path(home,"tall")
+  result <- unlink(path_tall, recursive = TRUE)
+  btn_labels="OK"
 
 
+  if (result==0){
+    subtitle <- paste0("The folder '",path_tall,"' \nand files contained in it have been correctly deleted")
+    title <- ""
+    btn_colors = "#1d8fe1"
+    showButton = TRUE
+    timer = 3000
+    type = "success"
+  } else {
+    subtitle <- paste0("The folder '",path_tall,"' \ndoes not exist or you don't have permissions to delete it")
+    title <- ""
+    btn_colors = "#913333"
+    showButton = TRUE
+    timer = 3000
+    type="error"
+  }
+  show_alert(
+    title = title,
+    text = subtitle,
+    type = type,
+    size = "s",
+    closeOnEsc = TRUE,
+    closeOnClickOutside = TRUE,
+    html = FALSE,
+    showConfirmButton = showButton,
+    showCancelButton = FALSE,
+    btn_labels = btn_labels,
+    btn_colors = btn_colors,
+    timer = timer,
+    imageUrl = "",
+    animation = TRUE
+  )
+}
+
+#### language models repo ----
+langrepo <- function(){
+  known_models<- c(
+    "english-ewt", "english-gum", "english-lines",
+    "english-partut","italian-isdt",
+    "italian-partut", "italian-postwita",
+    "italian-twittiro", "italian-vit",
+    "french-gsd", "french-partut", "french-sequoia",
+    "french-spoken",
+    "german-gsd", "german-hdt",
+    "spanish-ancora", "spanish-gsd",
+    "afrikaans-afribooms",
+    "ancient_greek-perseus", "ancient_greek-proiel", "arabic-padt",
+    "armenian-armtdp", "basque-bdt", "belarusian-hse", "bulgarian-btb",
+    "catalan-ancora", "chinese-gsd", "chinese-gsdsimp", "classical_chinese-kyoto",
+    "coptic-scriptorium", "croatian-set", "czech-cac", "czech-cltt",
+    "czech-fictree", "czech-pdt", "danish-ddt", "dutch-alpino",
+    "dutch-lassysmall", "estonian-edt", "estonian-ewt", "finnish-ftb",
+    "finnish-tdt",  "galician-ctg", "galician-treegal",
+    "gothic-proiel", "greek-gdt",
+    "hebrew-htb", "hindi-hdtb", "hungarian-szeged", "indonesian-gsd",
+    "irish-idt", "italian-isdt", "japanese-gsd", "korean-gsd",
+    "korean-kaist", "latin-ittb", "latin-perseus", "latin-proiel",
+    "latvian-lvtb", "lithuanian-alksnis", "lithuanian-hse",
+    "maltese-mudt", "marathi-ufal", "north_sami-giella",
+    "norwegian-bokmaal", "norwegian-nynorsk", "norwegian-nynorsklia",
+    "old_church_slavonic-proiel", "old_french-srcmf", "old_russian-torot",
+    "persian-seraji", "polish-lfg", "polish-pdb", "portuguese-bosque",
+    "portuguese-gsd", "romanian-nonstandard", "romanian-rrt",
+    "russian-gsd", "russian-syntagrus", "russian-taiga",
+    "scottish_gaelic-arcosg", "serbian-set", "slovak-snk",
+    "slovenian-ssj", "slovenian-sst",
+    "swedish-lines", "swedish-talbanken", "tamil-ttb", "telugu-mtg",
+    "turkish-imst", "ukrainian-iu", "urdu-udtb", "uyghur-udt",
+    "vietnamese-vtb", "wolof-wtb")
+
+  default_models <-  gsub("-.*","",known_models)
+
+  chapter_vec <- c(
+    "CHAPTER","CAPITOLO","CHAPITRE","KAPITEL","CAPÍTULO","HOOFSTUK"  ,"ΚΕΦΑΛΑΙΟ","فصل","ԳԼՈՒԽ","KAPITULU","ГЛАВА","ГЛАВА",
+    "CAPÍTOL","章","章","ⲡⲏⲡⲟⲗⲁⲓⲟⲥ", "POGLAVLJE", "KAPITOLA",  "KAPITEL",   "HOOFDSTUK", "PEATÜKK",   "LUKU",      "CAPÍTULO",  "KAPITULS",
+    "ΚΕΦΑΛΑΙΟ",  "פרק",       "अध्याय",     "FEJEZET",   "BAB",       "CAIBIDIL",  "章"  ,      "장"  ,      "CAPITULUM", "NODAĻA",    "SKYRIUS",   "KAPITOLU",
+    "अध्याय",     "CAŊÁLAŠ",   "KAPITTEL",  "ГЛАВА" ,    "CHAPITRE",  "ГЛАВА" ,    "فصل"  ,     "ROZDZIAŁ",  "CAPÍTULO",  "CAPITOL",   "ГЛАВА"  ,   "CAIBIDIL" ,
+    "ГЛАВА" ,    "KAPITOLA" , "POGLAVJE"  ,"KAPITEL"  , "அதிர்வேகம்",  "అధ్యాయం"  ,   "BÖLÜM",     "ГЛАВА",     "باب",       "BAB",       "CHƯƠNG",    "KOW")
+
+  languages <- tibble(short=default_models, repo=known_models) %>%
+    group_by(short) %>%
+    mutate(repo=repo[1]) %>%
+    distinct()
+
+  languages$chapter <- chapter_vec
+  return(languages)
+}
 
