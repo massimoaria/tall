@@ -210,24 +210,39 @@ body <- dashboardBody(
                                                                     font-size: 17px; color: #ffff;")
                                             )
                            ),
-                           conditionalPanel(condition="input.load != 'null'",
-                                            tags$hr(),
+                           conditionalPanel(condition="input.runImport > 0",#"input.load != 'null' & input.runImport > 0",
+                                            hr(),
                                             div(
-                                              align = "center",
-                                              width=12,
-                                              downloadButton(outputId="collection.save",
-                                                             label = strong("Export Raw Texts in Excel"),
-                                                             icon = NULL,
-                                                             style ="border-radius: 15px; border-width: 1px; font-size: 15px;
-                                                                    text-align: center; color: #ffff; "
-
+                                            fluidRow(
+                                              column(6,
+                                                     div(align="center",
+                                                         title = "Export raw text(s) in Excel",
+                                                         do.call("downloadButton", c(list(
+                                                           label=NULL,
+                                                           style ="display:block; height: 37px; width: 37px; border-radius: 50%;
+                                      border: 1px; margin-top: 16px;",
+                                                           icon = icon(name ="download-alt", lib="glyphicon"),
+                                                           outputId = "collection.save")
+                                                         )
+                                                         )
+                                                     )
+                                              ),
+                                              column(6,
+                                                     div(align="center",
+                                                     title = "Back to imported text(s) ",
+                                                     do.call("actionButton", c(back_bttn, list(
+                                                       inputId = "importTextBack")
+                                                     )
+                                                     )
+                                                     )
                                               )
                                             )
+                           ,style="margin-top: -15px")
                            )
-                         )
                        )
                 )
               )
+            )
             )
     ),
 
@@ -254,6 +269,8 @@ body <- dashboardBody(
                            textInput(inputId="txSplitWord",
                                      label="Insert a word or a sequence of special chars (e.g. H1__)",
                                      value=NULL),
+                           hr(),
+                           div(
                            fluidRow(
                              column(6,
                                     div(align="center",
@@ -277,6 +294,7 @@ body <- dashboardBody(
                                     )
                              )
                            )
+                           ,style="margin-top: -15px")
 
                          )
                        )
@@ -401,6 +419,7 @@ body <- dashboardBody(
                            ),
 
                            hr(),
+                           div(
                            fluidRow(
                              column(6,div(
                                title = t_run,
@@ -422,7 +441,7 @@ body <- dashboardBody(
                                       )),align="center"
                                     )
                              )
-                           )
+                           ),style="margin-top: -15px")
                          )
 
                        )
@@ -539,14 +558,15 @@ body <- dashboardBody(
                          box(
                            width = 12,
                            div(h3(strong(em("Import Term Custom Lists"))), style="margin-top:-57px"),
-                           tags$hr(),
-                           fluidRow(column(12,
+                           hr(),
+
                                            fileInput("custom_lists", label=NULL,
                                                      multiple = TRUE,
                                                      accept = c(".csv",
                                                                 ".xls",
-                                                                ".xlsx"))
-                           )),
+                                                                ".xlsx")),
+                           hr(),
+                           div(
                            fluidRow(column(6,
                                            div(
                                              align = "center",style="margin-top:-15px",
@@ -566,9 +586,9 @@ body <- dashboardBody(
                                     )
                                   )
                            )
-                           )
-                         ),style="margin-top:40px"
-                       )
+                           ), style="margin-top: -8px")
+                         ),style="margin-top: 40px")
+
                 )
 
               )
@@ -632,6 +652,7 @@ body <- dashboardBody(
                                                  step = 0.1))
                            ),
                            uiOutput("multiwordPosSel"),
+                           hr(),
                            fluidRow(column(6,
                                            div(
                                              align = "center",style="margin-top:-15px",
@@ -654,7 +675,7 @@ body <- dashboardBody(
                                   )
                            )
                            )
-                         ), style="margin-top:40px")
+                         ),style="margin-top: -15px")
 
                 )
               )
@@ -688,6 +709,7 @@ body <- dashboardBody(
                            fluidRow(column(12,
                                            uiOutput("posTagLists")
                            )),
+                           hr(),
                            fluidRow(column(6,
                                            div(
                                              align = "center",style="margin-top:-15px",
@@ -709,7 +731,7 @@ body <- dashboardBody(
                                   )
                            )
                            )
-                         ), style="margin-top:40px"
+                         ),style="margin-top: -15px"
                        )
                 )
 
@@ -739,6 +761,7 @@ body <- dashboardBody(
                            uiOutput("defineGroupsList"),
                            uiOutput(outputId = "infoGroups"),
                            hr(),
+                           div(
                            fluidRow(
                              column(6,
                                     div(align="center",
@@ -761,7 +784,7 @@ body <- dashboardBody(
                                         )
                                     )
                              )
-                           )
+                           ), style="margin-top:-15px")
 
                          )
                        )
@@ -779,14 +802,12 @@ body <- dashboardBody(
                 column(11,
                        h3(strong("Overview"), align = "center")),
                 div(
-                  title = t_report,style=style_opt,
+                  title = t_report,
                   column(1,
                          do.call("actionButton", c(report_bttn, list(
                            inputId = "overviewReport")
                          ))
-                  )
-                ),
-
+                  ))
               ),
               fluidRow(
                 tabsetPanel(type = "tabs", id = "maininfo",
@@ -812,7 +833,8 @@ body <- dashboardBody(
                                      )
                             ),
                             tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput(outputId = "overviewData", width = 700))
+                                     shinycssloaders::withSpinner(DT::DTOutput(outputId = "overviewData", width = 700),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
                             ),
                             tabPanel("WordCloud",
                                      column(9,
@@ -847,7 +869,8 @@ body <- dashboardBody(
                                      )
                             ),
                             tabPanel("Vocabulary",
-                                     column(9,shinycssloaders::withSpinner(DT::DTOutput(outputId = "dictionaryData", width = 700))),
+                                     column(9,shinycssloaders::withSpinner(DT::DTOutput(outputId = "dictionaryData", width = 700),
+                                                                           color = getOption("spinner.color", default = "#4F7942"))),
                                      column(3,
                                             div(
                                               box(
@@ -877,7 +900,8 @@ body <- dashboardBody(
                                      )
                             ),
                             tabPanel("TF-IDF",
-                                     shinycssloaders::withSpinner(DT::DTOutput(outputId = "tfidfData", width = 700)))
+                                     shinycssloaders::withSpinner(DT::DTOutput(outputId = "tfidfData", width = 700),
+                                                                  color = getOption("spinner.color", default = "#4F7942")))
                 ), align="center"
               )
             )
@@ -2150,6 +2174,7 @@ body <- dashboardBody(
                                            ))
                            ),
                            hr(),
+                           div(
                            fluidRow(
                              column(6,
                                     div(align="center",
@@ -2172,7 +2197,7 @@ body <- dashboardBody(
                                         )
                                     )
                              )
-                           )
+                           ), style="margin-top: -15px")
                          ),style="margin-top:40px"
                        )
                 )

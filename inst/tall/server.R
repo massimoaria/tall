@@ -273,6 +273,12 @@ server <- function(input, output, session){
     }, contentType = "xlsx"
   )
 
+  # Back to the original import text ----
+  observeEvent(input$importTextBack, {
+    values$txt <- values$txt %>%
+      mutate(doc_selected = TRUE)
+  })
+
   ## EDIT ----
 
   ### SPLIT TEXTS ----
