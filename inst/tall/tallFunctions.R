@@ -2483,7 +2483,7 @@ menuList <- function(menu){
 
 # DATA TABLE FORMAT ----
 DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, right=NULL, numeric=NULL, dom=TRUE, size='85%', filter="top",
-                     columnShort=NULL, columnSmall=NULL, round=2, title="", button=FALSE){
+                     columnShort=NULL, columnSmall=NULL, round=2, title="", button=FALSE, delete=FALSE){
 
   if (length(columnShort)>0){
     columnDefs = list(list(
@@ -2542,6 +2542,12 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
       select(Document, everything())
   }
 
+  if (isTRUE(delete)){
+    df <- df %>%
+      mutate(Remove = glue::glue('<button id="custom_btn_del" onclick="Shiny.onInputChange(\'button_id_del\', \'{doc_id}\')">Remove</button>')) %>%
+      select(Document, Remove, everything())
+  }
+
   tab <- DT::datatable(df, escape = FALSE,rownames = FALSE,
                        caption = caption,
                        extensions = c("Buttons", "ColReorder", "FixedHeader"),
@@ -2557,8 +2563,7 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
                                            c('10 rows', '25 rows', '50 rows', 'Show all')),
                          columnDefs = columnDefs
                        ),
-                       class = 'cell-border compact stripe',
-                       callback = JS('table.page(3).draw(false);')
+                       class = 'cell-border compact stripe'
   ) %>%
     DT::formatStyle(
       names(df),

@@ -174,7 +174,12 @@ server <- function(input, output, session){
   output$dataImported <- DT::renderDT({
     DATAloading()
     if (values$menu==0){
-      DTformat(values$txt %>% mutate(text = paste0(substr(text,1,500),"...")) %>% select(doc_id, text, everything()) %>% select(-doc_selected),left=2, nrow=5, filter="none", button=TRUE)
+      DTformat(values$txt %>%
+                 filter(doc_selected) %>%
+                 mutate(text = paste0(substr(text,1,500),"...")) %>%
+                 select(doc_id, text, everything()) %>%
+                 select(-doc_selected),
+               left=2, nrow=5, filter="none", button=TRUE, delete=TRUE)
     }
   })
   ### shortpath for folder path ----
@@ -689,7 +694,7 @@ server <- function(input, output, session){
   }
 
   output$groupData <- renderDT(server=FALSE,{
-    DTformat(values$newGr,nrow=nrow(10), size='100%', title="Groups By External Information", left=1)
+    DTformat(values$newGr,nrow=10, size='100%', title="Groups By External Information", left=1)
   })
 
 
@@ -1889,52 +1894,6 @@ server <- function(input, output, session){
     DTformat(docPolarityOverall, filename = "DocPolarity", left=c(2,4,5,6), numeric = 3, round=4, button=TRUE)
   })
 
-  ## table click button ----
-  observeEvent(input$button_id, {
-    showModal(showDocumentModal(session))
-  })
-
-  showDocumentModal <- function(session) {
-    ns <- session$ns
-    modalDialog(
-      h3(strong(("Document corpus"))),
-      br(),
-      uiOutput("showDocument"),
-      size = "l",
-      easyClose = TRUE,
-      footer = tagList(
-        actionButton(label="Close", inputId = "closeShowDocument", style="color: #ffff;",
-                     icon = icon("remove", lib = "glyphicon"))
-      ),
-    )
-  }
-
-  observeEvent(input$closeShowDocument,{
-    removeModal(session = getDefaultReactiveDomain())
-  })
-
-  output$showDocument <- renderUI({
-    if (input$sidebarmenu %in% c("import_tx","split_tx")){
-      text <- values$txt %>% filter(doc_id==input$button_id)
-      text <- gsub("\n\n","<br><br>",text$text)
-    } else{
-      txt1 <- (paste0("Document ID: ",input$button_id))
-      doc <- values$dfTag %>% filter(doc_id==input$button_id) %>%
-        distinct(paragraph_id,sentence_id, sentence) %>%
-        group_by(paragraph_id) %>%
-        summarize(paragraph=paste0(sentence,collapse=" ")) %>%
-        ungroup()
-      txt2 <- paste(doc$paragraph,collapse="<br><br>")
-      text <- paste0(txt1,"<br><br>",txt2)
-    }
-
-    tagList(
-      div(
-        h4(HTML(text)),
-        style="text-align:left")
-    )
-  })
-
   ## Summarization ----
 
   output$optionsSummarization <- renderUI({
@@ -2070,6 +2029,70 @@ server <- function(input, output, session){
 
   ## SETTINGS ----
 
+  ## UTILITY ----
+  ## table click button ----
+  observeEvent(input$button_id, {
+    showModal(showDocumentModal(session))
+  })
+
+  showDocumentModal <- function(session) {
+    ns <- session$ns
+    modalDialog(
+      h3(strong(("Document corpus"))),
+      br(),
+      uiOutput("showDocument"),
+      size = "l",
+      easyClose = TRUE,
+      footer = tagList(
+        actionButton(label="Close", inputId = "closeShowDocument", style="color: #ffff;",
+                     icon = icon("remove", lib = "glyphicon"))
+      ),
+    )
+  }
+
+  observeEvent(input$closeShowDocument,{
+    removeModal(session = getDefaultReactiveDomain())
+  })
+
+  output$showDocument <- renderUI({
+    if (input$sidebarmenu %in% c("import_tx","split_tx")){
+      text <- values$txt %>% filter(doc_id==input$button_id)
+      text <- gsub("\n\n","<br><br>",text$text)
+    } else{
+      txt1 <- (paste0("Document ID: ",input$button_id))
+      doc <- values$dfTag %>% filter(doc_id==input$button_id) %>%
+        distinct(paragraph_id,sentence_id, sentence) %>%
+        group_by(paragraph_id) %>%
+        summarize(paragraph=paste0(sentence,collapse=" ")) %>%
+        ungroup()
+      txt2 <- paste(doc$paragraph,collapse="<br><br>")
+      text <- paste0(txt1,"<br><br>",txt2)
+    }
+
+    tagList(
+      div(
+        h4(HTML(text)),
+        style="text-align:left")
+    )
+  })
+
+  observeEvent(input$button_id_del, {
+    if (input$sidebarmenu %in% c("import_tx","split_tx")){
+      values$txt <- values$txt %>%
+        mutate(doc_selected = ifelse(doc_id==input$button_id_del, FALSE, doc_selected))
+    }
+    output$dataImported <- DT::renderDT({
+      #DATAloading()
+      if (values$menu==0){
+        DTformat(values$txt %>%
+                   filter(doc_selected) %>%
+                   mutate(text = paste0(substr(text,1,500),"...")) %>%
+                   select(doc_id, text, everything()) %>%
+                   select(-doc_selected),
+                 left=2, nrow=5, filter="none", button=TRUE, delete=TRUE)
+      }
+    })
+  })
 
 
 } # END SERVER
