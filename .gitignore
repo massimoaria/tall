@@ -3,3 +3,6 @@
 .Rdata
 .httr-oauth
 .DS_Store
+temp_functions$
+file_test$
+inst/bbc$

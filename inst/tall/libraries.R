@@ -7,10 +7,29 @@ libraries <- function(){
   if (!require(shinydashboardPlus)){install.packages("shinydashboardPlus"); require(shinydashboardPlus, quietly=TRUE)}
   if (!require(shinyWidgets)){install.packages("shinyWidgets"); require(shinyWidgets, quietly=TRUE)}
   if (!require(shinycssloaders)){install.packages("shinycssloaders"); require(shinycssloaders, quietly=TRUE)}
-  if (!require(fontawesome)){install.packages("fontawesome"); require(fontawesome, quietly=TRUE)}
   if (!require(shinyjs)){install.packages("shinyjs"); require(shinyjs, quietly=TRUE)}
-  if (!require(tidyverse)){install.packages("tidyverse"); require(tidyverse, quietly=TRUE)}
+  if (!require(tidyverse)){install.packages("dplyr"); require(tidyverse, quietly=TRUE)}
   if (!require(DT)){install.packages("DT"); require(DT, quietly=TRUE)}
+  if (!require(plotly)){install.packages("plotly"); require(plotly, quietly=TRUE)}
+  if (!require(openxlsx)){install.packages("openxlsx"); require(openxlsx, quietly=TRUE)}
+  if (!require(readxl)){install.packages("readxl"); require(readxl, quietly=TRUE)}
+  if (!require(wordcloud2)){install.packages("wordcloud2"); require(wordcloud2, quietly=TRUE)}
+  if (!require(visNetwork)){install.packages("visNetwork", dependencies = TRUE); require(visNetwork, quietly=TRUE)}
+  if (!require(udpipe)){install.packages("udpipe"); require(udpipe, quietly=TRUE)}
+  if (!require(topicmodels)){install.packages("topicmodels"); require(topicmodels, quietly=TRUE)}
+  if (!require(textrank)){install.packages("textrank"); require(textrank, quietly=TRUE)}
+  if (!require(pdftools)){install.packages("pdftools"); require(pdftools, quietly=TRUE)}
+  if (!require(igraph)){install.packages("igraph")}
+  ## visNetwork dependencies
+  if (!require(tidygraph)){install.packages("tidygraph")}
+  if (!require(ggraph)){install.packages("ggraph")}
+  if (!require(sparkline)){install.packages("sparkline")}
+  if (!require(glue)){install.packages("glue")}
+  if (!require(readtext)){install.packages("readtext")}
+  if (!require(webshot2)){install.packages("webshot2")}
+  if (Sys.info()[["sysname"]]=="Windows") {
+  if (!require(doParallel)){install.packages("doParallel"); require(doParallel, quietly=TRUE)}}
+
 }
 
 # Custom Theme ----
@@ -82,7 +101,7 @@ customTheme <- function(){
   ,sidebarTabBorderWidthHover = 1
   ,sidebarTabRadiusHover = "0px 0px 0px 0px"
 
-  ,boxBackColor = "#dee2e6" #"rgb(255,255,255)"
+  ,boxBackColor = "#F5F5F560" #"rgb(255,255,255)"
   ,boxBorderRadius = 5
   ,boxShadowSize = "0px 0px 0px"
   ,boxShadowColor = "rgba(0,0,0,.1)"
@@ -90,7 +109,7 @@ customTheme <- function(){
   ,boxDefaultColor = "rgb(210,214,220)"
   ,boxPrimaryColor = "rgba(44,222,235,1)"
   ,boxInfoColor = "rgb(210,214,220)"
-  ,boxSuccessColor = "rgb(88,101,185)"
+  ,boxSuccessColor = "#6CC283"#"rgb(88,101,185)"
   ,boxWarningColor = "rgb(244,156,104)"
   ,boxDangerColor = "rgb(255,88,55)"
 
@@ -110,10 +129,10 @@ customTheme <- function(){
     ,colorStartPos = 0
     ,colorMiddlePos = 55
     ,colorEndPos = 100)
-  ,buttonTextColor = "rgb(255,255,255)"
+  ,buttonTextColor = "#4F7942" #rgb(255,255,255)"
   ,buttonBorderColor = "rgb(200,200,200)"
   ,buttonBorderRadius = 5
-  ,buttonBackColorHover = "rgb(255,255,255)"
+  ,buttonBackColorHover = "#4F7942"# "rgb(255,255,255)"
   ,buttonTextColorHover = "rgb(0,0,0)"
   ,buttonBorderColorHover = "rgb(200,200,200)"
 
