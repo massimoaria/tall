@@ -98,10 +98,10 @@ body <- dashboardBody(
     ### TALL PAGE ----
     tabItem(tabName = "tall",
             fluidRow(
-              h1(HTML("TA<i>ll</i>"), align="center", style = "font-family: 'Times New Roman'; font-size: 70px;"),
+              #h1(HTML("TA<i>ll</i>"), align="center", style = "font-family: 'Times New Roman'; font-size: 70px;"),
               br(),
-              div(img(src = "logo1.jpg", height = "35%",width = "35%"), style="text-align: center;"),
-              h3(("Text analysis for All"), align="center", style = "font-family: 'Times New Roman';"),
+              div(img(src = "logo1.jpg", height = "50%",width = "50%"), style="text-align: center;"),
+              h2(HTML("Textual Analysis for A<i>ll</i>"), align="center", style = "font-family: 'Times New Roman';"),
               br(),
               div(p("Powered by ",
                     em(a("K-Synth",
