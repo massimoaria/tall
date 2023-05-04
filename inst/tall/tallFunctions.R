@@ -1368,7 +1368,7 @@ avoidNetOverlaps <- function(w,threshold=0.10){
 }
 
 ## GRAKO ----
-grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity=0.6, minEdges=50, singleWords=FALSE, term="lemma"){
+grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity=0.6, minEdges=50, singleWords=TRUE, term="lemma"){
 
   opacity.min=0.5
 
@@ -1411,6 +1411,7 @@ grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity
     rename(to = id,
            s= cooc) %>%
     drop_na() %>%
+    filter(s>1) %>%
     mutate(sA = s/(s_from*s_to),
            sC = s/(sqrt(s_from*s_to)),
            sJ = s/(s_from+s_to-s),
@@ -1418,7 +1419,6 @@ grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity
            role = ifelse(upos_from!="VERB","active","passive"),
            color = ifelse(role=="active", "#4F794250", "#E41A1C50")
     )
-
   switch(normalization,
          none={edges$value <- edges$sNorm*14+1},
          association={edges$value <- edges$sA*14+1},
@@ -1426,8 +1426,8 @@ grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity
          jaccard={edges$value <- edges$sJ*14+1})
 
   edges <- edges %>%
-    filter(s>1) %>%
-    slice_max(value, n=n)
+    arrange(desc(value)) %>%
+    slice_head(n=n)
 
   tailEdges <- quantile(edges$value,1-(minEdges/100))
 
@@ -2378,8 +2378,7 @@ menuList <- function(menu){
              menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
                       menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
                       menuSubItem("Random Text Selection", tabName = "randomText", icon = icon("chevron-right")),
-                      menuSubItem("External information", tabName = "extInfo", icon = icon("chevron-right")),
-                      menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
+                      menuSubItem("External information", tabName = "extInfo", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
                       menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right"), selected = TRUE)
              ),
@@ -2392,8 +2391,7 @@ menuList <- function(menu){
              menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
                       menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
                       menuSubItem("Random Text Selection", tabName = "randomText", icon = icon("chevron-right")),
-                      menuSubItem("External information", tabName = "extInfo", icon = icon("chevron-right")),
-                      menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
+                      menuSubItem("External information", tabName = "extInfo", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
                       menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
                       menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right"), selected = TRUE),
@@ -2416,6 +2414,7 @@ menuList <- function(menu){
                       menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right")),
                       menuSubItem("Multi-Word Creation", tabName = "multiwordCreat",icon = icon("chevron-right")),
                       menuSubItem("PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right")), selected = TRUE),
+             menuItem("Filter", tabName = "filter_text", icon = icon("filter")),
              menuItem("Groups",tabName = "defineGroups", icon = icon("th", lib="glyphicon")),
              menuItem("Overview", tabName = "overview", icon = icon("search", lib="glyphicon")),
              menuItem("Words", tabName = "words", icon = icon("font", lib = "glyphicon"),

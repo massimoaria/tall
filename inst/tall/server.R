@@ -44,6 +44,7 @@ server <- function(input, output, session){
   values$TMdocIndex <- 1
   values$tmTopSentences <- FALSE
   values$selectedGroups <- NULL
+  values$selectedFilter <- ""
 
 
   ## Setting plot values
@@ -182,7 +183,7 @@ server <- function(input, output, session){
                  mutate(text = paste0(substr(text,1,500),"...")) %>%
                  select(doc_id, text, everything()) %>%
                  select(-doc_selected),
-               left=2, nrow=5, filter="none", button=TRUE, delete=TRUE)
+               left=3, nrow=5, filter="none", button=TRUE, delete=TRUE)
     }
   })
   ### shortpath for folder path ----
@@ -338,8 +339,8 @@ server <- function(input, output, session){
     EXTINFOloading()
     DTformat(values$txt %>%
                filter(doc_selected) %>%
-               mutate(text = paste0(substr(text,1,500),"...")),
-             left=2, nrow=3, filter="none")
+               mutate(text = paste0(substr(text,1,250),"...")),
+             left=4, nrow=3, filter="top", button=TRUE, delete=TRUE)
   })
 
 
@@ -354,6 +355,12 @@ server <- function(input, output, session){
                                             file=file))
     }, contentType = "xlsx"
   )
+
+  # Back to the original import text ----
+  observeEvent(input$extInfoTextBack, {
+    values$txt <- values$txt %>%
+      mutate(doc_selected = TRUE)
+  })
 
   ### PRE-PROCESSING ----
 
@@ -393,8 +400,7 @@ server <- function(input, output, session){
       left_join(values$txt %>% select(-text), by = "doc_id") %>%
       posSel(., c("ADJ","NOUN","PROPN", "VERB"))
     values$dfTag <- highlight(values$dfTag)
-    #mutate(POSSelected = ifelse(upos %in% c("ADJ","NOUN","PROPN", "VERB"), TRUE, FALSE))
-
+    values$dfTag$docSelected <- TRUE
     values$menu <- 1
 
   }
@@ -404,7 +410,7 @@ server <- function(input, output, session){
     posTagging()
 
     if(!is.null(values$dfTag)){
-      DTformat(values$dfTag%>% select(doc_id, paragraph_id, sentence_id,sentence,token,lemma, upos) %>%
+      DTformat(values$dfTag %>% filter(docSelected) %>% select(doc_id, paragraph_id, sentence_id,sentence,token,lemma, upos) %>%
                  rename(D_id=doc_id,
                         P_id=paragraph_id,
                         S_id=sentence_id,
@@ -606,6 +612,59 @@ server <- function(input, output, session){
     }, contentType = "tall"
   )
 
+  ## FILTER ----
+  output$filterList <- renderUI({
+    label <- c("",sort(noGroupLabels(names(values$dfTag))))
+    selectInput(
+      inputId = "filterList",
+      label = NULL,
+      choices = label,
+      selected = values$selectedFilter,
+      width = "100%"
+    )
+  })
+
+  observeEvent(ignoreNULL = TRUE,
+               eventExpr={input$filterList},
+               handlerExpr = {
+                 if (nchar(input$filterList)>0){
+                   filtervalues <- dfTag %>%
+                     filter(POSSelected) %>%
+                     select(all_of(input$filterList)) %>%
+                     distinct()
+                   filtervalues <- sort(filtervalues[[1]])
+                   values$selectedFilter <- input$filterList
+
+                   output$filterValue <- renderUI({
+                     multiInput(
+                       inputId="filterValue",
+                       label=NULL,
+                       choices = filtervalues,
+                       selected = NULL,
+                       width = "100%"
+                     )
+                   })
+                 }
+               })
+
+  filterDATA <- eventReactive(
+    ignoreNULL = TRUE,
+    eventExpr = {input$filterRun},
+    valueExpr = {
+      if (!is.null(input$filterValue)){
+        values$dfTag$docSelected <- ifelse(values$dfTag[[values$selectedFilter]] %in% input$filterValue,TRUE,FALSE)
+      } else {
+        values$dfTag$docSelected <- TRUE
+      }
+      values$dfTag
+    })
+
+  output$filterData <- renderDT({
+    filterDATA()
+    DTformat(values$dfTag %>%
+               filter(docSelected & POSSelected), nrow=3, size='100%', title=paste0("Filtered Data by ", input$filterList))
+  })
+
   ## GROUPS ----
 
   ### Define groups ----
@@ -665,12 +724,14 @@ server <- function(input, output, session){
 
   output$defineGroupsData <- renderDT({
     groupMetadata()
-    DTformat(values$dfTag, nrow=3, size='100%', title="Data Grouped By External Information")
+    DTformat(values$dfTag %>% filter(docSelected), nrow=3, size='100%', title="Data Grouped By External Information")
   })
 
   groupModal <- function(session) {
     ns <- session$ns
-    values$newGr <- values$dfTag %>% count(doc_id, ungroupDoc_id) %>%
+    values$newGr <- values$dfTag %>%
+      filter(docSelected) %>%
+      count(doc_id, ungroupDoc_id) %>%
       group_by(doc_id) %>%
       count()
     names(values$newGr) = c(input$defineGroupsList, "N. of Docs")
@@ -713,7 +774,7 @@ server <- function(input, output, session){
 
   #### box1 ---------------
   output$nDoc <- renderValueBox({
-    values$vb <- valueBoxesIndices(values$dfTag)
+    values$vb <- valueBoxesIndices(values$dfTag %>% filter(docSelected))
     valueBox(value = p("Documents", style = 'font-size:16px;color:white;'),
              subtitle = p(strong(values$vb$nDoc), style = 'font-size:36px;color:white;', align="center"),
              icon = icon("duplicate", lib="glyphicon"), color = "olive",
@@ -825,7 +886,7 @@ server <- function(input, output, session){
   output$wordcloudPlot <- renderWordcloud2({
 
     n <- 200 #showing the first 200 lemmas
-    wcDfPlot <- freqByPos(values$dfTag, term=input$termWC,pos=unique(values$dfTag$upos[values$dfTag$POSSelected==TRUE])) %>%
+    wcDfPlot <- freqByPos(values$dfTag %>% filter(docSelected), term=input$termWC,pos=unique(values$dfTag$upos[values$dfTag$POSSelected==TRUE & values$dfTag$docSelected==TRUE])) %>%
       slice_head(n=n) %>%
       #mutate(n=log(n)) %>%
       rename(text = term,
@@ -845,7 +906,7 @@ server <- function(input, output, session){
 
   output$wcDfData <- renderDT(server=FALSE,{
     n=200
-    wcDfTable <- freqByPos(values$dfTag, term="lemma",pos=unique(values$dfTag$upos[values$dfTag$POSSelected==TRUE])) %>%
+    wcDfTable <- freqByPos(values$dfTag%>% filter(docSelected), term="lemma",pos=unique(values$dfTag$upos[values$dfTag$POSSelected==TRUE & values$dfTag$docSelected==TRUE])) %>%
       slice_head(n=n) %>%
       rename(Lemma = term,
              Freq = n)
@@ -890,7 +951,7 @@ server <- function(input, output, session){
     #values$dictFreq <- freqByPos(values$dfTag, term=input$termDict, pos=c("PROPN", "NOUN", "ADJ", "VERB"))
     Term <- input$termDict
     values$dictFreq <- values$dfTag %>%
-      dplyr::filter(POSSelected) %>%
+      dplyr::filter(POSSelected & docSelected) %>%
       mutate(token = ifelse(upos == "MULTIWORD", lemma,token))
 
     if (Term=="lemma"){
@@ -922,7 +983,7 @@ server <- function(input, output, session){
   ## TF-IDF ----
   output$tfidfData <- renderDT(server=FALSE,{
     DTformat(values$dfTag %>%
-               dplyr::filter(POSSelected) %>%
+               dplyr::filter(POSSelected & docSelected) %>%
                tfidf(term="lemma") %>%
                rename(
                  Lemma = term,
@@ -969,6 +1030,7 @@ server <- function(input, output, session){
     if (input$sidebarmenu=="w_other"){
       word_search <- word
       sentences <- values$dfTag %>%
+        filter(docSelected) %>%
         filter(lemma %in% word_search) %>%
         ungroup() %>% select(lemma, token, sentence_hl)
     } else if (input$sidebarmenu=="ca"){
@@ -979,11 +1041,13 @@ server <- function(input, output, session){
       word <- word$label
       word_search <- unique(c(word, values$dfTag$token[values$dfTag$lemma==word]))
       sentences <- values$dfTag %>%
+        filter(docSelected) %>%
         filter(token %in% word_search) %>%
         ungroup() %>% select(lemma, token, sentence_hl)
     } else {
       word_search <- unique(c(word, values$dfTag$token[values$dfTag$lemma==word]))
       sentences <- values$dfTag %>%
+        filter(docSelected) %>%
         filter(token %in% word_search) %>%
         ungroup() %>% select(lemma, token, sentence_hl)
     }
@@ -1056,7 +1120,7 @@ server <- function(input, output, session){
       input$nounApply
     },
     valueExpr = {
-      values$freqNoun <- freqByPos(values$dfTag, term="lemma", pos="NOUN")
+      values$freqNoun <- freqByPos(values$dfTag%>% filter(docSelected), term="lemma", pos="NOUN")
       freqPlotly(values$freqNoun,x="n",y="term",n=input$nounN, xlabel="Frequency",ylabel="NOUN", scale="identity")
     }
   )
@@ -1094,7 +1158,7 @@ server <- function(input, output, session){
       input$propnApply
     },
     valueExpr = {
-      values$freqPropn <- freqByPos(values$dfTag, term="lemma", pos="PROPN")
+      values$freqPropn <- freqByPos(values$dfTag %>% filter(docSelected), term="lemma", pos="PROPN")
       freqPlotly(values$freqPropn,x="n",y="term",n=input$propnN, xlabel="Frequency",ylabel="PROPN", scale="identity")
 
     }
@@ -1131,7 +1195,7 @@ server <- function(input, output, session){
       input$adjApply
     },
     valueExpr = {
-      values$freqAdj <- freqByPos(values$dfTag, term="lemma", pos="ADJ")
+      values$freqAdj <- freqByPos(values$dfTag %>% filter(docSelected), term="lemma", pos="ADJ")
       freqPlotly(values$freqAdj,x="n",y="term",n=input$adjN, xlabel="Frequency",ylabel="ADJ", scale="identity")
     }
   )
@@ -1167,7 +1231,7 @@ server <- function(input, output, session){
       input$verbApply
     },
     valueExpr = {
-      values$freqVerb <- freqByPos(values$dfTag, term="lemma", pos="VERB")
+      values$freqVerb <- freqByPos(values$dfTag %>% filter(docSelected), term="lemma", pos="VERB")
       freqPlotly(values$freqVerb,x="n",y="term",n=input$verbN, xlabel="Frequency",ylabel="VERB", scale="identity")
     }
   )
@@ -1204,7 +1268,7 @@ server <- function(input, output, session){
       input$otherApply
     },
     valueExpr = {
-      values$freqOther <- freqByPos(values$dfTag, term="lemma", pos="MULTIWORD")
+      values$freqOther <- freqByPos(values$dfTag %>% filter(docSelected), term="lemma", pos="MULTIWORD")
       freqPlotly(values$freqOther,x="n",y="term",n=input$otherN, xlabel="Frequency",ylabel="Multi-Words", scale="identity")
     }
   )
@@ -1242,6 +1306,7 @@ server <- function(input, output, session){
     },
     valueExpr = {
       values$freqPOS <- values$dfTag %>%
+        filter(docSelected) %>%
         dplyr::filter(!upos %in% c("PUNCT", "SYM", "NUM")) %>%
         group_by(upos) %>%
         count() %>%
@@ -1284,6 +1349,7 @@ server <- function(input, output, session){
     valueExpr = {
       word_search <- req(tolower(input$wordsContSearch))
       values$wordInContext <- values$dfTag %>%
+        filter(docSelected) %>%
         filter(tolower(lemma) %in% word_search | tolower(token) %in% word_search) %>%
         ungroup() %>% select(lemma, token, sentence_hl) %>%
         rename(Lemma=lemma, Token=token, Sentence=sentence_hl)
@@ -1302,7 +1368,7 @@ server <- function(input, output, session){
     ignoreNULL = TRUE,
     eventExpr = {input$w_clusteringApply},
     valueExpr ={
-      results <- clustering(values$dfTag, n=input$w_clusteringNMax,
+      results <- clustering(values$dfTag %>% filter(docSelected), n=input$w_clusteringNMax,
                             group="doc_id", minEdges=25, term=input$termClustering,
                             normalization=input$w_clusteringSimilarity)
       values$wordCluster <- results$cluster
@@ -1346,7 +1412,7 @@ server <- function(input, output, session){
     ignoreNULL = TRUE,
     eventExpr = {input$caApply},
     valueExpr ={
-      values$CA <- wordCA(values$dfTag, n=input$nCA, term=input$termCA, group = input$groupCA)
+      values$CA <- wordCA(values$dfTag%>% filter(docSelected), n=input$nCA, term=input$termCA, group = input$groupCA)
       values$CA <- caClustering(values$CA, nclusters = input$nClustersCA, nDim=input$nDimsCA)
       values$CAdimY <- as.numeric(input$dimPlotCA)*2
       values$CAdimX <- values$CAdimY-1
@@ -1433,7 +1499,7 @@ server <- function(input, output, session){
              Documents={group <- "doc_id"},
              Paragraphs={group <- c("doc_id", "paragraph_id")},
              Sentences={group <- c("doc_id", "sentence_id")})
-      values$network <- network(values$dfTag, term=input$w_term, group=group,
+      values$network <- network(values$dfTag %>% filter(docSelected), term=input$w_term, group=group,
                                 n=input$nMax, minEdges=input$minEdges,
                                 labelsize=input$labelSize, opacity=input$opacity,
                                 interLinks=input$interLinks, normalization=input$normalizationCooc,
@@ -1485,13 +1551,13 @@ server <- function(input, output, session){
     contentType = "png"
   )
 
-  output$textLog <- renderUI({
-    k=dim(values$M)[1]
-    if (k==1){k=0}
-    log=paste("Number of Documents ",k)
-    textInput("textLog", "Conversion results",
-              value=log)
-  })
+  # output$textLog <- renderUI({
+  #   k=dim(values$M)[1]
+  #   if (k==1){k=0}
+  #   log=paste("Number of Documents ",k)
+  #   textInput("textLog", "Conversion results",
+  #             value=log)
+  # })
 
 
   ## Click on visNetwork: WORDS IN CONTEXT ----
@@ -1532,6 +1598,7 @@ server <- function(input, output, session){
     } else {
       word_search<- values$network$nodes$label[values$network$nodes$id==id]
       sentences <- values$dfTag %>%
+        filter(docSelected) %>%
         filter(lemma %in% word_search) %>%
         ungroup() %>% select(lemma, token, sentence_hl)
     }
@@ -1578,6 +1645,7 @@ server <- function(input, output, session){
            })
 
     sentences <- values$dfTag %>%
+      filter(docSelected) %>%
       filter(lemma %in% word_search) %>%
       ungroup() %>% select(lemma, token, sentence_hl)
 
@@ -1591,7 +1659,7 @@ server <- function(input, output, session){
     ignoreNULL = TRUE,
     eventExpr = {input$w_networkGrakoApply},
     valueExpr ={
-      values$grako <- grako(values$dfTag, n=input$grakoNMax, minEdges=input$grakoMinEdges,
+      values$grako <- grako(values$dfTag %>% filter(docSelected), n=input$grakoNMax, minEdges=input$grakoMinEdges,
                             labelsize=input$grakoLabelSize, opacity=input$grakoOpacity,
                             normalization=input$grakoNormalization,
                             singleWords=input$grakoUnigram,term=input$grako_term)
@@ -1652,7 +1720,7 @@ server <- function(input, output, session){
     ignoreNULL = TRUE,
     eventExpr = {input$d_tm_selectApply},
     valueExpr ={
-      values$TMKresult <- tmTuning(values$dfTag, group=input$groupTm, term=input$termTm,
+      values$TMKresult <- tmTuning(values$dfTag %>% filter(docSelected), group=input$groupTm, term=input$termTm,
                                    metric=input$metric, n=input$nTm, top_by=input$top_by, minK=input$minK, maxK=input$maxK, Kby=input$Kby)
       values$TMKplot <- tmTuningPlot(values$TMKresult, metric=input$metric)
     }
@@ -1690,7 +1758,7 @@ server <- function(input, output, session){
       values$TMplotIndex <- 1
       values$TMdocIndex <- 1
       if (isTRUE(input$tmKauto)){
-        values$TMKresult <- tmTuning(values$dfTag, group=input$groupTmEstim, term=input$termTmEstim,
+        values$TMKresult <- tmTuning(values$dfTag %>% filter(docSelected), group=input$groupTmEstim, term=input$termTmEstim,
                                      metric="CaoJuan2009", n=input$nTmEstim, top_by=input$top_byEstim, minK=2, maxK=20, Kby=1)
         K <- values$TMKresult %>% slice_min(CaoJuan2009, n=1)
         values$tmK <- K$topics
@@ -1698,7 +1766,7 @@ server <- function(input, output, session){
         values$tmK <- input$KEstim
       }
       values$TMplotList <- split(1:values$tmK, ceiling(seq_along(1:values$tmK)/3))
-      values$TMestim_result <- tmEstimate(values$dfTag, K=values$tmK, group=input$groupTmEstim,
+      values$TMestim_result <- tmEstimate(values$dfTag %>% filter(docSelected), K=values$tmK, group=input$groupTmEstim,
                                           term=input$termTmEstim, n=input$nTmEstim, top_by=input$top_byEstim)
     }
   )
@@ -1836,7 +1904,7 @@ server <- function(input, output, session){
         }  else {
           lexiconD_polarity <- input$lexiconD_polarity
         }
-        values$docPolarity <- sentimentAnalysis(values$dfTag, language = values$language, lexicon_model=lexiconD_polarity)
+        values$docPolarity <- sentimentAnalysis(values$dfTag %>% filter(docSelected), language = values$language, lexicon_model=lexiconD_polarity)
         values$docPolPlots <- sentimentWordPlot(values$docPolarity$sent_data, n=10)
       }
     }
@@ -1906,7 +1974,7 @@ server <- function(input, output, session){
 
   output$optionsSummarization <- renderUI({
     selectInput(
-      inputId = 'document_selection', label="Select Document", choices = unique(values$dfTag$doc_id),
+      inputId = 'document_selection', label="Select Document", choices = unique(values$dfTag$doc_id[values$dfTag$docSelected]),
       multiple=FALSE,
       width = "100%"
     )
@@ -2063,7 +2131,7 @@ server <- function(input, output, session){
   })
 
   output$showDocument <- renderUI({
-    if (input$sidebarmenu %in% c("import_tx","split_tx")){
+    if (input$sidebarmenu %in% c("import_tx","split_tx", "extInfo")){
       text <- values$txt %>% filter(doc_id==input$button_id)
       text <- gsub("\n\n","<br><br>",text$text)
     } else{
@@ -2085,7 +2153,7 @@ server <- function(input, output, session){
   })
 
   observeEvent(input$button_id_del, {
-    if (input$sidebarmenu %in% c("import_tx","split_tx")){
+    if (input$sidebarmenu %in% c("import_tx","split_tx", "extInfo")){
       values$txt <- values$txt %>%
         mutate(doc_selected = ifelse(doc_id==input$button_id_del, FALSE, doc_selected))
     }

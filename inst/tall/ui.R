@@ -213,15 +213,6 @@ body <- dashboardBody(
                            conditionalPanel(condition="input.runImport > 0",
                                             tags$hr(),
                                             div(
-                                              # align = "center",
-                                              # width=12,
-                                              # downloadButton(outputId="collection.save",
-                                              #                label = strong("Export Raw Texts in Excel"),
-                                              #                icon = NULL,
-                                              #                style ="border-radius: 15px; border-width: 1px; font-size: 15px;
-                                              #                       text-align: center; color: #ffff; "
-                                              #
-                                              # )
                                               fluidRow(
                                                 column(6,
                                                        div(align="center",
@@ -427,14 +418,22 @@ body <- dashboardBody(
 
                            hr(),
                            fluidRow(
-                             column(6,div(
+                             column(4,div(
                                title = t_run,
                                do.call("actionButton", c(run_bttn, list(
                                  inputId = "extInfoRun")
                                )), align="center"
                              )
                              ),
-                             column(6,
+                             column(4,
+                                    div(align="center",
+                                        title = "Back to imported text(s) ",
+                                        do.call("actionButton", c(back_bttn, list(
+                                          inputId = "extInfoTextBack")
+                                        )
+                                        )
+                                    )),
+                             column(4,
                                     div(
                                       title = t_save,
                                       do.call("downloadButton", c(list(
@@ -448,31 +447,11 @@ body <- dashboardBody(
                                     )
                              )
                            )
+
                          )
 
                        )
                 )
-              )
-            )
-    ),
-
-    ### FILTER TEXT ----
-
-    tabItem(tabName = "filter_text",
-            fluidRow(
-              column(9,DT::DTOutput("FilterText")),
-              column(3,
-                     box(
-                       width = 12,
-                       h3(strong("Filter text")),
-                       br(),
-                       fluidRow(column(12,
-                                       div(style ="border-radius: 10px; border-width: 3px; font-size: 15px;",
-                                           align = "center",
-                                           width=12,
-                                           actionBttn(inputId = "applyFilter", label = strong("Apply Filters"),
-                                                      width = 12, style = "pill", color = "primary"))))#,
-                     )
               )
             )
     ),
@@ -742,8 +721,60 @@ body <- dashboardBody(
             )
     ),
 
-    ### GROUPS ----
+    ### FILTER ----
+    tabItem(tabName = "filter_text",
+            fluidPage(
+              fluidRow(
+                column(12,
+                       h3(strong("Filter docs by available external information"), align = "center"))
+              ),
+              fluidRow(
+                column(9,
+                       shinycssloaders::withSpinner(DT::DTOutput("filterData"),color = getOption("spinner.color", default = "#4F7942"))
+                ),
+                column(3,
+                       fluidRow(
+                         box(
+                           width = 12,
+                           div(h3(strong(em("Filter by"))), style="margin-top:-57px"),
+                           hr(),
+                           helpText(h5("Select an external information to filter docs:")),
+                           uiOutput("filterList"),
+                           uiOutput("filterValue"),
+                           #uiOutput(outputId = "infoGroups"),
+                           hr(),
+                           fluidRow(
+                             column(6,
+                                    div(align="center",
+                                        title = t_run,
+                                        do.call("actionButton", c(run_bttn, list(
+                                          inputId = "filterRun")
+                                        ))
+                                    )
+                             ),
+                             column(6,
+                                    # div(align="center",
+                                    #     title = t_save,
+                                    #     do.call("downloadButton", c(list(
+                                    #       label=NULL,
+                                    #       style ="display:block; height: 37px; width: 37px; border-radius: 50%;
+                                    #   border: 1px; margin-top: 16px;",
+                                    #       icon = icon(name ="floppy-save", lib="glyphicon"),
+                                    #       outputId = "filterSave")
+                                    #     )
+                                    #     )
+                                    # )
+                             )
+                           )
 
+                         )
+                       )
+                )
+
+              )
+            )
+    ),
+    ### GROUPS ----
     tabItem(tabName = "defineGroups",
             fluidPage(
               fluidRow(
@@ -774,17 +805,17 @@ body <- dashboardBody(
                                     )
                              ),
                              column(6,
-                                    div(align="center",
-                                        title = t_save,
-                                        do.call("downloadButton", c(list(
-                                          label=NULL,
-                                          style ="display:block; height: 37px; width: 37px; border-radius: 50%;
-                                      border: 1px; margin-top: 16px;",
-                                          icon = icon(name ="floppy-save", lib="glyphicon"),
-                                          outputId = "defineGroupsSave")
-                                        )
-                                        )
-                                    )
+                                    # div(align="center",
+                                    #     title = t_save,
+                                    #     do.call("downloadButton", c(list(
+                                    #       label=NULL,
+                                    #       style ="display:block; height: 37px; width: 37px; border-radius: 50%;
+                                    #   border: 1px; margin-top: 16px;",
+                                    #       icon = icon(name ="floppy-save", lib="glyphicon"),
+                                    #       outputId = "defineGroupsSave")
+                                    #     )
+                                    #     )
+                                    # )
                              )
                            )
 
