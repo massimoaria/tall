@@ -628,7 +628,7 @@ server <- function(input, output, session){
                eventExpr={input$filterList},
                handlerExpr = {
                  if (nchar(input$filterList)>0){
-                   filtervalues <- dfTag %>%
+                   filtervalues <- values$dfTag %>%
                      filter(POSSelected) %>%
                      select(all_of(input$filterList)) %>%
                      distinct()
