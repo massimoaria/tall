@@ -326,8 +326,8 @@ body <- dashboardBody(
                              column(6,
                                     div(
                                       numericInput("sampleSize",
-                                                   "Sample Size",
-                                                   value = 10,
+                                                   "Sample Size (%)",
+                                                   value = 30,
                                                    min = 1,
                                                    step = 1
                                       )
@@ -757,15 +757,13 @@ body <- dashboardBody(
                            #uiOutput(outputId = "infoGroups"),
                            hr(),
                            div(
-                           fluidRow(column(6),
-                                    column(6,
+                           fluidRow(
                                     div(align="center",
                                         title = t_run,
                                         do.call("actionButton", c(run_bttn, list(
                                           inputId = "filterRun")
                                         ))
 
-                                    )
                                     )
 
                            ), style="margin-top:-15px")
@@ -800,27 +798,13 @@ body <- dashboardBody(
                            hr(),
                            div(
                            fluidRow(
-                             column(6,
                                     div(align="center",
                                         title = t_run,
                                         do.call("actionButton", c(run_bttn, list(
                                           inputId = "defineGroupsRun")
                                         ))
                                     )
-                             ),
-                             column(6,
-                                    # div(align="center",
-                                    #     title = t_save,
-                                    #     do.call("downloadButton", c(list(
-                                    #       label=NULL,
-                                    #       style ="display:block; height: 37px; width: 37px; border-radius: 50%;
-                                    #   border: 1px; margin-top: 16px;",
-                                    #       icon = icon(name ="floppy-save", lib="glyphicon"),
-                                    #       outputId = "defineGroupsSave")
-                                    #     )
-                                    #     )
-                                    # )
-                             )
+
                            ), style="margin-top:-15px")
 
                          )
@@ -872,7 +856,10 @@ body <- dashboardBody(
                                      )
                             ),
                             tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput(outputId = "overviewData", width = 700))
+                                     div(
+                                     shinycssloaders::withSpinner(DT::DTOutput(outputId = "overviewData", width = 700),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                                     , align="center")
                             ),
                             tabPanel("WordCloud",
                                      column(9,
@@ -907,7 +894,10 @@ body <- dashboardBody(
                                      )
                             ),
                             tabPanel("Vocabulary",
-                                     column(9,shinycssloaders::withSpinner(DT::DTOutput(outputId = "dictionaryData", width = 700))),
+                                     column(9,div(
+                                       shinycssloaders::withSpinner(DT::DTOutput(outputId = "dictionaryData", width = 700),
+                                                                           color = getOption("spinner.color", default = "#4F7942"))),
+                                       align="center"),
                                      column(3,
                                             div(
                                               box(
@@ -937,8 +927,40 @@ body <- dashboardBody(
                                      )
                             ),
                             tabPanel("TF-IDF",
-                                     shinycssloaders::withSpinner(DT::DTOutput(outputId = "tfidfData", width = 700)))
-                ), align="center"
+                                     column(9,
+                                            div(
+                                     shinycssloaders::withSpinner(DT::DTOutput(outputId = "tfidfData", width = 700),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))),
+                                     align="center"),
+                                     column(3,
+                                            div(
+                                              box(
+                                                width = 12,
+                                                fluidRow(
+                                                  column(9,
+                                                         div(
+                                                           selectInput("termTfidf",
+                                                                       label = "TD-IDF by:",
+                                                                       choices = c("Tokens"="token",
+                                                                                   "Lemmas"="lemma"),
+                                                                       selected = "lemma"), style="margin-top:-3px"
+                                                         )
+                                                  ),
+                                                  column(3,
+                                                         div(
+                                                           align = "center",style="margin-top:15px",
+                                                           width=12,
+                                                           do.call("actionButton", c(run_bttn, list(
+                                                             inputId = "tfidfApply")
+                                                           ))
+                                                         )
+                                                  )
+                                                )
+                                              )
+                                              ,align="left")
+                                     )
+                                     )
+                )#, align="center"
               )
             )
     ),
