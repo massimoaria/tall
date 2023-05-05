@@ -326,8 +326,8 @@ body <- dashboardBody(
                              column(6,
                                     div(
                                       numericInput("sampleSize",
-                                                   "Sample Size (%)",
-                                                   value = 30,
+                                                   "Sample Size",
+                                                   value = 10,
                                                    min = 1,
                                                    step = 1
                                       )

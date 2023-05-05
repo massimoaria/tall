@@ -307,7 +307,7 @@ server <- function(input, output, session){
 
   randomTextFunc <- eventReactive(input$randomTextRun,{
 
-    values$txt <- samplingText(values$txt, n=round(nrow(values$txt)/input$sampleSize,0))
+    values$txt <- samplingText(values$txt, n=input$sampleSize)
   })
 
   output$randomTextData <- DT::renderDT({
