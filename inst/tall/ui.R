@@ -270,6 +270,8 @@ body <- dashboardBody(
                            textInput(inputId="txSplitWord",
                                      label="Insert a word or a sequence of special chars (e.g. H1__)",
                                      value=NULL),
+                           hr(),
+                           div(
                            fluidRow(
                              column(6,
                                     div(align="center",
@@ -292,7 +294,7 @@ body <- dashboardBody(
                                         )
                                     )
                              )
-                           )
+                           ), style="margin-top:-15px")
 
                          )
                        )
@@ -417,8 +419,10 @@ body <- dashboardBody(
                            ),
 
                            hr(),
+                           div(
                            fluidRow(
-                             column(4,div(
+                             column(4,
+                                    div(
                                title = t_run,
                                do.call("actionButton", c(run_bttn, list(
                                  inputId = "extInfoRun")
@@ -446,7 +450,7 @@ body <- dashboardBody(
                                       )),align="center"
                                     )
                              )
-                           )
+                           ), style="margin-top: -15px")
 
                          )
 
@@ -488,7 +492,8 @@ body <- dashboardBody(
                                   h5("TALL utilizes pre-trained models provided by Universal Dependencies treebanks."),
                                   h5("When using a language model for the first time, it will be downloaded from UDT and saved on your computer. In this case, an active internet connection is required.")),
                          style="text-align: left; text-color: #989898",
-                         br(),
+                         hr(),
+                         div(
                          fluidRow(column(6,
                                          div(
                                            uiOutput("optionsTokenization"))
@@ -509,7 +514,7 @@ body <- dashboardBody(
                                          ), list(
                                            outputId = "tokPosSave")
                                          ))
-                                  ))
+                                  )), style="margin-top:-5px")
                        )
                      ),style="margin-top:40px"
               )
@@ -543,7 +548,7 @@ body <- dashboardBody(
                          box(
                            width = 12,
                            div(h3(strong(em("Import Term Custom Lists"))), style="margin-top:-57px"),
-                           tags$hr(),
+                           hr(),
                            fluidRow(column(12,
                                            fileInput("custom_lists", label=NULL,
                                                      multiple = TRUE,
@@ -551,6 +556,9 @@ body <- dashboardBody(
                                                                 ".xls",
                                                                 ".xlsx"))
                            )),
+                           div(
+                           hr(),
+                           div(
                            fluidRow(column(6,
                                            div(
                                              align = "center",style="margin-top:-15px",
@@ -570,7 +578,7 @@ body <- dashboardBody(
                                     )
                                   )
                            )
-                           )
+                           ), style="margin-top: -8px"), style="margin-top:-15px")
                          ),style="margin-top:40px"
                        )
                 )
@@ -636,6 +644,8 @@ body <- dashboardBody(
                                                  step = 0.1))
                            ),
                            uiOutput("multiwordPosSel"),
+                           hr(),
+                           div(
                            fluidRow(column(6,
                                            div(
                                              align = "center",style="margin-top:-15px",
@@ -657,7 +667,7 @@ body <- dashboardBody(
                                     )
                                   )
                            )
-                           )
+                           ), style="margin-top:-15px")
                          ), style="margin-top:40px")
 
                 )
@@ -692,6 +702,9 @@ body <- dashboardBody(
                            fluidRow(column(12,
                                            uiOutput("posTagLists")
                            )),
+                           div(
+                           hr(),
+                           div(
                            fluidRow(column(6,
                                            div(
                                              align = "center",style="margin-top:-15px",
@@ -712,7 +725,7 @@ body <- dashboardBody(
                                     )
                                   )
                            )
-                           )
+                           ), style="margin-top:-15px"), style="margin-top:-15px")
                          ), style="margin-top:40px"
                        )
                 )
@@ -743,29 +756,19 @@ body <- dashboardBody(
                            uiOutput("filterValue"),
                            #uiOutput(outputId = "infoGroups"),
                            hr(),
-                           fluidRow(
-                             column(6,
+                           div(
+                           fluidRow(column(6),
+                                    column(6,
                                     div(align="center",
                                         title = t_run,
                                         do.call("actionButton", c(run_bttn, list(
                                           inputId = "filterRun")
                                         ))
+
                                     )
-                             ),
-                             column(6,
-                                    # div(align="center",
-                                    #     title = t_save,
-                                    #     do.call("downloadButton", c(list(
-                                    #       label=NULL,
-                                    #       style ="display:block; height: 37px; width: 37px; border-radius: 50%;
-                                    #   border: 1px; margin-top: 16px;",
-                                    #       icon = icon(name ="floppy-save", lib="glyphicon"),
-                                    #       outputId = "filterSave")
-                                    #     )
-                                    #     )
-                                    # )
-                             )
-                           )
+                                    )
+
+                           ), style="margin-top:-15px")
 
                          )
                        )
@@ -795,6 +798,7 @@ body <- dashboardBody(
                            uiOutput("defineGroupsList"),
                            uiOutput(outputId = "infoGroups"),
                            hr(),
+                           div(
                            fluidRow(
                              column(6,
                                     div(align="center",
@@ -817,7 +821,7 @@ body <- dashboardBody(
                                     #     )
                                     # )
                              )
-                           )
+                           ), style="margin-top:-15px")
 
                          )
                        )
@@ -2206,6 +2210,7 @@ body <- dashboardBody(
                                            ))
                            ),
                            hr(),
+                           div(
                            fluidRow(
                              column(6,
                                     div(align="center",
@@ -2228,7 +2233,7 @@ body <- dashboardBody(
                                         )
                                     )
                              )
-                           )
+                           ), style="margin-top:-15px")
                          ),style="margin-top:40px"
                        )
                 )
