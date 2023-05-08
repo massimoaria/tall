@@ -306,6 +306,7 @@ server <- function(input, output, session){
   })
 
   randomTextFunc <- eventReactive(input$randomTextRun,{
+
     values$txt <- samplingText(values$txt, n=input$sampleSize)
   })
 
@@ -981,10 +982,20 @@ server <- function(input, output, session){
   })
 
   ## TF-IDF ----
+
+  tf_idf <- eventReactive({
+    input$tfidfApply
+  },
+  {
+    values$tfidfDATA <- values$dfTag %>%
+      dplyr::filter(POSSelected & docSelected) %>%
+      tfidf(term=input$termTfidf)
+  })
+
+
   output$tfidfData <- renderDT(server=FALSE,{
-    DTformat(values$dfTag %>%
-               dplyr::filter(POSSelected & docSelected) %>%
-               tfidf(term="lemma") %>%
+    tf_idf()
+    DTformat(values$tfidfDATA  %>%
                rename(
                  Lemma = term,
                  "TF-IDF" = TFIDF),
