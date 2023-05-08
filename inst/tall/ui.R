@@ -51,7 +51,8 @@ title_tall <- tags$link(tags$a(href = 'https://www.unina.it/',target="_blank",
 
 header <- shinydashboardPlus::dashboardHeader(title = title_tall,
                                               titleWidth = 250, controlbarIcon = NULL,
-                                              tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("dataGroupedBy")))))
+                                              tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("dataGroupedBy"))))),
+                                              tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("dataFilteredBy")))))
 )
 
 
@@ -146,6 +147,8 @@ body <- dashboardBody(
                                                tags$style("height: 50px")
                                              )
                              ),
+                             conditionalPanel(
+                               condition="input.load == 'import' & input.ext=='csv'",
                              column(6,
                                     selectizeInput(
                                       'line_sep', label="CSV Separator",choices = c(
@@ -154,9 +157,14 @@ body <- dashboardBody(
                                       tags$style("height: 50px")
                                     )
                              )
+                             )
                              ),
                              uiOutput("file_raw"),
                              uiOutput(outputId = "infoImport"),
+                             conditionalPanel(
+                               condition= "input.ext == 'xlsx' ||  input.ext =='csv'",
+                             uiOutput(outputId = "infoTextLabel")
+                             )
                            ),
                            conditionalPanel(
                              condition="input.load=='demo'",
@@ -327,9 +335,10 @@ body <- dashboardBody(
                              column(6,
                                     div(
                                       numericInput("sampleSize",
-                                                   "Sample Size",
-                                                   value = 10,
+                                                   "Sample Size (%)",
+                                                   value = 30,
                                                    min = 1,
+                                                   max = 100,
                                                    step = 1
                                       )
                                       ,style="margin-top:-9px")
@@ -755,7 +764,6 @@ body <- dashboardBody(
                            helpText(h5("Select an external information to filter docs:")),
                            uiOutput("filterList"),
                            uiOutput("filterValue"),
-                           #uiOutput(outputId = "infoGroups"),
                            hr(),
                            div(
                            fluidRow(

@@ -109,16 +109,16 @@ server <- function(input, output, session){
     )
   })
 
-  output$infoImport <- renderUI({
-    extReal <- getFileNameExtension(req(input$file_raw$datapath[1]))
-    if (extReal!=input$ext & extReal!="xls"){
+  output$infoTextLabel <- renderUI({
 
       shinyWidgets::alert(
-        icon("info"),
-        " You selected a file(s) with an incorrect extention",
-        status = "danger"
+        icon("warning"),
+        tags$b("Warning!"),
+        br(),
+        HTML("The column including text(s) in your CSV or EXCEL file must be named <b>text</b>"),
+        status = "warning"
       )
-    }
+    #}
   })
 
   ### dataImported ----
@@ -284,6 +284,18 @@ server <- function(input, output, session){
     values$txt <- values$txt %>%
       mutate(doc_selected = TRUE)
   })
+
+  output$infoGroups <- renderUI({
+    if (length(input$defineGroupsList) >1) {
+      shinyWidgets::alert(
+        icon("info"),
+        " You need to select only one field",
+        status = "danger"
+      )
+    }
+  })
+
+
   ## EDIT ----
 
   ### SPLIT TEXTS ----
@@ -309,7 +321,8 @@ server <- function(input, output, session){
 
   randomTextFunc <- eventReactive(input$randomTextRun,{
 
-    values$txt <- samplingText(values$txt, n=input$sampleSize)
+    values$txt <- samplingText(values$txt,
+                               n=as.numeric(round((input$sampleSize/100)*nrow(values$txt)),0))
   })
 
   output$randomTextData <- DT::renderDT({
@@ -668,6 +681,19 @@ server <- function(input, output, session){
                filter(docSelected & POSSelected), nrow=3, size='100%', title=paste0("Filtered Data by ", input$filterList))
   })
 
+
+  ## Data filtered by dynamic text on dashboardHeader
+
+  output$dataFilteredBy <- renderText({
+    if (!is.null(input$filterValue)){
+      req(input$filterRun)
+      HTML(paste("Documents filtered by: <b>", input$filterList, "</b>"))
+    } else {
+      HTML("")
+    }
+  })
+
+
   ## GROUPS ----
 
   ### Define groups ----
@@ -679,12 +705,6 @@ server <- function(input, output, session){
       label = NULL,
       choices = label,
       selected = values$selectedGroups,
-      # options = list(
-      #   limit = 1
-      #   #enable_search = FALSE,
-      # ),
-      # choiceNames = label,
-      # choiceValues = label,
       width = "100%"
     )
 
@@ -704,7 +724,6 @@ server <- function(input, output, session){
     ignoreNULL = TRUE,
     eventExpr = {input$defineGroupsRun},
     valueExpr ={
-      #print(input$defineGroupsList)
       values$selectedGroups <- input$defineGroupsList
       values$dfTag <- groupByMetadata(values$dfTag, metadata=input$defineGroupsList)
       if (length(input$defineGroupsList) == 1){
