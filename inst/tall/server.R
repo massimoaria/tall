@@ -20,31 +20,32 @@ server <- function(input, output, session){
 
   ## suppress summarise message
   options(dplyr.summarise.inform = FALSE)
-  languages <- langrepo()
+  # languages <- langrepo()
 
   ### Initial values ----
-  values <- reactiveValues()
-  values$path <- NULL
-  values$menu <- -1
-  values$custom_lists <- NULL
-  values$txt <- data.frame()
-  values$txtOriginal <- data.frame()
-  values$list_file <- data.frame(sheet=NULL,file=NULL,n=NULL)
-  values$POSTagSelected <- ""
-  values$wb <-  openxlsx::createWorkbook()
-  values$dfLabel <- dfLabel()
-  values$posMwSel <- c("ADJ", "NOUN", "PROPN") # POS selected by default for multiword creation
-  values$myChoices <- "Empty Report"
-  #values$df <- df
-  label_lang <- languages$repo
-  names(label_lang) <- languages$short
-  values$label_lang <- label_lang
-  values$chapter <- languages$chapter
-  values$TMplotIndex <- 1
-  values$TMdocIndex <- 1
-  values$tmTopSentences <- FALSE
-  values$selectedGroups <- NULL
-  values$selectedFilter <- ""
+  values <- resetValues()
+  # values <- reactiveValues()
+  # values$path <- NULL
+  # values$menu <- -1
+  # values$custom_lists <- NULL
+  # values$txt <- data.frame()
+  # values$txtOriginal <- data.frame()
+  # values$list_file <- data.frame(sheet=NULL,file=NULL,n=NULL)
+  # values$POSTagSelected <- ""
+  # values$wb <-  openxlsx::createWorkbook()
+  # values$dfLabel <- dfLabel()
+  # values$posMwSel <- c("ADJ", "NOUN", "PROPN") # POS selected by default for multiword creation
+  # values$myChoices <- "Empty Report"
+  # #values$df <- df
+  # label_lang <- languages$repo
+  # names(label_lang) <- languages$short
+  # values$label_lang <- label_lang
+  # values$chapter <- languages$chapter
+  # values$TMplotIndex <- 1
+  # values$TMdocIndex <- 1
+  # values$tmTopSentences <- FALSE
+  # values$selectedGroups <- NULL
+  # values$selectedFilter <- ""
 
 
   ## Setting plot values
@@ -61,6 +62,7 @@ server <- function(input, output, session){
   })
 
   observeEvent(input$runImport, {
+    values <- resetValues()
     updateTabItems(session, "sidebarmenu", "import_tx")
   })
 

@@ -60,6 +60,7 @@ header <- shinydashboardPlus::dashboardHeader(title = title_tall,
 sidebar <- dashboardSidebar(
   width = 250,
   sidebarMenu(id="sidebarmenu",
+              #shinyjs::useShinyjs(),
               #style = "position: relative; overflow: visible;",
               menuItem("TALL", tabName = "tall", icon = icon("text-size", lib = "glyphicon")),
               menuItemOutput ("rest_of_sidebar")

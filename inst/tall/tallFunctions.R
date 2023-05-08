@@ -1926,8 +1926,9 @@ sentimentAnalysis <- function(dfTag, language="english", lexicon_model="huliu"){
   s_data <- s_data %>%
     left_join(s_overall %>% select(doc_id, sentiment_polarity) %>% rename(doc_polarity=sentiment_polarity), by="doc_id") %>%
     filter(!is.na(polarity)) %>%
-    mutate(doc_pol_clas = cut(.data$doc_polarity*(-1), breaks=c(-1,-0.6,-0.2,0.2,0.6,1),
+    mutate(doc_pol_clas = cut(.data$doc_polarity, breaks=c(-1,-0.6,-0.2,0.2,0.6,1),
                               labels=c("Very Negative", "Negative", "Neutral", "Positive", "Very Positive"),
+                              #labels=c("Very Positive", "Positive", "Neutral", "Negative", "Very Negative"),
                               include.lowest = T, ordered_result = TRUE))
 
   s_overall <- s_overall %>%
@@ -1941,15 +1942,29 @@ sentimentAnalysis <- function(dfTag, language="english", lexicon_model="huliu"){
 
 sentimentWordPlot <- function(sent_data, n=10){
 
+  # sent_dist <- sent_data %>%
+  #   group_by(doc_id, doc_pol_clas) %>%
+  #   distinct(doc_id) %>%
+  #   ungroup() %>%
+  #   count(doc_pol_clas, name = "doc_N")
+
   top_words <- sent_data %>%
+    group_by(doc_id, polarity) %>%
+    distinct(lemma) %>%
+    ungroup() %>%
     group_by(polarity) %>%
     count(lemma) %>%
     slice_max(n, n=10)
 
   voc_sent<-sent_data %>%
+    group_by(polarity, doc_pol_clas, doc_id) %>%
+    distinct(lemma) %>%
+    ungroup() %>%
     group_by(polarity, doc_pol_clas) %>%
     count(lemma, sort = TRUE) %>%
-    filter(lemma %in% top_words$lemma)
+    filter(lemma %in% top_words$lemma) #%>%
+    # left_join(sent_dist, by="doc_pol_clas") %>%
+    # mutate(perc = n/doc_N*100)
 
 
   fig_pos <- voc_sent %>% dplyr::filter(polarity==1) %>%
@@ -2302,6 +2317,38 @@ popUp <- function(title=NULL, type="success", btn_labels="OK"){
 
 
 ### UTILITY FUNCTIONS ----
+## Reset reactive values
+resetValues <- function(){
+
+  ### Initial values ----
+  values <- list()
+  values <- reactiveValues()
+  values$path <- NULL
+  values$menu <- -1
+  values$custom_lists <- NULL
+  values$txt <- data.frame()
+  values$txtOriginal <- data.frame()
+  values$list_file <- data.frame(sheet=NULL,file=NULL,n=NULL)
+  values$POSTagSelected <- ""
+  values$wb <-  openxlsx::createWorkbook()
+  values$dfLabel <- dfLabel()
+  values$posMwSel <- c("ADJ", "NOUN", "PROPN") # POS selected by default for multiword creation
+  values$myChoices <- "Empty Report"
+
+  languages <- langrepo()
+  label_lang <- languages$repo
+  names(label_lang) <- languages$short
+  values$label_lang <- label_lang
+  values$chapter <- languages$chapter
+  values$TMplotIndex <- 1
+  values$TMdocIndex <- 1
+  values$tmTopSentences <- FALSE
+  values$selectedGroups <- NULL
+  values$selectedFilter <- ""
+
+  return(values)
+}
+
 ## Color palette for plots
 colorlist <- function(){
   c("#E41A1C","#377EB8","#4DAF4A","#984EA3","#FF7F00","#A65628","#F781BF","#999999","#66C2A5","#FC8D62","#8DA0CB","#E78AC3","#A6D854","#FFD92F"
