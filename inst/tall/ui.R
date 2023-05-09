@@ -52,7 +52,11 @@ title_tall <- tags$link(tags$a(href = 'https://www.unina.it/',target="_blank",
 header <- shinydashboardPlus::dashboardHeader(title = title_tall,
                                               titleWidth = 250, controlbarIcon = NULL,
                                               tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("dataGroupedBy"))))),
-                                              tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("dataFilteredBy")))))
+                                              tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("dataFilteredBy"))))),
+                                              tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("resetButton"))))),
+                                              tags$li(class = "dropdown",
+                                                      tags$style(".main-header .logo {height: 53px}"))
+
 )
 
 

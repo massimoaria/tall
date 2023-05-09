@@ -16,7 +16,37 @@ options(shiny.maxRequestSize=maxUploadSize*1024^2)
 
 
 server <- function(input, output, session){
-  session$onSessionEnded(stopApp)
+  #session$onSessionEnded(stopApp)
+
+  ## Code to reset shiny app
+  reset_rv <- reactiveVal(value = 0L)
+  session$onSessionEnded(function(){
+    #x <- Inf
+    x <- isolate(reset_rv())
+
+    if (!is.null(x)){
+      if(x==0) {
+        stopApp()
+      }
+    }
+  })
+  ###
+
+  output$resetButton <- renderUI({
+    reset_bttn <- list(
+      label = NULL,
+      #style ="display:block; height: 37px; width: 37px; border-radius: 50%; border: 3px; margin-top: 15px",
+      icon = icon(name ="refresh", lib="glyphicon")
+    )
+    do.call("actionButton", c(reset_bttn, list(
+      inputId = "resetApp")
+    ))
+  })
+
+  observeEvent(input$resetApp, {
+    reset_rv(input$resApp)
+    session$reload()
+  })
 
   ## suppress summarise message
   options(dplyr.summarise.inform = FALSE)
