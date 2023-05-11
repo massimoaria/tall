@@ -1569,7 +1569,7 @@ server <- function(input, output, session){
   })
 
   ## Network ----
-  ## WORD CO-OCCURENCE ----
+  ## Co-word analysis ----
   netFunction <- eventReactive(
     ignoreNULL = TRUE,
     eventExpr = {input$w_networkCoocApply},

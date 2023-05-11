@@ -1630,13 +1630,13 @@ body <- dashboardBody(
 
     ### Network ----
 
-    ## WORD CO-OCCURENCE ----
+    ## Co-ward analysis ----
 
     tabItem(tabName = "w_networkCooc",
             fluidPage(
               fluidRow(
                 column(8,
-                       h3(strong("Word co-occurence"), align = "center")),
+                       h3(strong("Co-word analysis"), align = "center")),
                 div(
                   title = t_run,
                   column(1,
