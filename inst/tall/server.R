@@ -35,6 +35,7 @@ server <- function(input, output, session){
   output$resetButton <- renderUI({
     reset_bttn <- list(
       label = NULL,
+      style="margin-top: -8px; font-size: 8px; border-radius:2%",
       #style ="display:block; height: 37px; width: 37px; border-radius: 50%; border: 3px; margin-top: 15px",
       icon = icon(name ="refresh", lib="glyphicon")
     )
@@ -44,9 +45,25 @@ server <- function(input, output, session){
   })
 
   observeEvent(input$resetApp, {
+    ask_confirmation(
+      inputId = "reset_confirmation",
+      title = "Restart TALL",
+      text = HTML('Restarting TAll will result in the loss of all analyses currently in progress<br><br>
+                  <b>Do you want to confirm?</b>'),
+      html=TRUE,
+      type = "warning",
+      btn_labels = c("CANCEL", "CONFIRM")
+    )
+  })
+
+  observeEvent(input$reset_confirmation, {
+    if (isTRUE(input$reset_confirmation)){
     reset_rv(input$resApp)
     session$reload()
+    }
   })
+
+
 
   ## suppress summarise message
   options(dplyr.summarise.inform = FALSE)
