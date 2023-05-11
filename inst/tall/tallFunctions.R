@@ -2423,9 +2423,9 @@ menuList <- function(menu){
            list(
              menuItem("Import", tabName = "import_tx", icon = icon("open-file", lib="glyphicon")),
              menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
-                      menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
-                      menuSubItem("Random Text Selection", tabName = "randomText", icon = icon("chevron-right")),
-                      menuSubItem("External information", tabName = "extInfo", icon = icon("chevron-right"))),
+                      menuSubItem("Split", tabName = "split_tx", icon = icon("chevron-right")),
+                      menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
+                      menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
                       menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right"), selected = TRUE)
              ),
@@ -2436,9 +2436,9 @@ menuList <- function(menu){
            list(
              menuItem("Import", tabName = "import_tx", icon = icon("open-file", lib="glyphicon")),
              menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
-                      menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
-                      menuSubItem("Random Text Selection", tabName = "randomText", icon = icon("chevron-right")),
-                      menuSubItem("External information", tabName = "extInfo", icon = icon("chevron-right"))),
+                      menuSubItem("Split", tabName = "split_tx", icon = icon("chevron-right")),
+                      menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
+                      menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
                       menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
                       menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right"), selected = TRUE),

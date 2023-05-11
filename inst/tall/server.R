@@ -2038,7 +2038,7 @@ server <- function(input, output, session){
     contentType = "zip"
   )
 
-  output$d_polDetTable <- renderDataTable({
+  output$d_polDetTable <- renderDT(server=FALSE,{
     docPolarityEstim()
     docPolarityOverall <- values$docPolarity$sent_overall %>%
       select(doc_id, sentiment_polarity, doc_pol_clas, terms_positive, terms_negative) %>%
