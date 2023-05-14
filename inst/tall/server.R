@@ -1230,6 +1230,23 @@ server <- function(input, output, session){
     contentType = "png"
   )
 
+  ## Report
+
+  observeEvent(input$nounReport,{
+    values$nounGgplot <- freqGgplot(values$freqNoun,x=2, y=1,n=input$nounN,
+                                    title = "Noun Frequency")
+    if(!is.null(values$freqNoun)){
+      list_df <- list(values$freqNoun)
+      list_plot <- list(values$nounGgplot)
+      wb <- addSheetToReport(list_df,list_plot,sheetname = "Noun", wb=values$wb)
+      values$wb <- wb
+      popUp(title="Most Used Words-NOUN", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
+  })
+
 
   ## PROPN ----
   propnFreq <- eventReactive(

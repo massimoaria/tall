@@ -2263,10 +2263,40 @@ short2long <- function(df, myC){
 
 ## Labels sheets Report
 dfLabel <- function(){
-  short <- c("Empty Report")#, "MainInfo",            "AnnualSciProd",       "AnnualCitPerYear",    "ThreeFieldsPlot",     "MostRelSources",      "MostLocCitSources",   "BradfordLaw",         "SourceLocImpact",
+  short <- c("Empty Report",
+             "Overview",
+             "Noun",
+             "Propn",
+             "Adj",
+             "Verb",
+             "MultiWords",
+             "PoS",
+             "Clustering",
+             "CorrespondenceAnalysis",
+             "CoWord",
+             "Grako",
+             "KChoice",
+             "ModelEstim",
+             "PolarityDetection",
+             "Summarizaiton")
 
 
-  long <- c("Empty Report")#, "Main Information", "Annual Scientific Production", "Annual Citation Per Year", "Three-Field Plot", "Most Relevant Sources","Most Local Cited Sources","Bradfords Law","Sources Local Impact",
+  long <- c("Empty Report",
+            "Overview",
+            "Most used Words-NOUN",
+            "Most Used Words-PROPN",
+            "Most Used Words-ADJ",
+            "Most Used Words-VERB",
+            "Most Used Words-MULTIWORDS",
+            "Most Used Words-PoS",
+            "Clustering",
+            "Correspondence Annalysis",
+            "Network-Co-Word Analysis",
+            "Network-Grako",
+            "TM-K choice",
+            "TM-Model Estimation",
+            "Polarity Detection",
+            "Summarization")
 
   data.frame(short=short,long=long)
 }
