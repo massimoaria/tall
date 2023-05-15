@@ -18,6 +18,19 @@ options(shiny.maxRequestSize=maxUploadSize*1024^2)
 server <- function(input, output, session){
   #session$onSessionEnded(stopApp)
 
+  ## Check if Chrome browser is installed on the computer
+  if(is.null(chromote::find_chrome())){
+    showModal(modalDialog(
+      title = strong("Warning message!"),
+      HTML("Chrome or a Chromium-based browser is not installed on your computer.<br>
+If you do not have either of these browsers installed, TALL will be unable to export graphs.<br>
+To ensure the functionality of TALL,
+           please download Chrome by <a href='https://www.google.com/intl/it_it/chrome/' target='_blank' > <b>clicking here</b></a>."),
+      footer = modalButton("Dismiss"),
+      easyClose = TRUE
+    ))
+  }
+
   ## Code to reset shiny app
   reset_rv <- reactiveVal(value = 0L)
   session$onSessionEnded(function(){
