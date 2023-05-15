@@ -27,6 +27,8 @@ libraries <- function(){
   if (!suppressPackageStartupMessages(require(glue))){install.packages("glue"); suppressPackageStartupMessages(require(glue))}
   if (!suppressPackageStartupMessages(require(readtext))){install.packages("readtext"); suppressPackageStartupMessages(require(readtext))}
   if (!suppressPackageStartupMessages(require(webshot2))){install.packages("webshot2"); suppressPackageStartupMessages(require(webshot2))}
+  if (!suppressPackageStartupMessages(require(chromote))){install.packages("chromote"); suppressPackageStartupMessages(require(chromote))}
+
   if (Sys.info()[["sysname"]]=="Windows") {
   if (!suppressPackageStartupMessages(require(doParallel))){install.packages("doParallel"); suppressPackageStartupMessages(require(doParallel))}}
 
