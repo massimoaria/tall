@@ -2263,10 +2263,40 @@ short2long <- function(df, myC){
 
 ## Labels sheets Report
 dfLabel <- function(){
-  short <- c("Empty Report")#, "MainInfo",            "AnnualSciProd",       "AnnualCitPerYear",    "ThreeFieldsPlot",     "MostRelSources",      "MostLocCitSources",   "BradfordLaw",         "SourceLocImpact",
+  short <- c("Empty Report",
+             "Overview",
+             "Noun",
+             "Propn",
+             "Adj",
+             "Verb",
+             "MultiWords",
+             "PoS",
+             "Clustering",
+             "CorrespondenceAnalysis",
+             "CoWord",
+             "Grako",
+             "KChoice",
+             "ModelEstim",
+             "PolarityDetection",
+             "Summarization")
 
 
-  long <- c("Empty Report")#, "Main Information", "Annual Scientific Production", "Annual Citation Per Year", "Three-Field Plot", "Most Relevant Sources","Most Local Cited Sources","Bradfords Law","Sources Local Impact",
+  long <- c("Empty Report",
+            "Overview",
+            "Most used Words-NOUN",
+            "Most Used Words-PROPN",
+            "Most Used Words-ADJ",
+            "Most Used Words-VERB",
+            "Most Used Words-MULTIWORDS",
+            "Most Used Words-PoS",
+            "Clustering",
+            "Correspondence Annalysis",
+            "Network-Co-Word Analysis",
+            "Network-Grako",
+            "TM-K choice",
+            "TM-Model Estimation",
+            "Polarity Detection",
+            "Summarization")
 
   data.frame(short=short,long=long)
 }
@@ -2423,9 +2453,9 @@ menuList <- function(menu){
            list(
              menuItem("Import", tabName = "import_tx", icon = icon("open-file", lib="glyphicon")),
              menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
-                      menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
-                      menuSubItem("Random Text Selection", tabName = "randomText", icon = icon("chevron-right")),
-                      menuSubItem("External information", tabName = "extInfo", icon = icon("chevron-right"))),
+                      menuSubItem("Split", tabName = "split_tx", icon = icon("chevron-right")),
+                      menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
+                      menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
                       menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right"), selected = TRUE)
              ),
@@ -2436,9 +2466,9 @@ menuList <- function(menu){
            list(
              menuItem("Import", tabName = "import_tx", icon = icon("open-file", lib="glyphicon")),
              menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
-                      menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
-                      menuSubItem("Random Text Selection", tabName = "randomText", icon = icon("chevron-right")),
-                      menuSubItem("External information", tabName = "extInfo", icon = icon("chevron-right"))),
+                      menuSubItem("Split", tabName = "split_tx", icon = icon("chevron-right")),
+                      menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
+                      menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
                       menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
                       menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right"), selected = TRUE),
@@ -2452,10 +2482,9 @@ menuList <- function(menu){
            list(
              menuItem("Import", tabName = "import_tx", icon = icon("open-file", lib="glyphicon")),
              menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
-                      menuSubItem("Split texts", tabName = "split_tx", icon = icon("chevron-right")),
-                      menuSubItem("Random Text Selection", tabName = "randomText", icon = icon("chevron-right")),
-                      menuSubItem("External information", tabName = "extInfo", icon = icon("chevron-right")),
-                      menuSubItem("Filter text", tabName = "filter_text", icon = icon("chevron-right"))),
+                      menuSubItem("Split", tabName = "split_tx", icon = icon("chevron-right")),
+                      menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
+                      menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
                       menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
                       menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right")),
@@ -2476,7 +2505,7 @@ menuList <- function(menu){
                       menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),
                       menuSubItem("Correspondence Analysis", tabName = "ca", icon = icon("chevron-right")),
                       menuItem("Network", tabName = "w_network", icon = icon("chevron-right"),
-                               menuSubItem("Word co-occurence", tabName = "w_networkCooc", icon = icon("chevron-right")),
+                               menuSubItem("Co-word analysis", tabName = "w_networkCooc", icon = icon("chevron-right")),
                                menuSubItem("Grako", tabName = "w_networkGrako", icon = icon("chevron-right")))),
              menuItem("Documents",tabName = "documents", icon = icon(name="duplicate", lib="glyphicon"),
                       menuItem("Topic Modeling", tabName = "d_topicMod", icon = icon("chevron-right"),
