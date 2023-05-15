@@ -2278,7 +2278,7 @@ dfLabel <- function(){
              "KChoice",
              "ModelEstim",
              "PolarityDetection",
-             "Summarizaiton")
+             "Summarization")
 
 
   long <- c("Empty Report",
