@@ -2619,7 +2619,7 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
 
   ## left aligning
 
-  if (!is_null(left)){
+  if (!is.null(left)){
     tab <- tab %>%
       DT::formatStyle(
         names(df)[left],
@@ -2630,7 +2630,7 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
   }
 
   # right aligning
-  if (!is_null(right)){
+  if (!is.null(right)){
     tab <- tab %>%
       DT::formatStyle(
         names(df)[right],
@@ -2641,7 +2641,7 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
   }
 
   # numeric round
-  if (!is_null(numeric)){
+  if (!is.null(numeric)){
     tab <- tab %>%
       formatRound(names(df)[c(numeric)], digits=round)
   }
