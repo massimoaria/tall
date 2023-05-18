@@ -2198,18 +2198,18 @@ addGgplotsWb <- function(list_plot, wb, sheetname, col, width=10, height=7, dpi=
   return(wb)
 }
 
-screenSh <- function(selector){
-  fileName <- tempfile(pattern = "figureImage",
-                       tmpdir = "",
-                       fileext = "") %>% substr(.,2,nchar(.))
-  if (is.null(selector)){
-    shinyscreenshot::screenshot(filename=fileName, download=FALSE, server_dir = tempdir())
-  } else {
-    shinyscreenshot::screenshot(selector=selector, filename=fileName, download=FALSE, server_dir = tempdir())
-  }
-  file <- paste(tempdir(),"/",fileName,".png",sep="")
-  return(file)
-}
+# screenSh <- function(selector){
+#   fileName <- tempfile(pattern = "figureImage",
+#                        tmpdir = "",
+#                        fileext = "") %>% substr(.,2,nchar(.))
+#   if (is.null(selector)){
+#     shinyscreenshot::screenshot(filename=fileName, download=FALSE, server_dir = tempdir())
+#   } else {
+#     shinyscreenshot::screenshot(selector=selector, filename=fileName, download=FALSE, server_dir = tempdir())
+#   }
+#   file <- paste(tempdir(),"/",fileName,".png",sep="")
+#   return(file)
+# }
 
 addScreenWb <- function(df, wb, width=14, height=8, dpi=75){
   names(df) <- c("sheet","file","n")
@@ -2290,7 +2290,7 @@ dfLabel <- function(){
             "Most Used Words-MULTIWORDS",
             "Most Used Words-PoS",
             "Clustering",
-            "Correspondence Annalysis",
+            "Correspondence Analysis",
             "Network-Co-Word Analysis",
             "Network-Grako",
             "TM-K choice",

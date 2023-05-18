@@ -83,7 +83,11 @@ To ensure the functionality of TALL,
   # languages <- langrepo()
 
   ### Initial values ----
-  values <- resetValues()
+   values <- resetValues()
+  # values$list_file <- data.frame(sheet=NULL,file=NULL,n=NULL)
+  # values$wb <-  openxlsx::createWorkbook()
+  # values$dfLabel <- dfLabel()
+  # values$myChoices <- "Empty Report"
   # values <- reactiveValues()
   # values$path <- NULL
   # values$menu <- -1
@@ -857,6 +861,11 @@ To ensure the functionality of TALL,
   #### box1 ---------------
   output$nDoc <- renderValueBox({
     values$vb <- valueBoxesIndices(values$dfTag %>% filter(docSelected))
+    values$VbData <- data.frame(Description=c("Documents", "Tokens", "Dictionary", "Lemmas", "Sentences",
+                                              "Docs Avg Length in Chars", "Doc Avg Length in Tokens",
+                                              "Sent Avg Length in Tokens", "Sent Avg Length in Chars",
+                                              "TTR", "Hapax (%)", "Guiraud Index"),
+                                Values=unlist(values$vb))
     valueBox(value = p("Documents", style = 'font-size:16px;color:white;'),
              subtitle = p(strong(values$vb$nDoc), style = 'font-size:36px;color:white;', align="center"),
              icon = icon("duplicate", lib="glyphicon"), color = "olive",
@@ -954,12 +963,22 @@ To ensure the functionality of TALL,
   ## Overview Table ----
 
   output$overviewData <- renderDT(server = FALSE,{
-    vb <- data.frame(Description=c("Documents", "Tokens", "Dictionary", "Lemmas", "Sentences",
-                                   "Docs Avg Length in Chars", "Doc Avg Length in Tokens",
-                                   "Sent Avg Length in Tokens", "Sent Avg Length in Chars",
-                                   "TTR", "Hapax (%)", "Guiraud Index"),
-                     Values=unlist(values$vb))
-    DTformat(vb,n=12, left=1, right=2, numeric=2, pagelength=FALSE, dom=FALSE, size='110%', filename="Overview")
+    DTformat(values$VbData,n=12, left=1, right=2, numeric=2, pagelength=FALSE, dom=FALSE, size='110%', filename="Overview")
+  })
+
+  ## Report
+
+  observeEvent(input$overviewReport,{
+    if(!is.null(values$VbData)){
+      sheetname <- "Overview"
+      list_df <- list(values$VbData)
+      res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
+      values$wb <- res$wb
+      popUp(title="Overview Table", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
   })
 
 
@@ -1531,7 +1550,7 @@ To ensure the functionality of TALL,
   ## Report
 
   observeEvent(input$posReport,{
-    values$posGgplot <- freqGgplot(values$freqPOS,x=2, y=1,n=input$propnN,
+    values$posGgplot <- freqGgplot(data.frame(values$freqPOS),x=2, y=1,n=length(values$freqPOS$PoS),
                                    title = "PoS Frequency")
     if(!is.null(values$freqPOS)){
       list_df <- list(values$freqPOS %>%
@@ -1609,6 +1628,25 @@ To ensure the functionality of TALL,
     contentType = "png"
   )
 
+  ## Report
+
+  observeEvent(input$w_clusteringReport,{
+    if(!is.null(values$wordCluster)){
+      popUp(title=NULL, type="waiting")
+      sheetname <- "Clustering"
+      list_df <- list(values$wordCluster)
+      res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
+      values$wb <- res$wb
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      values$fileDend <- plot2png(values$WordDendrogram, filename="Clustering.png", zoom = values$zoom)
+      values$list_file <- rbind(values$list_file, c(sheetname=res$sheetname,values$fileDend,res$col))
+      popUp(title="Clustering Results", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
+  })
 
   ## Correspondence Analysis ----
 
@@ -1624,6 +1662,29 @@ To ensure the functionality of TALL,
       values$plotCA <- ca2plotly(values$CA, dimX = values$CAdimX, dimY = values$CAdimY,
                                  topWordPlot = input$nCA, topDocPlot=input$nDocCA, threshold=0.03, labelsize = input$labelsizeCA, size=input$sizeCA)
       values$CADendrogram <- dend2vis(values$CA$clustering$h, labelsize=input$labelsizeCA, nclusters=input$nClustersCA, community=FALSE)
+
+
+      values$CA$wordCoordData <- values$CA$wordCoord %>%
+        select(label, everything()) %>%
+        left_join(
+          data.frame(label=names(values$CA$clustering$groups), Group=values$CA$clustering$groups), by = "label") %>%
+        rename(Label = label)
+
+      values$CA$contribData <- values$CA$contrib %>%
+        rownames_to_column() %>%
+        rename(Label = rowname)
+
+      values$CA$cosineData <- values$CA$cosine %>%
+        rownames_to_column() %>%
+        rename(Label = rowname)
+
+      values$dfCA <- data.frame(dim=paste0("Dim ",1:10),sv=(values$CA$ca$sv/sum(values$CA$ca$sv)*100)[1:10], svcorr=values$CA$ca$eigCorrectedNorm[1:10])
+      values$dfCA <- values$dfCA %>%
+        rename("Factorial Dimension" = dim,
+               "Singular Values" = sv,
+               "Corrected Singular Values" = svcorr)
+
+
     }
   )
 
@@ -1636,6 +1697,36 @@ To ensure the functionality of TALL,
     caPlotFunction()
     values$CADendrogram
   })
+
+
+  # CA Table
+  output$caCoordTable <- renderDT(server=FALSE,{
+    caPlotFunction()
+    DTformat(values$CA$wordCoordData, size='100%',filename="CAWordCoordinatesTable", pagelength=TRUE, left=1, right=2:ncol(values$CA$wordCoord),
+             numeric=2:ncol(values$CA$wordCoord), dom=TRUE, filter="top", round=3)
+  })
+
+  output$caContribTable <- renderDT(server=FALSE,{
+    caPlotFunction()
+    DTformat(values$CA$contribData,
+             size='100%',filename="CAWordContributesTable", pagelength=TRUE, left=1, #right=2:(ncol(values$CA$contrib)+1),
+             numeric=2:(ncol(values$CA$contrib)+1), dom=TRUE, filter="top", round=3)
+  })
+
+  output$caCosineTable <- renderDT(server=FALSE,{
+    caPlotFunction()
+    DTformat(values$CA$cosineData,
+             size='100%',filename="CAWordCosinesTable", pagelength=TRUE, left=1, #right=2:(ncol(values$CA$cosine)+1),
+             numeric=2:(ncol(values$CA$cosine)+1), dom=TRUE, filter="top", round=3)
+  })
+
+  output$caSingularValueTable <- renderDT(server=FALSE,{
+    caPlotFunction()
+    DTformat(values$dfCA,
+             size='100%',filename="CAWordSingualValueTable", pagelength=TRUE, left=1, #right=2:3,
+             numeric=2:3, dom=TRUE, filter="top", round=2)
+  })
+
 
   output$caExport <- downloadHandler(
     filename = function() {
@@ -1652,47 +1743,32 @@ To ensure the functionality of TALL,
     contentType = "zip"
   )
 
-  # CA Table
-  output$caCoordTable <- renderDT(server=FALSE,{
-    caPlotFunction()
-    DTformat(values$CA$wordCoord %>%
-               select(label, everything()) %>%
-               left_join(
-                 data.frame(label=names(values$CA$clustering$groups), Group=values$CA$clustering$groups), by = "label"
-               ) %>%
-               rename(Label = label)
-             ,size='100%',filename="CAWordCoordinatesTable", pagelength=TRUE, left=1, right=2:ncol(values$CA$wordCoord),
-             numeric=2:ncol(values$CA$wordCoord), dom=TRUE, filter="top", round=3)
+  ## Report
+
+  observeEvent(input$caReport,{
+    if(!is.null(values$CA)){
+      popUp(title=NULL, type="waiting")
+      sheetname <- "CorrespondenceAnalysis"
+      list_df <- list(values$CA$wordCoordData
+                                          ,values$CA$contribData
+                                          ,values$CA$cosineData
+                                          ,values$dfCA
+                                          )
+      res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
+      #values$wb <- res$wb
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      values$fileplotCA <- plot2png(values$plotCA, filename="CAMap.png", type="plotly", zoom = values$zoom)
+      values$fileCADendrogram <-plot2png(values$CADendrogram, filename="CADendrogram.png", type="vis",zoom = values$zoom)
+      values$list_file <- rbind(values$list_file, c(sheetname=res$sheetname,values$fileplotCA,res$col),
+                                c(sheetname=res$sheetname, values$fileCADendrogram,res$col))
+      popUp(title="Correspondence Analysis Results", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
   })
 
-  output$caContribTable <- renderDT(server=FALSE,{
-    caPlotFunction()
-    DTformat(values$CA$contrib %>%
-               rownames_to_column() %>%
-               rename(Label = rowname),
-             size='100%',filename="CAWordContributesTable", pagelength=TRUE, left=1, #right=2:(ncol(values$CA$contrib)+1),
-             numeric=2:(ncol(values$CA$contrib)+1), dom=TRUE, filter="top", round=3)
-  })
-
-  output$caCosineTable <- renderDT(server=FALSE,{
-    caPlotFunction()
-    DTformat(values$CA$cosine %>%
-               rownames_to_column() %>%
-               rename(Label = rowname),
-             size='100%',filename="CAWordCosinesTable", pagelength=TRUE, left=1, #right=2:(ncol(values$CA$cosine)+1),
-             numeric=2:(ncol(values$CA$cosine)+1), dom=TRUE, filter="top", round=3)
-  })
-
-  output$caSingularValueTable <- renderDT(server=FALSE,{
-    caPlotFunction()
-    df <- data.frame(dim=paste0("Dim ",1:10),sv=(values$CA$ca$sv/sum(values$CA$ca$sv)*100)[1:10], svcorr=values$CA$ca$eigCorrectedNorm[1:10])
-    DTformat(df %>%
-               rename("Factorial Dimension" = dim,
-                      "Singular Values" = sv,
-                      "Corrected Singular Values" = svcorr),
-             size='100%',filename="CAWordSingualValueTable", pagelength=TRUE, left=1, #right=2:3,
-             numeric=2:3, dom=TRUE, filter="top", round=2)
-  })
 
   ## Network ----
   ## Co-word analysis ----
