@@ -1785,6 +1785,27 @@ To ensure the functionality of TALL,
                                 labelsize=input$labelSize, opacity=input$opacity,
                                 interLinks=input$interLinks, normalization=input$normalizationCooc,
                                 remove.isolated=input$removeIsolated)
+
+      values$network$nodesData <- values$network$nodes %>%
+        select(upos, label, value, group, color) %>%
+        rename(PoS=upos,
+               Word=label,
+               Frequency=value,
+               Group=group,
+               "Color Group"=color)
+
+      values$network$edgesData <- values$network$edges %>%
+        select(term_from, term_to,group_from, group_to, s,sA, sC, sJ) %>%
+        rename(From=term_from,
+               To=term_to,
+               "Co-occurence"=s,
+               "Association Index"=sA,
+               "Cosine Similarity"=sC,
+               "Jaccard Index"=sJ,
+               "Group From"=group_from,
+               "Group To"=group_to)
+
+
     }
   )
 
@@ -1796,28 +1817,13 @@ To ensure the functionality of TALL,
 
   output$w_networkCoocNodesTable <- renderDT(server=FALSE,{
     netFunction()
-    DTformat(values$network$nodes %>%
-               select(upos, label, value, group, color) %>%
-               rename(PoS=upos,
-                      Word=label,
-                      Frequency=value,
-                      Group=group,
-                      "Color Group"=color), size='100%',filename="NetworkWordsTable", pagelength=TRUE, left=NULL, right=NULL,
+    DTformat(values$network$nodesData, size='100%',filename="NetworkWordsTable", pagelength=TRUE, left=NULL, right=NULL,
              numeric=NULL, dom=TRUE, filter="top")
   })
 
   output$w_networkCoocEdgesTable <- renderDT(server=FALSE,{
     netFunction()
-    DTformat(values$network$edges %>%
-               select(term_from, term_to,group_from, group_to, s,sA, sC, sJ) %>%
-               rename(From=term_from,
-                      To=term_to,
-                      "Co-occurence"=s,
-                      "Association Index"=sA,
-                      "Cosine Similarity"=sC,
-                      "Jaccard Index"=sJ,
-                      "Group From"=group_from,
-                      "Group To"=group_to),
+    DTformat(values$network$edgesData,
              size='100%',filename="NetworkLinksTable", numeric=6:8, round=4)
   })
 
@@ -1934,6 +1940,29 @@ To ensure the functionality of TALL,
     DTformat(sentences, size='100%')
   }, escape=FALSE)
 
+  ## Report
+
+  observeEvent(input$w_networkCoocReport,{
+    if(!is.null(values$network$nodes)){
+      popUp(title=NULL, type="waiting")
+      sheetname <- "CoWord"
+      list_df <- list(values$network$nodesData
+                      ,values$network$edgesData
+      )
+      res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
+      #values$wb <- res$wb
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      values$filenetVis <- plot2png(values$netVis, filename="CoWord.png", zoom = values$zoom)
+      values$list_file <- rbind(values$list_file, c(sheetname=res$sheetname,values$filenetVis,res$col))
+      popUp(title="Co-Word Analysis Results", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
+  })
+
+
 
   ## GRAKO ----
   grakoFunction <- eventReactive(
@@ -1944,6 +1973,27 @@ To ensure the functionality of TALL,
                             labelsize=input$grakoLabelSize, opacity=input$grakoOpacity,
                             normalization=input$grakoNormalization,
                             singleWords=input$grakoUnigram,term=input$grako_term)
+
+      values$grako$nodesData <- values$grako$nodes %>%
+        select(upos, label, value) %>%
+        mutate(label=gsub("<b> | <\b>", "", label)) %>%
+        rename(PoS=upos,
+               Word=label,
+               Frequency=value)
+
+
+      values$grako$edgesData <- values$grako$edges %>%
+        select(term_from, term_to,upos_from, upos_to, role, s,sA, sC, sJ) %>%
+        rename(From=term_from,
+               To=term_to,
+               "Co-occurence"=s,
+               "Association Index"=sA,
+               "Cosine Similarity"=sC,
+               "Jaccard Index"=sJ,
+               "PoS From"=upos_from,
+               "PoS To"=upos_to,
+               "Action"=role)
+
     }
   )
 
@@ -1955,27 +2005,13 @@ To ensure the functionality of TALL,
 
   output$w_networkGrakoNodesTable <- renderDT(server=FALSE,{
     grakoFunction()
-    DTformat(values$grako$nodes %>%
-               select(upos, label, value) %>%
-               rename(PoS=upos,
-                      Word=label,
-                      Frequency=value), size='100%',filename="GrakoWordsTable", pagelength=TRUE, left=NULL, right=NULL,
+    DTformat(values$grako$nodesData, size='100%',filename="GrakoWordsTable", pagelength=TRUE, left=NULL, right=NULL,
              numeric=NULL, dom=TRUE, filter="top")
   })
 
   output$w_networkGrakoEdgesTable <- renderDT(server=FALSE,{
     grakoFunction()
-    DTformat(values$grako$edges %>%
-               select(term_from, term_to,upos_from, upos_to, role, s,sA, sC, sJ) %>%
-               rename(From=term_from,
-                      To=term_to,
-                      "Co-occurence"=s,
-                      "Association Index"=sA,
-                      "Cosine Similarity"=sC,
-                      "Jaccard Index"=sJ,
-                      "PoS From"=upos_from,
-                      "PoS To"=upos_to,
-                      "Action"=role),
+    DTformat(values$grako$edgesData,
              size='100%',filename="GrakoLinksTable", numeric=7:9, round=4)
   })
 
@@ -1989,6 +2025,28 @@ To ensure the functionality of TALL,
     },
     contentType = "png"
   )
+
+  ## Report
+
+  observeEvent(input$w_networkGrakoReport,{
+    if(!is.null(values$grako$nodes)){
+      popUp(title=NULL, type="waiting")
+      sheetname <- "Grako"
+      list_df <- list(values$grako$nodesData
+                      ,values$grako$edgesData
+      )
+      res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
+      #values$wb <- res$wb
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      values$fileGrako <- plot2png(values$grakoVis, filename="grako.png", zoom = values$zoom)
+      values$list_file <- rbind(values$list_file, c(sheetname=res$sheetname,values$fileGrako,res$col))
+      popUp(title="Grako Results", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
+  })
 
 
   ## DOCUMENTS ----

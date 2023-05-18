@@ -1675,14 +1675,6 @@ body <- dashboardBody(
                                choices = c("Documents", "Paragraphs", "Sentences"),
                                selected = "Sentences"
                              ),
-                             # checkboxGroupInput(
-                             #   inputId = "groupNet",
-                             #   label = "Groups",
-                             #   choices = c("Docs"="doc_id",
-                             #               "Sentences"="sentence_id"),
-                             #   selected = c("doc_id", "sentence_id"),
-                             #   inline = TRUE
-                             # ),
                              materialSwitch(
                                inputId = "interLinks",
                                label = "Inter-group links",
