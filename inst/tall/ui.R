@@ -108,7 +108,7 @@ body <- dashboardBody(
               #h1(HTML("TA<i>ll</i>"), align="center", style = "font-family: 'Times New Roman'; font-size: 70px;"),
               br(),
               div(img(src = "logo1.jpg", height = "50%",width = "50%"), style="text-align: center;"),
-              h2(HTML("Textual Analysis for A<i>ll</i>"), align="center", style = "font-family: 'Times New Roman';"),
+              h2(HTML("Text Analysis for A<i>ll</i>"), align="center", style = "font-family: 'Times New Roman';"),
               br(),
               div(p("Powered by ",
                     em(a("K-Synth",
@@ -262,7 +262,7 @@ body <- dashboardBody(
     ),
 
     ## EDIT ----
-    ### Split texts ----
+    ### Split ----
 
     tabItem(tabName = "split_tx",
             fluidPage(
@@ -318,7 +318,7 @@ body <- dashboardBody(
             )
     ),
 
-    ### Random text selection ----
+    ### Random selection ----
 
     tabItem(tabName = "randomText",
             fluidPage(
@@ -359,32 +359,8 @@ body <- dashboardBody(
                                     do.call("actionButton", c(back_bttn, list(
                                       inputId = "randomTextBack")
                                     ))
-                                    # title = t_run,
-                                    # div(
-                                    # actionButton("randomTextBack",
-                                    #              label=NULL,
-                                    #              icon = icon("repeat", lib="glyphicon")),
-                                    # style="display:block; height: 37px; width: 37px;
-                                    # border-radius: 50%; border: 3px; margin-top: 15px"
-                                    # )
-                                    # do.call("actionButton", c(run_bttn, list(
-                                    #   inputId = "randomTextBack")
-                                    # ))
                              )
-                             # column(3,
-                             #        title = t_save,
-                             #        do.call("downloadButton", c(list(
-                             #          label=NULL,
-                             #          style ="display:block; height: 37px; width: 37px; border-radius: 50%;
-                             #          border: 1px; margin-top: 16px;",
-                             #          icon = icon(name ="floppy-save", lib="glyphicon")
-                             #        ), list(
-                             #          outputId = "randomTextSave")
-                             #        ))
-                             # )
-
-
-                           )
+                             )
 
                          )
                        )
@@ -552,7 +528,7 @@ body <- dashboardBody(
                                             shinycssloaders::withSpinner(DT::DTOutput("customPosTagData"),
                                                                          color = getOption("spinner.color", default = "#4F7942"))
                                    ),
-                                   tabPanel("Term Custom List",
+                                   tabPanel("Custom Term List",
                                             shinycssloaders::withSpinner(DT::DTOutput("customListData"),
                                                                          color = getOption("spinner.color", default = "#4F7942"))
                                    )
@@ -562,8 +538,12 @@ body <- dashboardBody(
                        div(
                          box(
                            width = 12,
-                           div(h3(strong(em("Import Term Custom Lists"))), style="margin-top:-57px"),
+                           div(h3(strong(em("Import Custom Term List"))), style="margin-top:-57px"),
                            hr(),
+
+                           helpText(h5("Please ensure that the Custom Term List is formatted as an Excel file with two columns.
+                                       In the first column include the desired terms.
+                                       In the second column provide the corresponding list of PoS associated with each term.")),
                            fluidRow(column(12,
                                            fileInput("custom_lists", label=NULL,
                                                      multiple = TRUE,
@@ -618,7 +598,7 @@ body <- dashboardBody(
                                             shinycssloaders::withSpinner(DT::DTOutput("multiwordList"),
                                                                          color = getOption("spinner.color", default = "#4F7942"))
                                    ),
-                                   tabPanel("Annotated Text including Multi-Words",
+                                   tabPanel("Annotated Text including Multi-Word",
                                             shinycssloaders::withSpinner(DT::DTOutput("multiwordData"),
                                                                          color = getOption("spinner.color", default = "#4F7942"))
                                    )
@@ -1675,14 +1655,6 @@ body <- dashboardBody(
                                choices = c("Documents", "Paragraphs", "Sentences"),
                                selected = "Sentences"
                              ),
-                             # checkboxGroupInput(
-                             #   inputId = "groupNet",
-                             #   label = "Groups",
-                             #   choices = c("Docs"="doc_id",
-                             #               "Sentences"="sentence_id"),
-                             #   selected = c("doc_id", "sentence_id"),
-                             #   inline = TRUE
-                             # ),
                              materialSwitch(
                                inputId = "interLinks",
                                label = "Inter-group links",
