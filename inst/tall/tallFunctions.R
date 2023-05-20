@@ -1592,6 +1592,9 @@ tmTuning <- function(dfTag, group=c("doc_id", "sentence_id"), term="lemma",
 }
 
 tmTuningPlot <- function(result, metric){
+
+  df <- result
+
   switch(metric,
          CaoJuan2009={
            bestT <- df$topics[which.min(df[,2])][1]
@@ -1599,11 +1602,13 @@ tmTuningPlot <- function(result, metric){
          Arun2010={
            bestT <- df$topics[which.min(df[,2])][1]
          },
-         {
+         Griffiths2004={
+           bestT <- df$topics[which.max(df[,2])][1]
+         },
+         Deveaud2014={
            bestT <- df$topics[which.max(df[,2])][1]
          }
   )
-  df <- result
   names(df) <- c("x","y")
   df <- df %>%
     mutate(y = (y-min(y))/diff(range(y)))

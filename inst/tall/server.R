@@ -2035,7 +2035,6 @@ To ensure the functionality of TALL,
   ## DOCUMENTS ----
 
   ## Topic Modeling ----
-
   ## K choice ----
 
   netTMKselect <- eventReactive(
@@ -2046,11 +2045,10 @@ To ensure the functionality of TALL,
                                    metric=input$metric, n=input$nTm, top_by=input$top_by, minK=input$minK, maxK=input$maxK, Kby=input$Kby)
       values$TMKplot <- tmTuningPlot(values$TMKresult, metric=input$metric)
 
-      df <- values$TMKresult %>% arrange(topics) %>%
+      #d_tm_selectTable
+      values$df <- values$TMKresult %>% arrange(topics) %>%
         rename("N. of Topics" = topics)
-      df$Normalized <- (df[,2]-min(df[,2]))/diff(range(df[,2]))
-      values$dfData <- df
-
+      values$df$Normalized <- (values$df[,2]-min(values$df[,2]))/diff(range(values$df[,2]))
 
     }
   )
@@ -2060,8 +2058,13 @@ To ensure the functionality of TALL,
     values$TMKplot
   })
 
-  output$d_tm_selectTable <- renderDataTable(server = FALSE,{
-    DTformat(values$dfData, numeric=c(2,3), round=2, nrow=nrow(values$dfData), size="110%")
+  output$d_tm_selectTable <- renderDataTable({
+    netTMKselect()
+    # df <- values$TMKresult %>% arrange(topics) %>%
+    #   rename("N. of Topics" = topics)
+    # df$Normalized <- (df[,2]-min(df[,2]))/diff(range(df[,2]))
+
+    DTformat(values$df, numeric=c(2,3), round=2, nrow=nrow(df), size="110%")
   })
 
   output$d_tm_selectExport <- downloadHandler(
@@ -2074,26 +2077,25 @@ To ensure the functionality of TALL,
     contentType = "png"
   )
 
-  # ## Report
-  #
-  # observeEvent(input$d_tm_selectReport,{
-  #   if(!is.null(values$dfData)){
-  #     popUp(title=NULL, type="waiting")
-  #     sheetname <- "KChoice"
-  #     list_df <- list(values$dfData
-  #     )
-  #     res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
-  #     #values$wb <- res$wb
-  #     owd <- setwd(tempdir())
-  #     on.exit(setwd(owd))
-  #     values$fileKchoice <- plot2png(values$TMKplot, filename="kchoiche.png", zoom = values$zoom)
-  #     values$list_file <- rbind(values$list_file, c(sheetname=res$sheetname,values$fileKchoice,res$col))
-  #     popUp(title="K choice Results", type="success")
-  #     values$myChoices <- sheets(values$wb)
-  #   } else {
-  #     popUp(type="error")
-  #   }
-  # })
+  ## Report
+
+  observeEvent(input$d_tm_selectReport,{
+    if(!is.null(values$df)){
+      popUp(title=NULL, type="waiting")
+      sheetname <- "KChoice"
+      list_df <- list(values$df)
+      res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
+      #values$wb <- res$wb
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      values$fileKchoice <- plot2png(values$TMKplot, filename="kchoiche.png", zoom = values$zoom)
+      values$list_file <- rbind(values$list_file, c(sheetname=res$sheetname,values$fileKchoice,res$col))
+      popUp(title="K choice Results", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
+  })
 
 
   ## Model estimation ----
