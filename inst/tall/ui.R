@@ -831,9 +831,11 @@ body <- dashboardBody(
                             tabPanel("Overview",
                                      fluidRow(
                                        br(),
-                                       column(3,
-                                              div(title="Numbers of Documents", valueBoxOutput("nDoc", width = "33vh")),
-                                              div(title= "Average Document's Lenght by characters", valueBoxOutput("avgDocLengthChar", width = "33vh")),
+                                       tagList(
+                                         useShinyjs(),
+                                         column(3,
+                                              div(id='clickbox1',title="Numbers of Documents", valueBoxOutput("nDoc", width = "33vh")),
+                                              div(id='clickbox2',title= "Average Document's Lenght by characters", valueBoxOutput("avgDocLengthChar", width = "33vh")),
                                               valueBoxOutput("avgDocLengthTokens", width = "33vh")),
                                        column(3,
                                               valueBoxOutput("nSentences", width = "33vh"),
@@ -847,6 +849,7 @@ body <- dashboardBody(
                                               valueBoxOutput("TTR", width = "33vh"),
                                               valueBoxOutput("hapax", width = "33vh"),
                                               valueBoxOutput("guiraud", width = "33vh")),
+                                     )
                                      )
                             ),
                             tabPanel("Table",

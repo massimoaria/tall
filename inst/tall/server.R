@@ -834,16 +834,25 @@ To ensure the functionality of TALL,
   #### box1 ---------------
   output$nDoc <- renderValueBox({
     values$vb <- valueBoxesIndices(values$dfTag %>% filter(docSelected))
+
     values$VbData <- data.frame(Description=c("Documents", "Tokens", "Dictionary", "Lemmas", "Sentences",
                                               "Docs Avg Length in Chars", "Doc Avg Length in Tokens",
                                               "Sent Avg Length in Tokens", "Sent Avg Length in Chars",
                                               "TTR", "Hapax (%)", "Guiraud Index"),
                                 Values=unlist(values$vb))
-    valueBox(value = p("Documents", style = 'font-size:16px;color:white;'),
+    valueBox(value = p("Documents", style = 'font-size:16px;color:white;'),#HTML("<p style='font-size:4'>Documents &nbsp; &nbsp; &nbsp; <i>i</i> </p>"),
              subtitle = p(strong(values$vb$nDoc), style = 'font-size:36px;color:white;', align="center"),
-             icon = icon("duplicate", lib="glyphicon"), color = "olive",
+             icon = icon("duplicate", lib="glyphicon" ), color = "olive",
              width = NULL)
+
   })
+
+  onclick('clickbox1', showModal(modalDialog(
+    title = "Documents",
+    h3("Number of Docs"),
+    easyClose = TRUE
+  )))
+
 
   #### box2 ---------------
   output$avgDocLengthChar <- renderValueBox({
@@ -852,6 +861,12 @@ To ensure the functionality of TALL,
              icon = icon("duplicate", lib="glyphicon"), color = "olive",
              width = NULL)
   })
+
+  onclick('clickbox2', showModal(modalDialog(
+    title = "Doc Avg Length in Chars",
+    h3("Average Document's Lenght by characters"),
+    easyClose = TRUE
+  )))
 
   #### box3 ------------
   output$avgDocLengthTokens <- renderValueBox({
@@ -1418,13 +1433,22 @@ To ensure the functionality of TALL,
         title = h3(strong("Warning message!")),
         h4(HTML("No Multi-Word found!<br>
                Please return to the Pre-processing -> Multi-Word Creation menu to obtain them.")),
-        footer = modalButton("OK"),
+        footer = tagList(
+          actionButton(label="Create Multi-Word", inputId = "modalMultiWord", style="color: #ffff;",
+                       icon = icon("edit", lib = "glyphicon")),
+          modalButton("Dismiss")
+          ),
         easyClose = TRUE
       ))
-
     }
-
   })
+
+  ## back to MultiWord creation menu
+  observeEvent(input$modalMultiWord,{
+    removeModal()
+    updateTabItems(session, "sidebarmenu", "multiwordCreat")
+  })
+
 
 
   otherFreq <- eventReactive(
