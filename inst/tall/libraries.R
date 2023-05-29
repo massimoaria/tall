@@ -29,6 +29,10 @@ libraries <- function(){
   if (!suppressPackageStartupMessages(require(webshot2))){install.packages("webshot2"); suppressPackageStartupMessages(require(webshot2))}
   if (!suppressPackageStartupMessages(require(chromote))){install.packages("chromote"); suppressPackageStartupMessages(require(chromote))}
 
+  ### workaround for webshot2 on shinyapps.io
+  if (!suppressPackageStartupMessages(require(curl))){install.packages("curl"); suppressPackageStartupMessages(require(curl))}
+  if (!suppressPackageStartupMessages(require(pagedown))){install.packages("pagedown"); suppressPackageStartupMessages(require(pagedown))}
+
   if (Sys.info()[["sysname"]]=="Windows") {
   if (!suppressPackageStartupMessages(require(doParallel))){install.packages("doParallel"); suppressPackageStartupMessages(require(doParallel))}}
 
