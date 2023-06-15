@@ -16,35 +16,87 @@ options(shiny.maxRequestSize=maxUploadSize*1024^2)
 
 
 server <- function(input, output, session){
-  session$onSessionEnded(stopApp)
+
+  ## chrome configration for shinyapps server
+
+  if (identical(Sys.getenv("R_CONFIG_ACTIVE"), "shinyapps")) {
+    chromote::set_default_chromote_object(
+      chromote::Chromote$new(chromote::Chrome$new(
+        args = c("--disable-gpu",
+                 "--no-sandbox",
+                 "--disable-dev-shm-usage", # required bc the target easily crashes
+                 c("--force-color-profile", "srgb"))
+      ))
+    )
+  }
+  ## end configuration
+
+  ## Check if Chrome browser is installed on the computer
+  if(is.null(chromote::find_chrome())){
+    showModal(modalDialog(
+      title = strong("Warning message!"),
+      HTML("Chrome or a Chromium-based browser is not installed on your computer.<br>
+If you do not have either of these browsers installed, TALL will be unable to export graphs.<br>
+To ensure the functionality of TALL,
+           please download Chrome by <a href='https://www.google.com/intl/it_it/chrome/' target='_blank' > <b>clicking here</b></a>."),
+      footer = modalButton("Dismiss"),
+      easyClose = TRUE
+    ))
+  }
+
+  ## Code to reset shiny app
+  reset_rv <- reactiveVal(value = 0L)
+  session$onSessionEnded(function(){
+    #x <- Inf
+    x <- isolate(reset_rv())
+
+    if (!is.null(x)){
+      if(x==0) {
+        stopApp()
+      }
+    }
+  })
+  ###
+
+  output$resetButton <- renderUI({
+    reset_bttn <- list(
+      label = NULL,
+      style="margin-top: -8px; font-size: 8px; border-radius:2%",
+      #style ="display:block; height: 37px; width: 37px; border-radius: 50%; border: 3px; margin-top: 15px",
+      icon = icon(name ="refresh", lib="glyphicon")
+    )
+    do.call("actionButton", c(reset_bttn, list(
+      inputId = "resetApp")
+    ))
+  })
+
+  observeEvent(input$resetApp, {
+    ask_confirmation(
+      inputId = "reset_confirmation",
+      title = "Restart TALL",
+      text = HTML('Restarting TAll will result in the loss of all analyses currently in progress<br><br>
+                  <b>Do you want to confirm?</b>'),
+      html=TRUE,
+      type = "warning",
+      btn_labels = c("CANCEL", "CONFIRM")
+    )
+  })
+
+  observeEvent(input$reset_confirmation, {
+    if (isTRUE(input$reset_confirmation)){
+    reset_rv(input$resApp)
+    session$reload()
+    }
+  })
+
+
 
   ## suppress summarise message
   options(dplyr.summarise.inform = FALSE)
-  languages <- langrepo()
+  # languages <- langrepo()
 
   ### Initial values ----
-  values <- reactiveValues()
-  values$path <- NULL
-  values$menu <- -1
-  values$custom_lists <- NULL
-  values$txt <- data.frame()
-  values$txtOriginal <- data.frame()
-  values$list_file <- data.frame(sheet=NULL,file=NULL,n=NULL)
-  values$POSTagSelected <- ""
-  values$wb <-  openxlsx::createWorkbook()
-  values$dfLabel <- dfLabel()
-  values$posMwSel <- c("ADJ", "NOUN", "PROPN") # POS selected by default for multiword creation
-  values$myChoices <- "Empty Report"
-  #values$df <- df
-  label_lang <- languages$repo
-  names(label_lang) <- languages$short
-  values$label_lang <- label_lang
-  values$chapter <- languages$chapter
-  values$TMplotIndex <- 1
-  values$TMdocIndex <- 1
-  values$tmTopSentences <- FALSE
-  values$selectedGroups <- NULL
-
+   values <- resetValues()
 
   ## Setting plot values
   values$h <- 7
@@ -60,6 +112,7 @@ server <- function(input, output, session){
   })
 
   observeEvent(input$runImport, {
+    values <- resetValues()
     updateTabItems(session, "sidebarmenu", "import_tx")
   })
 
@@ -106,16 +159,16 @@ server <- function(input, output, session){
     )
   })
 
-  output$infoImport <- renderUI({
-    extReal <- getFileNameExtension(req(input$file_raw$datapath[1]))
-    if (extReal!=input$ext & extReal!="xls"){
+  output$infoTextLabel <- renderUI({
 
       shinyWidgets::alert(
-        icon("info"),
-        " You selected a file(s) with an incorrect extention",
-        status = "danger"
+        icon("warning"),
+        tags$b("Warning!"),
+        br(),
+        HTML("The column including text(s) in your CSV or EXCEL file must be named <b>text</b>"),
+        status = "warning"
       )
-    }
+    #}
   })
 
   ### dataImported ----
@@ -182,7 +235,7 @@ server <- function(input, output, session){
                  mutate(text = paste0(substr(text,1,500),"...")) %>%
                  select(doc_id, text, everything()) %>%
                  select(-doc_selected),
-               left=2, nrow=5, filter="none", button=TRUE, delete=TRUE)
+               left=3, nrow=5, filter="none", button=TRUE, delete=TRUE)
     }
   })
   ### shortpath for folder path ----
@@ -281,9 +334,21 @@ server <- function(input, output, session){
     values$txt <- values$txt %>%
       mutate(doc_selected = TRUE)
   })
+
+  output$infoGroups <- renderUI({
+    if (length(input$defineGroupsList) >1) {
+      shinyWidgets::alert(
+        icon("info"),
+        " You need to select only one field",
+        status = "danger"
+      )
+    }
+  })
+
+
   ## EDIT ----
 
-  ### SPLIT TEXTS ----
+  ### SPLIT ----
 
   splitDocFunc <- eventReactive(input$splitTextRun,{
     #values$txt_original <- values$txt
@@ -296,7 +361,7 @@ server <- function(input, output, session){
   })
 
 
-  ### RANDOM TEXT SELECTION ----
+  ### RANDOM SELECTION ----
 
   output$randomDescription <- renderUI({
 
@@ -305,7 +370,9 @@ server <- function(input, output, session){
   })
 
   randomTextFunc <- eventReactive(input$randomTextRun,{
-    values$txt <- samplingText(values$txt, n=input$sampleSize)
+
+    values$txt <- samplingText(values$txt,
+                               n=as.numeric(round((input$sampleSize/100)*nrow(values$txt)),0))
   })
 
   output$randomTextData <- DT::renderDT({
@@ -338,8 +405,8 @@ server <- function(input, output, session){
     EXTINFOloading()
     DTformat(values$txt %>%
                filter(doc_selected) %>%
-               mutate(text = paste0(substr(text,1,500),"...")),
-             left=2, nrow=3, filter="none")
+               mutate(text = paste0(substr(text,1,250),"...")),
+             left=4, nrow=3, filter="top", button=TRUE, delete=TRUE)
   })
 
 
@@ -354,6 +421,12 @@ server <- function(input, output, session){
                                             file=file))
     }, contentType = "xlsx"
   )
+
+  # Back to the original import text ----
+  observeEvent(input$extInfoTextBack, {
+    values$txt <- values$txt %>%
+      mutate(doc_selected = TRUE)
+  })
 
   ### PRE-PROCESSING ----
 
@@ -393,8 +466,7 @@ server <- function(input, output, session){
       left_join(values$txt %>% select(-text), by = "doc_id") %>%
       posSel(., c("ADJ","NOUN","PROPN", "VERB"))
     values$dfTag <- highlight(values$dfTag)
-    #mutate(POSSelected = ifelse(upos %in% c("ADJ","NOUN","PROPN", "VERB"), TRUE, FALSE))
-
+    values$dfTag$docSelected <- TRUE
     values$menu <- 1
 
   }
@@ -404,7 +476,7 @@ server <- function(input, output, session){
     posTagging()
 
     if(!is.null(values$dfTag)){
-      DTformat(values$dfTag%>% select(doc_id, paragraph_id, sentence_id,sentence,token,lemma, upos) %>%
+      DTformat(values$dfTag %>% filter(docSelected) %>% select(doc_id, paragraph_id, sentence_id,sentence,token,lemma, upos) %>%
                  rename(D_id=doc_id,
                         P_id=paragraph_id,
                         S_id=sentence_id,
@@ -606,6 +678,72 @@ server <- function(input, output, session){
     }, contentType = "tall"
   )
 
+  ## FILTER ----
+  output$filterList <- renderUI({
+    label <- c("",sort(noGroupLabels(names(values$dfTag))))
+    selectInput(
+      inputId = "filterList",
+      label = NULL,
+      choices = label,
+      selected = values$selectedFilter,
+      width = "100%"
+    )
+  })
+
+  observeEvent(ignoreNULL = TRUE,
+               eventExpr={input$filterList},
+               handlerExpr = {
+                 if (nchar(input$filterList)>0){
+                   filtervalues <- values$dfTag %>%
+                     filter(POSSelected) %>%
+                     select(all_of(input$filterList)) %>%
+                     distinct()
+                   filtervalues <- sort(filtervalues[[1]])
+                   values$selectedFilter <- input$filterList
+
+                   output$filterValue <- renderUI({
+                     multiInput(
+                       inputId="filterValue",
+                       label=NULL,
+                       choices = filtervalues,
+                       selected = NULL,
+                       width = "100%"
+                     )
+                   })
+                 }
+               })
+
+  filterDATA <- eventReactive(
+    ignoreNULL = TRUE,
+    eventExpr = {input$filterRun},
+    valueExpr = {
+      if (!is.null(input$filterValue)){
+        values$dfTag$docSelected <- ifelse(values$dfTag[[values$selectedFilter]] %in% input$filterValue,TRUE,FALSE)
+      } else {
+        values$dfTag$docSelected <- TRUE
+      }
+      values$dfTag
+    })
+
+  output$filterData <- renderDT({
+    filterDATA()
+    DTformat(values$dfTag %>%
+               filter(docSelected & POSSelected), nrow=3, size='100%', title=paste0("Filtered Data by ", input$filterList))
+  })
+
+
+  ## Data filtered by dynamic text on dashboardHeader
+
+  output$dataFilteredBy <- renderText({
+    if (!is.null(input$filterValue)){
+      req(input$filterRun)
+      HTML(paste("Documents filtered by: <b>", input$filterList, "</b>"))
+    } else {
+      HTML("")
+    }
+  })
+
+
   ## GROUPS ----
 
   ### Define groups ----
@@ -617,12 +755,6 @@ server <- function(input, output, session){
       label = NULL,
       choices = label,
       selected = values$selectedGroups,
-      # options = list(
-      #   limit = 1
-      #   #enable_search = FALSE,
-      # ),
-      # choiceNames = label,
-      # choiceValues = label,
       width = "100%"
     )
 
@@ -642,7 +774,6 @@ server <- function(input, output, session){
     ignoreNULL = TRUE,
     eventExpr = {input$defineGroupsRun},
     valueExpr ={
-      #print(input$defineGroupsList)
       values$selectedGroups <- input$defineGroupsList
       values$dfTag <- groupByMetadata(values$dfTag, metadata=input$defineGroupsList)
       if (length(input$defineGroupsList) == 1){
@@ -665,12 +796,14 @@ server <- function(input, output, session){
 
   output$defineGroupsData <- renderDT({
     groupMetadata()
-    DTformat(values$dfTag, nrow=3, size='100%', title="Data Grouped By External Information")
+    DTformat(values$dfTag %>% filter(docSelected), nrow=3, size='100%', title="Data Grouped By External Information")
   })
 
   groupModal <- function(session) {
     ns <- session$ns
-    values$newGr <- values$dfTag %>% count(doc_id, ungroupDoc_id) %>%
+    values$newGr <- values$dfTag %>%
+      filter(docSelected) %>%
+      count(doc_id, ungroupDoc_id) %>%
       group_by(doc_id) %>%
       count()
     names(values$newGr) = c(input$defineGroupsList, "N. of Docs")
@@ -713,12 +846,26 @@ server <- function(input, output, session){
 
   #### box1 ---------------
   output$nDoc <- renderValueBox({
-    values$vb <- valueBoxesIndices(values$dfTag)
-    valueBox(value = p("Documents", style = 'font-size:16px;color:white;'),
+    values$vb <- valueBoxesIndices(values$dfTag %>% filter(docSelected))
+
+    values$VbData <- data.frame(Description=c("Documents", "Tokens", "Dictionary", "Lemmas", "Sentences",
+                                              "Docs Avg Length in Chars", "Doc Avg Length in Tokens",
+                                              "Sent Avg Length in Tokens", "Sent Avg Length in Chars",
+                                              "TTR", "Hapax (%)", "Guiraud Index"),
+                                Values=unlist(values$vb))
+    valueBox(value = p("Documents", style = 'font-size:16px;color:white;'),#HTML("<p style='font-size:4'>Documents &nbsp; &nbsp; &nbsp; <i>i</i> </p>"),
              subtitle = p(strong(values$vb$nDoc), style = 'font-size:36px;color:white;', align="center"),
-             icon = icon("duplicate", lib="glyphicon"), color = "olive",
+             icon = icon("duplicate", lib="glyphicon" ), color = "olive",
              width = NULL)
+
   })
+
+  onclick('clickbox1', showModal(modalDialog(
+    title = "Documents",
+    h3("Number of Docs"),
+    easyClose = TRUE
+  )))
+
 
   #### box2 ---------------
   output$avgDocLengthChar <- renderValueBox({
@@ -727,6 +874,12 @@ server <- function(input, output, session){
              icon = icon("duplicate", lib="glyphicon"), color = "olive",
              width = NULL)
   })
+
+  onclick('clickbox2', showModal(modalDialog(
+    title = "Doc Avg Length in Chars",
+    h3("Average Document's Lenght by characters"),
+    easyClose = TRUE
+  )))
 
   #### box3 ------------
   output$avgDocLengthTokens <- renderValueBox({
@@ -811,12 +964,22 @@ server <- function(input, output, session){
   ## Overview Table ----
 
   output$overviewData <- renderDT(server = FALSE,{
-    vb <- data.frame(Description=c("Documents", "Tokens", "Dictionary", "Lemmas", "Sentences",
-                                   "Docs Avg Length in Chars", "Doc Avg Length in Tokens",
-                                   "Sent Avg Length in Tokens", "Sent Avg Length in Chars",
-                                   "TTR", "Hapax (%)", "Guiraud Index"),
-                     Values=unlist(values$vb))
-    DTformat(vb,n=12, left=1, right=2, numeric=2, pagelength=FALSE, dom=FALSE, size='110%', filename="Overview")
+    DTformat(values$VbData,n=12, left=1, right=2, numeric=2, pagelength=FALSE, dom=FALSE, size='110%', filename="Overview")
+  })
+
+  ## Report
+
+  observeEvent(input$overviewReport,{
+    if(!is.null(values$VbData)){
+      sheetname <- "Overview"
+      list_df <- list(values$VbData)
+      res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
+      values$wb <- res$wb
+      popUp(title="Overview Table", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
   })
 
 
@@ -825,7 +988,7 @@ server <- function(input, output, session){
   output$wordcloudPlot <- renderWordcloud2({
 
     n <- 200 #showing the first 200 lemmas
-    wcDfPlot <- freqByPos(values$dfTag, term=input$termWC,pos=unique(values$dfTag$upos[values$dfTag$POSSelected==TRUE])) %>%
+    wcDfPlot <- freqByPos(values$dfTag %>% filter(docSelected), term=input$termWC,pos=unique(values$dfTag$upos[values$dfTag$POSSelected==TRUE & values$dfTag$docSelected==TRUE])) %>%
       slice_head(n=n) %>%
       #mutate(n=log(n)) %>%
       rename(text = term,
@@ -845,7 +1008,7 @@ server <- function(input, output, session){
 
   output$wcDfData <- renderDT(server=FALSE,{
     n=200
-    wcDfTable <- freqByPos(values$dfTag, term="lemma",pos=unique(values$dfTag$upos[values$dfTag$POSSelected==TRUE])) %>%
+    wcDfTable <- freqByPos(values$dfTag%>% filter(docSelected), term="lemma",pos=unique(values$dfTag$upos[values$dfTag$POSSelected==TRUE & values$dfTag$docSelected==TRUE])) %>%
       slice_head(n=n) %>%
       rename(Lemma = term,
              Freq = n)
@@ -869,18 +1032,6 @@ server <- function(input, output, session){
     plot2png(values$wcPlot, filename=filename, zoom = values$zoom, type="plotly")
   })
 
-  observeEvent(input$reportMI,{
-    if(!is.null(values$TABvb)){
-      sheetname <- "MainInfo"
-      list_df <- list(values$TABvb)
-      res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
-      values$wb <- res$wb
-      popUp(title="Main Information", type="success")
-      values$myChoices <- sheets(values$wb)
-    } else {
-      popUp(type="error")
-    }
-  })
 
   ## VOCABULARY ----
   dictionary <- eventReactive({
@@ -890,7 +1041,7 @@ server <- function(input, output, session){
     #values$dictFreq <- freqByPos(values$dfTag, term=input$termDict, pos=c("PROPN", "NOUN", "ADJ", "VERB"))
     Term <- input$termDict
     values$dictFreq <- values$dfTag %>%
-      dplyr::filter(POSSelected) %>%
+      dplyr::filter(POSSelected & docSelected) %>%
       mutate(token = ifelse(upos == "MULTIWORD", lemma,token))
 
     if (Term=="lemma"){
@@ -920,10 +1071,20 @@ server <- function(input, output, session){
   })
 
   ## TF-IDF ----
+
+  tf_idf <- eventReactive({
+    input$tfidfApply
+  },
+  {
+    values$tfidfDATA <- values$dfTag %>%
+      dplyr::filter(POSSelected & docSelected) %>%
+      tfidf(term=input$termTfidf)
+  })
+
+
   output$tfidfData <- renderDT(server=FALSE,{
-    DTformat(values$dfTag %>%
-               dplyr::filter(POSSelected) %>%
-               tfidf(term="lemma") %>%
+    tf_idf()
+    DTformat(values$tfidfDATA  %>%
                rename(
                  Lemma = term,
                  "TF-IDF" = TFIDF),
@@ -969,6 +1130,7 @@ server <- function(input, output, session){
     if (input$sidebarmenu=="w_other"){
       word_search <- word
       sentences <- values$dfTag %>%
+        filter(docSelected) %>%
         filter(lemma %in% word_search) %>%
         ungroup() %>% select(lemma, token, sentence_hl)
     } else if (input$sidebarmenu=="ca"){
@@ -979,11 +1141,13 @@ server <- function(input, output, session){
       word <- word$label
       word_search <- unique(c(word, values$dfTag$token[values$dfTag$lemma==word]))
       sentences <- values$dfTag %>%
+        filter(docSelected) %>%
         filter(token %in% word_search) %>%
         ungroup() %>% select(lemma, token, sentence_hl)
     } else {
       word_search <- unique(c(word, values$dfTag$token[values$dfTag$lemma==word]))
       sentences <- values$dfTag %>%
+        filter(docSelected) %>%
         filter(token %in% word_search) %>%
         ungroup() %>% select(lemma, token, sentence_hl)
     }
@@ -1056,22 +1220,23 @@ server <- function(input, output, session){
       input$nounApply
     },
     valueExpr = {
-      values$freqNoun <- freqByPos(values$dfTag, term="lemma", pos="NOUN")
-      freqPlotly(values$freqNoun,x="n",y="term",n=input$nounN, xlabel="Frequency",ylabel="NOUN", scale="identity")
+      values$freqNoun <- freqByPos(values$dfTag%>% filter(docSelected), term="lemma", pos="NOUN")
+      values$nounPlotly <- freqPlotly(values$freqNoun,x="n",y="term",n=input$nounN, xlabel="Frequency",ylabel="NOUN", scale="identity")
+
+      values$freqNounData <- values$freqNoun %>%
+        rename(Term = term,
+               Frequency = n)
     }
   )
 
   output$nounPlot <- renderPlotly({
-    values$nounPlotly <- nounFreq()
+    nounFreq()
     values$nounPlotly
   })
 
   output$nounTable <- renderDT(server=FALSE,{
     nounFreq()
-    DTformat(values$freqNoun %>%
-               rename(Term = term,
-                      Frequency = n),
-             left=1, right=2, numeric=2, filename="NounFreqList", dom=FALSE, size="110%")
+    DTformat(values$freqNounData, left=1, right=2, numeric=2, filename="NounFreqList", dom=FALSE, size="110%")
   })
 
   output$nounExport <- downloadHandler(
@@ -1087,6 +1252,23 @@ server <- function(input, output, session){
     contentType = "png"
   )
 
+  ## Report
+
+  observeEvent(input$nounReport,{
+    if(!is.null(values$freqNoun)){
+      values$nounGgplot <- freqGgplot(values$freqNoun,x=2, y=1,n=input$nounN,
+                                      title = "Noun Frequency")
+      list_df <- list(values$freqNounData)
+      list_plot <- list(values$nounGgplot)
+      wb <- addSheetToReport(list_df,list_plot,sheetname = "Noun", wb=values$wb)
+      values$wb <- wb
+      popUp(title="Most Used Words-NOUN", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
+  })
+
 
   ## PROPN ----
   propnFreq <- eventReactive(
@@ -1094,22 +1276,24 @@ server <- function(input, output, session){
       input$propnApply
     },
     valueExpr = {
-      values$freqPropn <- freqByPos(values$dfTag, term="lemma", pos="PROPN")
-      freqPlotly(values$freqPropn,x="n",y="term",n=input$propnN, xlabel="Frequency",ylabel="PROPN", scale="identity")
+      values$freqPropn <- freqByPos(values$dfTag %>% filter(docSelected), term="lemma", pos="PROPN")
+      values$propnPlotly <- freqPlotly(values$freqPropn,x="n",y="term",n=input$propnN, xlabel="Frequency",ylabel="PROPN", scale="identity")
+
+      values$freqPropnData <- values$freqPropn %>%
+        rename(Term = term,
+               Frequency = n)
 
     }
   )
 
   output$propnPlot <- renderPlotly({
     propnFreq()
+    values$propnPlotly
   })
 
   output$propnTable <- renderDT(server=FALSE,{
     propnFreq()
-    DTformat(values$freqPropn %>%
-               rename(Term = term,
-                      Frequency = n),
-             left=1, right=2, numeric=2, filename="PropnFreqList", dom=FALSE, size="110%")
+    DTformat(values$freqPropnData, left=1, right=2, numeric=2, filename="PropnFreqList", dom=FALSE, size="110%")
   })
 
   output$propnExport <- downloadHandler(
@@ -1125,27 +1309,46 @@ server <- function(input, output, session){
     contentType = "png"
   )
 
+  ## Report
+
+  observeEvent(input$propnReport,{
+    if(!is.null(values$freqPropn)){
+      values$propnGgplot <- freqGgplot(values$freqPropn,x=2, y=1,n=input$propnN,
+                                       title = "Proper Noun Frequency")
+      list_df <- list(values$freqPropnData)
+      list_plot <- list(values$propnGgplot)
+      wb <- addSheetToReport(list_df,list_plot,sheetname = "Propn", wb=values$wb)
+      values$wb <- wb
+      popUp(title="Most Used Words-PROPN", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
+  })
+
   ## ADJ ----
   adjFreq <- eventReactive(
     eventExpr = {
       input$adjApply
     },
     valueExpr = {
-      values$freqAdj <- freqByPos(values$dfTag, term="lemma", pos="ADJ")
-      freqPlotly(values$freqAdj,x="n",y="term",n=input$adjN, xlabel="Frequency",ylabel="ADJ", scale="identity")
+      values$freqAdj <- freqByPos(values$dfTag %>% filter(docSelected), term="lemma", pos="ADJ")
+      values$adjPlotly <- freqPlotly(values$freqAdj,x="n",y="term",n=input$adjN, xlabel="Frequency",ylabel="ADJ", scale="identity")
+
+      values$freqAdjData <- values$freqAdj %>%
+        rename(Term = term,
+               Frequency = n)
     }
   )
 
   output$adjPlot <- renderPlotly({
     adjFreq()
+    values$adjPlotly
   })
 
   output$adjTable <- renderDT(server=FALSE,{
     adjFreq()
-    DTformat(values$freqAdj %>%
-               rename(Term = term,
-                      Frequency = n),
-             left=1, right=2, numeric=2, filename="AdjFreqList", dom=FALSE, size="110%")
+    DTformat(values$freqAdjData, left=1, right=2, numeric=2, filename="AdjFreqList", dom=FALSE, size="110%")
   })
 
   output$adjExport <- downloadHandler(
@@ -1161,27 +1364,46 @@ server <- function(input, output, session){
     contentType = "png"
   )
 
+  ## Report
+
+  observeEvent(input$adjReport,{
+    if(!is.null(values$freqAdj)){
+      values$adjGgplot <- freqGgplot(values$freqAdj,x=2, y=1,n=input$adjN,
+                                     title = "Adjective Frequency")
+      list_df <- list(values$freqAdjData)
+      list_plot <- list(values$adjGgplot)
+      wb <- addSheetToReport(list_df,list_plot,sheetname = "Adj", wb=values$wb)
+      values$wb <- wb
+      popUp(title="Most Used Words-ADJ", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
+  })
+
   ## VERB ----
   verbFreq <- eventReactive(
     eventExpr = {
       input$verbApply
     },
     valueExpr = {
-      values$freqVerb <- freqByPos(values$dfTag, term="lemma", pos="VERB")
-      freqPlotly(values$freqVerb,x="n",y="term",n=input$verbN, xlabel="Frequency",ylabel="VERB", scale="identity")
+      values$freqVerb <- freqByPos(values$dfTag %>% filter(docSelected), term="lemma", pos="VERB")
+      values$verbPlotly <- freqPlotly(values$freqVerb,x="n",y="term",n=input$verbN, xlabel="Frequency",ylabel="VERB", scale="identity")
+
+      values$freqVerbData <- values$freqVerb %>%
+        rename(Term = term,
+               Frequency = n)
     }
   )
 
   output$verbPlot <- renderPlotly({
     verbFreq()
+    values$verbPlotly
   })
 
   output$verbTable <- renderDT(server=FALSE,{
     verbFreq()
-    DTformat(values$freqVerb %>%
-               rename(Term = term,
-                      Frequency = n),
-             left=1, right=2, numeric=2, filename="VerbFreqList", dom=FALSE, size="110%")
+    DTformat(values$freqVerbData, left=1, right=2, numeric=2, filename="VerbFreqList", dom=FALSE, size="110%")
   })
 
   output$verbExport <- downloadHandler(
@@ -1197,28 +1419,76 @@ server <- function(input, output, session){
     contentType = "png"
   )
 
+  ## Report
+
+  observeEvent(input$verbReport,{
+    if(!is.null(values$freqVerb)){
+      values$verbGgplot <- freqGgplot(values$freqVerb,x=2, y=1,n=input$verbN,
+                                      title = "Verb Frequency")
+      list_df <- list(values$freqVerbData)
+      list_plot <- list(values$verbGgplot)
+      wb <- addSheetToReport(list_df,list_plot,sheetname = "Verb", wb=values$wb)
+      values$wb <- wb
+      popUp(title="Most Used Words-VERB", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
+  })
+
   ## OTHER ----
+
+  observeEvent(input$otherApply,{
+
+    if(is.null(values$multiwords)){
+
+      showModal(modalDialog(
+        title = h3(strong("Warning message!")),
+        h4(HTML("No Multi-Word found!<br>
+               Please return to the Pre-processing -> Multi-Word Creation menu to obtain them.")),
+        footer = tagList(
+          actionButton(label="Create Multi-Word", inputId = "modalMultiWord", style="color: #ffff;",
+                       icon = icon("edit", lib = "glyphicon")),
+          modalButton("Dismiss")
+          ),
+        easyClose = TRUE
+      ))
+    }
+  })
+
+  ## back to MultiWord creation menu
+  observeEvent(input$modalMultiWord,{
+    removeModal()
+    updateTabItems(session, "sidebarmenu", "multiwordCreat")
+  })
+
+
 
   otherFreq <- eventReactive(
     eventExpr = {
       input$otherApply
     },
     valueExpr = {
-      values$freqOther <- freqByPos(values$dfTag, term="lemma", pos="MULTIWORD")
-      freqPlotly(values$freqOther,x="n",y="term",n=input$otherN, xlabel="Frequency",ylabel="Multi-Words", scale="identity")
+      if(!is.null(values$multiwords)){
+      values$freqOther <- freqByPos(values$dfTag %>% filter(docSelected), term="lemma", pos="MULTIWORD")
+      values$otherPlotly <- freqPlotly(values$freqOther,x="n",y="term",n=input$otherN, xlabel="Frequency",ylabel="Multi-Words", scale="identity")
+
+      values$freqOtherData <- values$freqOther %>%
+        rename(Term = term,
+               Frequency = n)
+      }
+
     }
   )
 
   output$otherPlot <- renderPlotly({
     otherFreq()
+    values$otherPlotly
   })
 
   output$otherTable <- renderDT(server=FALSE,{
     otherFreq()
-    DTformat(values$freqOther %>%
-               rename(Term = term,
-                      Frequency = n),
-             left=1, right=2, numeric=2, filename="MultiWordFreqList", dom=FALSE, size="110%")
+    DTformat(values$freqOtherData, left=1, right=2, numeric=2, filename="MultiWordFreqList", dom=FALSE, size="110%")
   })
 
   output$otherExport <- downloadHandler(
@@ -1228,11 +1498,29 @@ server <- function(input, output, session){
     },
     content <- function(file) {
       values$otherGgplot <- freqGgplot(values$freqOther,x=2, y=1,n=input$otherN,
-                                       title = "Multi-Word Frequency")
+                                       title = "Multi-Words Frequency")
       ggsave(filename = file, plot = values$otherGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
     },
     contentType = "png"
   )
+
+  ## Report
+
+  observeEvent(input$otherReport,{
+    if(!is.null(values$freqOther)){
+      values$otherGgplot <- freqGgplot(values$freqOther,x=2, y=1,n=input$otherN,
+                                       title = "Multi-Words Frequency")
+      list_df <- list(values$freqOtherData)
+      list_plot <- list(values$otherGgplot)
+      wb <- addSheetToReport(list_df,list_plot,sheetname = "MultiWords", wb=values$wb)
+      values$wb <- wb
+      popUp(title="Most Used Words-MULTIWORDS", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
+  })
+
 
   ## PART OF SPEECH ----
 
@@ -1242,25 +1530,28 @@ server <- function(input, output, session){
     },
     valueExpr = {
       values$freqPOS <- values$dfTag %>%
+        filter(docSelected) %>%
         dplyr::filter(!upos %in% c("PUNCT", "SYM", "NUM")) %>%
         group_by(upos) %>%
         count() %>%
         arrange(desc(n)) %>%
         rename(PoS = upos)
 
-      freqPlotly(values$freqPOS,x="n",y="PoS",n=nrow(values$freqPOS), xlabel="Frequency",ylabel="Part of Speech", scale="identity")
+      values$posPlotly <- freqPlotly(values$freqPOS,x="n",y="PoS",n=nrow(values$freqPOS), xlabel="Frequency",ylabel="Part of Speech", scale="identity")
+
+      values$freqPOSData <- values$freqPOS  %>%
+        rename(Frequency = n)
     }
   )
 
   output$posPlot <- renderPlotly({
     posFreq()
+    values$posPlotly
   })
 
   output$posTable <- renderDT(server=FALSE,{
     posFreq()
-    DTformat(values$freqPOS %>%
-               rename(Frequency = n),
-             left=1, right=2, numeric=2, filename="POSFreqList", dom=FALSE, pagelength=FALSE, size="110%")
+    DTformat(values$freqPOSData, left=1, right=2, numeric=2, filename="POSFreqList", dom=FALSE, pagelength=FALSE, size="110%")
   })
 
   output$posExport <- downloadHandler(
@@ -1276,6 +1567,23 @@ server <- function(input, output, session){
     contentType = "png"
   )
 
+  ## Report
+
+  observeEvent(input$posReport,{
+    values$posGgplot <- freqGgplot(data.frame(values$freqPOS),x=2, y=1,n=length(values$freqPOS$PoS),
+                                   title = "PoS Frequency")
+    if(!is.null(values$freqPOS)){
+      list_df <- list(values$freqPOSData)
+      list_plot <- list(values$posGgplot)
+      wb <- addSheetToReport(list_df,list_plot,sheetname = "PoS", wb=values$wb)
+      values$wb <- wb
+      popUp(title="Most Used Words-PoS", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
+  })
+
   ## Words in Context ----
 
   wordsInContextMenu <- eventReactive(
@@ -1284,6 +1592,7 @@ server <- function(input, output, session){
     valueExpr = {
       word_search <- req(tolower(input$wordsContSearch))
       values$wordInContext <- values$dfTag %>%
+        filter(docSelected) %>%
         filter(tolower(lemma) %in% word_search | tolower(token) %in% word_search) %>%
         ungroup() %>% select(lemma, token, sentence_hl) %>%
         rename(Lemma=lemma, Token=token, Sentence=sentence_hl)
@@ -1302,7 +1611,7 @@ server <- function(input, output, session){
     ignoreNULL = TRUE,
     eventExpr = {input$w_clusteringApply},
     valueExpr ={
-      results <- clustering(values$dfTag, n=input$w_clusteringNMax,
+      results <- clustering(values$dfTag %>% filter(docSelected), n=input$w_clusteringNMax,
                             group="doc_id", minEdges=25, term=input$termClustering,
                             normalization=input$w_clusteringSimilarity)
       values$wordCluster <- results$cluster
@@ -1338,6 +1647,25 @@ server <- function(input, output, session){
     contentType = "png"
   )
 
+  ## Report
+
+  observeEvent(input$w_clusteringReport,{
+    if(!is.null(values$wordCluster)){
+      popUp(title=NULL, type="waiting")
+      sheetname <- "Clustering"
+      list_df <- list(values$wordCluster)
+      res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
+      #values$wb <- res$wb
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      values$fileDend <- plot2png(values$WordDendrogram, filename="Clustering.png", zoom = values$zoom)
+      values$list_file <- rbind(values$list_file, c(sheetname=res$sheetname,values$fileDend,res$col))
+      popUp(title="Clustering Results", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
+  })
 
   ## Correspondence Analysis ----
 
@@ -1346,13 +1674,38 @@ server <- function(input, output, session){
     ignoreNULL = TRUE,
     eventExpr = {input$caApply},
     valueExpr ={
-      values$CA <- wordCA(values$dfTag, n=input$nCA, term=input$termCA, group = input$groupCA)
+      values$CA <- wordCA(values$dfTag%>% filter(docSelected), n=input$nCA, term=input$termCA, group = input$groupCA)
       values$CA <- caClustering(values$CA, nclusters = input$nClustersCA, nDim=input$nDimsCA)
       values$CAdimY <- as.numeric(input$dimPlotCA)*2
       values$CAdimX <- values$CAdimY-1
       values$plotCA <- ca2plotly(values$CA, dimX = values$CAdimX, dimY = values$CAdimY,
                                  topWordPlot = input$nCA, topDocPlot=input$nDocCA, threshold=0.03, labelsize = input$labelsizeCA, size=input$sizeCA)
       values$CADendrogram <- dend2vis(values$CA$clustering$h, labelsize=input$labelsizeCA, nclusters=input$nClustersCA, community=FALSE)
+
+      #wordCoordData
+      values$CA$wordCoordData <- values$CA$wordCoord %>%
+        select(label, everything()) %>%
+        left_join(
+          data.frame(label=names(values$CA$clustering$groups), Group=values$CA$clustering$groups), by = "label") %>%
+        rename(Label = label)
+
+      #contribData
+      values$CA$contribData <- values$CA$contrib %>%
+        rownames_to_column() %>%
+        rename(Label = rowname)
+
+      #cosineData
+      values$CA$cosineData <- values$CA$cosine %>%
+        rownames_to_column() %>%
+        rename(Label = rowname)
+
+      #dfCA
+      values$dfCA <- data.frame(dim=paste0("Dim ",1:10),sv=(values$CA$ca$sv/sum(values$CA$ca$sv)*100)[1:10], svcorr=values$CA$ca$eigCorrectedNorm[1:10])
+      values$dfCA <- values$dfCA %>%
+        rename("Factorial Dimension" = dim,
+               "Singular Values" = sv,
+               "Corrected Singular Values" = svcorr)
+
     }
   )
 
@@ -1365,6 +1718,36 @@ server <- function(input, output, session){
     caPlotFunction()
     values$CADendrogram
   })
+
+
+  # CA Table
+  output$caCoordTable <- renderDT(server=FALSE,{
+    caPlotFunction()
+    DTformat(values$CA$wordCoordData, size='100%',filename="CAWordCoordinatesTable", pagelength=TRUE, left=1, right=2:ncol(values$CA$wordCoord),
+             numeric=2:ncol(values$CA$wordCoord), dom=TRUE, filter="top", round=3)
+  })
+
+  output$caContribTable <- renderDT(server=FALSE,{
+    caPlotFunction()
+    DTformat(values$CA$contribData,
+             size='100%',filename="CAWordContributesTable", pagelength=TRUE, left=1, #right=2:(ncol(values$CA$contrib)+1),
+             numeric=2:(ncol(values$CA$contrib)+1), dom=TRUE, filter="top", round=3)
+  })
+
+  output$caCosineTable <- renderDT(server=FALSE,{
+    caPlotFunction()
+    DTformat(values$CA$cosineData,
+             size='100%',filename="CAWordCosinesTable", pagelength=TRUE, left=1, #right=2:(ncol(values$CA$cosine)+1),
+             numeric=2:(ncol(values$CA$cosine)+1), dom=TRUE, filter="top", round=3)
+  })
+
+  output$caSingularValueTable <- renderDT(server=FALSE,{
+    caPlotFunction()
+    DTformat(values$dfCA,
+             size='100%',filename="CAWordSingualValueTable", pagelength=TRUE, left=1, #right=2:3,
+             numeric=2:3, dom=TRUE, filter="top", round=2)
+  })
+
 
   output$caExport <- downloadHandler(
     filename = function() {
@@ -1381,50 +1764,36 @@ server <- function(input, output, session){
     contentType = "zip"
   )
 
-  # CA Table
-  output$caCoordTable <- renderDT(server=FALSE,{
-    caPlotFunction()
-    DTformat(values$CA$wordCoord %>%
-               select(label, everything()) %>%
-               left_join(
-                 data.frame(label=names(values$CA$clustering$groups), Group=values$CA$clustering$groups), by = "label"
-               ) %>%
-               rename(Label = label)
-             ,size='100%',filename="CAWordCoordinatesTable", pagelength=TRUE, left=1, right=2:ncol(values$CA$wordCoord),
-             numeric=2:ncol(values$CA$wordCoord), dom=TRUE, filter="top", round=3)
+  ## Report
+
+  observeEvent(input$caReport,{
+    if(!is.null(values$CA)){
+      popUp(title=NULL, type="waiting")
+      sheetname <- "CorrespondenceAnalysis"
+      list_df <- list(values$CA$wordCoordData
+                                          ,values$CA$contribData
+                                          ,values$CA$cosineData
+                                          ,values$dfCA
+                                          )
+      res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
+      #values$wb <- res$wb
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      values$fileplotCA <- plot2png(values$plotCA, filename="CAMap.png", type="plotly", zoom = values$zoom)
+      values$fileCADendrogram <-plot2png(values$CADendrogram, filename="CADendrogram.png", type="vis",zoom = values$zoom)
+      values$list_file <- rbind(values$list_file, c(sheetname=res$sheetname,values$fileplotCA,res$col),
+                                c(sheetname=res$sheetname, values$fileCADendrogram,res$col))
+      popUp(title="Correspondence Analysis Results", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
   })
 
-  output$caContribTable <- renderDT(server=FALSE,{
-    caPlotFunction()
-    DTformat(values$CA$contrib %>%
-               rownames_to_column() %>%
-               rename(Label = rowname),
-             size='100%',filename="CAWordContributesTable", pagelength=TRUE, left=1, #right=2:(ncol(values$CA$contrib)+1),
-             numeric=2:(ncol(values$CA$contrib)+1), dom=TRUE, filter="top", round=3)
-  })
-
-  output$caCosineTable <- renderDT(server=FALSE,{
-    caPlotFunction()
-    DTformat(values$CA$cosine %>%
-               rownames_to_column() %>%
-               rename(Label = rowname),
-             size='100%',filename="CAWordCosinesTable", pagelength=TRUE, left=1, #right=2:(ncol(values$CA$cosine)+1),
-             numeric=2:(ncol(values$CA$cosine)+1), dom=TRUE, filter="top", round=3)
-  })
-
-  output$caSingularValueTable <- renderDT(server=FALSE,{
-    caPlotFunction()
-    df <- data.frame(dim=paste0("Dim ",1:10),sv=(values$CA$ca$sv/sum(values$CA$ca$sv)*100)[1:10], svcorr=values$CA$ca$eigCorrectedNorm[1:10])
-    DTformat(df %>%
-               rename("Factorial Dimension" = dim,
-                      "Singular Values" = sv,
-                      "Corrected Singular Values" = svcorr),
-             size='100%',filename="CAWordSingualValueTable", pagelength=TRUE, left=1, #right=2:3,
-             numeric=2:3, dom=TRUE, filter="top", round=2)
-  })
 
   ## Network ----
-  ## WORD CO-OCCURENCE ----
+
+  ## Co-word analysis ----
   netFunction <- eventReactive(
     ignoreNULL = TRUE,
     eventExpr = {input$w_networkCoocApply},
@@ -1433,44 +1802,52 @@ server <- function(input, output, session){
              Documents={group <- "doc_id"},
              Paragraphs={group <- c("doc_id", "paragraph_id")},
              Sentences={group <- c("doc_id", "sentence_id")})
-      values$network <- network(values$dfTag, term=input$w_term, group=group,
+      values$network <- network(values$dfTag %>% filter(docSelected), term=input$w_term, group=group,
                                 n=input$nMax, minEdges=input$minEdges,
                                 labelsize=input$labelSize, opacity=input$opacity,
                                 interLinks=input$interLinks, normalization=input$normalizationCooc,
                                 remove.isolated=input$removeIsolated)
+
+      values$netVis <- net2vis(nodes=values$network$nodes, edges=values$network$edges)
+
+      #network$nodes
+      values$network$nodesData <- values$network$nodes %>%
+        select(label, value, group, color) %>%
+        rename(Word=label,
+               Frequency=value,
+               Group=group,
+               "Color Group"=color)
+
+      #network$edges
+      values$network$edgesData <- values$network$edges %>%
+        select(term_from, term_to,group_from, group_to, s,sA, sC, sJ) %>%
+        rename(From=term_from,
+               To=term_to,
+               "Co-occurence"=s,
+               "Association Index"=sA,
+               "Cosine Similarity"=sC,
+               "Jaccard Index"=sJ,
+               "Group From"=group_from,
+               "Group To"=group_to)
+
+
     }
   )
 
   output$w_networkCoocPlot <- renderVisNetwork({
     netFunction()
-    values$netVis <- net2vis(nodes=values$network$nodes, edges=values$network$edges)
     values$netVis
   })
 
   output$w_networkCoocNodesTable <- renderDT(server=FALSE,{
     netFunction()
-    DTformat(values$network$nodes %>%
-               select(upos, label, value, group, color) %>%
-               rename(PoS=upos,
-                      Word=label,
-                      Frequency=value,
-                      Group=group,
-                      "Color Group"=color), size='100%',filename="NetworkWordsTable", pagelength=TRUE, left=NULL, right=NULL,
+    DTformat(values$network$nodesData, size='100%',filename="NetworkWordsTable", pagelength=TRUE, left=NULL, right=NULL,
              numeric=NULL, dom=TRUE, filter="top")
   })
 
   output$w_networkCoocEdgesTable <- renderDT(server=FALSE,{
     netFunction()
-    DTformat(values$network$edges %>%
-               select(term_from, term_to,group_from, group_to, s,sA, sC, sJ) %>%
-               rename(From=term_from,
-                      To=term_to,
-                      "Co-occurence"=s,
-                      "Association Index"=sA,
-                      "Cosine Similarity"=sC,
-                      "Jaccard Index"=sJ,
-                      "Group From"=group_from,
-                      "Group To"=group_to),
+    DTformat(values$network$edgesData,
              size='100%',filename="NetworkLinksTable", numeric=6:8, round=4)
   })
 
@@ -1485,13 +1862,13 @@ server <- function(input, output, session){
     contentType = "png"
   )
 
-  output$textLog <- renderUI({
-    k=dim(values$M)[1]
-    if (k==1){k=0}
-    log=paste("Number of Documents ",k)
-    textInput("textLog", "Conversion results",
-              value=log)
-  })
+  # output$textLog <- renderUI({
+  #   k=dim(values$M)[1]
+  #   if (k==1){k=0}
+  #   log=paste("Number of Documents ",k)
+  #   textInput("textLog", "Conversion results",
+  #             value=log)
+  # })
 
 
   ## Click on visNetwork: WORDS IN CONTEXT ----
@@ -1509,9 +1886,6 @@ server <- function(input, output, session){
       size = "l",
       easyClose = TRUE,
       footer = tagList(
-        # screenshotButton(label="Save", id = "cocPlotClust",
-        #                  scale = 2,
-        #                  file=paste("TMClusterGraph-", Sys.Date(), ".png", sep="")),
         modalButton("Close")),
     )
   }
@@ -1532,6 +1906,7 @@ server <- function(input, output, session){
     } else {
       word_search<- values$network$nodes$label[values$network$nodes$id==id]
       sentences <- values$dfTag %>%
+        filter(docSelected) %>%
         filter(lemma %in% word_search) %>%
         ungroup() %>% select(lemma, token, sentence_hl)
     }
@@ -1555,11 +1930,7 @@ server <- function(input, output, session){
       DTOutput(ns("wordInContextDend")),
       size = "l",
       easyClose = TRUE,
-      footer = tagList(
-        # screenshotButton(label="Save", id = "cocPlotClust",
-        #                  scale = 2,
-        #                  file=paste("TMClusterGraph-", Sys.Date(), ".png", sep="")),
-        modalButton("Close")),
+      footer = tagList(modalButton("Close")),
     )
   }
 
@@ -1578,6 +1949,7 @@ server <- function(input, output, session){
            })
 
     sentences <- values$dfTag %>%
+      filter(docSelected) %>%
       filter(lemma %in% word_search) %>%
       ungroup() %>% select(lemma, token, sentence_hl)
 
@@ -1585,48 +1957,80 @@ server <- function(input, output, session){
     DTformat(sentences, size='100%')
   }, escape=FALSE)
 
+  ## Report
+
+  observeEvent(input$w_networkCoocReport,{
+    if(!is.null(values$network$nodes)){
+      popUp(title=NULL, type="waiting")
+      sheetname <- "CoWord"
+      list_df <- list(values$network$nodesData
+                      ,values$network$edgesData
+      )
+      res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
+      #values$wb <- res$wb
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      values$filenetVis <- plot2png(values$netVis, filename="CoWord.png", zoom = values$zoom)
+      values$list_file <- rbind(values$list_file, c(sheetname=res$sheetname,values$filenetVis,res$col))
+      popUp(title="Co-Word Analysis Results", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
+  })
+
+
 
   ## GRAKO ----
   grakoFunction <- eventReactive(
     ignoreNULL = TRUE,
     eventExpr = {input$w_networkGrakoApply},
     valueExpr ={
-      values$grako <- grako(values$dfTag, n=input$grakoNMax, minEdges=input$grakoMinEdges,
+      values$grako <- grako(values$dfTag %>% filter(docSelected), n=input$grakoNMax, minEdges=input$grakoMinEdges,
                             labelsize=input$grakoLabelSize, opacity=input$grakoOpacity,
                             normalization=input$grakoNormalization,
                             singleWords=input$grakoUnigram,term=input$grako_term)
+
+      values$grakoVis <- grako2vis(nodes=values$grako$nodes, edges=values$grako$edges)
+
+      #grako$nodes
+      values$grako$nodesData <- values$grako$nodes %>%
+        select(upos, label, value) %>%
+        mutate(label=gsub("<.*?>", "", label)) %>%
+        rename(PoS=upos,
+               Word=label,
+               Frequency=value)
+
+      #grako$edges
+      values$grako$edgesData <- values$grako$edges %>%
+        select(term_from, term_to,upos_from, upos_to, role, s,sA, sC, sJ) %>%
+        rename(From=term_from,
+               To=term_to,
+               "Co-occurence"=s,
+               "Association Index"=sA,
+               "Cosine Similarity"=sC,
+               "Jaccard Index"=sJ,
+               "PoS From"=upos_from,
+               "PoS To"=upos_to,
+               "Action"=role)
+
     }
   )
 
   output$w_networkGrakoPlot <- renderVisNetwork({
     grakoFunction()
-    values$grakoVis <- grako2vis(nodes=values$grako$nodes, edges=values$grako$edges)
     values$grakoVis
   })
 
   output$w_networkGrakoNodesTable <- renderDT(server=FALSE,{
     grakoFunction()
-    DTformat(values$grako$nodes %>%
-               select(upos, label, value) %>%
-               rename(PoS=upos,
-                      Word=label,
-                      Frequency=value), size='100%',filename="GrakoWordsTable", pagelength=TRUE, left=NULL, right=NULL,
+    DTformat(values$grako$nodesData, size='100%',filename="GrakoWordsTable", pagelength=TRUE, left=NULL, right=NULL,
              numeric=NULL, dom=TRUE, filter="top")
   })
 
   output$w_networkGrakoEdgesTable <- renderDT(server=FALSE,{
     grakoFunction()
-    DTformat(values$grako$edges %>%
-               select(term_from, term_to,upos_from, upos_to, role, s,sA, sC, sJ) %>%
-               rename(From=term_from,
-                      To=term_to,
-                      "Co-occurence"=s,
-                      "Association Index"=sA,
-                      "Cosine Similarity"=sC,
-                      "Jaccard Index"=sJ,
-                      "PoS From"=upos_from,
-                      "PoS To"=upos_to,
-                      "Action"=role),
+    DTformat(values$grako$edgesData,
              size='100%',filename="GrakoLinksTable", numeric=7:9, round=4)
   })
 
@@ -1641,20 +2045,47 @@ server <- function(input, output, session){
     contentType = "png"
   )
 
+  ## Report
+
+  observeEvent(input$w_networkGrakoReport,{
+    if(!is.null(values$grako$nodes)){
+      popUp(title=NULL, type="waiting")
+      sheetname <- "Grako"
+      list_df <- list(values$grako$nodesData
+                      ,values$grako$edgesData
+      )
+      res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
+      #values$wb <- res$wb
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      values$fileGrako <- plot2png(values$grakoVis, filename="grako.png", zoom = values$zoom)
+      values$list_file <- rbind(values$list_file, c(sheetname=res$sheetname,values$fileGrako,res$col))
+      popUp(title="Grako Results", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
+  })
+
 
   ## DOCUMENTS ----
 
   ## Topic Modeling ----
-
   ## K choice ----
 
   netTMKselect <- eventReactive(
     ignoreNULL = TRUE,
     eventExpr = {input$d_tm_selectApply},
     valueExpr ={
-      values$TMKresult <- tmTuning(values$dfTag, group=input$groupTm, term=input$termTm,
+      values$TMKresult <- tmTuning(values$dfTag %>% filter(docSelected), group=input$groupTm, term=input$termTm,
                                    metric=input$metric, n=input$nTm, top_by=input$top_by, minK=input$minK, maxK=input$maxK, Kby=input$Kby)
       values$TMKplot <- tmTuningPlot(values$TMKresult, metric=input$metric)
+
+      #d_tm_selectTable
+      values$df <- values$TMKresult %>% arrange(topics) %>%
+        rename("N. of Topics" = topics)
+      values$df$Normalized <- (values$df[,2]-min(values$df[,2]))/diff(range(values$df[,2]))
+
     }
   )
 
@@ -1664,11 +2095,12 @@ server <- function(input, output, session){
   })
 
   output$d_tm_selectTable <- renderDataTable({
-    df <- values$TMKresult %>% arrange(topics) %>%
-      rename("N. of Topics" = topics)
-    df$Normalized <- (df[,2]-min(df[,2]))/diff(range(df[,2]))
+    netTMKselect()
+    # df <- values$TMKresult %>% arrange(topics) %>%
+    #   rename("N. of Topics" = topics)
+    # df$Normalized <- (df[,2]-min(df[,2]))/diff(range(df[,2]))
 
-    DTformat(df, numeric=c(2,3), round=2, nrow=nrow(df), size="110%")
+    DTformat(values$df, numeric=c(2,3), round=2, nrow=nrow(df), size="110%")
   })
 
   output$d_tm_selectExport <- downloadHandler(
@@ -1681,8 +2113,29 @@ server <- function(input, output, session){
     contentType = "png"
   )
 
+  ## Report
+
+  observeEvent(input$d_tm_selectReport,{
+    if(!is.null(values$df)){
+      popUp(title=NULL, type="waiting")
+      sheetname <- "KChoice"
+      list_df <- list(values$df)
+      res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
+      #values$wb <- res$wb
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      values$fileKchoice <- plot2png(values$TMKplot, filename="kchoiche.png", zoom = values$zoom)
+      values$list_file <- rbind(values$list_file, c(sheetname=res$sheetname,values$fileKchoice,res$col))
+      popUp(title="K choice Results", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
+  })
+
 
   ## Model estimation ----
+
   netTMestim <- eventReactive(
     ignoreNULL = TRUE,
     eventExpr = {input$d_tm_estimApply},
@@ -1690,7 +2143,7 @@ server <- function(input, output, session){
       values$TMplotIndex <- 1
       values$TMdocIndex <- 1
       if (isTRUE(input$tmKauto)){
-        values$TMKresult <- tmTuning(values$dfTag, group=input$groupTmEstim, term=input$termTmEstim,
+        values$TMKresult <- tmTuning(values$dfTag %>% filter(docSelected), group=input$groupTmEstim, term=input$termTmEstim,
                                      metric="CaoJuan2009", n=input$nTmEstim, top_by=input$top_byEstim, minK=2, maxK=20, Kby=1)
         K <- values$TMKresult %>% slice_min(CaoJuan2009, n=1)
         values$tmK <- K$topics
@@ -1698,10 +2151,26 @@ server <- function(input, output, session){
         values$tmK <- input$KEstim
       }
       values$TMplotList <- split(1:values$tmK, ceiling(seq_along(1:values$tmK)/3))
-      values$TMestim_result <- tmEstimate(values$dfTag, K=values$tmK, group=input$groupTmEstim,
+      values$TMestim_result <- tmEstimate(values$dfTag %>% filter(docSelected), K=values$tmK, group=input$groupTmEstim,
                                           term=input$termTmEstim, n=input$nTmEstim, top_by=input$top_byEstim)
+
+      #values$TMnetwork <- tmNetwork(beta = values$TMestim_result$beta, minEdge = 0.1) ## aggiungere minEdge
+
+
+      ### BETA PROBABILITY
+      values$beta <- values$TMestim_result$beta
+      names(values$beta)[2:ncol(values$beta)] <- paste0("Topic ",1:(ncol(values$beta)-1))
+
+      ### THETA PROBABILITY
+      values$theta <- values$TMestim_result$theta
+      names(values$theta)[2:ncol(values$theta)] <- paste0("Topic ",1:(ncol(values$theta)-1))
     }
   )
+
+  output$d_tm_networkPlot <- renderVisNetwork({
+    netTMestim()
+    #values$TMnetwork$VIS
+    })
 
   observeEvent(input$TMplotRight,{
     if (values$TMplotIndex<ceiling(req(values$tmK)/3)){
@@ -1739,11 +2208,9 @@ server <- function(input, output, session){
     }
   })
 
-  output$d_tm_estimBpTable <- renderDataTable({
-    ### BETA PROBABILITY
-    beta <- values$TMestim_result$beta
-    names(beta)[2:ncol(beta)] <- paste0("Topic ",1:(ncol(beta)-1))
-    DTformat(beta, left=1,numeric=c(2:ncol(values$TMestim_result$beta)), round=4, nrow=10, size="85%", filename = "TopicModel_BetaTable")
+  output$d_tm_estimBpTable <- renderDataTable(server = FALSE, {
+    netTMestim()
+    DTformat(values$beta, left=1,numeric=c(2:ncol(values$TMestim_result$beta)), round=4, nrow=10, size="85%", filename = "TopicModel_BetaTable")
   })
 
   observeEvent(input$TMdocRight,{
@@ -1782,11 +2249,9 @@ server <- function(input, output, session){
     }
   })
 
-  output$d_tm_estimTpTable <- renderDataTable({
-    ### THETA PROBABILITY
-    theta <- values$TMestim_result$theta
-    names(theta)[2:ncol(theta)] <- paste0("Topic ",1:(ncol(theta)-1))
-    DTformat(theta, left=1,numeric=c(2:ncol(values$TMestim_result$theta)), round=4, nrow=10, size="85%", filename = "TopicModel_ThetaTable")
+  output$d_tm_estimTpTable <- renderDataTable(server = FALSE,{
+    netTMestim()
+    DTformat(values$theta, left=1,numeric=c(2:ncol(values$TMestim_result$theta)), round=4, nrow=10, size="85%", filename = "TopicModel_ThetaTable")
   })
 
   output$d_tm_estimExport <- downloadHandler(
@@ -1807,6 +2272,25 @@ server <- function(input, output, session){
     contentType = "zip"
   )
 
+ ## Report
+
+  observeEvent(input$d_tm_estimReport,{
+    if(!is.null(values$TMestim_result$beta)){
+      popUp(title=NULL, type="waiting")
+      values$tmGplotBeta <- topicGplot(values$TMestim_result$beta, nPlot=input$nTopicPlot, type="beta")
+      values$tmGplotTheta <- topicGplot(values$TMestim_result$theta, nPlot=input$nTopicPlot, type="theta")
+      list_df <- list(values$beta, values$theta)
+      list_plot <- list(values$tmGplotBeta,values$tmGplotTheta)
+      wb <- addSheetToReport(list_df,list_plot,sheetname = "ModelEstim", wb=values$wb)
+      values$wb <- wb
+      popUp(title="Model Estimation Results", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
+  })
+
+
   ## Polarity detection ----
 
   output$lexiconD_polarity <- renderUI({
@@ -1821,6 +2305,7 @@ server <- function(input, output, session){
     }
     # )
   })
+
   ## Model estimation ----
   docPolarityEstim <- eventReactive(
     ignoreNULL = TRUE,
@@ -1836,9 +2321,17 @@ server <- function(input, output, session){
         }  else {
           lexiconD_polarity <- input$lexiconD_polarity
         }
-        values$docPolarity <- sentimentAnalysis(values$dfTag, language = values$language, lexicon_model=lexiconD_polarity)
+        values$docPolarity <- sentimentAnalysis(values$dfTag %>% filter(docSelected), language = values$language, lexicon_model=lexiconD_polarity)
         values$docPolPlots <- sentimentWordPlot(values$docPolarity$sent_data, n=10)
       }
+
+      values$docPolarityOverallData <- values$docPolarity$sent_overall %>%
+        select(doc_id, sentiment_polarity, doc_pol_clas, terms_positive, terms_negative) %>%
+        rename(Polarity = sentiment_polarity,
+               "Polarity Category" = doc_pol_clas,
+               "Positive Words" = terms_positive,
+               "Negative Words" = terms_negative)
+
     }
   )
 
@@ -1872,41 +2365,70 @@ server <- function(input, output, session){
     values$docPolPlots$negative
   })
 
-  output$d_polDetExport <- downloadHandler(
-    filename = function() {
-      paste("PolarityPlots-", Sys.Date(), ".zip", sep="")
-    },
-    content <- function(file) {
-      #go to a temp dir to avoid permission issues
-      owd <- setwd(tempdir())
-      on.exit(setwd(owd))
-      files <- c("PieChart.png", "DensDensity.png","BoxPlot.png", "Positive.png", "Negative.png")
-      plot2png(values$sentimentPieChart, filename=files[1], zoom = values$zoom)
-      plot2png(values$sentimentDensityPlot, filename=files[2], zoom = values$zoom)
-      plot2png(values$sentimentBoxPlot, filename=files[3], zoom = values$zoom)
-      plot2png(values$docPolPlots$positive, filename=files[4], zoom = values$zoom)
-      plot2png(values$docPolPlots$negative, filename=files[5], zoom = values$zoom)
-      zip(file,files)
-    },
-    contentType = "zip"
-  )
 
-  output$d_polDetTable <- renderDataTable({
+  output$d_polDetTable <- renderDT(server=FALSE,{
     docPolarityEstim()
-    docPolarityOverall <- values$docPolarity$sent_overall %>%
-      select(doc_id, sentiment_polarity, doc_pol_clas, terms_positive, terms_negative) %>%
-      rename(Polarity = sentiment_polarity,
-             "Polarity Category" = doc_pol_clas,
-             "Positive Words" = terms_positive,
-             "Negative Words" = terms_negative)
-    DTformat(docPolarityOverall, filename = "DocPolarity", left=c(2,4,5,6), numeric = 3, round=4, button=TRUE)
+    DTformat(values$docPolarityOverallData, filename = "DocPolarity", left=c(2,4,5,6), numeric = 3, round=4, button=TRUE)
   })
+
+    output$d_polDetExport <- downloadHandler(
+      filename = function() {
+        paste("PolarityPlots-", Sys.Date(), ".zip", sep="")
+      },
+      content <- function(file) {
+        #go to a temp dir to avoid permission issues
+        owd <- setwd(tempdir())
+        on.exit(setwd(owd))
+        files <- c("PieChart.png", "DensDensity.png","BoxPlot.png", "Positive.png", "Negative.png")
+        plot2png(values$sentimentPieChart, filename=files[1], zoom = values$zoom)
+        plot2png(values$sentimentDensityPlot, filename=files[2], zoom = values$zoom)
+        plot2png(values$sentimentBoxPlot, filename=files[3], zoom = values$zoom)
+        plot2png(values$docPolPlots$positive, filename=files[4], zoom = values$zoom)
+        plot2png(values$docPolPlots$negative, filename=files[5], zoom = values$zoom)
+        zip(file,files)
+      },
+      contentType = "zip"
+    )
+
+
+## Report
+
+observeEvent(input$d_polDetReport,{
+  if(!is.null(values$docPolarityOverallData)){
+    popUp(title=NULL, type="waiting")
+    sheetname <- "PolarityDetection"
+    list_df <- list(values$docPolarityOverallData
+    )
+    res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
+    #values$wb <- res$wb
+    owd <- setwd(tempdir())
+    on.exit(setwd(owd))
+    files <- c("PieChart.png", "DensDensity.png","BoxPlot.png", "Positive.png", "Negative.png")
+    values$filePieChart <- plot2png(values$sentimentPieChart, filename=files[1], zoom = values$zoom)
+    values$fileDensityPlot <- plot2png(values$sentimentDensityPlot, filename=files[2], zoom = values$zoom)
+    values$fileBoxPlot <- plot2png(values$sentimentBoxPlot, filename=files[3], zoom = values$zoom)
+    values$filedocPolPos <- plot2png(values$docPolPlots$positive, filename=files[4], zoom = values$zoom)
+    values$filedocPolNeg <- plot2png(values$docPolPlots$negative, filename=files[5], zoom = values$zoom)
+    values$list_file <- rbind(values$list_file,
+                              c(sheetname=res$sheetname,values$filePieChart,res$col),
+                              c(sheetname=res$sheetname, values$fileDensityPlot,res$col),
+                              c(sheetname=res$sheetname, values$fileBoxPlot,res$col),
+                              c(sheetname=res$sheetname, values$filedocPolPos,res$col),
+                              c(sheetname=res$sheetname, values$filedocPolNeg,res$col)
+                              )
+    popUp(title="Polarity Detection Results", type="success")
+    values$myChoices <- sheets(values$wb)
+  } else {
+    popUp(type="error")
+  }
+})
+
 
   ## Summarization ----
 
   output$optionsSummarization <- renderUI({
     selectInput(
-      inputId = 'document_selection', label="Select Document", choices = unique(values$dfTag$doc_id),
+      inputId = 'document_selection', label="Select Document", choices = unique(values$dfTag$doc_id[values$dfTag$docSelected]),
       multiple=FALSE,
       width = "100%"
     )
@@ -1917,20 +2439,21 @@ server <- function(input, output, session){
     ignoreNULL = TRUE,
     eventExpr = {input$d_summarizationApply},
     valueExpr ={
-      ## input$nTopSent
       values$docExtraction <- textrankDocument(values$dfTag, id=input$document_selection, n=input$nTopSent)
+
+      #RelSentData
+      values$docExtraction$sentences <- values$docExtraction$sentences %>% rename(S_id=textrank_id, Ranking=textrank)
 
     })
 
   output$abstractData <- renderUI({
     docExtraction()
-    #HTML(" ")
     HTML((values$docExtraction$abstract))
   })
 
   output$RelSentData <- renderDT(server=FALSE,{
     docExtraction()
-    DTformat(values$docExtraction$sentences %>% rename(S_id=textrank_id, Ranking=textrank), nrow=10, size='85%', title=paste0("Doc_id: ",input$document_selection), left=1:2,numeric=3, round=4)
+    DTformat(values$docExtraction$sentences, nrow=10, size='85%', title=paste0("Doc_id: ",input$document_selection), left=1:2,numeric=3, round=4)
   })
 
   output$documentData <- renderDT(server=FALSE,{
@@ -1938,14 +2461,28 @@ server <- function(input, output, session){
     DTformat(values$docExtraction$document, nrow=3, size='100%', title=paste0("Doc_id: ",input$document_selection), left=2)
   })
 
-  # output$d_summarizationSave <- downloadHandler(
-  #   filename = function() {
-  #     paste("Summarization-Tall-File-", Sys.Date(), ".xlsx", sep="")
-  #   },
-  #   content <- function(file) {
-  #     suppressWarnings(openxlsx::write.xlsx(values$docExtraction$abstract, file=file))
-  #   }, contentType = "xlsx"
-  # )
+  ## Report
+
+  observeEvent(input$d_summarizationReport,{
+    if(!is.null(values$docExtraction$sentences)){
+      popUp(title=NULL, type="waiting")
+      sheetname <- "Summarization"
+
+      values$docExtraction$abstractData <- data.frame("Abstract"=values$docExtraction$abstract)
+      values$docExtraction$abstractData <- values$docExtraction$abstractData %>%
+        mutate(Abstract= gsub("<.*?>", "", Abstract))
+
+      list_df <- list(as.data.frame(values$docExtraction$abstractData),
+                      values$docExtraction$sentences,
+                      values$docExtraction$document)
+      res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
+      #values$wb <- res$wb
+      popUp(title="Summarization Results", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
+  })
 
 
 
@@ -2063,7 +2600,7 @@ server <- function(input, output, session){
   })
 
   output$showDocument <- renderUI({
-    if (input$sidebarmenu %in% c("import_tx","split_tx")){
+    if (input$sidebarmenu %in% c("import_tx","split_tx", "extInfo")){
       text <- values$txt %>% filter(doc_id==input$button_id)
       text <- gsub("\n\n","<br><br>",text$text)
     } else{
@@ -2085,7 +2622,7 @@ server <- function(input, output, session){
   })
 
   observeEvent(input$button_id_del, {
-    if (input$sidebarmenu %in% c("import_tx","split_tx")){
+    if (input$sidebarmenu %in% c("import_tx","split_tx", "extInfo")){
       values$txt <- values$txt %>%
         mutate(doc_selected = ifelse(doc_id==input$button_id_del, FALSE, doc_selected))
     }

@@ -51,7 +51,12 @@ title_tall <- tags$link(tags$a(href = 'https://www.unina.it/',target="_blank",
 
 header <- shinydashboardPlus::dashboardHeader(title = title_tall,
                                               titleWidth = 250, controlbarIcon = NULL,
-                                              tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("dataGroupedBy")))))
+                                              tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("dataGroupedBy"))))),
+                                              tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("dataFilteredBy"))))),
+                                              tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("resetButton"))))),
+                                              tags$li(class = "dropdown",
+                                                      tags$style(".main-header .logo {height: 53px}"))
+
 )
 
 
@@ -60,6 +65,7 @@ header <- shinydashboardPlus::dashboardHeader(title = title_tall,
 sidebar <- dashboardSidebar(
   width = 250,
   sidebarMenu(id="sidebarmenu",
+              #shinyjs::useShinyjs(),
               #style = "position: relative; overflow: visible;",
               menuItem("TALL", tabName = "tall", icon = icon("text-size", lib = "glyphicon")),
               menuItemOutput ("rest_of_sidebar")
@@ -70,6 +76,7 @@ sidebar <- dashboardSidebar(
 
 body <- dashboardBody(
   customTheme(),
+  tags$style(".glyphicon-refresh {color:#ffffff; font-size: 15px; align: center;}"),
   tags$style(".glyphicon-download-alt {color:#ffffff; font-size: 18px; align: center; margin-left: -3.5px}"),
   tags$style(".glyphicon-play {color:#ffffff; font-size: 18px; align: center;margin-left: -0.5px}"),
   tags$style(".glyphicon-repeat {color:#ffffff; font-size: 18px; align: center;margin-left: -3px; padding-left: -15px}"),
@@ -101,7 +108,7 @@ body <- dashboardBody(
               #h1(HTML("TA<i>ll</i>"), align="center", style = "font-family: 'Times New Roman'; font-size: 70px;"),
               br(),
               div(img(src = "logo1.jpg", height = "50%",width = "50%"), style="text-align: center;"),
-              h2(HTML("Textual Analysis for A<i>ll</i>"), align="center", style = "font-family: 'Times New Roman';"),
+              h2(HTML("Text Analysis for A<i>ll</i>"), align="center", style = "font-family: 'Times New Roman';"),
               br(),
               div(p("Powered by ",
                     em(a("K-Synth",
@@ -145,6 +152,8 @@ body <- dashboardBody(
                                                tags$style("height: 50px")
                                              )
                              ),
+                             conditionalPanel(
+                               condition="input.load == 'import' & input.ext=='csv'",
                              column(6,
                                     selectizeInput(
                                       'line_sep', label="CSV Separator",choices = c(
@@ -153,9 +162,14 @@ body <- dashboardBody(
                                       tags$style("height: 50px")
                                     )
                              )
+                             )
                              ),
                              uiOutput("file_raw"),
                              uiOutput(outputId = "infoImport"),
+                             conditionalPanel(
+                               condition= "input.ext == 'xlsx' ||  input.ext =='csv'",
+                             uiOutput(outputId = "infoTextLabel")
+                             )
                            ),
                            conditionalPanel(
                              condition="input.load=='demo'",
@@ -213,15 +227,6 @@ body <- dashboardBody(
                            conditionalPanel(condition="input.runImport > 0",
                                             tags$hr(),
                                             div(
-                                              # align = "center",
-                                              # width=12,
-                                              # downloadButton(outputId="collection.save",
-                                              #                label = strong("Export Raw Texts in Excel"),
-                                              #                icon = NULL,
-                                              #                style ="border-radius: 15px; border-width: 1px; font-size: 15px;
-                                              #                       text-align: center; color: #ffff; "
-                                              #
-                                              # )
                                               fluidRow(
                                                 column(6,
                                                        div(align="center",
@@ -257,7 +262,7 @@ body <- dashboardBody(
     ),
 
     ## EDIT ----
-    ### Split texts ----
+    ### Split ----
 
     tabItem(tabName = "split_tx",
             fluidPage(
@@ -279,6 +284,8 @@ body <- dashboardBody(
                            textInput(inputId="txSplitWord",
                                      label="Insert a word or a sequence of special chars (e.g. H1__)",
                                      value=NULL),
+                           hr(),
+                           div(
                            fluidRow(
                              column(6,
                                     div(align="center",
@@ -301,7 +308,7 @@ body <- dashboardBody(
                                         )
                                     )
                              )
-                           )
+                           ), style="margin-top:-15px")
 
                          )
                        )
@@ -311,7 +318,7 @@ body <- dashboardBody(
             )
     ),
 
-    ### Random text selection ----
+    ### Random selection ----
 
     tabItem(tabName = "randomText",
             fluidPage(
@@ -333,9 +340,10 @@ body <- dashboardBody(
                              column(6,
                                     div(
                                       numericInput("sampleSize",
-                                                   "Sample Size",
-                                                   value = 10,
+                                                   "Sample Size (%)",
+                                                   value = 30,
                                                    min = 1,
+                                                   max = 100,
                                                    step = 1
                                       )
                                       ,style="margin-top:-9px")
@@ -351,32 +359,8 @@ body <- dashboardBody(
                                     do.call("actionButton", c(back_bttn, list(
                                       inputId = "randomTextBack")
                                     ))
-                                    # title = t_run,
-                                    # div(
-                                    # actionButton("randomTextBack",
-                                    #              label=NULL,
-                                    #              icon = icon("repeat", lib="glyphicon")),
-                                    # style="display:block; height: 37px; width: 37px;
-                                    # border-radius: 50%; border: 3px; margin-top: 15px"
-                                    # )
-                                    # do.call("actionButton", c(run_bttn, list(
-                                    #   inputId = "randomTextBack")
-                                    # ))
                              )
-                             # column(3,
-                             #        title = t_save,
-                             #        do.call("downloadButton", c(list(
-                             #          label=NULL,
-                             #          style ="display:block; height: 37px; width: 37px; border-radius: 50%;
-                             #          border: 1px; margin-top: 16px;",
-                             #          icon = icon(name ="floppy-save", lib="glyphicon")
-                             #        ), list(
-                             #          outputId = "randomTextSave")
-                             #        ))
-                             # )
-
-
-                           )
+                             )
 
                          )
                        )
@@ -426,15 +410,25 @@ body <- dashboardBody(
                            ),
 
                            hr(),
+                           div(
                            fluidRow(
-                             column(6,div(
+                             column(4,
+                                    div(
                                title = t_run,
                                do.call("actionButton", c(run_bttn, list(
                                  inputId = "extInfoRun")
                                )), align="center"
                              )
                              ),
-                             column(6,
+                             column(4,
+                                    div(align="center",
+                                        title = "Back to imported text(s) ",
+                                        do.call("actionButton", c(back_bttn, list(
+                                          inputId = "extInfoTextBack")
+                                        )
+                                        )
+                                    )),
+                             column(4,
                                     div(
                                       title = t_save,
                                       do.call("downloadButton", c(list(
@@ -447,32 +441,12 @@ body <- dashboardBody(
                                       )),align="center"
                                     )
                              )
-                           )
+                           ), style="margin-top: -15px")
+
                          )
 
                        )
                 )
-              )
-            )
-    ),
-
-    ### FILTER TEXT ----
-
-    tabItem(tabName = "filter_text",
-            fluidRow(
-              column(9,DT::DTOutput("FilterText")),
-              column(3,
-                     box(
-                       width = 12,
-                       h3(strong("Filter text")),
-                       br(),
-                       fluidRow(column(12,
-                                       div(style ="border-radius: 10px; border-width: 3px; font-size: 15px;",
-                                           align = "center",
-                                           width=12,
-                                           actionBttn(inputId = "applyFilter", label = strong("Apply Filters"),
-                                                      width = 12, style = "pill", color = "primary"))))#,
-                     )
               )
             )
     ),
@@ -509,7 +483,8 @@ body <- dashboardBody(
                                   h5("TALL utilizes pre-trained models provided by Universal Dependencies treebanks."),
                                   h5("When using a language model for the first time, it will be downloaded from UDT and saved on your computer. In this case, an active internet connection is required.")),
                          style="text-align: left; text-color: #989898",
-                         br(),
+                         hr(),
+                         div(
                          fluidRow(column(6,
                                          div(
                                            uiOutput("optionsTokenization"))
@@ -530,7 +505,7 @@ body <- dashboardBody(
                                          ), list(
                                            outputId = "tokPosSave")
                                          ))
-                                  ))
+                                  )), style="margin-top:-5px")
                        )
                      ),style="margin-top:40px"
               )
@@ -553,7 +528,7 @@ body <- dashboardBody(
                                             shinycssloaders::withSpinner(DT::DTOutput("customPosTagData"),
                                                                          color = getOption("spinner.color", default = "#4F7942"))
                                    ),
-                                   tabPanel("Term Custom List",
+                                   tabPanel("Custom Term List",
                                             shinycssloaders::withSpinner(DT::DTOutput("customListData"),
                                                                          color = getOption("spinner.color", default = "#4F7942"))
                                    )
@@ -563,8 +538,12 @@ body <- dashboardBody(
                        div(
                          box(
                            width = 12,
-                           div(h3(strong(em("Import Term Custom Lists"))), style="margin-top:-57px"),
-                           tags$hr(),
+                           div(h3(strong(em("Import Custom Term List"))), style="margin-top:-57px"),
+                           hr(),
+
+                           helpText(h5("Please ensure that the Custom Term List is formatted as an Excel file with two columns.
+                                       In the first column include the desired terms.
+                                       In the second column provide the corresponding list of PoS associated with each term.")),
                            fluidRow(column(12,
                                            fileInput("custom_lists", label=NULL,
                                                      multiple = TRUE,
@@ -572,6 +551,9 @@ body <- dashboardBody(
                                                                 ".xls",
                                                                 ".xlsx"))
                            )),
+                           div(
+                           hr(),
+                           div(
                            fluidRow(column(6,
                                            div(
                                              align = "center",style="margin-top:-15px",
@@ -591,7 +573,7 @@ body <- dashboardBody(
                                     )
                                   )
                            )
-                           )
+                           ), style="margin-top: -8px"), style="margin-top:-15px")
                          ),style="margin-top:40px"
                        )
                 )
@@ -616,7 +598,7 @@ body <- dashboardBody(
                                             shinycssloaders::withSpinner(DT::DTOutput("multiwordList"),
                                                                          color = getOption("spinner.color", default = "#4F7942"))
                                    ),
-                                   tabPanel("Annotated Text including Multi-Words",
+                                   tabPanel("Annotated Text including Multi-Word",
                                             shinycssloaders::withSpinner(DT::DTOutput("multiwordData"),
                                                                          color = getOption("spinner.color", default = "#4F7942"))
                                    )
@@ -657,6 +639,8 @@ body <- dashboardBody(
                                                  step = 0.1))
                            ),
                            uiOutput("multiwordPosSel"),
+                           hr(),
+                           div(
                            fluidRow(column(6,
                                            div(
                                              align = "center",style="margin-top:-15px",
@@ -678,7 +662,7 @@ body <- dashboardBody(
                                     )
                                   )
                            )
-                           )
+                           ), style="margin-top:-15px")
                          ), style="margin-top:40px")
 
                 )
@@ -713,6 +697,9 @@ body <- dashboardBody(
                            fluidRow(column(12,
                                            uiOutput("posTagLists")
                            )),
+                           div(
+                           hr(),
+                           div(
                            fluidRow(column(6,
                                            div(
                                              align = "center",style="margin-top:-15px",
@@ -733,7 +720,7 @@ body <- dashboardBody(
                                     )
                                   )
                            )
-                           )
+                           ), style="margin-top:-15px"), style="margin-top:-15px")
                          ), style="margin-top:40px"
                        )
                 )
@@ -742,8 +729,47 @@ body <- dashboardBody(
             )
     ),
 
-    ### GROUPS ----
+    ### FILTER ----
+    tabItem(tabName = "filter_text",
+            fluidPage(
+              fluidRow(
+                column(12,
+                       h3(strong("Filter docs by available external information"), align = "center"))
+              ),
+              fluidRow(
+                column(9,
+                       shinycssloaders::withSpinner(DT::DTOutput("filterData"),color = getOption("spinner.color", default = "#4F7942"))
+                ),
+                column(3,
+                       fluidRow(
+                         box(
+                           width = 12,
+                           div(h3(strong(em("Filter by"))), style="margin-top:-57px"),
+                           hr(),
+                           helpText(h5("Select an external information to filter docs:")),
+                           uiOutput("filterList"),
+                           uiOutput("filterValue"),
+                           hr(),
+                           div(
+                           fluidRow(
+                                    div(align="center",
+                                        title = t_run,
+                                        do.call("actionButton", c(run_bttn, list(
+                                          inputId = "filterRun")
+                                        ))
 
+                                    )
+
+                           ), style="margin-top:-15px")
+
+                         )
+                       )
+                )
+
+              )
+            )
+    ),
+    ### GROUPS ----
     tabItem(tabName = "defineGroups",
             fluidPage(
               fluidRow(
@@ -764,29 +790,16 @@ body <- dashboardBody(
                            uiOutput("defineGroupsList"),
                            uiOutput(outputId = "infoGroups"),
                            hr(),
+                           div(
                            fluidRow(
-                             column(6,
                                     div(align="center",
                                         title = t_run,
                                         do.call("actionButton", c(run_bttn, list(
                                           inputId = "defineGroupsRun")
                                         ))
                                     )
-                             ),
-                             column(6,
-                                    div(align="center",
-                                        title = t_save,
-                                        do.call("downloadButton", c(list(
-                                          label=NULL,
-                                          style ="display:block; height: 37px; width: 37px; border-radius: 50%;
-                                      border: 1px; margin-top: 16px;",
-                                          icon = icon(name ="floppy-save", lib="glyphicon"),
-                                          outputId = "defineGroupsSave")
-                                        )
-                                        )
-                                    )
-                             )
-                           )
+
+                           ), style="margin-top:-15px")
 
                          )
                        )
@@ -818,9 +831,11 @@ body <- dashboardBody(
                             tabPanel("Overview",
                                      fluidRow(
                                        br(),
-                                       column(3,
-                                              div(title="Numbers of Documents", valueBoxOutput("nDoc", width = "33vh")),
-                                              div(title= "Average Document's Lenght by characters", valueBoxOutput("avgDocLengthChar", width = "33vh")),
+                                       tagList(
+                                         useShinyjs(),
+                                         column(3,
+                                              div(id='clickbox1',title="Numbers of Documents", valueBoxOutput("nDoc", width = "33vh")),
+                                              div(id='clickbox2',title= "Average Document's Lenght by characters", valueBoxOutput("avgDocLengthChar", width = "33vh")),
                                               valueBoxOutput("avgDocLengthTokens", width = "33vh")),
                                        column(3,
                                               valueBoxOutput("nSentences", width = "33vh"),
@@ -835,9 +850,13 @@ body <- dashboardBody(
                                               valueBoxOutput("hapax", width = "33vh"),
                                               valueBoxOutput("guiraud", width = "33vh")),
                                      )
+                                     )
                             ),
                             tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput(outputId = "overviewData", width = 700))
+                                     div(
+                                     shinycssloaders::withSpinner(DT::DTOutput(outputId = "overviewData", width = 700),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                                     , align="center")
                             ),
                             tabPanel("WordCloud",
                                      column(9,
@@ -872,7 +891,10 @@ body <- dashboardBody(
                                      )
                             ),
                             tabPanel("Vocabulary",
-                                     column(9,shinycssloaders::withSpinner(DT::DTOutput(outputId = "dictionaryData", width = 700))),
+                                     column(9,div(
+                                       shinycssloaders::withSpinner(DT::DTOutput(outputId = "dictionaryData", width = 700),
+                                                                           color = getOption("spinner.color", default = "#4F7942"))),
+                                       align="center"),
                                      column(3,
                                             div(
                                               box(
@@ -902,8 +924,40 @@ body <- dashboardBody(
                                      )
                             ),
                             tabPanel("TF-IDF",
-                                     shinycssloaders::withSpinner(DT::DTOutput(outputId = "tfidfData", width = 700)))
-                ), align="center"
+                                     column(9,
+                                            div(
+                                     shinycssloaders::withSpinner(DT::DTOutput(outputId = "tfidfData", width = 700),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))),
+                                     align="center"),
+                                     column(3,
+                                            div(
+                                              box(
+                                                width = 12,
+                                                fluidRow(
+                                                  column(9,
+                                                         div(
+                                                           selectInput("termTfidf",
+                                                                       label = "TD-IDF by:",
+                                                                       choices = c("Tokens"="token",
+                                                                                   "Lemmas"="lemma"),
+                                                                       selected = "lemma"), style="margin-top:-3px"
+                                                         )
+                                                  ),
+                                                  column(3,
+                                                         div(
+                                                           align = "center",style="margin-top:15px",
+                                                           width=12,
+                                                           do.call("actionButton", c(run_bttn, list(
+                                                             inputId = "tfidfApply")
+                                                           ))
+                                                         )
+                                                  )
+                                                )
+                                              )
+                                              ,align="left")
+                                     )
+                                     )
+                )#, align="center"
               )
             )
     ),
@@ -1559,13 +1613,13 @@ body <- dashboardBody(
 
     ### Network ----
 
-    ## WORD CO-OCCURENCE ----
+    ## Co-ward analysis ----
 
     tabItem(tabName = "w_networkCooc",
             fluidPage(
               fluidRow(
                 column(8,
-                       h3(strong("Word co-occurence"), align = "center")),
+                       h3(strong("Co-word analysis"), align = "center")),
                 div(
                   title = t_run,
                   column(1,
@@ -1604,14 +1658,6 @@ body <- dashboardBody(
                                choices = c("Documents", "Paragraphs", "Sentences"),
                                selected = "Sentences"
                              ),
-                             # checkboxGroupInput(
-                             #   inputId = "groupNet",
-                             #   label = "Groups",
-                             #   choices = c("Docs"="doc_id",
-                             #               "Sentences"="sentence_id"),
-                             #   selected = c("doc_id", "sentence_id"),
-                             #   inline = TRUE
-                             # ),
                              materialSwitch(
                                inputId = "interLinks",
                                label = "Inter-group links",
@@ -2029,6 +2075,16 @@ body <- dashboardBody(
                                      align="center"
                                    )
                           ),
+                          tabPanel("Topic Correlation",
+                                   fluidRow(
+                                     column(8,
+                                            shinycssloaders::withSpinner(visNetworkOutput("d_tm_networkPlot", width="auto", height = "75vh"),
+                                                                         color = getOption("spinner.color", default = "#4F7942"))),
+                                     column(4,
+                                            shinycssloaders::withSpinner(DT::DTOutput("d_tm_networkTable"),
+                                                                color = getOption("spinner.color", default = "#4F7942")))
+                                   )
+                          ),
                           tabPanel("Beta Probability",
                                    shinycssloaders::withSpinner(DT::DTOutput("d_tm_estimBpTable"),
                                                                 color = getOption("spinner.color", default = "#4F7942"))
@@ -2175,6 +2231,7 @@ body <- dashboardBody(
                                            ))
                            ),
                            hr(),
+                           div(
                            fluidRow(
                              column(6,
                                     div(align="center",
@@ -2197,7 +2254,7 @@ body <- dashboardBody(
                                         )
                                     )
                              )
-                           )
+                           ), style="margin-top:-15px")
                          ),style="margin-top:40px"
                        )
                 )

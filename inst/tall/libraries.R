@@ -2,33 +2,39 @@
 
 # Libraries ----
 libraries <- function(){
-  if (!require(shiny)){install.packages("shiny"); require(shiny, quietly=TRUE)}
-  if (!require(shinydashboard)){install.packages("shinydashboard"); require(shinydashboard, quietly=TRUE)}
-  if (!require(shinydashboardPlus)){install.packages("shinydashboardPlus"); require(shinydashboardPlus, quietly=TRUE)}
-  if (!require(shinyWidgets)){install.packages("shinyWidgets"); require(shinyWidgets, quietly=TRUE)}
-  if (!require(shinycssloaders)){install.packages("shinycssloaders"); require(shinycssloaders, quietly=TRUE)}
-  if (!require(shinyjs)){install.packages("shinyjs"); require(shinyjs, quietly=TRUE)}
-  if (!require(tidyverse)){install.packages("dplyr"); require(tidyverse, quietly=TRUE)}
-  if (!require(DT)){install.packages("DT"); require(DT, quietly=TRUE)}
-  if (!require(plotly)){install.packages("plotly"); require(plotly, quietly=TRUE)}
-  if (!require(openxlsx)){install.packages("openxlsx"); require(openxlsx, quietly=TRUE)}
-  if (!require(readxl)){install.packages("readxl"); require(readxl, quietly=TRUE)}
-  if (!require(wordcloud2)){install.packages("wordcloud2"); require(wordcloud2, quietly=TRUE)}
-  if (!require(visNetwork)){install.packages("visNetwork", dependencies = TRUE); require(visNetwork, quietly=TRUE)}
-  if (!require(udpipe)){install.packages("udpipe"); require(udpipe, quietly=TRUE)}
-  if (!require(topicmodels)){install.packages("topicmodels"); require(topicmodels, quietly=TRUE)}
-  if (!require(textrank)){install.packages("textrank"); require(textrank, quietly=TRUE)}
-  if (!require(pdftools)){install.packages("pdftools"); require(pdftools, quietly=TRUE)}
-  if (!require(igraph)){install.packages("igraph")}
+  if (!suppressPackageStartupMessages(require(shiny))){install.packages("shiny"); suppressPackageStartupMessages(require(shiny))}
+  if (!suppressPackageStartupMessages(require(shinydashboard))){install.packages("shinydashboard"); suppressPackageStartupMessages(require(shinydashboard))}
+  if (!suppressPackageStartupMessages(require(shinydashboardPlus))){install.packages("shinydashboardPlus"); suppressPackageStartupMessages(require(shinydashboardPlus))}
+  if (!suppressPackageStartupMessages(require(shinyWidgets))){install.packages("shinyWidgets"); suppressPackageStartupMessages(require(shinyWidgets))}
+  if (!suppressPackageStartupMessages(require(shinycssloaders))){install.packages("shinycssloaders"); suppressPackageStartupMessages(require(shinycssloaders))}
+  if (!suppressPackageStartupMessages(require(shinyjs))){install.packages("shinyjs"); suppressPackageStartupMessages(require(shinyjs))}
+  if (!suppressPackageStartupMessages(require(tidyverse))){install.packages("dplyr"); suppressPackageStartupMessages(require(tidyverse))}
+  if (!suppressPackageStartupMessages(require(DT))){install.packages("DT"); suppressPackageStartupMessages(require(DT))}
+  if (!suppressPackageStartupMessages(require(plotly))){install.packages("plotly"); suppressPackageStartupMessages(require(plotly))}
+  if (!suppressPackageStartupMessages(require(openxlsx))){install.packages("openxlsx"); suppressPackageStartupMessages(require(openxlsx))}
+  if (!suppressPackageStartupMessages(require(readxl))){install.packages("readxl"); suppressPackageStartupMessages(require(readxl))}
+  if (!suppressPackageStartupMessages(require(wordcloud2))){install.packages("wordcloud2"); suppressPackageStartupMessages(require(wordcloud2))}
+  if (!suppressPackageStartupMessages(require(visNetwork))){install.packages("visNetwork", dependencies = TRUE); suppressPackageStartupMessages(require(visNetwork))}
+  if (!suppressPackageStartupMessages(require(udpipe))){install.packages("udpipe"); suppressPackageStartupMessages(require(udpipe))}
+  if (!suppressPackageStartupMessages(require(topicmodels))){install.packages("topicmodels"); suppressPackageStartupMessages(require(topicmodels))}
+  if (!suppressPackageStartupMessages(require(textrank))){install.packages("textrank"); suppressPackageStartupMessages(require(textrank))}
+  if (!suppressPackageStartupMessages(require(pdftools))){install.packages("pdftools"); suppressPackageStartupMessages(require(pdftools))}
+  if (!suppressPackageStartupMessages(require(igraph))){install.packages("igraph"); suppressPackageStartupMessages(require(igraph))}
   ## visNetwork dependencies
-  if (!require(tidygraph)){install.packages("tidygraph")}
-  if (!require(ggraph)){install.packages("ggraph")}
-  if (!require(sparkline)){install.packages("sparkline")}
-  if (!require(glue)){install.packages("glue")}
-  if (!require(readtext)){install.packages("readtext")}
-  if (!require(webshot2)){install.packages("webshot2")}
+  if (!suppressPackageStartupMessages(require(tidygraph))){install.packages("tidygraph"); suppressPackageStartupMessages(require(tidygraph))}
+  if (!suppressPackageStartupMessages(require(ggraph))){install.packages("ggraph"); suppressPackageStartupMessages(require(ggraph))}
+  if (!suppressPackageStartupMessages(require(sparkline))){install.packages("sparkline"); suppressPackageStartupMessages(require(sparkline))}
+  if (!suppressPackageStartupMessages(require(glue))){install.packages("glue"); suppressPackageStartupMessages(require(glue))}
+  if (!suppressPackageStartupMessages(require(readtext))){install.packages("readtext"); suppressPackageStartupMessages(require(readtext))}
+  if (!suppressPackageStartupMessages(require(webshot2))){install.packages("webshot2"); suppressPackageStartupMessages(require(webshot2))}
+  if (!suppressPackageStartupMessages(require(chromote))){install.packages("chromote"); suppressPackageStartupMessages(require(chromote))}
+
+  ### workaround for webshot2 on shinyapps.io
+  if (!suppressPackageStartupMessages(require(curl))){install.packages("curl"); suppressPackageStartupMessages(require(curl))}
+  if (!suppressPackageStartupMessages(require(pagedown))){install.packages("pagedown"); suppressPackageStartupMessages(require(pagedown))}
+
   if (Sys.info()[["sysname"]]=="Windows") {
-  if (!require(doParallel)){install.packages("doParallel"); require(doParallel, quietly=TRUE)}}
+  if (!suppressPackageStartupMessages(require(doParallel))){install.packages("doParallel"); suppressPackageStartupMessages(require(doParallel))}}
 
 }
 
