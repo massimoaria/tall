@@ -18,7 +18,7 @@ options(shiny.maxRequestSize=maxUploadSize*1024^2)
 server <- function(input, output, session){
 
   ## chrome configration for shinyapps server
-  message(curl::curl_version()) # check curl is installed
+
   if (identical(Sys.getenv("R_CONFIG_ACTIVE"), "shinyapps")) {
     chromote::set_default_chromote_object(
       chromote::Chromote$new(chromote::Chrome$new(
@@ -1812,9 +1812,8 @@ To ensure the functionality of TALL,
 
       #network$nodes
       values$network$nodesData <- values$network$nodes %>%
-        select(upos, label, value, group, color) %>%
-        rename(PoS=upos,
-               Word=label,
+        select(label, value, group, color) %>%
+        rename(Word=label,
                Frequency=value,
                Group=group,
                "Color Group"=color)
@@ -2155,6 +2154,8 @@ To ensure the functionality of TALL,
       values$TMestim_result <- tmEstimate(values$dfTag %>% filter(docSelected), K=values$tmK, group=input$groupTmEstim,
                                           term=input$termTmEstim, n=input$nTmEstim, top_by=input$top_byEstim)
 
+      #values$TMnetwork <- tmNetwork(beta = values$TMestim_result$beta, minEdge = 0.1) ## aggiungere minEdge
+
 
       ### BETA PROBABILITY
       values$beta <- values$TMestim_result$beta
@@ -2165,6 +2166,11 @@ To ensure the functionality of TALL,
       names(values$theta)[2:ncol(values$theta)] <- paste0("Topic ",1:(ncol(values$theta)-1))
     }
   )
+
+  output$d_tm_networkPlot <- renderVisNetwork({
+    netTMestim()
+    #values$TMnetwork$VIS
+    })
 
   observeEvent(input$TMplotRight,{
     if (values$TMplotIndex<ceiling(req(values$tmK)/3)){

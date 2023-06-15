@@ -1144,6 +1144,10 @@ cooc_freq <- function(cooc){
 network <- function(dfTag, term="lemma", group=c("doc_id", "sentence_id"), n, minEdges, labelsize=4, opacity=0.6,
                     interLinks=FALSE, normalization="none", remove.isolated=FALSE){
 
+  # size scaling
+  scalemin <- 20*(1+labelsize/5)
+  scalemax <- 70*(1+labelsize/5)
+
   colorlist <- colorlist()
 
   # params
@@ -1162,8 +1166,8 @@ network <- function(dfTag, term="lemma", group=c("doc_id", "sentence_id"), n, mi
            value = n)
 
   nodes$font.size <- log(nodes$value)
-  scalemin <- 20
-  scalemax <- 150
+  # scalemin <- 20
+  # scalemax <- 150
   Min <- min(nodes$font.size)
   Max <- max(nodes$font.size)
   if (Max>Min){
@@ -1179,16 +1183,6 @@ network <- function(dfTag, term="lemma", group=c("doc_id", "sentence_id"), n, mi
     nodes$font.vadjust <-0
   }
 
-
-  ## opacity for label
-  opacity_font <- sqrt((nodes$font.size-min(nodes$font.size))/diff(range(nodes$font.size)))*opacity+opacity.min+0.1
-  if(is.nan(opacity_font[1])) opacity_font <- rep(opacity.min,length(opacity_font))
-
-  if (labelsize>0){
-    nodes$font.color <- unlist(lapply(opacity_font, function(x) adjustcolor("black",alpha.f = x)))
-  }else{
-    nodes$font.color <- adjustcolor("black", alpha.f = 0)
-  }
 
   ### EDGES
   edges <- cooc %>%
@@ -1239,11 +1233,25 @@ network <- function(dfTag, term="lemma", group=c("doc_id", "sentence_id"), n, mi
   cluster_df <- as.data.frame(t(cluster_df)) %>%
     mutate(id = as.numeric(gsub("X","",rownames(.)))) %>%
     rename(group = "V1")
+
   #Create group column
-  nodes <- left_join(nodes, cluster_df, by = "id")
+  nodes <- left_join(nodes, cluster_df, by = "id") %>%
+    drop_na(group)
+
+
+  ## opacity for label
+  opacity_font <- sqrt((nodes$font.size-min(nodes$font.size))/diff(range(nodes$font.size)))*opacity+opacity.min+0.1
+  if(is.nan(opacity_font[1])) opacity_font <- rep(opacity.min,length(opacity_font))
+
+  if (labelsize>0){
+    nodes$font.color <- unlist(lapply(opacity_font, function(x) adjustcolor("black",alpha.f = x)))
+  }else{
+    nodes$font.color <- adjustcolor("black", alpha.f = 0)
+  }
 
   # node colors
   nodes$opacity.nodes <- (opacity_font-min(opacity_font))/(diff(range(opacity_font)))*0.5+opacity.min
+  nodes$opacity.nodes[is.nan(nodes$opacity.nodes)] <- 0.5
   nodes$color <- paste0(colorlist[nodes$group],round(nodes$opacity.nodes,2)*100)
 
   if(interLinks){
@@ -1726,6 +1734,54 @@ tmEstimate <- function(dfTag, K, group=c("doc_id", "sentence_id"), term="lemma",
 
 }
 
+## hellinger distance ----
+hellinger <- function(beta){
+  beta <- sqrt(beta)
+  B=matrix(NA,ncol(beta),ncol(beta))
+  for (i in 1:ncol(beta)){
+    for (j in i:ncol(beta)){
+      B[i,j]=sum((beta[,i]-beta[,j])^2)
+    }
+  }
+
+  H <- sqrt(B)*(1/sqrt(2))
+}
+
+tmNetwork <- function(beta, minEdge){
+  beta <- as.matrix(results$beta[,-1])
+
+  H <- 1- hellinger(beta)
+  diag(H) <- NA
+
+  topics <- paste0("Topic_",seq(1,nrow(H)))
+
+  H <- data.frame(H)
+  colnames(H) <- topics
+  H$from <- topics
+
+  H <- H %>%
+    pivot_longer(cols = 1:length(topics), names_to = "to", values_to = "size") %>%
+    drop_na()
+  edges <- H %>%
+    mutate(size = size*10) %>%
+    filter(size>minEdge*10) %>%
+    drop_na()
+
+  nodes <- data.frame(id = topics, size = 10, color = "#4F7942",
+                      title = topics,
+                      label = topics,
+                      font.color = adjustcolor("black", alpha.f = 0.6))
+
+  VIS <- visNetwork::visNetwork(nodes= nodes, edges = edges, type="full", smooth=TRUE, physics=FALSE) %>%
+    visNetwork::visIgraphLayout(layout = "layout_nicely", type = "full") %>%
+    visNetwork::visEdges(smooth = list(type="horizontal")) %>%
+    visNetwork::visOptions(highlightNearest =list(enabled = T, hover = T, degree=1), nodesIdSelection = T) %>%
+    visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed = 0.2) %>%
+    visNetwork::visOptions(manipulation = FALSE, height ="100%", width = "100%")
+
+  results <- list(H=H %>% rename(value=size), VIS=VIS)
+  return(results)
+}
 
 tmTopicPlot <- function(beta, topic=1, nPlot=10){
 

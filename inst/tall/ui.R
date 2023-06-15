@@ -2075,6 +2075,16 @@ body <- dashboardBody(
                                      align="center"
                                    )
                           ),
+                          tabPanel("Topic Correlation",
+                                   fluidRow(
+                                     column(8,
+                                            shinycssloaders::withSpinner(visNetworkOutput("d_tm_networkPlot", width="auto", height = "75vh"),
+                                                                         color = getOption("spinner.color", default = "#4F7942"))),
+                                     column(4,
+                                            shinycssloaders::withSpinner(DT::DTOutput("d_tm_networkTable"),
+                                                                color = getOption("spinner.color", default = "#4F7942")))
+                                   )
+                          ),
                           tabPanel("Beta Probability",
                                    shinycssloaders::withSpinner(DT::DTOutput("d_tm_estimBpTable"),
                                                                 color = getOption("spinner.color", default = "#4F7942"))
