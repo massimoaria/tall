@@ -862,7 +862,7 @@ To ensure the functionality of TALL,
 
   onclick('clickbox1', showModal(modalDialog(
     title = "Documents",
-    h3("Number of Docs"),
+    h3("Number of Unique Documents"),
     easyClose = TRUE
   )))
 
@@ -877,7 +877,7 @@ To ensure the functionality of TALL,
 
   onclick('clickbox2', showModal(modalDialog(
     title = "Doc Avg Length in Chars",
-    h3("Average Document's Lenght by characters"),
+    h3("Average Document's Length by characters"),
     easyClose = TRUE
   )))
 
@@ -888,6 +888,12 @@ To ensure the functionality of TALL,
              icon = icon("duplicate", lib="glyphicon"), color = "olive",
              width = NULL)
   })
+  
+  onclick('clickbox3', showModal(modalDialog(
+    title = "Doc Avg Length in tokens",
+    h3("Average Document's Length by tokens"),
+    easyClose = TRUE
+  )))
 
   #### box4 ---------------
   output$nSentences <- renderValueBox({
@@ -896,6 +902,12 @@ To ensure the functionality of TALL,
              icon = icon(name="align-left", lib="glyphicon"), color = "olive",
              width = NULL)
   })
+  
+  onclick('clickbox4', showModal(modalDialog(
+    title = "Sentences",
+    h3("Number of Sentences"),
+    easyClose = TRUE
+  )))
 
   #### box5 --------------------
   output$avgSentLengthChar <- renderValueBox({
@@ -904,6 +916,12 @@ To ensure the functionality of TALL,
              icon = icon(name="align-left", lib="glyphicon"), color = "olive",
              width = NULL)
   })
+  
+  onclick('clickbox5', showModal(modalDialog(
+    title = "Sent Avg Length in Chars",
+    h3("Average Sentence's Length by characters"),
+    easyClose = TRUE
+  )))
 
   #### box6 -------------
   output$avgSentLengthTokens <- renderValueBox({
@@ -912,7 +930,13 @@ To ensure the functionality of TALL,
              icon = icon(name="align-left", lib="glyphicon"), color = "olive",
              width = NULL)
   })
-
+  
+  onclick('clickbox6', showModal(modalDialog(
+    title = "Sent Avg Length in Tokens",
+    h3("Average Sentence's Length by tokens"),
+    easyClose = TRUE
+  )))
+  
   #### box7 ----------------
   output$nDictionary <- renderValueBox({
     valueBox(value = p("Types", style = 'font-size:16px;color:white;'),
@@ -920,6 +944,12 @@ To ensure the functionality of TALL,
              icon = icon(name="font", lib="glyphicon"), color = "olive",
              width = NULL)
   })
+  
+  onclick('clickbox7', showModal(modalDialog(
+    title = "Types",
+    h3("Number of Types"),
+    easyClose = TRUE
+  )))
 
   #### box8 ---------------
   output$nTokens <- renderValueBox({
@@ -929,6 +959,12 @@ To ensure the functionality of TALL,
              width = NULL)
   })
 
+  onclick('clickbox8', showModal(modalDialog(
+    title = "Tokens",
+    h3("Number of Tokens"),
+    easyClose = TRUE
+  )))
+  
   #### box9 ---------------
   output$nLemmas <- renderValueBox({
     valueBox(value = p("Lemmas", style = 'font-size:16px;color:white;'),
@@ -936,6 +972,12 @@ To ensure the functionality of TALL,
              icon = icon(name="font", lib="glyphicon"), color = "olive",
              width = NULL)
   })
+  
+  onclick('clickbox9', showModal(modalDialog(
+    title = "Lemmas",
+    h3("Number of Lemmas"),
+    easyClose = TRUE
+  )))
 
   #### box10 ------------------
   output$TTR <- renderValueBox({
@@ -944,6 +986,12 @@ To ensure the functionality of TALL,
              icon = icon(name="stats", lib="glyphicon"), color = "olive",
              width = NULL)
   })
+  
+  onclick('clickbox10', showModal(modalDialog(
+    title = "TTR",
+    h3("Types/Tokens Ratio"),
+    easyClose = TRUE
+  )))
 
   #### box11 ------
   output$hapax <- renderValueBox({
@@ -952,6 +1000,13 @@ To ensure the functionality of TALL,
              icon = icon(name="stats", lib="glyphicon"), color = "olive",
              width = NULL)
   })
+  
+  onclick('clickbox11', showModal(modalDialog(
+    title = "Hapax (%)",
+    h3("Percentage of Hapax"),
+    easyClose = TRUE
+  )))
+  
 
   #### box12 -------
   output$guiraud <- renderValueBox({
@@ -960,6 +1015,12 @@ To ensure the functionality of TALL,
              icon = icon(name="stats", lib="glyphicon"), color = "olive",
              width = NULL)
   })
+  
+  onclick('clickbox12', showModal(modalDialog(
+    title = "Guiraud Index",
+    h3("....."),
+    easyClose = TRUE
+  )))
 
   ## Overview Table ----
 
@@ -997,7 +1058,7 @@ To ensure the functionality of TALL,
     values$wcPlot <- wordcloud2::wordcloud2(wcDfPlot,
                                             fontFamily = "Impact", fontWeight = "normal", minSize=0,
                                             minRotation = 0, maxRotation = 0, shuffle = TRUE,
-                                            rotateRatio = 0.7, shape = "circle",ellipticity = 0.65,
+                                            rotateRatio = 0.7, shape = "pentagon",ellipticity = 0.65,
                                             widgetsize = NULL,
                                             figPath = NULL,
                                             size = ifelse(length(wcDfPlot$text)>100,1,1.3),
@@ -1011,7 +1072,7 @@ To ensure the functionality of TALL,
     wcDfTable <- freqByPos(values$dfTag%>% filter(docSelected), term="lemma",pos=unique(values$dfTag$upos[values$dfTag$POSSelected==TRUE & values$dfTag$docSelected==TRUE])) %>%
       slice_head(n=n) %>%
       rename(Lemma = term,
-             Freq = n)
+             Freq = n) 
 
     DTformat(wcDfTable,n=15, left=1, right=2, numeric=2, pagelength=TRUE, dom=TRUE, size='110%', filename="WordCloudData")
 
@@ -1048,18 +1109,20 @@ To ensure the functionality of TALL,
       values$dictFreq <- values$dictFreq %>%
         group_by(upos, lemma) %>%
         summarize(n=n()) %>%
-        arrange(desc(n)) %>%
-        rename("Part of Speech"=upos,
-               Lemma = lemma,
-               Frequency = n)
+        arrange(desc(n)) %>% 
+        rename(Lemma = lemma,
+               Frequency = n,
+               "Part of Speech"=upos) %>% 
+      relocate("Part of Speech", .after = last_col())
     } else {
       values$dictFreq <- values$dictFreq %>%
         group_by(upos, token) %>%
         summarize(n=n()) %>%
         arrange(desc(n)) %>%
-        rename("Part of Speech"=upos,
-               Token = token,
-               Frequency = n)
+        rename(Token = token,
+               Frequency = n,
+               "Part of Speech"=upos) %>% 
+        relocate("Part of Speech", .after = last_col())
     }
   })
 
@@ -1084,12 +1147,19 @@ To ensure the functionality of TALL,
 
   output$tfidfData <- renderDT(server=FALSE,{
     tf_idf()
+    if(input$termTfidf=="lemma"){
     DTformat(values$tfidfDATA  %>%
                rename(
                  Lemma = term,
                  "TF-IDF" = TFIDF),
              left=1, numeric=2,round=4, size="110%"
-    )
+    )}
+    else{ DTformat(values$tfidfDATA  %>%
+                     rename(
+                       Token = term,
+                       "TF-IDF" = TFIDF),
+                   left=1, numeric=2,round=4, size="110%"
+    )}
   })
 
 
@@ -1224,7 +1294,7 @@ To ensure the functionality of TALL,
       values$nounPlotly <- freqPlotly(values$freqNoun,x="n",y="term",n=input$nounN, xlabel="Frequency",ylabel="NOUN", scale="identity")
 
       values$freqNounData <- values$freqNoun %>%
-        rename(Term = term,
+        rename(Word = term,
                Frequency = n)
     }
   )
@@ -1236,7 +1306,7 @@ To ensure the functionality of TALL,
 
   output$nounTable <- renderDT(server=FALSE,{
     nounFreq()
-    DTformat(values$freqNounData, left=1, right=2, numeric=2, filename="NounFreqList", dom=FALSE, size="110%")
+    DTformat(values$freqNounData, left=1, right=2, round=0, numeric=2, filename="NounFreqList", dom=FALSE, size="110%")
   })
 
   output$nounExport <- downloadHandler(
@@ -1280,7 +1350,7 @@ To ensure the functionality of TALL,
       values$propnPlotly <- freqPlotly(values$freqPropn,x="n",y="term",n=input$propnN, xlabel="Frequency",ylabel="PROPN", scale="identity")
 
       values$freqPropnData <- values$freqPropn %>%
-        rename(Term = term,
+        rename(Word = term,
                Frequency = n)
 
     }
@@ -1293,7 +1363,7 @@ To ensure the functionality of TALL,
 
   output$propnTable <- renderDT(server=FALSE,{
     propnFreq()
-    DTformat(values$freqPropnData, left=1, right=2, numeric=2, filename="PropnFreqList", dom=FALSE, size="110%")
+    DTformat(values$freqPropnData, left=1, right=2, round=0, numeric=2, filename="PropnFreqList", dom=FALSE, size="110%")
   })
 
   output$propnExport <- downloadHandler(
@@ -1336,7 +1406,7 @@ To ensure the functionality of TALL,
       values$adjPlotly <- freqPlotly(values$freqAdj,x="n",y="term",n=input$adjN, xlabel="Frequency",ylabel="ADJ", scale="identity")
 
       values$freqAdjData <- values$freqAdj %>%
-        rename(Term = term,
+        rename(Word = term,
                Frequency = n)
     }
   )
@@ -1348,7 +1418,7 @@ To ensure the functionality of TALL,
 
   output$adjTable <- renderDT(server=FALSE,{
     adjFreq()
-    DTformat(values$freqAdjData, left=1, right=2, numeric=2, filename="AdjFreqList", dom=FALSE, size="110%")
+    DTformat(values$freqAdjData, left=1, right=2, round=0, numeric=2, filename="AdjFreqList", dom=FALSE, size="110%")
   })
 
   output$adjExport <- downloadHandler(
@@ -1391,7 +1461,7 @@ To ensure the functionality of TALL,
       values$verbPlotly <- freqPlotly(values$freqVerb,x="n",y="term",n=input$verbN, xlabel="Frequency",ylabel="VERB", scale="identity")
 
       values$freqVerbData <- values$freqVerb %>%
-        rename(Term = term,
+        rename(Word = term,
                Frequency = n)
     }
   )
@@ -1403,7 +1473,7 @@ To ensure the functionality of TALL,
 
   output$verbTable <- renderDT(server=FALSE,{
     verbFreq()
-    DTformat(values$freqVerbData, left=1, right=2, numeric=2, filename="VerbFreqList", dom=FALSE, size="110%")
+    DTformat(values$freqVerbData, left=1, right=2, round=0, numeric=2, filename="VerbFreqList", dom=FALSE, size="110%")
   })
 
   output$verbExport <- downloadHandler(
@@ -1474,7 +1544,7 @@ To ensure the functionality of TALL,
       values$otherPlotly <- freqPlotly(values$freqOther,x="n",y="term",n=input$otherN, xlabel="Frequency",ylabel="Multi-Words", scale="identity")
 
       values$freqOtherData <- values$freqOther %>%
-        rename(Term = term,
+        rename(Word = term,
                Frequency = n)
       }
 
@@ -1488,7 +1558,7 @@ To ensure the functionality of TALL,
 
   output$otherTable <- renderDT(server=FALSE,{
     otherFreq()
-    DTformat(values$freqOtherData, left=1, right=2, numeric=2, filename="MultiWordFreqList", dom=FALSE, size="110%")
+    DTformat(values$freqOtherData, left=1, right=2, round=0, numeric=2, filename="MultiWordFreqList", dom=FALSE, size="110%")
   })
 
   output$otherExport <- downloadHandler(
@@ -1551,7 +1621,7 @@ To ensure the functionality of TALL,
 
   output$posTable <- renderDT(server=FALSE,{
     posFreq()
-    DTformat(values$freqPOSData, left=1, right=2, numeric=2, filename="POSFreqList", dom=FALSE, pagelength=FALSE, size="110%")
+    DTformat(values$freqPOSData, left=1, right=2, round=0, numeric=2, filename="POSFreqList", dom=FALSE, pagelength=FALSE, size="110%")
   })
 
   output$posExport <- downloadHandler(
@@ -1615,6 +1685,8 @@ To ensure the functionality of TALL,
                             group="doc_id", minEdges=25, term=input$termClustering,
                             normalization=input$w_clusteringSimilarity)
       values$wordCluster <- results$cluster
+      values$wordCluster<-values$wordCluster %>% 
+                          rename(Word=word, Group=group, Frequency=frequency)
       values$wordComm <- results$comm
       if (input$w_clusteringMode == "auto"){
         nclusters <- max(values$wordComm$membership)
@@ -1704,7 +1776,7 @@ To ensure the functionality of TALL,
       values$dfCA <- values$dfCA %>%
         rename("Factorial Dimension" = dim,
                "Singular Values" = sv,
-               "Corrected Singular Values" = svcorr)
+               "Corrected Explained Inertia" = svcorr)
 
     }
   )
@@ -1997,9 +2069,10 @@ To ensure the functionality of TALL,
       values$grako$nodesData <- values$grako$nodes %>%
         select(upos, label, value) %>%
         mutate(label=gsub("<.*?>", "", label)) %>%
-        rename(PoS=upos,
+        rename("Part of Speech"=upos,
                Word=label,
-               Frequency=value)
+               Frequency=value) %>% 
+        relocate("Part of Speech", .after = last_col())
 
       #grako$edges
       values$grako$edgesData <- values$grako$edges %>%

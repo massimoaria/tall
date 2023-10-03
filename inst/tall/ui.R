@@ -107,8 +107,8 @@ body <- dashboardBody(
             fluidRow(
               #h1(HTML("TA<i>ll</i>"), align="center", style = "font-family: 'Times New Roman'; font-size: 70px;"),
               br(),
-              div(img(src = "logo1.jpg", height = "50%",width = "50%"), style="text-align: center;"),
-              h2(HTML("Text Analysis for A<i>ll</i>"), align="center", style = "font-family: 'Times New Roman';"),
+              div(img(src = "logo2.png", height = "30%",width = "53%"), style="text-align: center;"),
+             # h2(HTML("Text Analysis for A<i>ll</i>"), align="center", style = "font-family: 'Times New Roman';"),
               br(),
               div(p("Powered by ",
                     em(a("K-Synth",
@@ -836,19 +836,19 @@ body <- dashboardBody(
                                          column(3,
                                               div(id='clickbox1',title="Numbers of Documents", valueBoxOutput("nDoc", width = "33vh")),
                                               div(id='clickbox2',title= "Average Document's Lenght by characters", valueBoxOutput("avgDocLengthChar", width = "33vh")),
-                                              valueBoxOutput("avgDocLengthTokens", width = "33vh")),
+                                              div(id='clickbox3',title="Average Document's Length by tokens",valueBoxOutput("avgDocLengthTokens", width = "33vh"))),
                                        column(3,
-                                              valueBoxOutput("nSentences", width = "33vh"),
-                                              valueBoxOutput("avgSentLengthChar", width = "33vh"),
-                                              valueBoxOutput("avgSentLengthTokens", width = "33vh")),
+                                              div(id='clickbox4',title="Number of Sentences", valueBoxOutput("nSentences", width = "33vh")),
+                                              div(id='clickbox5',title="Average Sentence's Length by characters", valueBoxOutput("avgSentLengthChar", width = "33vh")),
+                                              div(id='clickbox6',title="Average Sentence's Length by tokens", valueBoxOutput("avgSentLengthTokens", width = "33vh"))),
                                        column(3,
-                                              valueBoxOutput("nDictionary", width = "33vh"),
-                                              valueBoxOutput("nTokens", width = "33vh"),
-                                              valueBoxOutput("nLemmas", width = "33vh")),
+                                              div(id='clickbox7',title="Number of Types", valueBoxOutput("nDictionary", width = "33vh")),
+                                              div(id='clickbox8',title="Number of Tokens", valueBoxOutput("nTokens", width = "33vh")),
+                                              div(id='clickbox9',title="Number of Lemmas", valueBoxOutput("nLemmas", width = "33vh"))),
                                        column(3,
-                                              valueBoxOutput("TTR", width = "33vh"),
-                                              valueBoxOutput("hapax", width = "33vh"),
-                                              valueBoxOutput("guiraud", width = "33vh")),
+                                              div(id='clickbox10',title="Types/Tokens Ratio", valueBoxOutput("TTR", width = "33vh")),
+                                              div(id='clickbox11',title="Percentage of Hapax", valueBoxOutput("hapax", width = "33vh")),
+                                              div(id='clickbox12',title="Guiraud Index", valueBoxOutput("guiraud", width = "33vh"))),
                                      )
                                      )
                             ),
@@ -1401,7 +1401,7 @@ body <- dashboardBody(
                              h4(strong("Options: ")),
                              hr(),
                              selectInput("termClustering",
-                                         "Terms:",
+                                         "By:",
                                          choices = c("Tokens" = "token",
                                                      "Lemmas" = "lemma"),
                                          selected = "lemma"),
@@ -1514,7 +1514,7 @@ body <- dashboardBody(
                                ),
                                column(6,
                                       selectInput("termCA",
-                                                  "Terms:",
+                                                  "By:",
                                                   choices = c("Tokens" = "token",
                                                               "Lemmas" = "lemma"),
                                                   selected = "lemma")
@@ -1585,10 +1585,10 @@ body <- dashboardBody(
                                      shinycssloaders::withSpinner(plotlyOutput(outputId = "caPlot", height = "75vh",width ="98.9%"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
-                            tabPanel("Dendrogram",
-                                     shinycssloaders::withSpinner(visNetworkOutput("caDendrogram", width="auto", height = "75vh"),
+                            tabPanel("Singular Values",
+                                     shinycssloaders::withSpinner(DT::DTOutput("caSingularValueTable"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
-                            ),
+                            ),         
                             tabPanel("Coordinates",
                                      shinycssloaders::withSpinner(DT::DTOutput("caCoordTable"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
@@ -1601,8 +1601,8 @@ body <- dashboardBody(
                                      shinycssloaders::withSpinner(DT::DTOutput("caCosineTable"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
-                            tabPanel("Singular Values",
-                                     shinycssloaders::withSpinner(DT::DTOutput("caSingularValueTable"),
+                            tabPanel("Dendrogram",
+                                     shinycssloaders::withSpinner(visNetworkOutput("caDendrogram", width="auto", height = "75vh"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             )
                 )
@@ -1764,7 +1764,7 @@ body <- dashboardBody(
                              h4(strong("Options: ")),
                              br(),
                              selectInput(inputId="grako_term",
-                                         label = "Terms:",
+                                         label = "By:",
                                          choices = c(
                                            "Tokens"="token",
                                            "Lemmas"="lemma"),
@@ -2006,7 +2006,7 @@ body <- dashboardBody(
                                selected = "doc_id"),
                              fluidRow(
                                column(6,
-                                      selectInput("termTmEstim", "Terms:",
+                                      selectInput("termTmEstim", "By:",
                                                   choices = c(
                                                     "Tokens"="token",
                                                     "Lemmas"="lemma"),
