@@ -796,7 +796,7 @@ wordCA <- function(dfTag, n=50,  term="lemma", group=c("Documents")){
 
   ## Benzecrì correction
   res$eigCorrected <- ((n/(n-1))^2*(res$sv-1/n)^2)
-  res$eigCorrected[res$eigCorrected<=1/length(res$eigCorrected)] <- 0
+  #res$eigCorrected[res$eigCorrected<=1/length(res$eigCorrected)] <- 0
   res$eigCorrectedNorm <- res$eigCorrected/sum(res$eigCorrected)*100
 
   ## result object

@@ -862,7 +862,7 @@ To ensure the functionality of TALL,
 
   onclick('clickbox1', showModal(modalDialog(
     title = "Documents",
-    h3("Number of Unique Documents"),
+    h3("Number of Documents"),
     easyClose = TRUE
   )))
 
@@ -878,6 +878,7 @@ To ensure the functionality of TALL,
   onclick('clickbox2', showModal(modalDialog(
     title = "Doc Avg Length in Chars",
     h3("Average Document's Length by characters"),
+    hr(),
     easyClose = TRUE
   )))
 
@@ -888,7 +889,7 @@ To ensure the functionality of TALL,
              icon = icon("duplicate", lib="glyphicon"), color = "olive",
              width = NULL)
   })
-  
+
   onclick('clickbox3', showModal(modalDialog(
     title = "Doc Avg Length in tokens",
     h3("Average Document's Length by tokens"),
@@ -902,7 +903,7 @@ To ensure the functionality of TALL,
              icon = icon(name="align-left", lib="glyphicon"), color = "olive",
              width = NULL)
   })
-  
+
   onclick('clickbox4', showModal(modalDialog(
     title = "Sentences",
     h3("Number of Sentences"),
@@ -916,7 +917,7 @@ To ensure the functionality of TALL,
              icon = icon(name="align-left", lib="glyphicon"), color = "olive",
              width = NULL)
   })
-  
+
   onclick('clickbox5', showModal(modalDialog(
     title = "Sent Avg Length in Chars",
     h3("Average Sentence's Length by characters"),
@@ -930,13 +931,13 @@ To ensure the functionality of TALL,
              icon = icon(name="align-left", lib="glyphicon"), color = "olive",
              width = NULL)
   })
-  
+
   onclick('clickbox6', showModal(modalDialog(
     title = "Sent Avg Length in Tokens",
     h3("Average Sentence's Length by tokens"),
     easyClose = TRUE
   )))
-  
+
   #### box7 ----------------
   output$nDictionary <- renderValueBox({
     valueBox(value = p("Types", style = 'font-size:16px;color:white;'),
@@ -944,10 +945,12 @@ To ensure the functionality of TALL,
              icon = icon(name="font", lib="glyphicon"), color = "olive",
              width = NULL)
   })
-  
+
   onclick('clickbox7', showModal(modalDialog(
-    title = "Types",
+   # title = "Types",
     h3("Number of Types"),
+    hr(),
+    p("The size of the vocabulary in terms of different/distinct words", style = 'font-size:16px'),
     easyClose = TRUE
   )))
 
@@ -962,9 +965,11 @@ To ensure the functionality of TALL,
   onclick('clickbox8', showModal(modalDialog(
     title = "Tokens",
     h3("Number of Tokens"),
+    hr(),
+    p("The size of the collection in terms of occurrences"),
     easyClose = TRUE
   )))
-  
+
   #### box9 ---------------
   output$nLemmas <- renderValueBox({
     valueBox(value = p("Lemmas", style = 'font-size:16px;color:white;'),
@@ -972,7 +977,7 @@ To ensure the functionality of TALL,
              icon = icon(name="font", lib="glyphicon"), color = "olive",
              width = NULL)
   })
-  
+
   onclick('clickbox9', showModal(modalDialog(
     title = "Lemmas",
     h3("Number of Lemmas"),
@@ -986,10 +991,13 @@ To ensure the functionality of TALL,
              icon = icon(name="stats", lib="glyphicon"), color = "olive",
              width = NULL)
   })
-  
+
   onclick('clickbox10', showModal(modalDialog(
-    title = "TTR",
+   # title = "TTR",
     h3("Types/Tokens Ratio"),
+    hr(),
+    p("The Type-Token Ratio (TTR) is the ratio obtained by dividing the types of a corpus by its tokens; a
+    higher TTR indicates more variation in the lexicon, and then a more richness language", style = 'font-size:16px'),
     easyClose = TRUE
   )))
 
@@ -1000,13 +1008,15 @@ To ensure the functionality of TALL,
              icon = icon(name="stats", lib="glyphicon"), color = "olive",
              width = NULL)
   })
-  
+
   onclick('clickbox11', showModal(modalDialog(
     title = "Hapax (%)",
     h3("Percentage of Hapax"),
+    hr(),
+    p("The words that occur just one time are called hapax"),
     easyClose = TRUE
   )))
-  
+
 
   #### box12 -------
   output$guiraud <- renderValueBox({
@@ -1015,7 +1025,7 @@ To ensure the functionality of TALL,
              icon = icon(name="stats", lib="glyphicon"), color = "olive",
              width = NULL)
   })
-  
+
   onclick('clickbox12', showModal(modalDialog(
     title = "Guiraud Index",
     h3("....."),
@@ -1072,7 +1082,7 @@ To ensure the functionality of TALL,
     wcDfTable <- freqByPos(values$dfTag%>% filter(docSelected), term="lemma",pos=unique(values$dfTag$upos[values$dfTag$POSSelected==TRUE & values$dfTag$docSelected==TRUE])) %>%
       slice_head(n=n) %>%
       rename(Lemma = term,
-             Freq = n) 
+             Freq = n)
 
     DTformat(wcDfTable,n=15, left=1, right=2, numeric=2, pagelength=TRUE, dom=TRUE, size='110%', filename="WordCloudData")
 
@@ -1109,10 +1119,10 @@ To ensure the functionality of TALL,
       values$dictFreq <- values$dictFreq %>%
         group_by(upos, lemma) %>%
         summarize(n=n()) %>%
-        arrange(desc(n)) %>% 
+        arrange(desc(n)) %>%
         rename(Lemma = lemma,
                Frequency = n,
-               "Part of Speech"=upos) %>% 
+               "Part of Speech"=upos) %>%
       relocate("Part of Speech", .after = last_col())
     } else {
       values$dictFreq <- values$dictFreq %>%
@@ -1121,7 +1131,7 @@ To ensure the functionality of TALL,
         arrange(desc(n)) %>%
         rename(Token = token,
                Frequency = n,
-               "Part of Speech"=upos) %>% 
+               "Part of Speech"=upos) %>%
         relocate("Part of Speech", .after = last_col())
     }
   })
@@ -1685,7 +1695,7 @@ To ensure the functionality of TALL,
                             group="doc_id", minEdges=25, term=input$termClustering,
                             normalization=input$w_clusteringSimilarity)
       values$wordCluster <- results$cluster
-      values$wordCluster<-values$wordCluster %>% 
+      values$wordCluster<-values$wordCluster %>%
                           rename(Word=word, Group=group, Frequency=frequency)
       values$wordComm <- results$comm
       if (input$w_clusteringMode == "auto"){
@@ -1772,7 +1782,10 @@ To ensure the functionality of TALL,
         rename(Label = rowname)
 
       #dfCA
-      values$dfCA <- data.frame(dim=paste0("Dim ",1:10),sv=(values$CA$ca$sv/sum(values$CA$ca$sv)*100)[1:10], svcorr=values$CA$ca$eigCorrectedNorm[1:10])
+      if (length(values$CA$ca$sv)<10)
+      {values$dfCA <- data.frame(dim=paste0("Dim ",1:length(values$CA$ca$sv)),sv=(values$CA$ca$sv/sum(values$CA$ca$sv)*100), svcorr=values$CA$ca$eigCorrectedNorm)}
+      else
+      {values$dfCA <- data.frame(dim=paste0("Dim ",1:10),sv=(values$CA$ca$sv/sum(values$CA$ca$sv)*100)[1:10], svcorr=values$CA$ca$eigCorrectedNorm[1:10])}
       values$dfCA <- values$dfCA %>%
         rename("Factorial Dimension" = dim,
                "Singular Values" = sv,
@@ -2071,7 +2084,7 @@ To ensure the functionality of TALL,
         mutate(label=gsub("<.*?>", "", label)) %>%
         rename("Part of Speech"=upos,
                Word=label,
-               Frequency=value) %>% 
+               Frequency=value) %>%
         relocate("Part of Speech", .after = last_col())
 
       #grako$edges
