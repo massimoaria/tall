@@ -878,7 +878,6 @@ To ensure the functionality of TALL,
   onclick('clickbox2', showModal(modalDialog(
     title = "Doc Avg Length in Chars",
     h3("Average Document's Length by characters"),
-    hr(),
     easyClose = TRUE
   )))
 
@@ -947,7 +946,7 @@ To ensure the functionality of TALL,
   })
 
   onclick('clickbox7', showModal(modalDialog(
-   # title = "Types",
+    title = "Types",
     h3("Number of Types"),
     hr(),
     p("The size of the vocabulary in terms of different/distinct words", style = 'font-size:16px'),
@@ -981,6 +980,7 @@ To ensure the functionality of TALL,
   onclick('clickbox9', showModal(modalDialog(
     title = "Lemmas",
     h3("Number of Lemmas"),
+    hr(),
     easyClose = TRUE
   )))
 
@@ -993,13 +993,18 @@ To ensure the functionality of TALL,
   })
 
   onclick('clickbox10', showModal(modalDialog(
-   # title = "TTR",
+    title = "TTR",
     h3("Types/Tokens Ratio"),
     hr(),
-    p("The Type-Token Ratio (TTR) is the ratio obtained by dividing the types of a corpus by its tokens; a
-    higher TTR indicates more variation in the lexicon, and then a more richness language", style = 'font-size:16px'),
+    p(HTML("<p><span style='font-family: Calibri, sans-serif; font-size: 16px;'>The <strong>type-token ratio (TTR)</strong> is a measure of the <em>lexical diversity</em> of a text.&nbsp;</span></p>
+<p style='text-align: center;'><span style='font-size: 16px;'><em><span style='font-family: Calibri, sans-serif;'>TTR = (number of types / number of tokens) * 100</span></em></span></p>
+<p><span style='font-family: Calibri, sans-serif; font-size: 16px;'>A high TTR indicates that the text uses a wide variety of words, while a low TTR indicates that the text uses a relatively small number of words repeatedly.</span></p>
+<p><br></p>
+<p style='margin:0cm;font-size:16px;font-family:'Calibri',sans-serif;text-align:center;'><br></p>"), style = 'font-size:16px'),
     easyClose = TRUE
   )))
+
+#McMurtry, J., & Mather, N. (2013). Assessing lexical diversity in written language: A review of methods. Written Communication, 30(1), 1-36.
 
   #### box11 ------
   output$hapax <- renderValueBox({
@@ -1013,9 +1018,23 @@ To ensure the functionality of TALL,
     title = "Hapax (%)",
     h3("Percentage of Hapax"),
     hr(),
-    p("The words that occur just one time are called hapax"),
+    p(HTML("<p style='margin:0cm;font-size:16px;font-family:'Calibri',sans-serif;'><span style='font-family:Helvetica;color:black;'>The words that occur just one time are called <strong style='font-weight: 700; color: rgb(0, 0, 0); font-family: Helvetica; font-size: 16px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;'>Hapax</strong> - the number of words that appear only once in a text.</span></p>
+<p style='margin:0cm;font-size:16px;font-family:'Calibri',sans-serif;'><span style='font-family:Helvetica;color:black;'><strong>Hapax (%)</strong> can be used to measure the <em>lexical richness</em> of a text.&nbsp;</span></p>
+<p style='margin:0cm;font-size:16px;font-family:'Calibri',sans-serif;'><br></p>
+<p style='margin: 0cm; font-size: 16px; font-family: Calibri, sans-serif; text-align: center;'><span style='font-family:Helvetica;color:black;'><span style='color: rgb(0, 0, 0); font-family: Helvetica; font-size: 16px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;'><em>Hapax (%) = (number of hapax / number of tokens) * 100</em></span></span></p>
+<p style='margin: 0cm; font-size: 16px; font-family: Calibri, sans-serif; text-align: center;'><br></p>
+<p style='margin:0cm;font-size:16px;font-family:'Calibri',sans-serif;'><span style='font-family:Helvetica;color:black;'>A text with a high Hapax (%) is likely to be more lexically rich than a text with a low Hapax (%). It can also be used to compare different texts. For example, a text written in a technical field is likely to have a higher Hapax (%) than a text written in a general-interest field.&nbsp;</span><span style='font-family:Helvetica;color:black;'>&nbsp;</span></p>
+<p style='margin:0cm;font-size:16px;font-family:'Calibri',sans-serif;text-align:center;'><br></p>"), style = 'font-size:16px'),
     easyClose = TRUE
   )))
+
+#
+ # "The words that occur just one time are called Hapax - the number of words that appear only once in a text. <br>
+  #  Hapax (%) can be used to measure the lexical richness of a text.
+#A text with a high <strong> Hapax (%)  is likely to be more lexically rich than a text with a low Hapax (%). It can also be used to compare different texts. For example, a text written in a technical field is likely to have a higher Hapax (%) than a text written in a general-interest field.
+# <br>
+#Hapax (%) = (number of hapax / number of tokens) * 100
+#"), style = 'font-size:16px'
 
 
   #### box12 -------
