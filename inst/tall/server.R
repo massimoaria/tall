@@ -965,7 +965,7 @@ To ensure the functionality of TALL,
     title = "Tokens",
     h3("Number of Tokens"),
     hr(),
-    p("The size of the collection in terms of occurrences"),
+    p("The size of the collection in terms of occurrences",style = 'font-size:16px'),
     easyClose = TRUE
   )))
 
@@ -981,6 +981,7 @@ To ensure the functionality of TALL,
     title = "Lemmas",
     h3("Number of Lemmas"),
     hr(),
+    p(HTML("<p><span style='text-align: start; color: rgb(32, 33, 34); background-color: rgb(255, 255, 255); font-size: 16px; font-family: Calibri;'>&nbsp;</span><span style='text-align: start; color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); font-size: 16px;'>A <em>lemma&nbsp;</em>is the <strong>canonical form</strong>, or <strong>d</strong><strong>ictionary form</strong> of a set of words forms.</span></p>")),
     easyClose = TRUE
   )))
 
@@ -1028,15 +1029,6 @@ To ensure the functionality of TALL,
     easyClose = TRUE
   )))
 
-#
- # "The words that occur just one time are called Hapax - the number of words that appear only once in a text. <br>
-  #  Hapax (%) can be used to measure the lexical richness of a text.
-#A text with a high <strong> Hapax (%)  is likely to be more lexically rich than a text with a low Hapax (%). It can also be used to compare different texts. For example, a text written in a technical field is likely to have a higher Hapax (%) than a text written in a general-interest field.
-# <br>
-#Hapax (%) = (number of hapax / number of tokens) * 100
-#"), style = 'font-size:16px'
-
-
   #### box12 -------
   output$guiraud <- renderValueBox({
     valueBox(value = p("Guiraud Index", style = 'font-size:16px;color:white;'),
@@ -1047,7 +1039,9 @@ To ensure the functionality of TALL,
 
   onclick('clickbox12', showModal(modalDialog(
     title = "Guiraud Index",
-    h3("....."),
+    h3("Guiraud Index"),
+    hr(),
+    p(HTML(""), style = 'font-size:16px'),
     easyClose = TRUE
   )))
 
