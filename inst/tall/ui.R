@@ -107,7 +107,7 @@ body <- dashboardBody(
             fluidRow(
               #h1(HTML("TA<i>ll</i>"), align="center", style = "font-family: 'Times New Roman'; font-size: 70px;"),
               br(),
-              div(img(src = "logo3.jpg", height = "10%",width = "33%"), style="text-align: center;"),
+              div(img(src = "tall_logo.jpg", height = "10%",width = "33%"), style="text-align: center;"),
              # h2(HTML("Text Analysis for A<i>ll</i>"), align="center", style = "font-family: 'Times New Roman';"),
               br(),
               div(p("Powered by ",
