@@ -26,8 +26,20 @@ libraries <- function(){
   if (!suppressPackageStartupMessages(require(sparkline))){install.packages("sparkline"); suppressPackageStartupMessages(require(sparkline))}
   if (!suppressPackageStartupMessages(require(glue))){install.packages("glue"); suppressPackageStartupMessages(require(glue))}
   if (!suppressPackageStartupMessages(require(readtext))){install.packages("readtext"); suppressPackageStartupMessages(require(readtext))}
-  if (!suppressPackageStartupMessages(require(webshot2))){install.packages("webshot2"); suppressPackageStartupMessages(require(webshot2))}
   if (!suppressPackageStartupMessages(require(chromote))){install.packages("chromote"); suppressPackageStartupMessages(require(chromote))}
+
+  ## Currently "webshot2" 0.1.1 generates empty screenshots on windows 10 for graphics created with visnetwork.
+  ## This workaround installs the previous version 0.1.0 to temporarily fix the problem.
+  if (!require(webshot2,quietly=TRUE)){
+    install.packages("https://cran.r-project.org/src/contrib/Archive/webshot2/webshot2_0.1.0.tar.gz", repos = NULL, type = "source")
+  }else{
+    pkgs <- installed.packages()[, "Version"]
+    vers <- pkgs["webshot2"]
+    if (vers!="0.1.0"){
+      detach("package:webshot2", unload = TRUE, force=TRUE)
+      install.packages("https://cran.r-project.org/src/contrib/Archive/webshot2/webshot2_0.1.0.tar.gz", repos = NULL, type = "source")
+    }
+  }
 
   ### workaround for webshot2 on shinyapps.io
   if (!suppressPackageStartupMessages(require(curl))){install.packages("curl"); suppressPackageStartupMessages(require(curl))}
