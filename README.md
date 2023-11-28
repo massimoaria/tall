@@ -90,13 +90,13 @@ By leveraging the strengths of both R packages and Shiny’s interactive
 web interface, TA*ll* provides a powerful and accessible platform for
 researchers to conduct thorough the following workflow:
 
+![](images/workflow.png)
+
 1.  **Import and Manipulation**
 
 2.  **Pre-processing and Cleaning**
 
 3.  **Statistical Text Analysis and Dynamic Visualization**
-
-![](images/workflow.png)
 
 ## Some screenshot from TA*ll*
 
@@ -162,7 +162,7 @@ Copyright 2023 Massimo Aria
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
+“Software”), to deal in the Software without restriction, including
 without limitation the rights to use, copy, modify, merge, publish,
 distribute, sublicense, and/or sell copies of the Software, and to
 permit persons to whom the Software is furnished to do so, subject to
@@ -171,7 +171,7 @@ the following conditions:
 The above copyright notice and this permission notice shall be included
 in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS
 OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
