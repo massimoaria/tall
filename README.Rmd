@@ -15,6 +15,8 @@ knitr::opts_chunk$set(
 
 # **TA*ll*** - **T**ext Analysis for **A*ll***
 
+![](images/tall_logo.jpg){width="685"}
+
 <!-- badges: start -->
 
 <!-- badges: end -->

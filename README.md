@@ -3,6 +3,8 @@
 
 # **TA*ll*** - **T**ext Analysis for **A*ll***
 
+<img src="images/tall_logo.jpg" width="685" />
+
 <!-- badges: start -->
 <!-- badges: end -->
 
