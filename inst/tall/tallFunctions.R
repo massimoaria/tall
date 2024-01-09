@@ -73,7 +73,7 @@ read_files <- function(files, ext=c("txt","csv", "xlsx", "pdf"), subfolder=TRUE,
            for (i in seq_len(length(file))){
              # listdf[[i]] <- readtext::readtext(file[i], fill=TRUE, text_field="text", quote='"') %>%
              #   mutate(doc_id = doc_id[i])
-             listdf[[i]] <- data.frame(text=pdf2txt(file), filename = doc_id[i])
+             listdf[[i]] <- data.frame(text=pdf2txt(file[i]), filename = doc_id[i])
            }
            df <- do.call(rbind,listdf)
          }
