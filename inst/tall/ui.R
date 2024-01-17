@@ -2200,8 +2200,14 @@ body <- dashboardBody(
                 column(9,
                        tabsetPanel(type = "tabs",
                                    tabPanel("Abstract",
+                                            fluidRow(style = "height:65vh",
                                             shinycssloaders::withSpinner(uiOutput("abstractData"),
                                                                          color = getOption("spinner.color", default = "#4F7942"))
+                                            ),
+                                            fluidRow(align = "center",
+                                            shinycssloaders::withSpinner(uiOutput("sliderAbstractData"),
+                                                                         color = getOption("spinner.color", default = "#4F7942"))
+                                            )
                                    ),
                                    tabPanel("Full Document",
                                             shinycssloaders::withSpinner(DT::DTOutput("documentData"),
@@ -2220,15 +2226,8 @@ body <- dashboardBody(
                            width = 12,
                            div(h3(strong(em("Sentences extraction"))), style="margin-top:-57px"),
                            tags$hr(),
-                           fluidRow(column(6,
-                                           uiOutput("optionsSummarization")),
-                                    column(6,
-                                           numericInput("nTopSent",
-                                                        label = "N of Sentences",
-                                                        value = 5,
-                                                        min = 1,
-                                                        step = 1
-                                           ))
+                           fluidRow(column(12,
+                                           uiOutput("optionsSummarization"))
                            ),
                            hr(),
                            div(
