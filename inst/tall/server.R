@@ -17,7 +17,7 @@ options(shiny.maxRequestSize=maxUploadSize*1024^2)
 
 server <- function(input, output, session){
 
-  ## chrome configration for shinyapps server
+  ## chrome configuration for shinyapps server
 
   if (identical(Sys.getenv("R_CONFIG_ACTIVE"), "shinyapps")) {
     chromote::set_default_chromote_object(
@@ -583,16 +583,17 @@ To ensure the functionality of TALL,
     ### REKA Algorithm ####
 
     # to replace with input values
-    term = input$term
-    group = input$group
-    ngram_max = input$ngram_max
+    term <-  input$term
+    group <-  input$group
+    ngram_max <-  input$ngram_max
     rake.min <- input$rake.min
 
     values$posMwSel <- gsub(":","",gsub(":.*","",input$multiwordPosSel))
 
-    obj <- rake(values$dfTag, group = group, ngram_max=ngram_max, relevant = values$posMwSel, rake.min=rake.min)
+    obj <- rake(values$dfTag, group = group, ngram_max=ngram_max, relevant = values$posMwSel, rake.min=rake.min, term=term)
 
     values$dfTag <- obj$dfTag
+
     values$dfTag <- highlight(values$dfTag)
     values$multiwords <- obj$multiwords
   })
@@ -2538,17 +2539,38 @@ observeEvent(input$d_polDetReport,{
     ignoreNULL = TRUE,
     eventExpr = {input$d_summarizationApply},
     valueExpr ={
-      values$docExtraction <- textrankDocument(values$dfTag, id=input$document_selection, n=input$nTopSent)
-
-      #RelSentData
-      values$docExtraction$sentences <- values$docExtraction$sentences %>% rename(S_id=textrank_id, Ranking=textrank)
-
+      values$docExtracted <- textrankDocument(values$dfTag, id=input$document_selection)
     })
 
-  output$abstractData <- renderUI({
+  output$sliderAbstractData <- renderUI({
     docExtraction()
-    HTML((values$docExtraction$abstract))
+    choices <- c("More Concise",paste0(seq(from = 10, to = 95,by = 5),"%"),"Less Concise")
+    sliderTextInput(inputId = "sliderAbstractData",
+                    label = "Summarization",
+                    choices = choices,
+                    selected = choices[1],
+                    grid = FALSE,
+                    hide_min_max = FALSE,
+                    animate = TRUE
+    )
   })
+
+  docExtractionVisualize <- eventReactive(
+    ignoreNULL = TRUE,
+    eventExpr ={input$sliderAbstractData},
+    valueExpr = {
+      req(values$docExtracted)
+      values$docExtraction <- abstractingDocument(s=values$docExtracted,n=input$sliderAbstractData)
+      values$docExtraction$sentences <- values$docExtraction$sentences %>% rename(S_id=textrank_id, Ranking=textrank)
+    }
+  )
+
+  output$abstractData <- renderUI({
+    #docExtraction()
+    docExtractionVisualize()
+    HTML(values$docExtraction$abstract)
+  })
+
 
   output$RelSentData <- renderDT(server=FALSE,{
     docExtraction()

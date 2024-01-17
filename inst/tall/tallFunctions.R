@@ -73,7 +73,7 @@ read_files <- function(files, ext=c("txt","csv", "xlsx", "pdf"), subfolder=TRUE,
            for (i in seq_len(length(file))){
              # listdf[[i]] <- readtext::readtext(file[i], fill=TRUE, text_field="text", quote='"') %>%
              #   mutate(doc_id = doc_id[i])
-             listdf[[i]] <- data.frame(text=pdf2txt(file), filename = doc_id[i])
+             listdf[[i]] <- data.frame(text=pdf2txt(file[i]), filename = doc_id[i])
            }
            df <- do.call(rbind,listdf)
          }
@@ -2159,7 +2159,55 @@ highlightSentences <- function(dfTag, id){
   return(s)
 }
 
-textrankDocument <- function(dfTag, id, n){
+# textrankDocument <- function(dfTag, id, n){
+#   df <- dfTag %>%
+#     filter(doc_id==id)
+#
+#   #n <- max(3,round(0.05*max(df$sentence_id)))
+#
+#   sentences <- df %>%
+#     select(sentence_id,sentence) %>%
+#     distinct()
+#
+#   terminology <- df %>%
+#     filter(POSSelected) %>%
+#     select(sentence_id, lemma)
+#
+#   tr <- textrank_sentences(data = sentences, terminology = terminology)
+#   s <- tr$sentences %>%
+#     arrange(desc(textrank))
+#
+#   n <- min(n,nrow(s))
+#
+#   s$h <- c(rep(1,n),rep(0,nrow(s)-n))
+#   s <- s %>%
+#     left_join(df %>% select(paragraph_id,sentence_id) %>% distinct(), by = c("textrank_id"="sentence_id"))
+#
+#   abstract <- s %>%
+#     filter(h==1) %>%
+#     group_by(paragraph_id) %>%
+#     summarize(paragraph = paste(sentence, collapse=" ")) %>%
+#     ungroup %>%
+#     summarize(text=paste(paragraph, collapse="<br><br>&nbsp&nbsp&nbsp&nbsp&nbsp")) %>%
+#     mutate(text= paste0("<h3>Document: <strong>",id,"</strong></h3><hr><br><em>",text,"</em>"))
+#
+#   s <- s %>%
+#     mutate(sentence = ifelse(h==1, paste0("<mark><strong>", sentence, "</strong></mark>"), sentence)) %>%
+#     arrange(textrank_id) %>%
+#     group_by(paragraph_id) %>%
+#     summarize(paragraph=paste(sentence, collapse=" "),
+#               highlighted=ifelse(sum(h)>0,"Yes","No")) %>%
+#     #filter(highlighted=="Yes") %>%
+#     arrange(paragraph_id) %>%
+#     select(paragraph_id,paragraph) %>%
+#     rename("Paragraph ID" = paragraph_id,
+#            "Paragraph" = paragraph)
+#
+#   results <- list(document=s, sentences=tr$sentences %>% arrange(desc(textrank)), abstract=abstract$text[1])
+#   return(results)
+# }
+
+textrankDocument <- function(dfTag, id){
   df <- dfTag %>%
     filter(doc_id==id)
 
@@ -2176,7 +2224,16 @@ textrankDocument <- function(dfTag, id, n){
   tr <- textrank_sentences(data = sentences, terminology = terminology)
   s <- tr$sentences %>%
     arrange(desc(textrank))
+  return(s)
+}
 
+abstractingDocument <- function(s,n){
+  switch(n,
+         "More Concise" ={n <- "5%"},
+         "Less Concise" ={n <- "100%"},
+         {n <- n}
+  )
+  n <- as.numeric(gsub("%","",n))
   n <- min(n,nrow(s))
 
   s$h <- c(rep(1,n),rep(0,nrow(s)-n))
@@ -2206,7 +2263,6 @@ textrankDocument <- function(dfTag, id, n){
   results <- list(document=s, sentences=tr$sentences %>% arrange(desc(textrank)), abstract=abstract$text[1])
   return(results)
 }
-
 
 ### EXCEL REPORT FUNCTIONS ----
 addDataWb <- function(list_df, wb, sheetname){
