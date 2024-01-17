@@ -2224,21 +2224,27 @@ textrankDocument <- function(dfTag, id){
   tr <- textrank_sentences(data = sentences, terminology = terminology)
   s <- tr$sentences %>%
     arrange(desc(textrank))
-  return(s)
+
+  s <- s %>%
+    left_join(df %>% select(paragraph_id,sentence_id) %>% distinct(), by = c("textrank_id"="sentence_id"))
+  results <- list(s=s,id=id,sentences=tr$sentences %>% arrange(desc(textrank)))
+  return(results)
 }
 
-abstractingDocument <- function(s,n){
+abstractingDocument <- function(s,n,id){
+
   switch(n,
          "More Concise" ={n <- "5%"},
          "Less Concise" ={n <- "100%"},
          {n <- n}
   )
   n <- as.numeric(gsub("%","",n))
+  n <- ceiling(n*nrow(s)/100) ## calculate n from %
   n <- min(n,nrow(s))
 
   s$h <- c(rep(1,n),rep(0,nrow(s)-n))
-  s <- s %>%
-    left_join(df %>% select(paragraph_id,sentence_id) %>% distinct(), by = c("textrank_id"="sentence_id"))
+  # s <- s %>%
+  #   left_join(df %>% select(paragraph_id,sentence_id) %>% distinct(), by = c("textrank_id"="sentence_id"))
 
   abstract <- s %>%
     filter(h==1) %>%
@@ -2260,7 +2266,7 @@ abstractingDocument <- function(s,n){
     rename("Paragraph ID" = paragraph_id,
            "Paragraph" = paragraph)
 
-  results <- list(document=s, sentences=tr$sentences %>% arrange(desc(textrank)), abstract=abstract$text[1])
+  results <- list(document=s, abstract=abstract$text[1])
   return(results)
 }
 
