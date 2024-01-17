@@ -2540,6 +2540,8 @@ observeEvent(input$d_polDetReport,{
     eventExpr = {input$d_summarizationApply},
     valueExpr ={
       values$docExtracted <- textrankDocument(values$dfTag, id=input$document_selection)
+      values$docExtraction <- abstractingDocument(values$docExtracted$s,n="5%",id=input$document_selection)
+      values$docExtraction$sentences <- values$docExtracted$sentences %>% rename(S_id=textrank_id, Ranking=textrank)
     })
 
   output$sliderAbstractData <- renderUI({
@@ -2560,8 +2562,8 @@ observeEvent(input$d_polDetReport,{
     eventExpr ={input$sliderAbstractData},
     valueExpr = {
       req(values$docExtracted)
-      values$docExtraction <- abstractingDocument(s=values$docExtracted,n=input$sliderAbstractData)
-      values$docExtraction$sentences <- values$docExtraction$sentences %>% rename(S_id=textrank_id, Ranking=textrank)
+      values$docExtraction <- abstractingDocument(values$docExtracted$s,n=input$sliderAbstractData,id=input$document_selection)
+      values$docExtraction$sentences <- values$docExtracted$sentences %>% rename(S_id=textrank_id, Ranking=textrank)
     }
   )
 
@@ -2579,6 +2581,7 @@ observeEvent(input$d_polDetReport,{
 
   output$documentData <- renderDT(server=FALSE,{
     docExtraction()
+
     DTformat(values$docExtraction$document, nrow=3, size='100%', title=paste0("Doc_id: ",input$document_selection), left=2)
   })
 
@@ -2696,6 +2699,44 @@ observeEvent(input$d_polDetReport,{
   ## SETTINGS ----
 
   ## UTILITY ----
+
+  observeEvent(input$d_summarizationView, {
+    showModal(showDocumentSummarizationModal(session))
+  })
+
+  showDocumentSummarizationModal <- function(session) {
+    ns <- session$ns
+    modalDialog(
+      h3(strong(("Document corpus"))),
+      br(),
+      uiOutput("showDocumentSummarization"),
+      size = "l",
+      easyClose = TRUE,
+      # footer = tagList(
+      #   actionButton(label="Close", inputId = "closeShowDocument", style="color: #ffff;",
+      #                icon = icon("remove", lib = "glyphicon"))
+      # ),
+    )
+  }
+
+  output$showDocumentSummarization <- renderUI({
+    #if (input$sidebarmenu %in% c("import_tx","split_tx", "extInfo")){
+    txt1 <- (paste0("Document ID: ",input$document_selection))
+    doc <- values$dfTag %>% filter(doc_id==input$document_selection) %>%
+      distinct(paragraph_id,sentence_id, sentence) %>%
+      group_by(paragraph_id) %>%
+      summarize(paragraph=paste0(sentence,collapse=" ")) %>%
+      ungroup()
+    txt2 <- paste(doc$paragraph,collapse="<br><br>")
+    text <- paste0(txt1,"<br><br>",txt2)
+
+    tagList(
+      div(
+        h4(HTML(text)),
+        style="text-align:left")
+    )
+  })
+
   ## table click button ----
   observeEvent(input$button_id, {
     showModal(showDocumentModal(session))
@@ -2723,6 +2764,28 @@ observeEvent(input$d_polDetReport,{
   output$showDocument <- renderUI({
     if (input$sidebarmenu %in% c("import_tx","split_tx", "extInfo")){
       text <- values$txt %>% filter(doc_id==input$button_id)
+      text <- gsub("\n\n","<br><br>",text$text)
+    } else{
+      txt1 <- (paste0("Document ID: ",input$button_id))
+      doc <- values$dfTag %>% filter(doc_id==input$button_id) %>%
+        distinct(paragraph_id,sentence_id, sentence) %>%
+        group_by(paragraph_id) %>%
+        summarize(paragraph=paste0(sentence,collapse=" ")) %>%
+        ungroup()
+      txt2 <- paste(doc$paragraph,collapse="<br><br>")
+      text <- paste0(txt1,"<br><br>",txt2)
+    }
+
+    tagList(
+      div(
+        h4(HTML(text)),
+        style="text-align:left")
+    )
+  })
+
+  output$showDocumentInOption <- renderUI({
+    if (input$sidebarmenu %in% c("import_tx","split_tx", "extInfo")){
+      text <- values$txt %>% filter(doc_id==values$button_id)
       text <- gsub("\n\n","<br><br>",text$text)
     } else{
       txt1 <- (paste0("Document ID: ",input$button_id))

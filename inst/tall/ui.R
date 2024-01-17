@@ -21,6 +21,13 @@ run_bttn <- list(
   style ="display:block; height: 37px; width: 37px; border-radius: 50%; border: 3px; margin-top: 15px",
   icon = icon(name ="play", lib="glyphicon")
 )
+
+view_bttn <- list(
+  label = NULL,
+  style ="display:block; height: 37px; width: 37px; border-radius: 50%; border: 3px; margin-top: 15px",
+  icon = icon("search", lib="glyphicon")
+)
+
 export_bttn <- list(
   label=NULL,
   style ="display:block; height: 37px; width: 37px; border-radius: 50%; border: 3px; margin-top: 15px",
@@ -79,6 +86,7 @@ body <- dashboardBody(
   tags$style(".glyphicon-refresh {color:#ffffff; font-size: 15px; align: center;}"),
   tags$style(".glyphicon-download-alt {color:#ffffff; font-size: 18px; align: center; margin-left: -3.5px}"),
   tags$style(".glyphicon-play {color:#ffffff; font-size: 18px; align: center;margin-left: -0.5px}"),
+  tags$style(".glyphicon-search {color:#ffffff; font-size: 18px; align: center;margin-left: -0.5px}"),
   tags$style(".glyphicon-repeat {color:#ffffff; font-size: 18px; align: center;margin-left: -3px; padding-left: -15px}"),
   tags$style(".glyphicon-plus {color:#ffffff; font-size: 18px;align: center; margin-left: -2px}"),
   tags$style(".glyphicon-cog {color:#4F794290; font-size: 21px; margin-top: 2.3px; margin-left: -3px}"),
@@ -2232,7 +2240,7 @@ body <- dashboardBody(
                            hr(),
                            div(
                            fluidRow(
-                             column(6,
+                             column(4,
                                     div(align="center",
                                         title = t_run,
                                         do.call("actionButton", c(run_bttn, list(
@@ -2240,7 +2248,15 @@ body <- dashboardBody(
                                         ))
                                     )
                              ),
-                             column(6,
+                             column(4,
+                                    div(align="center",
+                                        title = t_run,
+                                        do.call("actionButton", c(view_bttn, list(
+                                          inputId = "d_summarizationView")
+                                        ))
+                                    )
+                             ),
+                             column(4,
                                     div(align="center",
                                         title = t_save,
                                         do.call("downloadButton", c(list(
