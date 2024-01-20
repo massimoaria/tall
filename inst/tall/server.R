@@ -2773,15 +2773,12 @@ observeEvent(input$d_polDetReport,{
       uiOutput("showDocumentSummarization"),
       size = "l",
       easyClose = TRUE,
-      # footer = tagList(
-      #   actionButton(label="Close", inputId = "closeShowDocument", style="color: #ffff;",
-      #                icon = icon("remove", lib = "glyphicon"))
-      # ),
+      footer = tagList(
+        modalButton("Close")),
     )
   }
 
   output$showDocumentSummarization <- renderUI({
-    #if (input$sidebarmenu %in% c("import_tx","split_tx", "extInfo")){
     txt1 <- (paste0("Document ID: ",input$document_selection))
     doc <- values$dfTag %>% filter(doc_id==input$document_selection) %>%
       distinct(paragraph_id,sentence_id, sentence) %>%
