@@ -1261,7 +1261,7 @@ To ensure the functionality of TALL,
       sentences <- values$dfTag %>%
         filter(docSelected) %>%
         filter(lemma %in% word_search) %>%
-        ungroup() %>% select(lemma, token, sentence_hl)
+        ungroup() %>% select(doc_id, lemma, token, sentence_hl) ## add doci_id
     } else if (input$sidebarmenu=="ca"){
       X <- round(values$d$x,6)
       Y <- round(values$d$y,6)
@@ -1272,13 +1272,13 @@ To ensure the functionality of TALL,
       sentences <- values$dfTag %>%
         filter(docSelected) %>%
         filter(token %in% word_search) %>%
-        ungroup() %>% select(lemma, token, sentence_hl)
+        ungroup() %>% select(doc_id, lemma, token, sentence_hl)
     } else {
       word_search <- unique(c(word, values$dfTag$token[values$dfTag$lemma==word]))
       sentences <- values$dfTag %>%
         filter(docSelected) %>%
         filter(token %in% word_search) %>%
-        ungroup() %>% select(lemma, token, sentence_hl)
+        ungroup() %>% select(doc_id, lemma, token, sentence_hl)
     }
     # find sentences containing the tokens/lemmas
     DTformat(sentences, size='100%')
@@ -2058,7 +2058,7 @@ observeEvent(input$closePlotModalDoc,{
       sentences <- values$dfTag %>%
         filter(docSelected) %>%
         filter(lemma %in% word_search) %>%
-        ungroup() %>% select(lemma, token, sentence_hl)
+        ungroup() %>% select(doc_id, lemma, token, sentence_hl)
     }
 
     # find sentences containing the tokens/lemmas
@@ -2111,7 +2111,7 @@ observeEvent(input$closePlotModalDoc,{
     sentences <- values$dfTag %>%
       filter(docSelected) %>%
       filter(lemma %in% word_search) %>%
-      ungroup() %>% select(lemma, token, sentence_hl)
+      ungroup() %>% select(doc_id, lemma, token, sentence_hl)
 
     # find sentences containing the tokens/lemmas
     DTformat(sentences, size='100%')
