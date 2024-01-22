@@ -224,6 +224,107 @@ loadExtInfo <- function(file, txt){
 
 ### PRE_PROCESSING ----
 
+### 0. NORMALIZATION ----
+normalizationOptions <- function(){
+  item <- c(
+    ## Web and social corpus
+    "url",        # website or ftp sites
+    "hash",       # hastags
+    "youtube_id", # youtube ids
+    "emoticon",   # emoticons
+    "tag",        # user tags in posts like: @massimoaria
+    "ip_address", # if addresses
+    ## ordinary corpus
+    "email",      # email
+    #"endmark",    # endmark punctuation
+    "extraspaces",# two o more spaces
+    "non_ascii",  # non ascii chars
+    "percent",    # percentage symbols %
+    "number",     # numbers
+    "time2",       # time (time2 pattern)
+    "date",       # date
+    "zip",        # postal code
+    "pages",      # remove pp. and page numbers
+    "citation"    # bibliographic citations
+  )
+  label <- c(
+    ## Web and social corpus
+    "URLs",        # website or ftp sites
+    "Hashtags #",    # hashtags
+    "YouTube IDs", # youtube ids
+    "Emoji",      # emoticons
+    "Tags @",        # user tags in posts like: @massimoaria
+    "IP Addresses", # if addresses
+    ## ordinary corpus
+    "E-mails",      # email
+    #"Endmarks",    # endmark punctuation
+    "Extra spaces",# two o more spaces
+    "Non ASCII chars",  # non ascii chars
+    "Percent symbol %",    # percentage symbols %
+    "Numbers",     # numbers
+    "Time",       # time (time2 pattern)
+    "Dates",       # date
+    "Zip postal codes",        # postal code
+    "Page abbrev.",      # remove pp. and page numbers
+    "Bibliographic Citations"    # bibliographic citations
+  )
+
+  id <- c(1,2,3,4,7,5,6,16,15,14,13,8,9,10,11,12)
+
+  what <- data.frame(label,item,id)
+  return(what)
+}
+
+
+applyNormalization <- function(x,textNormWebList,textNormCorpusList, regex_list){
+  items <- c(textNormWebList,textNormCorpusList)
+  if (length(items)>0){
+    what <- normalizationOptions()
+    what <- what %>%
+      filter(label %in% items) %>%
+      arrange(id)
+
+    for (i in 1:nrow(what)){
+      x <- removeCorpusElements(x,
+                                what = what$item[i],
+                                replaceElement = "",
+                                regex_list = regex_list)
+    }
+    x <- x %>%
+      mutate(text = trimws(text))
+  } else {
+    x <- restoreText(x)
+  }
+  return(x)
+}
+
+removeCorpusElements <- function(x,
+                                 what,
+                                 replaceElement="",
+                                 regex_list=regex_list){
+  if (length(what)!=1){
+    message("Please provide a valid pattern name.")
+    return(NA)
+  }
+
+  if (what == "extraspaces"){
+    x <- x %>%
+      mutate(text = gsub("\\s+"," ",text))
+  } else if (what == "citation"){
+    x$text <- stringi::stri_replace_all_regex(x$text, regex_list[[what]], replaceElement)
+    x$text <- stringi::stri_replace_all_fixed(x$text,paste0("(",replaceElement,")"),"")
+  }
+  else {
+    x$text <- stringi::stri_replace_all_regex(x$text, regex_list[[what]], replaceElement)
+  }
+  return(x)
+}
+
+restoreText <- function(x){
+  x <- x %>%
+    mutate(text = text_original)
+}
+
 ### 1. TOKENIZATION ----
 loadLanguageModel <- function(language, model_version="-ud-2.5", model_repo = "jwijffels/udpipe.models.ud.2.5"){
   switch(Sys.info()[['sysname']],
@@ -507,12 +608,14 @@ freqPlotly <- function(dfPlot,x,y,n=10, xlabel,ylabel, scale=c("identity", "log"
 
   if (isTRUE(topicmodel)){
     fig1 <- plot_ly(data=dfPlot , x = round(dfPlot[[x]], decimal), y = dfPlot[[y]],
+                    source = "A",
                     type = 'bar', orientation = 'h',
                     marker = list(color = paste0(color,"60"),
                                   line = list(color = color, width = 1)),
                     hovertemplate = "<b>Word</b>: <i>%{y}</i> <br><b><i>Value: %{x}</i></b><extra></extra>")
   } else {
     fig1 <- plot_ly(data=dfPlot , x = dfPlot[[x]], y = ~reorder(dfPlot[[y]], dfPlot[[x]]),
+                    source = "A",
                     type = 'bar', orientation = 'h',
                     marker = list(color = paste0(color,"60"),
                                   line = list(color = color, width = 1)),
@@ -2580,6 +2683,7 @@ menuList <- function(menu){
                       menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
                       menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
+                      menuSubItem("Text Normalization", tabName = "textNorm",icon = icon("chevron-right"), selected = TRUE),
                       menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right"), selected = TRUE)
              ),
              menuItem("Settings",tabName = "settings", icon = icon("tasks"))
@@ -2593,6 +2697,7 @@ menuList <- function(menu){
                       menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
                       menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
+                      menuSubItem("Text Normalization", tabName = "textNorm",icon = icon("chevron-right"), selected = TRUE),
                       menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
                       menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right"), selected = TRUE),
                       menuSubItem("Multi-Word Creation", tabName = "multiwordCreat",icon = icon("chevron-right")),
@@ -2609,6 +2714,7 @@ menuList <- function(menu){
                       menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
                       menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
+                      menuSubItem("Text Normalization", tabName = "textNorm",icon = icon("chevron-right"), selected = TRUE),
                       menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
                       menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right")),
                       menuSubItem("Multi-Word Creation", tabName = "multiwordCreat",icon = icon("chevron-right")),
@@ -2935,3 +3041,11 @@ langrepo <- function(){
   return(languages)
 }
 
+## RESET MODAL DIALOG INPUTS
+resetModalButtons <- function(session){
+  session$sendCustomMessage("button_id", 'null')
+  session$sendCustomMessage("click", 'null')
+  session$sendCustomMessage("click-dend", 'null')
+  runjs("Shiny.setInputValue('plotly_click-A', null);")
+  return(session)
+}

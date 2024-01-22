@@ -83,6 +83,23 @@ sidebar <- dashboardSidebar(
 
 body <- dashboardBody(
   customTheme(),
+  ## script to open more times the same modal ####
+  tags$script("
+    Shiny.addCustomMessageHandler('button_id', function(value) {
+    Shiny.setInputValue('button_id', value);
+    });
+  "),
+  tags$script("
+    Shiny.addCustomMessageHandler('click', function(value) {
+    Shiny.setInputValue('click', value);
+    });
+  "),
+  tags$script("
+    Shiny.addCustomMessageHandler('click_dend', function(value) {
+    Shiny.setInputValue('click_dend', value);
+    });
+  "),
+  ###################
   tags$style(".glyphicon-refresh {color:#ffffff; font-size: 15px; align: center;}"),
   tags$style(".glyphicon-download-alt {color:#ffffff; font-size: 18px; align: center; margin-left: -3.5px}"),
   tags$style(".glyphicon-play {color:#ffffff; font-size: 18px; align: center;margin-left: -0.5px}"),
@@ -460,6 +477,73 @@ body <- dashboardBody(
     ),
 
     ### PRE-PROCESSING ----
+
+    ## Text Normalization ----
+    tabItem(tabName = "textNorm",
+            fluidPage(
+              fluidRow(
+                column(12,
+                       h3(strong("Text Normalization"), align = "center"))),
+              br(),
+              br(),
+              fluidRow(
+                column(9,
+                       tabsetPanel(type = "tabs",
+                                   tabPanel("Normalized Text",
+                                            shinycssloaders::withSpinner(DT::DTOutput("textNormData"),
+                                                                         color = getOption("spinner.color", default = "#4F7942"))
+                                   )
+                       )
+                ),
+                column(3,
+                       div(
+                         box(
+                           width = 12,
+                           div(h3(strong(em("Remove: "))), style="margin-top:-57px"),
+                           tags$hr(),
+                           fluidRow(column(12,
+                                           #uiOutput("posTagLists")
+                                           checkboxGroupInput("textNormWebList", label="Web and social corpus",
+                                                              choices = normalizationOptions()$label[1:6],
+                                                              selected = ""
+                                           ),
+                                           br(),
+                                           checkboxGroupInput("textNormCorpusList", label="Ordinary corpus",
+                                                              choices = normalizationOptions()$label[7:16],
+                                                              selected = ""
+                                           )
+                           )),
+                           div(
+                             hr(),
+                             div(
+                               fluidRow(column(6,
+                                               div(
+                                                 align = "center",style="margin-top:-15px",
+                                                 width=12,
+                                                 do.call("actionButton", c(run_bttn, list(
+                                                   inputId = "textNormRun")
+                                                 ))
+                                               )
+                               ),
+                               column(6,
+                                      div(
+                                        title = t_save,
+                                        div(align="center",
+                                            do.call("downloadButton", c(save_bttn, list(
+                                              outputId = "textNormSave")
+
+                                            ))
+                                        )
+                                      )
+                               )
+                               ), style="margin-top:-15px"), style="margin-top:-15px")
+                         ), style="margin-top:40px"
+                       )
+                )
+
+              )
+            )
+    ),
 
     ## Tokenization & PoS Tagging -----
 
@@ -1593,6 +1677,10 @@ body <- dashboardBody(
                                      shinycssloaders::withSpinner(plotlyOutput(outputId = "caPlot", height = "75vh",width ="98.9%"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
+                            tabPanel("Dendrogram",
+                                     shinycssloaders::withSpinner(visNetworkOutput("caDendrogram", width="auto", height = "75vh"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            ),
                             tabPanel("Singular Values",
                                      shinycssloaders::withSpinner(DT::DTOutput("caSingularValueTable"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
@@ -1608,11 +1696,8 @@ body <- dashboardBody(
                             tabPanel("Cosines Squared",
                                      shinycssloaders::withSpinner(DT::DTOutput("caCosineTable"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
-                            ),
-                            tabPanel("Dendrogram",
-                                     shinycssloaders::withSpinner(visNetworkOutput("caDendrogram", width="auto", height = "75vh"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
                             )
+
                 )
               )
             )
@@ -1898,7 +1983,7 @@ body <- dashboardBody(
                            style="text-align: left; text-color: #989898",
                            selectInput(
                              inputId = "groupTm",
-                             label = "Groups",
+                             label = "Topics",
                              choices = c("Docs"="doc_id",
                                          "Sentences"="sentence_id"),
                              selected = "doc_id"
@@ -2008,7 +2093,7 @@ body <- dashboardBody(
                              ),
                              selectInput(
                                inputId = "groupTmEstim",
-                               label = "Groups",
+                               label = "Topics",
                                choices = c("Docs"="doc_id",
                                            "Sentences"="sentence_id"),
                                selected = "doc_id"),

@@ -103,6 +103,7 @@ To ensure the functionality of TALL,
   values$zoom <- 2
   dpi <- 300
   set.seed(5)
+  load("data/regex_list.tall")
 
 
 
@@ -180,7 +181,9 @@ To ensure the functionality of TALL,
                txt <- read_files(file,ext=input$ext, subfolder=FALSE, line_sep=input$line_sep)
                values$menu <- 0
                values$custom_lists <- NULL
-               values$txt <- txt %>% arrange(doc_id)
+               values$txt <- txt %>%
+                 mutate(text_original = text) %>%
+                 arrange(doc_id)
                #values$metadata <- setdiff(names(values$txt), c("text", "doc_id","original_doc_id"))
              }
            },
@@ -221,7 +224,9 @@ To ensure the functionality of TALL,
                       txt <- read_files(files,ext="txt", subfolder=FALSE)
                       values$menu <- 0
                       values$custom_lists <- NULL
-                      values$txt <- txt %>% arrange(doc_id)
+                      values$txt <- txt %>%
+                        mutate(text_original = text) %>%
+                        arrange(doc_id)
                     })
            }
     )
@@ -231,6 +236,7 @@ To ensure the functionality of TALL,
     DATAloading()
     if (values$menu==0){
       DTformat(values$txt %>%
+                 select(-text_original) %>%
                  filter(doc_selected) %>%
                  mutate(text = paste0(substr(text,1,500),"...")) %>%
                  select(doc_id, text, everything()) %>%
@@ -429,6 +435,31 @@ To ensure the functionality of TALL,
   })
 
   ### PRE-PROCESSING ----
+
+  ## Text Normalization ----
+
+  normalizeText <- eventReactive({
+    input$textNormRun
+  },{
+    values$txt <- applyNormalization(values$txt,
+                                     input$textNormWebList,
+                                     input$textNormCorpusList,
+                                     regex_list)
+  })
+
+  output$textNormData <- DT::renderDT({
+    normalizeText()
+    #restoreOriginalText()
+    if (values$menu==0){
+      DTformat(values$txt %>%
+                 select(-text_original) %>%
+                 filter(doc_selected) %>%
+                 mutate(text = paste0(substr(text,1,500),"...")) %>%
+                 select(doc_id, text, everything()) %>%
+                 select(-doc_selected),
+               left=3, nrow=5, filter="none", button=TRUE, delete=FALSE)
+    }
+  })
 
   ## Tokenization & PoS Tagging ----
 
@@ -1209,14 +1240,19 @@ To ensure the functionality of TALL,
       h3(strong(("Words in Context"))),
       DTOutput(ns("wordInContext")),
       size = "l",
-      easyClose = TRUE,
+      easyClose = FALSE,
       footer = tagList(
-        # screenshotButton(label="Save", id = "cocPlotClust",
-        #                  scale = 2,
-        #                  file=paste("TMClusterGraph-", Sys.Date(), ".png", sep="")),
-        modalButton("Close")),
+        actionButton(label="Close", inputId = "closePlotModalTerm", style="color: #ffff;",
+                     icon = icon("remove", lib = "glyphicon"))
+      ),
     )
   }
+
+  observeEvent(input$closePlotModalTerm,{
+    removeModal(session = getDefaultReactiveDomain())
+    resetModalButtons(session = getDefaultReactiveDomain())
+    #runjs("Shiny.setInputValue('plotly_click-A', null);")
+  })
 
   output$wordInContext <- renderDT(server=FALSE,{
     values$d <- event_data("plotly_click")
@@ -1226,7 +1262,7 @@ To ensure the functionality of TALL,
       sentences <- values$dfTag %>%
         filter(docSelected) %>%
         filter(lemma %in% word_search) %>%
-        ungroup() %>% select(lemma, token, sentence_hl)
+        ungroup() %>% select(doc_id, lemma, token, sentence_hl) ## add doci_id
     } else if (input$sidebarmenu=="ca"){
       X <- round(values$d$x,6)
       Y <- round(values$d$y,6)
@@ -1237,16 +1273,16 @@ To ensure the functionality of TALL,
       sentences <- values$dfTag %>%
         filter(docSelected) %>%
         filter(token %in% word_search) %>%
-        ungroup() %>% select(lemma, token, sentence_hl)
+        ungroup() %>% select(doc_id, lemma, token, sentence_hl)
     } else {
       word_search <- unique(c(word, values$dfTag$token[values$dfTag$lemma==word]))
       sentences <- values$dfTag %>%
         filter(docSelected) %>%
         filter(token %in% word_search) %>%
-        ungroup() %>% select(lemma, token, sentence_hl)
+        ungroup() %>% select(doc_id, lemma, token, sentence_hl)
     }
     # find sentences containing the tokens/lemmas
-    DTformat(sentences, size='100%')
+    DTformat(sentences, size='100%', button = TRUE)
   }, escape=FALSE)
 
 
@@ -1257,15 +1293,23 @@ To ensure the functionality of TALL,
       #h3(strong(("Docs in Context"))),
       DTOutput(ns("docInContext")),
       size = "l",
-      easyClose = TRUE,
+      easyClose = FALSE,
       footer = tagList(
         actionButton(inputId="tmTopSentences",
                      label = strong("Relevant Sentences"),
                      icon = icon(name="text-background",lib = "glyphicon"),
                      style = "border-radius: 20px; border-width: 1px; font-size: 16px; text-align: center; color: #ffff; padding-left: 20px; padding-right: 20px"),
-        modalButton("Close")),
+        actionButton(label="Close", inputId = "closePlotModalDoc", style="color: #ffff;",
+                     icon = icon("remove", lib = "glyphicon"))),
     )
   }
+
+
+observeEvent(input$closePlotModalDoc,{
+  removeModal(session = getDefaultReactiveDomain())
+  #runjs("Shiny.setInputValue('plotly_click-A', null);")
+  resetModalButtons(session = getDefaultReactiveDomain())
+})
 
   plotModalDocHigh <- function(session) {
     ns <- session$ns
@@ -1273,7 +1317,7 @@ To ensure the functionality of TALL,
       h3(strong(("Relevant sentences by TextRank"))),
       DTOutput(ns("docInContextHigh")),
       size = "l",
-      easyClose = TRUE,
+      easyClose = FALSE,
       footer = tagList(
         modalButton("Close")),
     )
@@ -1284,8 +1328,9 @@ To ensure the functionality of TALL,
   })
 
   output$docInContext <- renderDT(server=FALSE,{
-    values$d <- event_data("plotly_click")
+    if (!is.null(event_data("plotly_click"))) values$d <- event_data("plotly_click")
     doc <- values$d$y
+    print(doc)
     paragraphs <- values$dfTag %>% filter(doc_id==doc) %>%
       distinct(paragraph_id,sentence_id, sentence) %>%
       group_by(paragraph_id) %>%
@@ -1688,13 +1733,13 @@ To ensure the functionality of TALL,
       values$wordInContext <- values$dfTag %>%
         filter(docSelected) %>%
         filter(tolower(lemma) %in% word_search | tolower(token) %in% word_search) %>%
-        ungroup() %>% select(lemma, token, sentence_hl) %>%
+        ungroup() %>% select(doc_id, lemma, token, sentence_hl) %>%
         rename(Lemma=lemma, Token=token, Sentence=sentence_hl)
     })
 
   output$wordsContData <- renderDT(server=FALSE,{
     wordsInContextMenu()
-    DTformat(values$wordInContext, size='100%')
+    DTformat(values$wordInContext, size='100%', button=TRUE)
   }, escape=FALSE)
 
 
@@ -1961,20 +2006,14 @@ To ensure the functionality of TALL,
     contentType = "png"
   )
 
-  # output$textLog <- renderUI({
-  #   k=dim(values$M)[1]
-  #   if (k==1){k=0}
-  #   log=paste("Number of Documents ",k)
-  #   textInput("textLog", "Conversion results",
-  #             value=log)
-  # })
-
 
   ## Click on visNetwork: WORDS IN CONTEXT ----
   observeEvent(ignoreNULL = TRUE,
                eventExpr={input$click},
                handlerExpr = {
+                 if (input$click!="null"){
                  showModal(plotModalTermNet(session))
+                 }
                })
 
   plotModalTermNet <- function(session) {
@@ -1983,14 +2022,22 @@ To ensure the functionality of TALL,
       h3(strong(("Words in Context"))),
       DTOutput(ns("wordInContextNet")),
       size = "l",
-      easyClose = TRUE,
+      easyClose = FALSE,
       footer = tagList(
-        modalButton("Close")),
+        actionButton(label="Close", inputId = "closePlotModalTermNet", style="color: #ffff;",
+                     icon = icon("remove", lib = "glyphicon"))
+      ),
     )
   }
 
+  observeEvent(input$closePlotModalTermNet,{
+    removeModal(session = getDefaultReactiveDomain())
+    #session$sendCustomMessage("click", 'null') # reset input value to plot modal more times
+    resetModalButtons(session = getDefaultReactiveDomain())
+  })
+
   output$wordInContextNet <- renderDT(server=FALSE,{
-    id <- input$click
+    if (!is.null(input$click)) id <- input$click
     if (input$sidebarmenu=="w_networkGrako") {
       word_search<- values$grako$nodes$title[values$grako$nodes$id==id]
 
@@ -2000,18 +2047,18 @@ To ensure the functionality of TALL,
 
       sentences <- values$grako$multiwords %>%
         filter(grako %in% selectedEdges$grako) %>%
-        select(sentence_hl) %>%
+        select(doc_id, sentence_hl) %>%
         distinct()
     } else {
       word_search<- values$network$nodes$label[values$network$nodes$id==id]
       sentences <- values$dfTag %>%
         filter(docSelected) %>%
         filter(lemma %in% word_search) %>%
-        ungroup() %>% select(lemma, token, sentence_hl)
+        ungroup() %>% select(doc_id, lemma, token, sentence_hl)
     }
 
     # find sentences containing the tokens/lemmas
-    DTformat(sentences, size='100%')
+    DTformat(sentences, size='100%', button = TRUE)
   }, escape=FALSE)
 
 
@@ -2019,7 +2066,9 @@ To ensure the functionality of TALL,
   observeEvent(ignoreNULL = TRUE,
                eventExpr={input$click_dend},
                handlerExpr = {
+                 if (input$click_dend!="null"){
                  showModal(plotModalTermDend(session))
+                 }
                })
 
   plotModalTermDend <- function(session) {
@@ -2029,12 +2078,21 @@ To ensure the functionality of TALL,
       DTOutput(ns("wordInContextDend")),
       size = "l",
       easyClose = TRUE,
-      footer = tagList(modalButton("Close")),
+      footer = tagList(
+        actionButton(label="Close", inputId = "closeplotModalTermDend", style="color: #ffff;",
+                     icon = icon("remove", lib = "glyphicon"))
+      ),
     )
   }
 
+  observeEvent(input$closeplotModalTermDend,{
+    removeModal(session = getDefaultReactiveDomain())
+    #session$sendCustomMessage("click_dend",'null') # reset input value to plot modal more times
+    resetModalButtons(session = getDefaultReactiveDomain())
+  })
+
   output$wordInContextDend <- renderDT(server=FALSE,{
-    id <- unlist(input$click_dend)
+    if (!is.null(input$click_dend)) id <- unlist(input$click_dend)
     switch(input$sidebarmenu,
            "w_clustering"={
              words_id <- c(id, unlist(values$WordDendrogram$x$nodes$neib[values$WordDendrogram$x$nodes$id==id]))
@@ -2050,10 +2108,10 @@ To ensure the functionality of TALL,
     sentences <- values$dfTag %>%
       filter(docSelected) %>%
       filter(lemma %in% word_search) %>%
-      ungroup() %>% select(lemma, token, sentence_hl)
+      ungroup() %>% select(doc_id, lemma, token, sentence_hl)
 
     # find sentences containing the tokens/lemmas
-    DTformat(sentences, size='100%')
+    DTformat(sentences, size='100%', button=TRUE)
   }, escape=FALSE)
 
   ## Report
@@ -2712,15 +2770,12 @@ observeEvent(input$d_polDetReport,{
       uiOutput("showDocumentSummarization"),
       size = "l",
       easyClose = TRUE,
-      # footer = tagList(
-      #   actionButton(label="Close", inputId = "closeShowDocument", style="color: #ffff;",
-      #                icon = icon("remove", lib = "glyphicon"))
-      # ),
+      footer = tagList(
+        modalButton("Close")),
     )
   }
 
   output$showDocumentSummarization <- renderUI({
-    #if (input$sidebarmenu %in% c("import_tx","split_tx", "extInfo")){
     txt1 <- (paste0("Document ID: ",input$document_selection))
     doc <- values$dfTag %>% filter(doc_id==input$document_selection) %>%
       distinct(paragraph_id,sentence_id, sentence) %>%
@@ -2739,7 +2794,9 @@ observeEvent(input$d_polDetReport,{
 
   ## table click button ----
   observeEvent(input$button_id, {
-    showModal(showDocumentModal(session))
+    if (input$button_id!="null"){
+      showModal(showDocumentModal(session))
+    }
   })
 
   showDocumentModal <- function(session) {
@@ -2749,7 +2806,7 @@ observeEvent(input$d_polDetReport,{
       br(),
       uiOutput("showDocument"),
       size = "l",
-      easyClose = TRUE,
+      easyClose = FALSE,
       footer = tagList(
         actionButton(label="Close", inputId = "closeShowDocument", style="color: #ffff;",
                      icon = icon("remove", lib = "glyphicon"))
@@ -2759,10 +2816,12 @@ observeEvent(input$d_polDetReport,{
 
   observeEvent(input$closeShowDocument,{
     removeModal(session = getDefaultReactiveDomain())
+    #session$sendCustomMessage("button_id", 'null') # reset input value to plot modal more times
+    resetModalButtons(session = getDefaultReactiveDomain())
   })
 
   output$showDocument <- renderUI({
-    if (input$sidebarmenu %in% c("import_tx","split_tx", "extInfo")){
+    if (input$sidebarmenu %in% c("import_tx","split_tx", "extInfo", "textNorm")){
       text <- values$txt %>% filter(doc_id==input$button_id)
       text <- gsub("\n\n","<br><br>",text$text)
     } else{
