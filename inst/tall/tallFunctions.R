@@ -3041,3 +3041,11 @@ langrepo <- function(){
   return(languages)
 }
 
+## RESET MODAL DIALOG INPUTS
+resetModalButtons <- function(session){
+  session$sendCustomMessage("button_id", 'null')
+  session$sendCustomMessage("click", 'null')
+  session$sendCustomMessage("click-dend", 'null')
+  runjs("Shiny.setInputValue('plotly_click-A', null);")
+  return(session)
+}

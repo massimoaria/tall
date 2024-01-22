@@ -1983,7 +1983,7 @@ body <- dashboardBody(
                            style="text-align: left; text-color: #989898",
                            selectInput(
                              inputId = "groupTm",
-                             label = "Groups",
+                             label = "Topics",
                              choices = c("Docs"="doc_id",
                                          "Sentences"="sentence_id"),
                              selected = "doc_id"
@@ -2093,7 +2093,7 @@ body <- dashboardBody(
                              ),
                              selectInput(
                                inputId = "groupTmEstim",
-                               label = "Groups",
+                               label = "Topics",
                                choices = c("Docs"="doc_id",
                                            "Sentences"="sentence_id"),
                                selected = "doc_id"),

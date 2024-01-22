@@ -1250,7 +1250,8 @@ To ensure the functionality of TALL,
 
   observeEvent(input$closePlotModalTerm,{
     removeModal(session = getDefaultReactiveDomain())
-    runjs("Shiny.setInputValue('plotly_click-A', null);")
+    resetModalButtons(session = getDefaultReactiveDomain())
+    #runjs("Shiny.setInputValue('plotly_click-A', null);")
   })
 
   output$wordInContext <- renderDT(server=FALSE,{
@@ -1281,7 +1282,7 @@ To ensure the functionality of TALL,
         ungroup() %>% select(doc_id, lemma, token, sentence_hl)
     }
     # find sentences containing the tokens/lemmas
-    DTformat(sentences, size='100%')
+    DTformat(sentences, size='100%', button = TRUE)
   }, escape=FALSE)
 
 
@@ -1306,7 +1307,8 @@ To ensure the functionality of TALL,
 
 observeEvent(input$closePlotModalDoc,{
   removeModal(session = getDefaultReactiveDomain())
-  runjs("Shiny.setInputValue('plotly_click-A', null);")
+  #runjs("Shiny.setInputValue('plotly_click-A', null);")
+  resetModalButtons(session = getDefaultReactiveDomain())
 })
 
   plotModalDocHigh <- function(session) {
@@ -1326,8 +1328,9 @@ observeEvent(input$closePlotModalDoc,{
   })
 
   output$docInContext <- renderDT(server=FALSE,{
-    values$d <- event_data("plotly_click")
+    if (!is.null(event_data("plotly_click"))) values$d <- event_data("plotly_click")
     doc <- values$d$y
+    print(doc)
     paragraphs <- values$dfTag %>% filter(doc_id==doc) %>%
       distinct(paragraph_id,sentence_id, sentence) %>%
       group_by(paragraph_id) %>%
@@ -1730,13 +1733,13 @@ observeEvent(input$closePlotModalDoc,{
       values$wordInContext <- values$dfTag %>%
         filter(docSelected) %>%
         filter(tolower(lemma) %in% word_search | tolower(token) %in% word_search) %>%
-        ungroup() %>% select(lemma, token, sentence_hl) %>%
+        ungroup() %>% select(doc_id, lemma, token, sentence_hl) %>%
         rename(Lemma=lemma, Token=token, Sentence=sentence_hl)
     })
 
   output$wordsContData <- renderDT(server=FALSE,{
     wordsInContextMenu()
-    DTformat(values$wordInContext, size='100%')
+    DTformat(values$wordInContext, size='100%', button=TRUE)
   }, escape=FALSE)
 
 
@@ -2003,14 +2006,6 @@ observeEvent(input$closePlotModalDoc,{
     contentType = "png"
   )
 
-  # output$textLog <- renderUI({
-  #   k=dim(values$M)[1]
-  #   if (k==1){k=0}
-  #   log=paste("Number of Documents ",k)
-  #   textInput("textLog", "Conversion results",
-  #             value=log)
-  # })
-
 
   ## Click on visNetwork: WORDS IN CONTEXT ----
   observeEvent(ignoreNULL = TRUE,
@@ -2037,11 +2032,12 @@ observeEvent(input$closePlotModalDoc,{
 
   observeEvent(input$closePlotModalTermNet,{
     removeModal(session = getDefaultReactiveDomain())
-    session$sendCustomMessage("click", 'null') # reset input value to plot modal more times
+    #session$sendCustomMessage("click", 'null') # reset input value to plot modal more times
+    resetModalButtons(session = getDefaultReactiveDomain())
   })
 
   output$wordInContextNet <- renderDT(server=FALSE,{
-    id <- input$click
+    if (!is.null(input$click)) id <- input$click
     if (input$sidebarmenu=="w_networkGrako") {
       word_search<- values$grako$nodes$title[values$grako$nodes$id==id]
 
@@ -2051,7 +2047,7 @@ observeEvent(input$closePlotModalDoc,{
 
       sentences <- values$grako$multiwords %>%
         filter(grako %in% selectedEdges$grako) %>%
-        select(sentence_hl) %>%
+        select(doc_id, sentence_hl) %>%
         distinct()
     } else {
       word_search<- values$network$nodes$label[values$network$nodes$id==id]
@@ -2062,7 +2058,7 @@ observeEvent(input$closePlotModalDoc,{
     }
 
     # find sentences containing the tokens/lemmas
-    DTformat(sentences, size='100%')
+    DTformat(sentences, size='100%', button = TRUE)
   }, escape=FALSE)
 
 
@@ -2091,11 +2087,12 @@ observeEvent(input$closePlotModalDoc,{
 
   observeEvent(input$closeplotModalTermDend,{
     removeModal(session = getDefaultReactiveDomain())
-    session$sendCustomMessage("click_dend",'null') # reset input value to plot modal more times
+    #session$sendCustomMessage("click_dend",'null') # reset input value to plot modal more times
+    resetModalButtons(session = getDefaultReactiveDomain())
   })
 
   output$wordInContextDend <- renderDT(server=FALSE,{
-    id <- unlist(input$click_dend)
+    if (!is.null(input$click_dend)) id <- unlist(input$click_dend)
     switch(input$sidebarmenu,
            "w_clustering"={
              words_id <- c(id, unlist(values$WordDendrogram$x$nodes$neib[values$WordDendrogram$x$nodes$id==id]))
@@ -2114,7 +2111,7 @@ observeEvent(input$closePlotModalDoc,{
       ungroup() %>% select(doc_id, lemma, token, sentence_hl)
 
     # find sentences containing the tokens/lemmas
-    DTformat(sentences, size='100%')
+    DTformat(sentences, size='100%', button=TRUE)
   }, escape=FALSE)
 
   ## Report
@@ -2819,7 +2816,8 @@ observeEvent(input$d_polDetReport,{
 
   observeEvent(input$closeShowDocument,{
     removeModal(session = getDefaultReactiveDomain())
-    session$sendCustomMessage("button_id", 'null') # reset input value to plot modal more times
+    #session$sendCustomMessage("button_id", 'null') # reset input value to plot modal more times
+    resetModalButtons(session = getDefaultReactiveDomain())
   })
 
   output$showDocument <- renderUI({
