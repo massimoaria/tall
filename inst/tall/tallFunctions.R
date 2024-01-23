@@ -1674,6 +1674,14 @@ tmTuning <- function(dfTag, group=c("doc_id", "sentence_id"), term="lemma",
                      metric=c("CaoJuan2009",  "Deveaud2014", "Arun2010", "Griffiths2004"),
                      n=100, top_by=c("freq","tfidf"), minK=2, maxK=20, Kby=1){
 
+  ## check min and max K
+  ClusterRange <- sort(c(minK,maxK))
+  minK <- ClusterRange[1]
+  maxK <- ClusterRange[2]
+  minK <- max(minK,1)
+  maxK <- min(maxK,length(unique(dfTag$doc_id)))
+  ###
+
   x <- dfTag %>% dplyr::filter(POSSelected)
   x$topic_level_id <- unique_identifier(x, fields = group)
 
@@ -1993,6 +2001,15 @@ loadSentimentLanguage <- function(language){
 
 polarity_colors <- function(){
   c("#FF6666", "#FFB266", "#FFFF66", "#66FF66", "#00FF00")
+}
+
+## polarity unit choice ###
+ids <- function(dfTag, type){
+  if (is.null(type)) type="Documents"
+  if (type=="Documents" & "ungroupDoc_id" %in% names(dfTag)){
+    dfTag <- backToOriginalGroups(dfTag)
+  }
+  unique(dfTag$doc_id[dfTag$docSelected])
 }
 
 freqPlotlySentiment <- function(dfPlot,x,y, xlabel,ylabel, scale=c("identity", "log"), decimal=0){
@@ -3049,3 +3066,5 @@ resetModalButtons <- function(session){
   runjs("Shiny.setInputValue('plotly_click-A', null);")
   return(session)
 }
+
+#

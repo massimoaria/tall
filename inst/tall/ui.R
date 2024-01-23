@@ -1593,7 +1593,7 @@ body <- dashboardBody(
                              selectInput(
                                inputId = "groupCA",
                                label = "Co-occurrences in ",
-                               choices = c("Documents", "Paragraphs", "Sentences"),
+                               choices = c("Groups", "Documents", "Paragraphs", "Sentences"),
                                selected = "Documents"
                              ),
                              fluidRow(
@@ -1748,7 +1748,7 @@ body <- dashboardBody(
                              selectInput(
                                inputId = "w_groupNet",
                                label = "Co-occurrences in ",
-                               choices = c("Documents", "Paragraphs", "Sentences"),
+                               choices = c("Groups","Documents", "Paragraphs", "Sentences"),
                                selected = "Sentences"
                              ),
                              materialSwitch(
@@ -1984,7 +1984,8 @@ body <- dashboardBody(
                            selectInput(
                              inputId = "groupTm",
                              label = "Topics",
-                             choices = c("Docs"="doc_id",
+                             choices = c("Groups" = "Groups",
+                                         "Docs"="doc_id",
                                          "Sentences"="sentence_id"),
                              selected = "doc_id"
                            ),
@@ -2094,7 +2095,8 @@ body <- dashboardBody(
                              selectInput(
                                inputId = "groupTmEstim",
                                label = "Topics",
-                               choices = c("Docs"="doc_id",
+                               choices = c("Groups"="Groups",
+                                           "Docs"="doc_id",
                                            "Sentences"="sentence_id"),
                                selected = "doc_id"),
                              fluidRow(
@@ -2225,6 +2227,13 @@ body <- dashboardBody(
                            dropdown(
                              h4(strong("Options: ")),
                              hr(),
+                             selectInput(
+                               inputId = "groupPolarity",
+                               label = "Polarity of",
+                               choices = c("Groups" = "Groups",
+                                           "Docs"="doc_id"),
+                               selected = "doc_id"
+                             ),
                              uiOutput("lexiconD_polarity"),
                              tooltip = tooltipOptions(title = "Options"),
                              width = "220px", icon = icon("cog", lib="glyphicon"),
@@ -2320,6 +2329,7 @@ body <- dashboardBody(
                            div(h3(strong(em("Sentences extraction"))), style="margin-top:-57px"),
                            tags$hr(),
                            fluidRow(column(12,
+                                           uiOutput("optionsUnitSummarization"),
                                            uiOutput("optionsSummarization"))
                            ),
                            hr(),
