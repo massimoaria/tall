@@ -885,7 +885,7 @@ To ensure the functionality of TALL,
                                               "Sent Avg Length in Tokens", "Sent Avg Length in Chars",
                                               "TTR", "Hapax (%)", "Guiraud Index"),
                                 Values=unlist(values$vb))
-    valueBox(value = p("Documents", style = 'font-size:16px;color:white;'),#HTML("<p style='font-size:4'>Documents &nbsp; &nbsp; &nbsp; <i>i</i> </p>"),
+    valueBox(value = p(ifelse(is.null(input$defineGroupsList), "Documents", paste0("Docs grouped by ",input$defineGroupsList)), style = 'font-size:16px;color:white;'),
              subtitle = p(strong(values$vb$nDoc), style = 'font-size:36px;color:white;', align="center"),
              icon = icon("duplicate", lib="glyphicon" ), color = "olive",
              width = NULL)
@@ -893,7 +893,7 @@ To ensure the functionality of TALL,
   })
 
   onclick('clickbox1', showModal(modalDialog(
-    title = "Documents",
+    title = ifelse(is.null(input$defineGroupsList), "Documents", paste0("Docs grouped by ",input$defineGroupsList)),
     h3("Number of Documents"),
     easyClose = TRUE
   )))
@@ -1319,18 +1319,26 @@ observeEvent(input$closePlotModalDoc,{
       size = "l",
       easyClose = FALSE,
       footer = tagList(
-        modalButton("Close")),
+        actionButton(label="Close", inputId = "closeplotModalDocHigh", style="color: #ffff;",
+                     icon = icon("remove", lib = "glyphicon"))
+      ),
     )
   }
+
+  observeEvent(input$closeplotModalDocHigh,{
+    removeModal(session = getDefaultReactiveDomain())
+    resetModalButtons(session = getDefaultReactiveDomain())
+  })
 
   observeEvent(input$tmTopSentences,{
     showModal(plotModalDocHigh(session))
   })
 
   output$docInContext <- renderDT(server=FALSE,{
-    if (!is.null(event_data("plotly_click"))) values$d <- event_data("plotly_click")
+    if (!is.null(event_data("plotly_click"))) {
+      values$d <- event_data("plotly_click")
+    }
     doc <- values$d$y
-    print(doc)
     paragraphs <- values$dfTag %>% filter(doc_id==doc) %>%
       distinct(paragraph_id,sentence_id, sentence) %>%
       group_by(paragraph_id) %>%
@@ -1344,7 +1352,9 @@ observeEvent(input$closePlotModalDoc,{
   })
 
   output$docInContextHigh <- renderDT(server=FALSE,{
-    values$d <- event_data("plotly_click")
+    if (!is.null(event_data("plotly_click"))) {
+      values$d <- event_data("plotly_click")
+    }
     doc <- values$d$y
     DTformat(highlightSentences(values$dfTag, id=doc), nrow=3, size='100%', title=paste0("Doc_id: ",doc))
     #HTML(paste0(paste0("<h3>Doc_id: ",doc,"</h3><hr>"), highlightSentences(values$dfTag, id=doc, n=3)))
@@ -1815,7 +1825,13 @@ observeEvent(input$closePlotModalDoc,{
     ignoreNULL = TRUE,
     eventExpr = {input$caApply},
     valueExpr ={
-      values$CA <- wordCA(values$dfTag%>% filter(docSelected), n=input$nCA, term=input$termCA, group = input$groupCA)
+      ## check to verify if groups exist or not
+      if (input$groupCA == "Documents" & "ungroupDoc_id" %in% names(values$dfTag)){
+        values$CA <- wordCA(backToOriginalGroups(values$dfTag) %>% filter(docSelected), n=input$nCA, term=input$termCA, group = input$groupCA)
+      } else {
+        values$CA <- wordCA(values$dfTag %>% filter(docSelected), n=input$nCA, term=input$termCA, group = input$groupCA)
+      }
+      ##
       values$CA <- caClustering(values$CA, nclusters = input$nClustersCA, nDim=input$nDimsCA)
       values$CAdimY <- as.numeric(input$dimPlotCA)*2
       values$CAdimX <- values$CAdimY-1
@@ -1943,14 +1959,25 @@ observeEvent(input$closePlotModalDoc,{
     eventExpr = {input$w_networkCoocApply},
     valueExpr ={
       switch(input$w_groupNet,
-             Documents={group <- "doc_id"},
-             Paragraphs={group <- c("doc_id", "paragraph_id")},
-             Sentences={group <- c("doc_id", "sentence_id")})
-      values$network <- network(values$dfTag %>% filter(docSelected), term=input$w_term, group=group,
-                                n=input$nMax, minEdges=input$minEdges,
-                                labelsize=input$labelSize, opacity=input$opacity,
-                                interLinks=input$interLinks, normalization=input$normalizationCooc,
-                                remove.isolated=input$removeIsolated)
+             Groups = {group = "doc_id"},
+             Documents = {group <- "doc_id"},
+             Paragraphs = {group <- c("doc_id", "paragraph_id")},
+             Sentences = {group <- c("doc_id", "sentence_id")})
+      ## check to verify if groups exist or not
+      if (input$w_groupNet == "Documents" & "ungroupDoc_id" %in% names(values$dfTag)){
+        values$network <- network(backToOriginalGroups(values$dfTag) %>% filter(docSelected), term=input$w_term, group=group,
+                                  n=input$nMax, minEdges=input$minEdges,
+                                  labelsize=input$labelSize, opacity=input$opacity,
+                                  interLinks=input$interLinks, normalization=input$normalizationCooc,
+                                  remove.isolated=input$removeIsolated)
+      } else {
+        values$network <- network(values$dfTag %>% filter(docSelected), term=input$w_term, group=group,
+                                  n=input$nMax, minEdges=input$minEdges,
+                                  labelsize=input$labelSize, opacity=input$opacity,
+                                  interLinks=input$interLinks, normalization=input$normalizationCooc,
+                                  remove.isolated=input$removeIsolated)
+      }
+      ## end check
 
       values$netVis <- net2vis(nodes=values$network$nodes, edges=values$network$edges)
 
@@ -1973,7 +2000,6 @@ observeEvent(input$closePlotModalDoc,{
                "Jaccard Index"=sJ,
                "Group From"=group_from,
                "Group To"=group_to)
-
 
     }
   )
@@ -2235,8 +2261,19 @@ observeEvent(input$closePlotModalDoc,{
     ignoreNULL = TRUE,
     eventExpr = {input$d_tm_selectApply},
     valueExpr ={
-      values$TMKresult <- tmTuning(values$dfTag %>% filter(docSelected), group=input$groupTm, term=input$termTm,
-                                   metric=input$metric, n=input$nTm, top_by=input$top_by, minK=input$minK, maxK=input$maxK, Kby=input$Kby)
+      switch(input$groupTm,
+             Groups = {groupTm = "doc_id"},
+             {groupTm = input$groupTm})
+      ## check to verify if groups exist or not
+      if (input$groupTm == "doc_id" & "ungroupDoc_id" %in% names(values$dfTag)){
+        values$TMKresult <- tmTuning(backToOriginalGroups(values$dfTag) %>% filter(docSelected), group=groupTm, term=input$termTm,
+                                     metric=input$metric, n=input$nTm, top_by=input$top_by, minK=input$minK, maxK=input$maxK, Kby=input$Kby)
+      } else {
+        values$TMKresult <- tmTuning(values$dfTag %>% filter(docSelected), group=groupTm, term=input$termTm,
+                                     metric=input$metric, n=input$nTm, top_by=input$top_by, minK=input$minK, maxK=input$maxK, Kby=input$Kby)
+      }
+      ## End check ###
+
       values$TMKplot <- tmTuningPlot(values$TMKresult, metric=input$metric)
 
       #d_tm_selectTable
@@ -2300,20 +2337,42 @@ observeEvent(input$closePlotModalDoc,{
     valueExpr ={
       values$TMplotIndex <- 1
       values$TMdocIndex <- 1
-      if (isTRUE(input$tmKauto)){
-        values$TMKresult <- tmTuning(values$dfTag %>% filter(docSelected), group=input$groupTmEstim, term=input$termTmEstim,
-                                     metric="CaoJuan2009", n=input$nTmEstim, top_by=input$top_byEstim, minK=2, maxK=20, Kby=1)
-        K <- values$TMKresult %>% slice_min(CaoJuan2009, n=1)
-        values$tmK <- K$topics
-      } else{
-        values$tmK <- input$KEstim
+
+      switch(input$groupTmEstim,
+             Groups = {groupTmEstim = "doc_id"},
+             {groupTmEstim = input$groupTmEstim})
+
+      ## check to verify if groups exist or not
+      if (input$groupTmEstim == "doc_id" & "ungroupDoc_id" %in% names(values$dfTag)){
+        if (isTRUE(input$tmKauto)){
+          values$TMKresult <- tmTuning(backToOriginalGroups(values$dfTag) %>% filter(docSelected),
+                                       group=groupTmEstim, term=input$termTmEstim,
+                                       metric="CaoJuan2009", n=input$nTmEstim, top_by=input$top_byEstim,
+                                       minK=2, maxK=20, Kby=1)
+          K <- values$TMKresult %>% slice_min(CaoJuan2009, n=1)
+          values$tmK <- K$topics
+        } else{
+          values$tmK <- input$KEstim
+        }
+        values$TMplotList <- split(1:values$tmK, ceiling(seq_along(1:values$tmK)/3))
+        values$TMestim_result <- tmEstimate(backToOriginalGroups(values$dfTag) %>% filter(docSelected),
+                                            K=values$tmK, group=groupTmEstim,
+                                            term=input$termTmEstim, n=input$nTmEstim, top_by=input$top_byEstim)
+      } else {
+        if (isTRUE(input$tmKauto)){
+          values$TMKresult <- tmTuning(values$dfTag %>% filter(docSelected), group=groupTmEstim,
+                                       term=input$termTmEstim, metric="CaoJuan2009", n=input$nTmEstim,
+                                       top_by=input$top_byEstim, minK=2, maxK=20, Kby=1)
+          K <- values$TMKresult %>% slice_min(CaoJuan2009, n=1)
+          values$tmK <- K$topics
+        } else{
+          values$tmK <- input$KEstim
+        }
+        values$TMplotList <- split(1:values$tmK, ceiling(seq_along(1:values$tmK)/3))
+        values$TMestim_result <- tmEstimate(values$dfTag %>% filter(docSelected), K=values$tmK, group=groupTmEstim,
+                                            term=input$termTmEstim, n=input$nTmEstim, top_by=input$top_byEstim)
       }
-      values$TMplotList <- split(1:values$tmK, ceiling(seq_along(1:values$tmK)/3))
-      values$TMestim_result <- tmEstimate(values$dfTag %>% filter(docSelected), K=values$tmK, group=input$groupTmEstim,
-                                          term=input$termTmEstim, n=input$nTmEstim, top_by=input$top_byEstim)
-
-      #values$TMnetwork <- tmNetwork(beta = values$TMestim_result$beta, minEdge = 0.1) ## aggiungere minEdge
-
+      ## End check ###
 
       ### BETA PROBABILITY
       values$beta <- values$TMestim_result$beta
@@ -2479,7 +2538,13 @@ observeEvent(input$closePlotModalDoc,{
         }  else {
           lexiconD_polarity <- input$lexiconD_polarity
         }
-        values$docPolarity <- sentimentAnalysis(values$dfTag %>% filter(docSelected), language = values$language, lexicon_model=lexiconD_polarity)
+
+        ## check to verify if groups exist or not
+        if (input$groupPolarity == "doc_id" & "ungroupDoc_id" %in% names(values$dfTag)){
+          values$docPolarity <- sentimentAnalysis(backToOriginalGroups(values$dfTag) %>% filter(docSelected), language = values$language, lexicon_model=lexiconD_polarity)
+        } else {
+          values$docPolarity <- sentimentAnalysis(values$dfTag %>% filter(docSelected), language = values$language, lexicon_model=lexiconD_polarity)
+        }
         values$docPolPlots <- sentimentWordPlot(values$docPolarity$sent_data, n=10)
       }
 
@@ -2584,13 +2649,24 @@ observeEvent(input$d_polDetReport,{
 
   ## Summarization ----
 
-  output$optionsSummarization <- renderUI({
+output$optionsUnitSummarization <- renderUI({
+  selectInput(
+    inputId = 'unit_selection', label="Summarize ", choices = c("Groups","Documents"),
+    selected = "Documents",
+    multiple=FALSE,
+    width = "100%"
+  )
+})
+
+output$optionsSummarization <- renderUI({
     selectInput(
-      inputId = 'document_selection', label="Select Document", choices = unique(values$dfTag$doc_id[values$dfTag$docSelected]),
-      multiple=FALSE,
-      width = "100%"
-    )
-  })
+      inputId = 'document_selection',
+      label = ifelse(input$unit_selection=="Documents","Select Document","Select Group"),
+      choices = ids(values$dfTag,type=input$unit_selection),
+               multiple=FALSE,
+               width = "100%"
+        )
+})
 
 
   docExtraction <- eventReactive(
