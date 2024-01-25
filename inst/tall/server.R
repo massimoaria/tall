@@ -1116,13 +1116,6 @@ To ensure the functionality of TALL,
   output$wordcloudPlot <- renderWordcloud2({
     wcData()
 
-    # n <- 200 #showing the first 200 lemmas
-    # values$dfWC <- LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected)
-    # wcDfPlot <- freqByPos(values$dfWCdf, term=input$termWC, pos=unique(df$docSelected==TRUE)) %>%
-    #   slice_head(n=n) %>%
-    #   rename(text = term,
-    #          freq = n)
-
     values$wcPlot <- wordcloud2::wordcloud2(values$wcDfPlot,
                                             fontFamily = "Impact", fontWeight = "normal", minSize=0,
                                             minRotation = 0, maxRotation = 0, shuffle = TRUE,

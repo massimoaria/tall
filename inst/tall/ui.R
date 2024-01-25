@@ -25,7 +25,8 @@ run_bttn <- list(
 view_bttn <- list(
   label = NULL,
   style ="display:block; height: 37px; width: 37px; border-radius: 50%; border: 3px; margin-top: 15px",
-  icon = icon("search", lib="glyphicon")
+  icon = fa_i(name = "magnifying-glass", prefer_type="solid")
+  #icon = icon("search", lib="glyphicon")
 )
 
 export_bttn <- list(
@@ -52,21 +53,60 @@ back_bttn <- list(
 
 ## HEADER ----
 
-title_tall <- tags$link(tags$a(href = 'https://www.unina.it/',target="_blank",
-                               #tags$img(src="logo2.png", height = '30',width='30')
-), strong("TALL"))
+title_tall <- tags$link(tags$a(href = 'https://github.com/massimoaria/tall',target="_blank",
+                               tags$img(src="logo_white.jpg", height = '30',width='30')
+), strong(" TALL",style="font-size:17px;"))
+
+donation <- 'https://www.bibliometrix.org/home/index.php/donation'
+#tallWeb <- 'https://github.com/massimoaria/tall'
+k_synth <- 'https://www.k-synth.unina.it'
+github_aria <- 'https://github.com/massimoaria/tall'
 
 header <- shinydashboardPlus::dashboardHeader(title = title_tall,
                                               titleWidth = 250, controlbarIcon = NULL,
                                               tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("dataGroupedBy"))))),
                                               tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("dataFilteredBy"))))),
                                               tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("resetButton"))))),
+                                              dropdownMenu(type = "messages",
+                                                           icon = icon("comment-dollar", lib = "font-awesome"),
+                                                           badgeStatus = NULL,
+                                                           headerText = strong("Donate"),
+                                                           messageItem2(
+                                                             from = "Donation",
+                                                             message = "",
+                                                             href = donation,
+                                                             icon = icon("share-alt", lib = "glyphicon")
+                                                           )
+                                              ),
+                                              dropdownMenu(
+                                                type = "messages",
+                                                icon = fa_i(name="cube"),
+                                                badgeStatus = NULL,
+                                                headerText = strong("Credits"),
+                                                # messageItem2(
+                                                #   from = "Bibliometrix",
+                                                #   message = "",
+                                                #   href = bibliometrixWeb,
+                                                #   icon = fa_i(name = "globe")
+                                                # ),
+                                                messageItem2(
+                                                  from = "K-Synth",
+                                                  message = "",
+                                                  href = k_synth,
+                                                  icon = fa_i(name = "watchman-monitoring")
+                                                ),
+                                                messageItem2(
+                                                  from = "Github",
+                                                  message = "",
+                                                  href = github_aria,
+                                                  icon = fa_i(name = "github")
+                                                )
+                                              ),
                                               tags$li(class = "dropdown",
                                                       tags$style(".main-header .logo {height: 53px}"))
 
+
 )
-
-
 
 ## SIDEBAR ----
 sidebar <- dashboardSidebar(
@@ -101,6 +141,7 @@ body <- dashboardBody(
   "),
   ###################
   tags$style(".glyphicon-refresh {color:#ffffff; font-size: 15px; align: center;}"),
+  tags$style(".fa-magnifying-glass {color:#ffffff; font-size: 15px; align: center;}"),
   tags$style(".glyphicon-download-alt {color:#ffffff; font-size: 18px; align: center; margin-left: -3.5px}"),
   tags$style(".glyphicon-play {color:#ffffff; font-size: 18px; align: center;margin-left: -0.5px}"),
   tags$style(".glyphicon-search {color:#ffffff; font-size: 18px; align: center;margin-left: -0.5px}"),
