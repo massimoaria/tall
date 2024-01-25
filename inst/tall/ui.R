@@ -1057,7 +1057,7 @@ body <- dashboardBody(
                                                   column(9,
                                                          div(
                                                            selectInput("termTfidf",
-                                                                       label = "TD-IDF by:",
+                                                                       label = "TF-IDF by:",
                                                                        choices = c("Tokens"="token",
                                                                                    "Lemmas"="lemma"),
                                                                        selected = "lemma"), style="margin-top:-3px"
@@ -1479,8 +1479,9 @@ body <- dashboardBody(
                            inputId = "wordsContSearch",
                            label = "Search word(s) in text",
                            placeholder = "",
-                           btnSearch = icon("magnifying-glass"),
-                           #btnReset = icon("xmark"),
+                           btnSearch = icon("search"),
+                           btnReset = icon("remove"),
+                           resetValue = "",
                            width = "100%"
                          )
                        ),style="margin-top:40px"
