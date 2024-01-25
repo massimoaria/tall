@@ -532,7 +532,7 @@ noGroupLabels <- function(label){
                    "token_id","token","lemma","upos","xpos","feats","head_token_id","dep_rel",
                    "deps","misc","original_doc_id","ungroupDoc_id","ungroupP_id", "ungroupS_id",
                    "POSSelected","token_hl","start_hl","end_hl","sentence_hl","lemma_original_nomultiwords",
-                   "filename", "upos_original", "folder", "doc_selected", "ngram")
+                   "filename", "upos_original", "folder", "docSelected", "ngram","doc_selected", "noHapax","FrequencyRange","text_original")
   )
 }
 
@@ -735,7 +735,7 @@ tfidf <- function(dfTag, term="lemma", document="doc_id"){
 ### CLUSTERING ----
 clustering <- function(dfTag, n=50, group="doc_id", term="lemma",minEdges=25, normalization="association"){
 
-  x <- dfTag %>% dplyr::filter(POSSelected)
+  x <- dfTag #%>% dplyr::filter(POSSelected)
 
   cooc <- coocMatrix(x, term=term, group=group, n=n, pos=TRUE)
 
@@ -850,13 +850,13 @@ dend2vis <- function(hc, labelsize, nclusters=1, community=TRUE){
 ### CORRESPONDENCE ANALYSIS -----
 
 ## Correspondence Analysis on Words ----
-wordCA <- function(dfTag, n=50,  term="lemma", group=c("Documents")){
+wordCA <- function(x, n=50,  term="lemma", group=c("Documents")){
   switch(group,
          Documents={group <- "doc_id"},
          Paragraphs={group <- c("doc_id", "paragraph_id")},
          Sentences={group <- c("doc_id", "sentence_id")})
 
-  x <- dfTag %>% dplyr::filter(POSSelected)
+  #x <- dfTag %>% dplyr::filter(POSSelected)
 
   if (length(group)>1){
     new_doc_id <- unique_identifier(x, fields = group)
@@ -1244,7 +1244,7 @@ cooc_freq <- function(cooc){
 
 }
 
-network <- function(dfTag, term="lemma", group=c("doc_id", "sentence_id"), n, minEdges, labelsize=4, opacity=0.6,
+network <- function(x, term="lemma", group=c("doc_id", "sentence_id"), n, minEdges, labelsize=4, opacity=0.6,
                     interLinks=FALSE, normalization="none", remove.isolated=FALSE){
 
   # size scaling
@@ -1257,7 +1257,7 @@ network <- function(dfTag, term="lemma", group=c("doc_id", "sentence_id"), n, mi
   shape <- "dot"
   opacity.min <- 0.4
 
-  x <- dfTag %>% dplyr::filter(POSSelected)
+  #x <- dfTag %>% dplyr::filter(POSSelected)
 
   cooc <- coocMatrix(x, term=term, group=group, n=n, pos=FALSE)
 
@@ -1670,7 +1670,7 @@ grako2vis <- function(nodes, edges){
 #### TOPIC MODELING ----
 
 ### model tuning
-tmTuning <- function(dfTag, group=c("doc_id", "sentence_id"), term="lemma",
+tmTuning <- function(x, group=c("doc_id", "sentence_id"), term="lemma",
                      metric=c("CaoJuan2009",  "Deveaud2014", "Arun2010", "Griffiths2004"),
                      n=100, top_by=c("freq","tfidf"), minK=2, maxK=20, Kby=1){
 
@@ -1679,10 +1679,10 @@ tmTuning <- function(dfTag, group=c("doc_id", "sentence_id"), term="lemma",
   minK <- ClusterRange[1]
   maxK <- ClusterRange[2]
   minK <- max(minK,1)
-  maxK <- min(maxK,length(unique(dfTag$doc_id)))
+  maxK <- min(maxK,length(unique(x$doc_id)))
   ###
 
-  x <- dfTag %>% dplyr::filter(POSSelected)
+  #x <- dfTag %>% dplyr::filter(POSSelected)
   x$topic_level_id <- unique_identifier(x, fields = group)
 
   dtf <- document_term_frequencies(x, document = "topic_level_id", term = "lemma")
@@ -1792,9 +1792,9 @@ tmTuningPlot <- function(result, metric){
 
 ### model estimation
 
-tmEstimate <- function(dfTag, K, group=c("doc_id", "sentence_id"), term="lemma", n=100, top_by=c("freq","tfidf")){
+tmEstimate <- function(x, K, group=c("doc_id", "sentence_id"), term="lemma", n=100, top_by=c("freq","tfidf")){
 
-  x <- dfTag %>% dplyr::filter(POSSelected)
+  #x <- dfTag %>% dplyr::filter(POSSelected)
   x$topic_level_id <- unique_identifier(x, fields = group)
 
   dtf <- document_term_frequencies(x, document = "topic_level_id", term = term)
@@ -1833,7 +1833,7 @@ tmEstimate <- function(dfTag, K, group=c("doc_id", "sentence_id"), term="lemma",
     select(word, all_of(variables))
 
   # for every document we have a probability distribution of its contained topics
-  row_label <- unique(dfTag$doc_id)[as.numeric(row.names(tmResult$topics))]
+  row_label <- unique(xg$doc_id)[as.numeric(row.names(tmResult$topics))]
   theta <- tmResult$topics%>%
     as.data.frame() %>%
     mutate(doc=row_label) %>%
@@ -2630,11 +2630,77 @@ colorlist <- function(){
 }
 
 
-## POS selection function ----
-posSel <- function(df, pos){
-  df <- df %>% mutate(POSSelected = ifelse(upos %in% pos, TRUE, FALSE))
-  df <- highlight(df)
+## POS selection functions ----
+# Set TRUE PoS selected ##
+posSel <- function(dfTag, pos){
+
+  dfTag <- dfTag %>% mutate(POSSelected = ifelse(upos %in% pos, TRUE, FALSE))
+  dfTag <- highlight(dfTag)
 }
+
+# remove Hapax and lowwer and higher lemmas
+removeHapaxFreq <- function(dfTag,hapax,posTagFreq){
+
+  posTagFreq <- as.numeric(gsub("%","",posTagFreq))
+
+
+  ## reset noHapax column
+  dfTag <- dfTag %>%
+    mutate(noHapax = TRUE)
+
+  ## Hapax
+  if (is.null(hapax)){
+    H <- dfTag %>%
+      group_by(lemma) %>%
+      count() %>%
+      filter(n==1) %>%
+      select(lemma)
+    H <- unique(H$lemma)
+    dfTag <- dfTag %>%
+      mutate(noHapax = ifelse(lemma %in% H,FALSE,TRUE))
+  }
+
+  ## reset FrequencyRange column
+  dfTag <- dfTag %>%
+    mutate(FrequencyRange = TRUE)
+
+
+  # min and max frequency
+  Freq <- dfTag %>%
+    group_by(doc_id,lemma) %>%
+    count() %>%
+    ungroup() %>%
+    group_by(doc_id) %>%
+    mutate(perc=n/sum(n)*100) %>%
+    ungroup() %>%
+    dplyr::filter(perc<posTagFreq[1]|perc>posTagFreq[2])
+
+  FREQ <- unique(Freq$lemma)
+
+  if (length(FREQ)>0){
+    dfTag <- dfTag %>%
+      mutate(FrequencyRange = ifelse(lemma %in% FREQ,FALSE,TRUE))
+  }
+
+  return(dfTag)
+}
+
+# Select lemmas by PoS Tags, Hapax and Frequency Range #
+LemmaSelection <- function(dfTag){
+  if (!"noHapax" %in% names(dfTag)){
+    dfTag <- dfTag %>%
+      mutate(noHapax = TRUE)
+  }
+  if (!"FrequencyRange" %in% names(dfTag)){
+    dfTag <- dfTag %>%
+      mutate(FrequencyRange = TRUE)
+  }
+
+  dfTag <- dfTag %>%
+    dplyr::filter(POSSelected,noHapax,FrequencyRange)
+  return(dfTag)
+}
+
 
 # ## Highlight function ----
 

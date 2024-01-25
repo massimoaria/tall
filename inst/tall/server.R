@@ -677,16 +677,17 @@ To ensure the functionality of TALL,
   PosFilterData <- eventReactive({
     input$posTagSelectRun
   },{
-    #selected <- (posTagAll(values$dfTag) %>% dplyr::filter(selected==TRUE))$pos
     selected <- (posTagAll(values$dfTag) %>% dplyr::filter(description %in% (input$posTagLists)))$pos
+    values$dfTag <- removeHapaxFreq(values$dfTag,input$posTagHapax,input$posTagFreq)
     values$dfTag <- posSel(values$dfTag, pos=selected)
+    #print(input$posTagHapax)
     values$menu <- 2
   })
 
   output$posTagSelectData <- renderDT({
     PosFilterData()
     if(!"lemma_original_nomultiwords" %in% names(values$dfTag)) values$dfTag <- values$dfTag %>% mutate(lemma_original_nomultiwords=lemma)
-    DTformat(values$dfTag %>% dplyr::filter(POSSelected) %>%
+    DTformat(LemmaSelection(values$dfTag) %>%
                group_by(doc_id,sentence_id) %>%
                mutate(SentenceByPos = paste(lemma_original_nomultiwords, collapse=" ")) %>%
                select(doc_id, sentence_id,sentence,SentenceByPos,token,lemma, upos) %>%
@@ -726,8 +727,7 @@ To ensure the functionality of TALL,
                eventExpr={input$filterList},
                handlerExpr = {
                  if (nchar(input$filterList)>0){
-                   filtervalues <- values$dfTag %>%
-                     filter(POSSelected) %>%
+                   filtervalues <- LemmaSelection(values$dfTag) %>%
                      select(all_of(input$filterList)) %>%
                      distinct()
                    filtervalues <- sort(filtervalues[[1]])
@@ -759,8 +759,8 @@ To ensure the functionality of TALL,
 
   output$filterData <- renderDT({
     filterDATA()
-    DTformat(values$dfTag %>%
-               filter(docSelected & POSSelected), nrow=3, size='100%', title=paste0("Filtered Data by ", input$filterList))
+    DTformat(LemmaSelection(values$dfTag) %>%
+               dplyr::filter(docSelected), nrow=3, size='100%', title=paste0("Filtered Data by ", input$filterList))
   })
 
 
@@ -878,7 +878,7 @@ To ensure the functionality of TALL,
 
   #### box1 ---------------
   output$nDoc <- renderValueBox({
-    values$vb <- valueBoxesIndices(values$dfTag %>% filter(docSelected))
+    values$vb <- valueBoxesIndices(LemmaSelection(values$dfTag) %>% filter(docSelected))
 
     values$VbData <- data.frame(Description=c("Documents", "Tokens", "Dictionary", "Lemmas", "Sentences",
                                               "Docs Avg Length in Chars", "Doc Avg Length in Tokens",
@@ -1101,35 +1101,44 @@ To ensure the functionality of TALL,
 
   ## WORDCLOUD ----
 
-  output$wordcloudPlot <- renderWordcloud2({
-
+  wcData<- eventReactive({
+    input$wcApply
+  },
+  {
     n <- 200 #showing the first 200 lemmas
-    wcDfPlot <- freqByPos(values$dfTag %>% filter(docSelected), term=input$termWC,pos=unique(values$dfTag$upos[values$dfTag$POSSelected==TRUE & values$dfTag$docSelected==TRUE])) %>%
+    dfWC <- LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected)
+    values$wcDfPlot <- freqByPos(dfWC, term=input$termWC, pos=unique(dfWC$upos[dfWC$docSelected==TRUE])) %>%
       slice_head(n=n) %>%
-      #mutate(n=log(n)) %>%
       rename(text = term,
              freq = n)
+    })
 
-    values$wcPlot <- wordcloud2::wordcloud2(wcDfPlot,
+  output$wordcloudPlot <- renderWordcloud2({
+    wcData()
+
+    # n <- 200 #showing the first 200 lemmas
+    # values$dfWC <- LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected)
+    # wcDfPlot <- freqByPos(values$dfWCdf, term=input$termWC, pos=unique(df$docSelected==TRUE)) %>%
+    #   slice_head(n=n) %>%
+    #   rename(text = term,
+    #          freq = n)
+
+    values$wcPlot <- wordcloud2::wordcloud2(values$wcDfPlot,
                                             fontFamily = "Impact", fontWeight = "normal", minSize=0,
                                             minRotation = 0, maxRotation = 0, shuffle = TRUE,
                                             rotateRatio = 0.7, shape = "pentagon",ellipticity = 0.65,
                                             widgetsize = NULL,
                                             figPath = NULL,
-                                            size = ifelse(length(wcDfPlot$text)>100,1,1.3),
+                                            size = ifelse(length(values$wcDfPlot$text)>100,1,1.3),
                                             color = "random-dark", backgroundColor = "transparent")
     values$wcPlot
   })
 
 
   output$wcDfData <- renderDT(server=FALSE,{
-    n=200
-    wcDfTable <- freqByPos(values$dfTag%>% filter(docSelected), term="lemma",pos=unique(values$dfTag$upos[values$dfTag$POSSelected==TRUE & values$dfTag$docSelected==TRUE])) %>%
-      slice_head(n=n) %>%
-      rename(Lemma = term,
-             Freq = n)
+    wcData()
 
-    DTformat(wcDfTable,n=15, left=1, right=2, numeric=2, pagelength=TRUE, dom=TRUE, size='110%', filename="WordCloudData")
+    DTformat(values$wcDfPlot,n=15, left=1, right=2, numeric=2, pagelength=TRUE, dom=TRUE, size='110%', filename="WordCloudData")
 
   })
 
@@ -1156,8 +1165,8 @@ To ensure the functionality of TALL,
   {
     #values$dictFreq <- freqByPos(values$dfTag, term=input$termDict, pos=c("PROPN", "NOUN", "ADJ", "VERB"))
     Term <- input$termDict
-    values$dictFreq <- values$dfTag %>%
-      dplyr::filter(POSSelected & docSelected) %>%
+    values$dictFreq <- LemmaSelection(values$dfTag) %>%
+      dplyr::filter(docSelected) %>%
       mutate(token = ifelse(upos == "MULTIWORD", lemma,token))
 
     if (Term=="lemma"){
@@ -1194,8 +1203,8 @@ To ensure the functionality of TALL,
     input$tfidfApply
   },
   {
-    values$tfidfDATA <- values$dfTag %>%
-      dplyr::filter(POSSelected & docSelected) %>%
+    values$tfidfDATA <- LemmaSelection(values$dfTag) %>%
+      dplyr::filter(docSelected) %>%
       tfidf(term=input$termTfidf)
   })
 
@@ -1209,7 +1218,7 @@ To ensure the functionality of TALL,
                  "TF-IDF" = TFIDF),
              left=1, numeric=2,round=4, size="110%"
     )}
-    else{ DTformat(values$tfidfDATA  %>%
+    else{DTformat(values$tfidfDATA  %>%
                      rename(
                        Token = term,
                        "TF-IDF" = TFIDF),
@@ -1369,7 +1378,7 @@ observeEvent(input$closePlotModalDoc,{
       input$nounApply
     },
     valueExpr = {
-      values$freqNoun <- freqByPos(values$dfTag%>% filter(docSelected), term="lemma", pos="NOUN")
+      values$freqNoun <- freqByPos(values$dfTag %>% filter(docSelected), term="lemma", pos="NOUN")
       values$nounPlotly <- freqPlotly(values$freqNoun,x="n",y="term",n=input$nounN, xlabel="Frequency",ylabel="NOUN", scale="identity")
 
       values$freqNounData <- values$freqNoun %>%
@@ -1760,7 +1769,7 @@ observeEvent(input$closePlotModalDoc,{
     ignoreNULL = TRUE,
     eventExpr = {input$w_clusteringApply},
     valueExpr ={
-      results <- clustering(values$dfTag %>% filter(docSelected), n=input$w_clusteringNMax,
+      results <- clustering(LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected), n=input$w_clusteringNMax,
                             group="doc_id", minEdges=25, term=input$termClustering,
                             normalization=input$w_clusteringSimilarity)
       values$wordCluster <- results$cluster
@@ -1827,9 +1836,9 @@ observeEvent(input$closePlotModalDoc,{
     valueExpr ={
       ## check to verify if groups exist or not
       if (input$groupCA == "Documents" & "ungroupDoc_id" %in% names(values$dfTag)){
-        values$CA <- wordCA(backToOriginalGroups(values$dfTag) %>% filter(docSelected), n=input$nCA, term=input$termCA, group = input$groupCA)
+        values$CA <- wordCA(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected), n=input$nCA, term=input$termCA, group = input$groupCA)
       } else {
-        values$CA <- wordCA(values$dfTag %>% filter(docSelected), n=input$nCA, term=input$termCA, group = input$groupCA)
+        values$CA <- wordCA(LemmaSelection(values$dfTag) %>% filter(docSelected), n=input$nCA, term=input$termCA, group = input$groupCA)
       }
       ##
       values$CA <- caClustering(values$CA, nclusters = input$nClustersCA, nDim=input$nDimsCA)
@@ -1965,13 +1974,13 @@ observeEvent(input$closePlotModalDoc,{
              Sentences = {group <- c("doc_id", "sentence_id")})
       ## check to verify if groups exist or not
       if (input$w_groupNet == "Documents" & "ungroupDoc_id" %in% names(values$dfTag)){
-        values$network <- network(backToOriginalGroups(values$dfTag) %>% filter(docSelected), term=input$w_term, group=group,
+        values$network <- network(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected), term=input$w_term, group=group,
                                   n=input$nMax, minEdges=input$minEdges,
                                   labelsize=input$labelSize, opacity=input$opacity,
                                   interLinks=input$interLinks, normalization=input$normalizationCooc,
                                   remove.isolated=input$removeIsolated)
       } else {
-        values$network <- network(values$dfTag %>% filter(docSelected), term=input$w_term, group=group,
+        values$network <- network(LemmaSelection(values$dfTag) %>% filter(docSelected), term=input$w_term, group=group,
                                   n=input$nMax, minEdges=input$minEdges,
                                   labelsize=input$labelSize, opacity=input$opacity,
                                   interLinks=input$interLinks, normalization=input$normalizationCooc,
@@ -2266,10 +2275,10 @@ observeEvent(input$closePlotModalDoc,{
              {groupTm = input$groupTm})
       ## check to verify if groups exist or not
       if (input$groupTm == "doc_id" & "ungroupDoc_id" %in% names(values$dfTag)){
-        values$TMKresult <- tmTuning(backToOriginalGroups(values$dfTag) %>% filter(docSelected), group=groupTm, term=input$termTm,
+        values$TMKresult <- tmTuning(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected), group=groupTm, term=input$termTm,
                                      metric=input$metric, n=input$nTm, top_by=input$top_by, minK=input$minK, maxK=input$maxK, Kby=input$Kby)
       } else {
-        values$TMKresult <- tmTuning(values$dfTag %>% filter(docSelected), group=groupTm, term=input$termTm,
+        values$TMKresult <- tmTuning(LemmaSelection(values$dfTag) %>% filter(docSelected), group=groupTm, term=input$termTm,
                                      metric=input$metric, n=input$nTm, top_by=input$top_by, minK=input$minK, maxK=input$maxK, Kby=input$Kby)
       }
       ## End check ###
@@ -2345,7 +2354,7 @@ observeEvent(input$closePlotModalDoc,{
       ## check to verify if groups exist or not
       if (input$groupTmEstim == "doc_id" & "ungroupDoc_id" %in% names(values$dfTag)){
         if (isTRUE(input$tmKauto)){
-          values$TMKresult <- tmTuning(backToOriginalGroups(values$dfTag) %>% filter(docSelected),
+          values$TMKresult <- tmTuning(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected),
                                        group=groupTmEstim, term=input$termTmEstim,
                                        metric="CaoJuan2009", n=input$nTmEstim, top_by=input$top_byEstim,
                                        minK=2, maxK=20, Kby=1)
@@ -2355,12 +2364,12 @@ observeEvent(input$closePlotModalDoc,{
           values$tmK <- input$KEstim
         }
         values$TMplotList <- split(1:values$tmK, ceiling(seq_along(1:values$tmK)/3))
-        values$TMestim_result <- tmEstimate(backToOriginalGroups(values$dfTag) %>% filter(docSelected),
+        values$TMestim_result <- tmEstimate(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected),
                                             K=values$tmK, group=groupTmEstim,
                                             term=input$termTmEstim, n=input$nTmEstim, top_by=input$top_byEstim)
       } else {
         if (isTRUE(input$tmKauto)){
-          values$TMKresult <- tmTuning(values$dfTag %>% filter(docSelected), group=groupTmEstim,
+          values$TMKresult <- tmTuning(LemmaSelection(values$dfTag) %>% filter(docSelected), group=groupTmEstim,
                                        term=input$termTmEstim, metric="CaoJuan2009", n=input$nTmEstim,
                                        top_by=input$top_byEstim, minK=2, maxK=20, Kby=1)
           K <- values$TMKresult %>% slice_min(CaoJuan2009, n=1)
@@ -2369,7 +2378,7 @@ observeEvent(input$closePlotModalDoc,{
           values$tmK <- input$KEstim
         }
         values$TMplotList <- split(1:values$tmK, ceiling(seq_along(1:values$tmK)/3))
-        values$TMestim_result <- tmEstimate(values$dfTag %>% filter(docSelected), K=values$tmK, group=groupTmEstim,
+        values$TMestim_result <- tmEstimate(LemmaSelection(values$dfTag) %>% filter(docSelected), K=values$tmK, group=groupTmEstim,
                                             term=input$termTmEstim, n=input$nTmEstim, top_by=input$top_byEstim)
       }
       ## End check ###
@@ -2662,7 +2671,7 @@ output$optionsSummarization <- renderUI({
     selectInput(
       inputId = 'document_selection',
       label = ifelse(input$unit_selection=="Documents","Select Document","Select Group"),
-      choices = ids(values$dfTag,type=input$unit_selection),
+      choices = ids(values$dfTag %>% dplyr::filter(docSelected),type=input$unit_selection),
                multiple=FALSE,
                width = "100%"
         )

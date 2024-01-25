@@ -784,10 +784,28 @@ body <- dashboardBody(
                        div(
                          box(
                            width = 12,
-                           div(h3(strong(em("Select PoS Tag:"))), style="margin-top:-57px"),
+                           div(h3(strong(em("Select:"))), style="margin-top:-57px"),
                            tags$hr(),
                            fluidRow(column(12,
-                                           uiOutput("posTagLists")
+                                           uiOutput("posTagLists"),
+                                           #h3(strong(em("Select Hapax:"))),
+                                           hr(),
+                                           checkboxGroupInput("posTagHapax", label=NULL,
+                                                              choices = c("Hapax"),
+                                                              selected = "Hapax"
+                                           ),
+                                           hr(),
+                                           h5("Term Frequency"),
+                                           sliderTextInput(
+                                             inputId = "posTagFreq",
+                                             label = NULL,
+                                             choices = paste0(seq(0,100,by=1),"%"),
+                                             selected = c("0%", "100%"),
+                                             from_min = "0%",
+                                             from_max = "20%",
+                                             to_min = "80%",
+                                             to_max = "100%"
+                                           )
                            )),
                            div(
                            hr(),
@@ -959,7 +977,7 @@ body <- dashboardBody(
                                               box(
                                                 width = 12,
                                                 fluidRow(
-                                                  column(9,
+                                                  column(12,
                                                          div(
                                                            selectInput("termWC",
                                                                        label = "WordCloud by:",
@@ -967,8 +985,18 @@ body <- dashboardBody(
                                                                                    "Lemmas"="lemma"),
                                                                        selected = "token"), style="margin-top:-3px"
                                                          )
+                                                  )),
+                                                fluidRow(
+                                                  column(6,
+                                                         div(
+                                                           align = "center",style="margin-top:15px",
+                                                           width=12,
+                                                           do.call("actionButton", c(run_bttn, list(
+                                                             inputId = "wcApply")
+                                                           ))
+                                                         )
                                                   ),
-                                                  column(3,
+                                                  column(6,
                                                          div(
                                                            align = "center",style="margin-top:15px",
                                                            width=12,
