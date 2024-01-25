@@ -1833,7 +1833,7 @@ tmEstimate <- function(x, K, group=c("doc_id", "sentence_id"), term="lemma", n=1
     select(word, all_of(variables))
 
   # for every document we have a probability distribution of its contained topics
-  row_label <- unique(xg$doc_id)[as.numeric(row.names(tmResult$topics))]
+  row_label <- unique(x$doc_id)[as.numeric(row.names(tmResult$topics))]
   theta <- tmResult$topics%>%
     as.data.frame() %>%
     mutate(doc=row_label) %>%

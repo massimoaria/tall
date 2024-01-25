@@ -20,6 +20,7 @@ libraries <- function(){
   if (!suppressPackageStartupMessages(require(textrank))){install.packages("textrank"); suppressPackageStartupMessages(require(textrank))}
   if (!suppressPackageStartupMessages(require(pdftools))){install.packages("pdftools"); suppressPackageStartupMessages(require(pdftools))}
   if (!suppressPackageStartupMessages(require(igraph))){install.packages("igraph"); suppressPackageStartupMessages(require(igraph))}
+  if (!require(fontawesome, quietly=TRUE)){install.packages("fontawesome"); require(fontawesome, quietly=TRUE)}
   ## visNetwork dependencies
   if (!suppressPackageStartupMessages(require(tidygraph))){install.packages("tidygraph"); suppressPackageStartupMessages(require(tidygraph))}
   if (!suppressPackageStartupMessages(require(ggraph))){install.packages("ggraph"); suppressPackageStartupMessages(require(ggraph))}
@@ -48,6 +49,15 @@ libraries <- function(){
   if (Sys.info()[["sysname"]]=="Windows") {
   if (!suppressPackageStartupMessages(require(doParallel))){install.packages("doParallel"); suppressPackageStartupMessages(require(doParallel))}}
 
+}
+
+messageItem2 <- function (from, message, icon = shiny::icon("user"), time = NULL,
+                          href = NULL, inputId = NULL){
+  if (is.null(href))
+    href <- "#"
+  shiny::tags$li(shiny::a(id = inputId, class = if (!is.null(inputId))
+    "action-button", href = href, target = "_blank", icon, shiny::h4(from, if (!is.null(time))
+      shiny::tags$small(shiny::icon("clock-o"), time)), shiny::p(message)))
 }
 
 # Custom Theme ----
