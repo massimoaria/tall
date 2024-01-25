@@ -358,7 +358,8 @@ To ensure the functionality of TALL,
 
   splitDocFunc <- eventReactive(input$splitTextRun,{
     #values$txt_original <- values$txt
-    values$txt <- splitDoc(values$txt, word=input$txSplitWord, txSplitBy=input$txSplitBy)
+    values$txt <- splitDoc(values$txt, word=input$txSplitWord, txSplitBy=input$txSplitBy) %>%
+      mutate(text_original = text)
   })
 
   output$splitTextData <- DT::renderDT({
