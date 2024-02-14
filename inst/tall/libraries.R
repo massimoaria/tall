@@ -8,7 +8,7 @@ libraries <- function(){
   if (!suppressPackageStartupMessages(require(shinyWidgets))){install.packages("shinyWidgets"); suppressPackageStartupMessages(require(shinyWidgets))}
   if (!suppressPackageStartupMessages(require(shinycssloaders))){install.packages("shinycssloaders"); suppressPackageStartupMessages(require(shinycssloaders))}
   if (!suppressPackageStartupMessages(require(shinyjs))){install.packages("shinyjs"); suppressPackageStartupMessages(require(shinyjs))}
-  if (!suppressPackageStartupMessages(require(tidyverse))){install.packages("dplyr"); suppressPackageStartupMessages(require(tidyverse))}
+  if (!suppressPackageStartupMessages(require(tidyverse))){install.packages("tidyverse"); suppressPackageStartupMessages(require(tidyverse))}
   if (!suppressPackageStartupMessages(require(DT))){install.packages("DT"); suppressPackageStartupMessages(require(DT))}
   if (!suppressPackageStartupMessages(require(plotly))){install.packages("plotly"); suppressPackageStartupMessages(require(plotly))}
   if (!suppressPackageStartupMessages(require(openxlsx))){install.packages("openxlsx"); suppressPackageStartupMessages(require(openxlsx))}
