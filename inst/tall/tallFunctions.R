@@ -528,7 +528,7 @@ posTagAll <- function(df){
 
 ### GROUP MENU FUNCTIONS -----
 noGroupLabels <- function(label){
-  setdiff(label, c("doc_id","paragraph_id","sentence_id","sentence","start","end","term_id",
+  setdiff(label, c("paragraph_id","sentence_id","sentence","start","end","term_id",
                    "token_id","token","lemma","upos","xpos","feats","head_token_id","dep_rel",
                    "deps","misc","original_doc_id","ungroupDoc_id","ungroupP_id", "ungroupS_id",
                    "POSSelected","token_hl","start_hl","end_hl","sentence_hl","lemma_original_nomultiwords",
@@ -2841,6 +2841,11 @@ menuList <- function(menu){
 # DATA TABLE FORMAT ----
 DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, right=NULL, numeric=NULL, dom=TRUE, size='85%', filter="top",
                      columnShort=NULL, columnSmall=NULL, round=2, title="", button=FALSE, delete=FALSE){
+
+  if ("text" %in% names(df)){
+    df <- df %>%
+      mutate(text = gsub("<|>","",text))
+  }
 
   if (length(columnShort)>0){
     columnDefs = list(list(
