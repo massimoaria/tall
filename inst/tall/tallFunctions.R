@@ -126,8 +126,10 @@ pdf2txt <- function(file){
 ### download sample data
 loadSampleCollection <- function(sampleName){
   switch(Sys.info()[['sysname']],
-         Windows= {home <- Sys.getenv('R_USER')},
-         Linux  = {home <- Sys.getenv('HOME')},
+         Windows= {
+           home <- Sys.getenv('R_USER')},
+         Linux  = {
+           home <- Sys.getenv('HOME')},
          Darwin = {home <- Sys.getenv('HOME')})
 
   # setting up the main directory
@@ -158,7 +160,12 @@ loadSampleCollection <- function(sampleName){
 
 
   if (is.na(file_lang)){
-    download.file(url = url, destfile = destfile)
+    switch(Sys.info()[['sysname']],
+           Windows= {
+             download.file(url = url, destfile = destfile, mode = "wb")},
+           {
+             download.file(url = url, destfile = destfile)
+           })
   }
 
   return(file)
