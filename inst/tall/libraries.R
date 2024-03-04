@@ -20,6 +20,7 @@ libraries <- function(){
   if (!suppressPackageStartupMessages(require(textrank))){install.packages("textrank"); suppressPackageStartupMessages(require(textrank))}
   if (!suppressPackageStartupMessages(require(pdftools))){install.packages("pdftools"); suppressPackageStartupMessages(require(pdftools))}
   if (!suppressPackageStartupMessages(require(igraph))){install.packages("igraph"); suppressPackageStartupMessages(require(igraph))}
+  if (!suppressPackageStartupMessages(require(strucchange))){install.packages("strucchange"); suppressPackageStartupMessages(require(strucchange))}
   if (!require(fontawesome, quietly=TRUE)){install.packages("fontawesome"); require(fontawesome, quietly=TRUE)}
   ## visNetwork dependencies
   if (!suppressPackageStartupMessages(require(tidygraph))){install.packages("tidygraph"); suppressPackageStartupMessages(require(tidygraph))}
