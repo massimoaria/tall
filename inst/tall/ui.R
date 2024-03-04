@@ -1853,12 +1853,11 @@ body <- dashboardBody(
                                                    min = 1,
                                                    step = 0.5)
                                ),column(6,
-                                        numericInput("minEdges",
-                                                     label = "Top Link (%)",
-                                                     value = 100,
-                                                     min = 0,
-                                                     max = 100,
-                                                     step = 1),
+                                        selectInput("minEdges",
+                                                    label = "Top Link (%)",
+                                                    choices = c("Auto", paste0(seq(10,100,10),"%")),
+                                                    selected = "Auto"
+                                                    ),
                                         numericInput("opacity",
                                                      label = "Opacity",
                                                      value = 0.6,

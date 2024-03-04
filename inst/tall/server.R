@@ -1985,6 +1985,15 @@ observeEvent(input$closePlotModalDoc,{
       values$netVis <- net2vis(nodes=values$network$nodes, edges=values$network$edges)
 
       #network$nodes
+      if (is.na(values$network$nodes)[1]){
+        values$network$nodesData <- data.frame(Word="", Frequency=NA, Group=NA,"Color Group"="")
+        values$network$edgesData <- data.frame(From=NA,To=NA,"Co-occurence"=0,
+                                               "Association Index"=0,
+                                               "Cosine Similarity"=0,
+                                               "Jaccard Index"=0,
+                                               "Group From"=0,
+                                               "Group To"=0)
+      } else {
       values$network$nodesData <- values$network$nodes %>%
         select(label, value, group, color) %>%
         rename(Word=label,
@@ -2003,6 +2012,7 @@ observeEvent(input$closePlotModalDoc,{
                "Jaccard Index"=sJ,
                "Group From"=group_from,
                "Group To"=group_to)
+      }
 
     }
   )
