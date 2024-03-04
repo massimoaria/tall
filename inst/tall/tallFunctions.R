@@ -1326,12 +1326,17 @@ network <- function(x, term="lemma", group=c("doc_id", "sentence_id"), n, minEdg
          jaccard={edges$value <- edges$sJNorm})
 
   if (minEdges == "Auto"){
-    minEdges <- 10*which.min(diff((quantile(edges$value,1-(seq(0,100,10)/100)))))
+    y <- quantile(edges$value,seq(1,0,-0.01))
+    x=1:length(y)
+    res <- strucchange::breakpoints(y~x)
+    tailEdges <- y[res$breakpoints[1]]
+    #minEdges <- 10*which.min(diff((quantile(edges$value,1-(seq(0,100,10)/100)))))
   } else{
     minEdges <- as.numeric(gsub("%","",minEdges))
+    tailEdges <- quantile(edges$value,1-(minEdges/100))
   }
 
-  tailEdges <- quantile(edges$value,1-(minEdges/100))
+  #tailEdges <- quantile(edges$value,1-(minEdges/100))
 
   edges <- edges %>%
     dplyr::filter(value >= tailEdges) %>%
