@@ -23,7 +23,7 @@
 #' @export
 
 tall <- function(host = "127.0.0.1", port = NULL,
-                        launch.browser = TRUE, maxUploadSize=200
+                        launch.browser = TRUE, maxUploadSize=1000
 ){
 
   shinyOptions(maxUploadSize = maxUploadSize)

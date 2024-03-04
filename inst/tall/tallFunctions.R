@@ -874,7 +874,7 @@ wordCA <- function(x, n=50,  term="lemma", group=c("Documents")){
 
   #dtm <- document_term_frequencies(x, term=term)
   mat <- document_term_matrix(dtm, weight="freq")
-  mat <- as.matrix(dtm_remove_lowfreq(mat, maxterms=n))
+  mat <- as.matrix(dtm_remove_lowfreq(mat, minfreq = 1, maxterms=n))
 
   res <- ca::ca(mat)
 
@@ -1209,10 +1209,13 @@ coocMatrix <- function(x, term="lemma", group="doc_id", n=50, pos=TRUE){
     mat <- matrix(mat, 1, length(mat), dimnames = list(x$doc_id[1],names(mat)))
   } else{
     mat <- document_term_matrix(dtm, weight="binary")
-    mat <- dtm_remove_lowfreq(mat, maxterms=n)
+    mat <- dtm_remove_lowfreq(mat, minfreq = 1, maxterms=n)
   }
 
   mat <- Matrix::crossprod(mat)
+  if (sum(mat)-sum(Matrix::diag(mat))==0){
+    return(NA)
+  }
   mat <- as_cooccurrence(mat)
   mat <- mat %>%
     group_by(term1) %>%
@@ -1267,6 +1270,10 @@ network <- function(x, term="lemma", group=c("doc_id", "sentence_id"), n, minEdg
   #x <- dfTag %>% dplyr::filter(POSSelected)
 
   cooc <- coocMatrix(x, term=term, group=group, n=n, pos=FALSE)
+  if (is.na(cooc)[1]){
+    obj <- list(nodes=NA, edges=NA)
+    return(obj)
+  }
 
   nodes <- cooc_freq(cooc) %>%
     mutate(id = row_number(),
@@ -1317,6 +1324,12 @@ network <- function(x, term="lemma", group=c("doc_id", "sentence_id"), n, minEdg
          association={edges$value <- edges$sANorm},
          cosine={edges$value <- edges$sCNorm},
          jaccard={edges$value <- edges$sJNorm})
+
+  if (minEdges == "Auto"){
+    minEdges <- 10*which.min(diff((quantile(edges$value,1-(seq(0,100,10)/100)))))
+  } else{
+    minEdges <- as.numeric(gsub("%","",minEdges))
+  }
 
   tailEdges <- quantile(edges$value,1-(minEdges/100))
 
@@ -1382,6 +1395,16 @@ network <- function(x, term="lemma", group=c("doc_id", "sentence_id"), n, minEdg
 net2vis <- function(nodes,edges){
 
   layout <- "layout_nicely"
+
+  if ((is.na(nodes))[1]){
+    VIS <- visNetwork::visNetwork(nodes = data.frame(id="Empty Network",label="No Connections Among Nodes",
+                                                     size= 0, title="No Connections Among Nodes", font.size=20),
+                                  type="full", smooth=TRUE, physics=FALSE,
+                                  x=1,y=1) %>%
+      visNetwork::visOptions(highlightNearest =list(enabled = T, hover = T, degree=1), nodesIdSelection = F) %>%
+      visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed = 0.2)
+    return(VIS)
+  }
 
 
 
@@ -1698,7 +1721,7 @@ tmTuning <- function(x, group=c("doc_id", "sentence_id"), term="lemma",
 
   switch(top_by,
          freq={
-           dtm <- dtm_remove_lowfreq(dtm, maxterms = n)
+           dtm <- dtm_remove_lowfreq(dtm, minfreq = 1, maxterms = n)
          },
          tfidf={
            dtm <- dtm_remove_tfidf(dtm, top = n)
@@ -1810,7 +1833,7 @@ tmEstimate <- function(x, K, group=c("doc_id", "sentence_id"), term="lemma", n=1
 
   switch(top_by,
          freq={
-           dtm <- dtm_remove_lowfreq(dtm, maxterms = n)
+           dtm <- dtm_remove_lowfreq(dtm, minfreq = 1, maxterms = n)
          },
          tfidf={
            dtm <- dtm_remove_tfidf(dtm, top = n)
@@ -2335,8 +2358,7 @@ highlightSentences <- function(dfTag, id){
 # }
 
 textrankDocument <- function(dfTag, id){
-  df <- dfTag %>%
-    filter(doc_id==id)
+  df <- dfTag[dfTag$doc_id==id,]
 
   #n <- max(3,round(0.05*max(df$sentence_id)))
 
