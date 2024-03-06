@@ -17,7 +17,7 @@ wide range of text analysis techniques without the burden of extensive
 programming knowledge, enabling them to extract valuable insights from
 textual data in a more efficient and accessible manner.
 
-## Installation
+## Setup
 
 You can install the development version of TA*ll* from
 [GitHub](https://github.com/) with:
@@ -25,6 +25,18 @@ You can install the development version of TA*ll* from
 ``` r
 # install.packages("remotes")
 remotes::install_github("massimoaria/tall")
+```
+
+Load the library with:
+
+``` r
+library("tall")
+```
+
+and then start TA*ll* shiny app with:
+
+``` r
+tall()
 ```
 
 ## Introduction
