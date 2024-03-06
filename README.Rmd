@@ -76,6 +76,8 @@ By leveraging the strengths of both R packages and Shiny's interactive web inter
 
 ![](images/edit.png)
 
+![](images/normalize.png)
+
 ![](images/postag.png)
 
 ![](images/customlist.png)

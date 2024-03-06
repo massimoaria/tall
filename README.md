@@ -116,6 +116,8 @@ researchers to conduct thorough the following workflow:
 
 ![](images/edit.png)
 
+![](images/normalize.png)
+
 ![](images/postag.png)
 
 ![](images/customlist.png)
