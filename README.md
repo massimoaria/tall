@@ -33,7 +33,7 @@ Load the library with:
 library("tall")
 ```
 
-and then start Tall shiny app with:
+and then start TA*ll* shiny app with:
 
 ``` r
 tall()
