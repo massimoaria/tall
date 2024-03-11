@@ -28,6 +28,7 @@ libraries <- function(){
   if (!suppressPackageStartupMessages(require(sparkline))){install.packages("sparkline"); suppressPackageStartupMessages(require(sparkline))}
   if (!suppressPackageStartupMessages(require(glue))){install.packages("glue"); suppressPackageStartupMessages(require(glue))}
   if (!suppressPackageStartupMessages(require(readtext))){install.packages("readtext"); suppressPackageStartupMessages(require(readtext))}
+  if (!suppressPackageStartupMessages(require(jsonlite))){install.packages("jsonlite"); suppressPackageStartupMessages(require(jsonlite))}
   if (!suppressPackageStartupMessages(require(chromote))){install.packages("chromote"); suppressPackageStartupMessages(require(chromote))}
 
   ## Currently "webshot2" 0.1.1 generates empty screenshots on windows 10 for graphics created with visnetwork.

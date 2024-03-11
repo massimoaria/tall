@@ -17,6 +17,12 @@ options(shiny.maxRequestSize=maxUploadSize*1024^2)
 
 server <- function(input, output, session){
 
+  # sizingPolicy = htmlwidgets::sizingPolicy(
+  #   #viewer.padding = 0,
+  #   # viewer.suppress = T,
+  #   #browser.padding = 0,
+  #   browser.fill = TRUE)
+
   ## chrome configuration for shinyapps server
 
   if (identical(Sys.getenv("R_CONFIG_ACTIVE"), "shinyapps")) {
@@ -228,6 +234,20 @@ To ensure the functionality of TALL,
                         mutate(text_original = text) %>%
                         arrange(doc_id)
                     })
+           },
+           wiki = {
+               df <- wikiSearch(input$wikiWord, n=as.numeric(input$wikiN))
+             if (is.null(df)){
+
+             } else{
+               values$menu <- 0
+               values$custom_lists <- NULL
+               values$txt <- wikiExtract(df) %>%
+                 mutate(text_original = text) %>%
+                 rename(doc_id = title,
+                        doc_selected = selected)
+             }
+
            }
     )
   })
@@ -495,7 +515,7 @@ To ensure the functionality of TALL,
 
     # Merge metadata from the original txt object
     values$dfTag <- values$dfTag %>%
-      left_join(values$txt %>% select(-text), by = "doc_id") %>%
+      left_join(values$txt %>% select(-text, -text_original), by = "doc_id") %>%
       posSel(., c("ADJ","NOUN","PROPN", "VERB"))
     values$dfTag <- highlight(values$dfTag)
     values$dfTag$docSelected <- TRUE
@@ -679,7 +699,7 @@ To ensure the functionality of TALL,
     input$posTagSelectRun
   },{
     selected <- (posTagAll(values$dfTag) %>% dplyr::filter(description %in% (input$posTagLists)))$pos
-    values$dfTag <- removeHapaxFreq(values$dfTag,input$posTagHapax,input$posTagFreq)
+    values$dfTag <- removeHapaxFreq(values$dfTag,input$posTagHapax,input$posTagFreq, input$posTagSingleChar)
     values$dfTag <- posSel(values$dfTag, pos=selected)
     #print(input$posTagHapax)
     values$menu <- 2
