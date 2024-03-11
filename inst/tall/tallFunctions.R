@@ -171,6 +171,69 @@ loadSampleCollection <- function(sampleName){
   return(file)
 }
 
+## Wikipedia download sample pages ----
+wikiSearch = function(term, n = 10){
+
+  if (!inherits(n,"numeric")) n = 10
+
+  # select n of results
+  search_url <- paste0("https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrlimit=",n,"&prop=extracts&exintro&explaintext&exlimit=max&format=json&gsrsearch=")
+
+  term = gsub("–", " ", gsub("\\s", "_", term))
+
+  result = jsonlite::fromJSON(paste0(search_url,
+                                     term))
+
+  if (!"query" %in% names(result)){
+    return(NULL)
+  }
+
+  title = c()
+  abstract = c()
+  url = c()
+
+  for(i in 1:length(result$query$pages)){
+
+    wikidata = result$query$pages[i]
+    names(wikidata) = "content"
+    page_abstract <- gsub("<.*?>", "", wikidata$content$extract)
+
+    abstract = append(abstract, page_abstract)
+    title = append(title, wikidata$content$title)
+    url = append(url, paste0("https://en.wikipedia.org/wiki/",gsub("\\s","_",wikidata$content$title)))
+  }
+  url <-
+    paste0(
+      '<a href=\"',
+      url,
+      '\" target=\"_blank\">',
+      url,
+      '</a>'
+    )
+
+  df <- data.frame(title, abstract, url, text=NA, selected=TRUE)
+  return(df)
+}
+
+wikiExtract <- function(df){
+
+  items <- gsub("\\s","_",df$title)
+  for (i in 1:length(items)){
+    if (df$selected[i]){
+      title <- items[i]
+      #print(title)
+      result = jsonlite::fromJSON(paste0("https://en.wikipedia.org/w/api.php?action=query&titles=", title, "&prop=extracts&redirects=&format=json"))
+      names(result$query$pages) = "content"
+      text <- result$query$pages$content$extract
+      ## remove Latex equations and textstyle
+      df$text[i] <- gsub("<.*?>", "", text) %>%
+        gsub("\\{\\\\displaystyle.*?\\}\\n", "", .) %>%
+        gsub("\\\\textstyle"," ",.)
+    }
+  }
+  return(df)
+}
+
 ### SPLIT TEXT INTO SUB-DOCS
 splitDoc <- function(df, word, txSplitBy="starting"){
   df <- df %>% filter(doc_selected)
@@ -2673,7 +2736,7 @@ posSel <- function(dfTag, pos){
 }
 
 # remove Hapax and lowwer and higher lemmas
-removeHapaxFreq <- function(dfTag,hapax,posTagFreq){
+removeHapaxFreq <- function(dfTag,hapax,posTagFreq,singleChar){
 
   posTagFreq <- as.numeric(gsub("%","",posTagFreq))
 
@@ -2692,6 +2755,12 @@ removeHapaxFreq <- function(dfTag,hapax,posTagFreq){
     H <- unique(H$lemma)
     dfTag <- dfTag %>%
       mutate(noHapax = ifelse(lemma %in% H,FALSE,TRUE))
+  }
+
+  ## Single Char
+  if (is.null(singleChar)){
+    dfTag <- dfTag %>%
+      mutate(noSingleChar = ifelse(nchar(lemma)>1,TRUE,FALSE))
   }
 
   ## reset FrequencyRange column
@@ -2716,6 +2785,8 @@ removeHapaxFreq <- function(dfTag,hapax,posTagFreq){
       mutate(FrequencyRange = ifelse(lemma %in% FREQ,FALSE,TRUE))
   }
 
+
+
   return(dfTag)
 }
 
@@ -2725,13 +2796,17 @@ LemmaSelection <- function(dfTag){
     dfTag <- dfTag %>%
       mutate(noHapax = TRUE)
   }
+  if (!"noSingleChar" %in% names(dfTag)){
+    dfTag <- dfTag %>%
+      mutate(noSingleChar = TRUE)
+  }
   if (!"FrequencyRange" %in% names(dfTag)){
     dfTag <- dfTag %>%
       mutate(FrequencyRange = TRUE)
   }
 
   dfTag <- dfTag %>%
-    dplyr::filter(POSSelected,noHapax,FrequencyRange)
+    dplyr::filter(POSSelected,noHapax,noSingleChar,FrequencyRange)
   return(dfTag)
 }
 
@@ -2874,7 +2949,7 @@ menuList <- function(menu){
 
 # DATA TABLE FORMAT ----
 DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, right=NULL, numeric=NULL, dom=TRUE, size='85%', filter="top",
-                     columnShort=NULL, columnSmall=NULL, round=2, title="", button=FALSE, delete=FALSE){
+                     columnShort=NULL, columnSmall=NULL, round=2, title="", button=FALSE, delete=FALSE, escape=FALSE){
 
   if ("text" %in% names(df)){
     df <- df %>%
@@ -2944,7 +3019,7 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
       select(Document, Remove, everything())
   }
 
-  tab <- DT::datatable(df, escape = FALSE,rownames = FALSE,
+  tab <- DT::datatable(df, escape = escape,rownames = FALSE,
                        caption = caption,
                        extensions = c("Buttons", "ColReorder", "FixedHeader"),
                        filter = filter,

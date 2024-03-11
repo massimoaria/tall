@@ -80,15 +80,47 @@ header <- shinydashboardPlus::dashboardHeader(title = title_tall,
                                               ),
                                               dropdownMenu(
                                                 type = "messages",
+                                                icon = fa_i(name="users"),
+                                                badgeStatus = NULL,
+                                                headerText = "",
+                                                shiny::tags$li(strong("Creators")),
+                                                messageItem2(
+                                                  from = "Massimo Aria",
+                                                  message = "",
+                                                  href = "https://www.massimoaria.com",
+                                                  icon = fa_i(name = "user-tie")
+                                                ),
+                                                messageItem2(
+                                                  from = "Corrado Cuccurullo",
+                                                  message = "",
+                                                  href = "https://www.corradocuccurullo.com/",
+                                                  icon = fa_i(name = "user-tie")
+                                                ),
+                                                messageItem2(
+                                                  from = "Maria Spano",
+                                                  message = "",
+                                                  href = "https://scholar.google.com/citations?user=kh_hGT0AAAAJ&hl=it&oi=ao",
+                                                  icon = fa_i(name = "user-tie")
+                                                ),
+                                                messageItem2(
+                                                  from = "Luca D'Aniello",
+                                                  message = "",
+                                                  href = "https://scholar.google.com/citations?user=IXJxh0MAAAAJ&hl=it&oi=ao",
+                                                  icon = fa_i(name = "user-tie")
+                                                ),
+                                                shiny::tags$li(strong("Contributors")),
+                                                messageItem2(
+                                                  from = "Michelangelo Misuraca",
+                                                  message = "",
+                                                  href = "https://scholar.google.com/citations?user=WdivjAUAAAAJ&hl=it",
+                                                  icon = fa_i(name = "user-tie")
+                                                )
+                                              ),
+                                              dropdownMenu(
+                                                type = "messages",
                                                 icon = fa_i(name="cube"),
                                                 badgeStatus = NULL,
                                                 headerText = strong("Credits"),
-                                                # messageItem2(
-                                                #   from = "Bibliometrix",
-                                                #   message = "",
-                                                #   href = bibliometrixWeb,
-                                                #   icon = fa_i(name = "globe")
-                                                # ),
                                                 messageItem2(
                                                   from = "K-Synth",
                                                   message = "",
@@ -104,8 +136,6 @@ header <- shinydashboardPlus::dashboardHeader(title = title_tall,
                                               ),
                                               tags$li(class = "dropdown",
                                                       tags$style(".main-header .logo {height: 53px}"))
-
-
 )
 
 ## SIDEBAR ----
@@ -139,7 +169,7 @@ body <- dashboardBody(
     Shiny.setInputValue('click_dend', value);
     });
   "),
-  ###################
+  #### BUTTON STYLE ###############
   tags$style(".glyphicon-refresh {color:#ffffff; font-size: 15px; align: center;}"),
   tags$style(".fa-magnifying-glass {color:#ffffff; font-size: 15px; align: center;}"),
   tags$style(".glyphicon-download-alt {color:#ffffff; font-size: 18px; align: center; margin-left: -3.5px}"),
@@ -164,6 +194,7 @@ body <- dashboardBody(
     tags$style(".fa-comment-dollar {font-size: 20px}"),
     tags$style(".fa-bars {font-size: 20px}"),
     tags$style(".sidebar-toggle {font-size: 15px}"),
+    tags$style(".fa-users {font-size: 18px}"),
   ),
 
   tabItems(
@@ -202,10 +233,33 @@ body <- dashboardBody(
                                          " "= "null",
                                          "Load text files"="import",
                                          "Load Tall structured files"="load_tall",
-                                         "Use a sample collection"="demo"
+                                         "Use a sample collection"="demo",
+                                         "Wikipedia pages"="wiki"
                                        ),
                                        selected = "null"
                            ),
+                           conditionalPanel(
+                             condition="input.load == 'wiki'",
+                             textInput(inputId="wikiWord",
+                                      label="Search Wikipedia",
+                                      value=NULL),
+                             sliderTextInput(
+                               inputId = "wikiN",
+                               label = "Pages",
+                               choices = seq(1,20),
+                               selected = 1,
+                               animate = TRUE
+                             ),
+                             helpText(em("By specifying a search phrase in 'Search Wikipedia',
+                                         the content of up to 20 Wikipedia pages can be downloaded."),
+                                      br(),
+                                      br(),
+                                      em("The content of each wiki page will be stored in the 'text' column.
+                                         In addition, the page title, abstract and url will also be stored."),
+                                      br(),
+                                      br(),
+                                      em("The page title will be used as the 'doc_id'."))
+                             ),
                            conditionalPanel(
                              condition="input.load == 'import'",
                              fluidRow(column(6,
@@ -834,6 +888,10 @@ body <- dashboardBody(
                                            checkboxGroupInput("posTagHapax", label=NULL,
                                                               choices = c("Hapax"),
                                                               selected = "Hapax"
+                                           ),
+                                           checkboxGroupInput("posTagSingleChar", label=NULL,
+                                                              choices = c("Single Character"),
+                                                              selected = NULL
                                            ),
                                            hr(),
                                            h5("Term Frequency"),
@@ -1776,7 +1834,7 @@ body <- dashboardBody(
 
     ### Network ----
 
-    ## Co-ward analysis ----
+    ## Co-word analysis ----
 
     tabItem(tabName = "w_networkCooc",
             fluidPage(
@@ -1824,7 +1882,7 @@ body <- dashboardBody(
                              materialSwitch(
                                inputId = "interLinks",
                                label = "Inter-group links",
-                               value = FALSE,
+                               value = TRUE,
                                status = "success"
                              ),
                              materialSwitch(
