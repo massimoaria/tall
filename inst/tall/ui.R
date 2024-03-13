@@ -2307,10 +2307,11 @@ body <- dashboardBody(
                           ),
                           tabPanel("Topic Correlation",
                                             fluidRow(
-                                              column(8,
-                                                     shinycssloaders::withSpinner(visNetworkOutput("d_tm_networkPlot", width="auto", height = "75vh"),
+                                              column(6,
+                                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "d_tm_networkPlot", height = "75vh",width ="98.9%"),
+                                                       #visNetworkOutput("d_tm_networkPlot", width="auto", height = "75vh"),
                                                                                   color = getOption("spinner.color", default = "#4F7942"))),
-                                              column(4,
+                                              column(6,
                                                      shinycssloaders::withSpinner(DT::DTOutput("d_tm_networkTable"),
                                                                                   color = getOption("spinner.color", default = "#4F7942")))
                                             )

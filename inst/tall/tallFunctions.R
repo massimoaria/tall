@@ -123,6 +123,15 @@ pdf2txt <- function(file){
 
 }
 
+removeHTMLTags <- function(text){
+  text <- text %>%
+    gsub("&nbsp;|&amp;|&current;|&trade;", " ", .) %>%
+    trimws() %>%
+    gsub("<br>", "\\\n", .) %>%
+    gsub("</p>", "\\\n", .) %>%
+    gsub("<.*?>", "", .)
+}
+
 ### download sample data
 loadSampleCollection <- function(sampleName){
   switch(Sys.info()[['sysname']],
@@ -1943,6 +1952,7 @@ tmEstimate <- function(x, K, group=c("doc_id", "sentence_id"), term="lemma", n=1
 
 }
 
+
 ## hellinger distance ----
 hellinger <- function(beta){
   beta <- sqrt(beta)
@@ -1990,6 +2000,15 @@ tmNetwork <- function(beta, minEdge){
 
   results <- list(H=H %>% rename(value=size), VIS=VIS)
   return(results)
+}
+
+tmHeatmap <- function(beta){
+  beta <- as.matrix(beta[,-1])
+  H <- round(cor(beta),4)
+  diag(H) <- NA
+  Hplot <- heatmaply_cor(H, dendrogram="none")
+
+  return(list(H=H, Hplot=Hplot))
 }
 
 tmTopicPlot <- function(beta, topic=1, nPlot=10){
