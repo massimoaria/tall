@@ -123,6 +123,15 @@ pdf2txt <- function(file){
 
 }
 
+removeHTMLTags <- function(text){
+  text <- text %>%
+    gsub("&nbsp;|&amp;|&current;|&trade;", " ", .) %>%
+    trimws() %>%
+    gsub("<br>", "\\\n", .) %>%
+    gsub("</p>", "\\\n", .) %>%
+    gsub("<.*?>", "", .)
+}
+
 ### download sample data
 loadSampleCollection <- function(sampleName){
   switch(Sys.info()[['sysname']],
@@ -1943,6 +1952,7 @@ tmEstimate <- function(x, K, group=c("doc_id", "sentence_id"), term="lemma", n=1
 
 }
 
+
 ## hellinger distance ----
 hellinger <- function(beta){
   beta <- sqrt(beta)
@@ -1990,6 +2000,48 @@ tmNetwork <- function(beta, minEdge){
 
   results <- list(H=H %>% rename(value=size), VIS=VIS)
   return(results)
+}
+
+tmHeatmap <- function(beta){
+
+  data <- cor(as.matrix(beta[,-1]))
+  diag(data) <- 0
+
+  df = data.frame(data)
+  colnames(df) <- row.names(df) <- paste0("topic ",colnames(beta)[-1])
+
+  x <- y <- row.names(df)
+  df <- df %>%
+    rownames_to_column("y") %>%
+    pivot_longer(cols = starts_with("topic "), names_to = "variable", values_to = "value") %>%
+    mutate(value = round(value,3))
+
+  pal <- colorRampPalette(RColorBrewer::brewer.pal(9, "RdYlBu"))(30)
+  pal[1] <-c("#FFFFFF")
+
+  Hplot <- plot_ly(
+    z = data,
+    x = x,
+    y = y,
+    text = data,
+    type = "heatmap",
+    hoverinfo='none',
+    colors = pal,
+    zauto = F,
+    zmin=-1,
+    zmax=1,
+    zmed=0) %>%
+    add_annotations(
+      data = df,
+      x = ~variable,
+      y = ~y,
+      text = ~value,
+      xref = 'x',
+      yref = 'y',
+      showarrow = FALSE,
+      font=list(color='black', size=10))
+
+  return(list(Hplot=Hplot))
 }
 
 tmTopicPlot <- function(beta, topic=1, nPlot=10){

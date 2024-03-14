@@ -188,7 +188,8 @@ To ensure the functionality of TALL,
                values$menu <- 0
                values$custom_lists <- NULL
                values$txt <- txt %>%
-                 mutate(text_original = text) %>%
+                 mutate(text = removeHTMLTags(text),
+                   text_original = text) %>%
                  arrange(doc_id)
                #values$metadata <- setdiff(names(values$txt), c("text", "doc_id","original_doc_id"))
              }
@@ -2409,7 +2410,9 @@ observeEvent(input$closePlotModalDoc,{
 
       ### BETA PROBABILITY
       values$beta <- values$TMestim_result$beta
+
       names(values$beta)[2:ncol(values$beta)] <- paste0("Topic ",1:(ncol(values$beta)-1))
+      values$tmHeatmap <- tmHeatmap(values$beta)
 
       ### THETA PROBABILITY
       values$theta <- values$TMestim_result$theta
@@ -2417,10 +2420,15 @@ observeEvent(input$closePlotModalDoc,{
     }
   )
 
-  output$d_tm_networkPlot <- renderVisNetwork({
+  output$d_tm_networkPlot <- renderPlotly({
     netTMestim()
-    #values$TMnetwork$VIS
+    values$tmHeatmap$Hplot
     })
+
+  # output$d_tm_networkTable <- renderDataTable(server = FALSE,{
+  #   netTMestim()
+  #   DTformat(values$tmHeatmap$H, left=1, numeric=c(2:ncol(values$tmHeatmap$H)), round=4, nrow=10, size="85%", filename = "TopicModel_TopicCorrelations")
+  # })
 
   observeEvent(input$TMplotRight,{
     if (values$TMplotIndex<ceiling(req(values$tmK)/3)){
