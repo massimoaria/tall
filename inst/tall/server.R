@@ -668,8 +668,10 @@ To ensure the functionality of TALL,
   output$multiwordList <- renderDT(server=FALSE,{
     multiword()
     DTformat(values$multiwords %>%  rename("Multi-Words" = keyword,
-                                           "Lenght" = ngram, "Freq"=freq,
-                                           "Rake value" = rake),
+                                           "Lenght" = ngram,
+                                           "Freq"=freq,
+                                           "Rake value" = rake) %>%
+               arrange(desc(Freq), .by_group = FALSE),
              numeric=4)
   })
 
@@ -1127,7 +1129,7 @@ To ensure the functionality of TALL,
     input$wcApply
   },
   {
-    n <- 200 #showing the first 200 lemmas
+    n <- 100 #showing the first 200 lemmas
     dfWC <- LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected)
     values$wcDfPlot <- freqByPos(dfWC, term=input$termWC, pos=unique(dfWC$upos[dfWC$docSelected==TRUE])) %>%
       slice_head(n=n) %>%
@@ -1138,13 +1140,18 @@ To ensure the functionality of TALL,
   output$wordcloudPlot <- renderWordcloud2({
     wcData()
 
-    values$wcPlot <- wordcloud2::wordcloud2(values$wcDfPlot,
+    color_number <- 20
+    color_palette <- colorRampPalette(brewer.pal(8, "Paired"))(color_number)
+
+    #values$wcPlot <- wordcloud2a(values$wcDfPlot, ellipticity = 0.5, #widgetsize = "100%",
+    #                             color = "random-dark", backgroundColor = "transparent")
+    values$wcPlot <- wordcloud2a(values$wcDfPlot,
                                             fontFamily = "Impact", fontWeight = "normal", minSize=0,
                                             minRotation = 0, maxRotation = 0, shuffle = TRUE,
-                                            rotateRatio = 0.7, shape = "pentagon",ellipticity = 0.65,
-                                            widgetsize = NULL,
+                                            rotateRatio = 0.7, shape = "circle",ellipticity = 0.65,
+                                            #widgetsize = "100%",
                                             figPath = NULL,
-                                            size = ifelse(length(values$wcDfPlot$text)>100,1,1.3),
+                                            #size = ifelse(length(values$wcDfPlot$text)>100,1,1.3),
                                             color = "random-dark", backgroundColor = "transparent")
     values$wcPlot
   })
