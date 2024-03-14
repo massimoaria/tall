@@ -2003,12 +2003,45 @@ tmNetwork <- function(beta, minEdge){
 }
 
 tmHeatmap <- function(beta){
-  beta <- as.matrix(beta[,-1])
-  H <- round(cor(beta),4)
-  diag(H) <- NA
-  Hplot <- heatmaply_cor(H, dendrogram="none")
 
-  return(list(H=H, Hplot=Hplot))
+  data <- cor(as.matrix(beta[,-1]))
+  diag(data) <- 0
+
+  df = data.frame(data)
+  colnames(df) <- row.names(df) <- paste0("topic ",colnames(beta)[-1])
+
+  x <- y <- row.names(df)
+  df <- df %>%
+    rownames_to_column("y") %>%
+    pivot_longer(cols = starts_with("topic "), names_to = "variable", values_to = "value") %>%
+    mutate(value = round(value,3))
+
+  pal <- colorRampPalette(RColorBrewer::brewer.pal(9, "RdYlBu"))(30)
+  pal[1] <-c("#FFFFFF")
+
+  Hplot <- plot_ly(
+    z = data,
+    x = x,
+    y = y,
+    text = data,
+    type = "heatmap",
+    hoverinfo='none',
+    colors = pal,
+    zauto = F,
+    zmin=-1,
+    zmax=1,
+    zmed=0) %>%
+    add_annotations(
+      data = df,
+      x = ~variable,
+      y = ~y,
+      text = ~value,
+      xref = 'x',
+      yref = 'y',
+      showarrow = FALSE,
+      font=list(color='black', size=10))
+
+  return(list(Hplot=Hplot))
 }
 
 tmTopicPlot <- function(beta, topic=1, nPlot=10){

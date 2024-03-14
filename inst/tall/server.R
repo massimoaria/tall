@@ -2410,14 +2410,13 @@ observeEvent(input$closePlotModalDoc,{
 
       ### BETA PROBABILITY
       values$beta <- values$TMestim_result$beta
+
       names(values$beta)[2:ncol(values$beta)] <- paste0("Topic ",1:(ncol(values$beta)-1))
       values$tmHeatmap <- tmHeatmap(values$beta)
 
       ### THETA PROBABILITY
       values$theta <- values$TMestim_result$theta
       names(values$theta)[2:ncol(values$theta)] <- paste0("Topic ",1:(ncol(values$theta)-1))
-      topmod <- list(TMestim_result=values$TMestim_result, plots=values$TMplotList, beta=values$beta, theta=values$theta)
-      save(topmod,file="prova_topicmodel.rdata")
     }
   )
 
@@ -2426,10 +2425,10 @@ observeEvent(input$closePlotModalDoc,{
     values$tmHeatmap$Hplot
     })
 
-  output$d_tm_networkTable <- renderDataTable(server = FALSE,{
-    netTMestim()
-    DTformat(values$tmHeatmap$H, left=1, numeric=c(2:ncol(values$tmHeatmap$H)), round=4, nrow=10, size="85%", filename = "TopicModel_TopicCorrelations")
-  })
+  # output$d_tm_networkTable <- renderDataTable(server = FALSE,{
+  #   netTMestim()
+  #   DTformat(values$tmHeatmap$H, left=1, numeric=c(2:ncol(values$tmHeatmap$H)), round=4, nrow=10, size="85%", filename = "TopicModel_TopicCorrelations")
+  # })
 
   observeEvent(input$TMplotRight,{
     if (values$TMplotIndex<ceiling(req(values$tmK)/3)){

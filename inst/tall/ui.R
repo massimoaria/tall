@@ -2306,15 +2306,16 @@ body <- dashboardBody(
                                                                 color = getOption("spinner.color", default = "#4F7942"))
                           ),
                           tabPanel("Topic Correlation",
-                                            fluidRow(
-                                              column(6,
-                                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "d_tm_networkPlot", height = "75vh",width ="98.9%"),
-                                                       #visNetworkOutput("d_tm_networkPlot", width="auto", height = "75vh"),
-                                                                                  color = getOption("spinner.color", default = "#4F7942"))),
-                                              column(6,
-                                                     shinycssloaders::withSpinner(DT::DTOutput("d_tm_networkTable"),
-                                                                                  color = getOption("spinner.color", default = "#4F7942")))
-                                            )
+                                   shinycssloaders::withSpinner(plotlyOutput(outputId = "d_tm_networkPlot", height = "75vh",width ="98.9%"),
+                                                                #visNetworkOutput("d_tm_networkPlot", width="auto", height = "75vh"),
+                                                                color = getOption("spinner.color", default = "#4F7942"))
+                                            # fluidRow(
+                                            #   column(6,
+                                            #          )),
+                                            #   column(6,
+                                            #          shinycssloaders::withSpinner(DT::DTOutput("d_tm_networkTable"),
+                                            #                                       color = getOption("spinner.color", default = "#4F7942")))
+                                            # )
 
                           )
 
