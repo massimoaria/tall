@@ -432,11 +432,10 @@ observeEvent(input$reset_confirmation2, {
     DATAloading()
     if (values$menu==0){
       DTformat(values$txt %>%
-                 select(-text_original) %>%
                  filter(doc_selected) %>%
                  mutate(text = paste0(substr(text,1,500),"...")) %>%
                  select(doc_id, text, everything()) %>%
-                 select(-doc_selected),
+                 select(-doc_selected,-text_original),
                left=3, nrow=5, filter="none", button=TRUE, delete=TRUE)
     }
   })
@@ -3190,7 +3189,7 @@ output$optionsSummarization <- renderUI({
                    filter(doc_selected) %>%
                    mutate(text = paste0(substr(text,1,500),"...")) %>%
                    select(doc_id, text, everything()) %>%
-                   select(-doc_selected),
+                   select(-doc_selected, -text_original),
                  left=2, nrow=5, filter="none", button=TRUE, delete=TRUE)
       }
     })
