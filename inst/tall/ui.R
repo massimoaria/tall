@@ -1605,7 +1605,7 @@ body <- dashboardBody(
                              hr(),
                              selectInput(
                                inputId = "groupCA",
-                               label = "Co-occurrences in ",
+                               label = "Unit of Analysis ",
                                choices = c("Groups", "Documents", "Paragraphs", "Sentences"),
                                selected = "Documents"
                              ),
