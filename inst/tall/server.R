@@ -241,42 +241,47 @@ To ensure the functionality of TALL,
                      em("The texts are in English."))
           )
         ),
-      conditionalPanel(
-        condition = "input.load == 'load_tall'",
-        helpText(em("Load a collection previously exported from Tall")),
-        fileInput(
-          "file1",
-          "Choose a file",
-          multiple = FALSE,
-          accept = c(
-            ".tall"
+        conditionalPanel(
+          condition = "input.load == 'load_tall'",
+          helpText(em("Load a collection previously exported from Tall")),
+          fileInput(
+            "file1",
+            "Choose a file",
+            multiple = FALSE,
+            accept = c(
+              ".tall"
+            )
           )
-        )
-      ),
-      conditionalPanel(condition = "input.load != 'null'",
-                       div(
-                         align = "center",
-                         width=12,
-                         actionButton(inputId="runImport",
-                                      label = div(icon(name="play",lib = "glyphicon"),strong("START")),
-                                      icon = NULL,
-                                      style = "border-radius: 20px; border-width: 1px;
+        ),
+        conditionalPanel(condition = "input.load != 'null'",
+                         div(
+                           align = "center",
+                           width=12,
+                           actionButton(inputId="runImport",
+                                        label = div(icon(name="play",lib = "glyphicon"),strong("START")),
+                                        icon = NULL,
+                                        style = "border-radius: 20px; border-width: 1px;
                                                                     font-size: 17px; color: #ffff;")
-                       )
-      )
+                         )
+        )
       )
     } else {
-      #conditionalPanel(condition = "input.load != 'null'",
-                       div(
-                         align = "center",
-                         width=12,
-                         actionButton(inputId="runReset2",
-                                      label = div(icon(name ="refresh", lib="glyphicon"),strong("RESET")),
-                                      icon = NULL,
-                                      style = "border-radius: 20px; border-width: 1px;
+      list(
+      helpText(em("To load a new text collection,",
+                  br(),"it is necessary to reset the app."),
+               ),
+      br(),
+      br(),
+      div(
+        align = "center",
+        width=12,
+        actionButton(inputId="runReset2",
+                     label = div(icon(name ="refresh", lib="glyphicon"),strong("RESET")),
+                     icon = NULL,
+                     style = "border-radius: 20px; border-width: 1px;
                                                                     font-size: 17px; color: #ffff;")
-                       )
-      #)
+      )
+      )
     }
 
 
@@ -398,6 +403,7 @@ observeEvent(input$reset_confirmation2, {
                       txt <- read_files(files,ext="txt", subfolder=FALSE)
                       values$menu <- 0
                       values$custom_lists <- NULL
+                      values$resetNeed <- TRUE
                       values$txt <- txt %>%
                         mutate(text_original = text) %>%
                         arrange(doc_id)
@@ -571,7 +577,11 @@ observeEvent(input$reset_confirmation2, {
 
   output$splitTextData <- DT::renderDT({
     splitDocFunc()
-    DTformat(values$txt %>% mutate(text = paste0(substr(text,1,500),"...")),left=2, nrow=5, filter="none", button=TRUE)
+    DTformat(values$txt %>%
+               mutate(text = paste0(substr(text,1,500),"...")) %>%
+               select(-"text_original") %>%
+               filter(doc_selected) ,
+             left=2, nrow=5, filter="none", button=TRUE, delete=TRUE)
   })
 
 
