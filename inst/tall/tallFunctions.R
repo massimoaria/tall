@@ -607,7 +607,7 @@ posTagAll <- function(df){
 
 ### GROUP MENU FUNCTIONS -----
 noGroupLabels <- function(label){
-  setdiff(label, c("paragraph_id","sentence_id","sentence","start","end","term_id",
+  setdiff(label, c("paragraph_id","sentence_id","sentence","start","end","term_id", "noSingleChar",
                    "token_id","token","lemma","upos","xpos","feats","head_token_id","dep_rel",
                    "deps","misc","original_doc_id","ungroupDoc_id","ungroupP_id", "ungroupS_id",
                    "POSSelected","token_hl","start_hl","end_hl","sentence_hl","lemma_original_nomultiwords",
@@ -2056,7 +2056,8 @@ tmHeatmap <- function(beta){
 
   df = data.frame(data)
   # x <- y <- colnames(df) <- row.names(df) <- paste0("topic ",nrow(data):1)
-  y <- row.names(df) <- paste0("topic ",nrow(data):1)
+  id <- sprintf(paste0("%0",nchar(nrow(data)),"d"), nrow(data):1)
+  y <- row.names(df) <- paste0("topic ",id)
 
   x <- colnames(df) <- sort(y)
 
@@ -2087,7 +2088,17 @@ tmHeatmap <- function(beta){
       xref = 'x',
       yref = 'y',
       showarrow = FALSE,
-      font=list(color='black', size=10))
+      font=list(color='black', size=10)) %>%
+    config(displaylogo = FALSE,
+           modeBarButtonsToRemove = c(
+             'sendDataToCloud',
+             'pan2d',
+             'select2d',
+             'lasso2d',
+             'toggleSpikelines',
+             'hoverClosestCartesian',
+             'hoverCompareCartesian'
+           ))
 
   return(list(Hplot=Hplot))
 }
@@ -2793,6 +2804,7 @@ resetValues <- function(){
   ### Initial values ----
   values <- list()
   values <- reactiveValues()
+  values$resetNeed <- FALSE
   values$path <- NULL
   values$menu <- -1
   values$custom_lists <- NULL

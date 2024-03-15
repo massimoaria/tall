@@ -14,6 +14,7 @@ maxUploadSize <- 200 # default value
 maxUploadSize <- getShinyOption("maxUploadSize", maxUploadSize)
 options(shiny.maxRequestSize=maxUploadSize*1024^2)
 
+param_stay_page <- FALSE
 
 server <- function(input, output, session){
 
@@ -92,9 +93,14 @@ To ensure the functionality of TALL,
     if (isTRUE(input$reset_confirmation)){
     reset_rv(input$resApp)
     session$reload()
+    param_stay_page <<- TRUE
     }
   })
 
+  if(param_stay_page){
+    updateTabItems(session, "sidebarmenu", "import_tx")
+    param_stay_page_newPT <<- FALSE
+  }
 
 
   ## suppress summarise message
@@ -102,7 +108,7 @@ To ensure the functionality of TALL,
   # languages <- langrepo()
 
   ### Initial values ----
-   values <- resetValues()
+  values <- resetValues()
 
   ## Setting plot values
   values$h <- 7
@@ -119,7 +125,6 @@ To ensure the functionality of TALL,
   })
 
   observeEvent(input$runImport, {
-    values <- resetValues()
     updateTabItems(session, "sidebarmenu", "import_tx")
   })
 
@@ -139,7 +144,171 @@ To ensure the functionality of TALL,
     updateTabItems(session, "sidebarmenu", "multiwordCreat")
   })
 
+  output$runButton <- renderUI({
 
+    if (!isTRUE(values$resetNeed)){
+      list(
+        selectInput("load", "Please, choose what to do",
+                    choices = c(
+                      " "= "null",
+                      "Load text files"="import",
+                      "Load Tall structured files"="load_tall",
+                      "Use a sample collection"="demo",
+                      "Wikipedia pages"="wiki"
+                    ),
+                    selected = "null"
+        ),
+        conditionalPanel(
+          condition="input.load == 'wiki'",
+          textInput(inputId="wikiWord",
+                    label="Search Wikipedia",
+                    value=NULL),
+          sliderTextInput(
+            inputId = "wikiN",
+            label = "Pages",
+            choices = seq(1,20),
+            selected = 1,
+            animate = TRUE
+          ),
+          helpText(em("By specifying a search phrase in 'Search Wikipedia',
+                                         the content of up to 20 Wikipedia pages can be downloaded."),
+                   br(),
+                   br(),
+                   em("The content of each wiki page will be stored in the 'text' column.
+                                         In addition, the page title, abstract and url will also be stored."),
+                   br(),
+                   br(),
+                   em("The page title will be used as the 'doc_id'."))
+        ),
+        conditionalPanel(
+          condition="input.load == 'import'",
+          fluidRow(column(6,
+                          selectizeInput(
+                            'ext', label="File format",choices = c(
+                              "txt"="txt",
+                              "csv"="csv",
+                              "excel"="xlsx",
+                              "pdf"="pdf"),
+                            tags$style("height: 50px")
+                          )
+          ),
+          conditionalPanel(
+            condition="input.load == 'import' & input.ext=='csv'",
+            column(6,
+                   selectizeInput(
+                     'line_sep', label="CSV Separator",choices = c(
+                       " , "=",",
+                       " ; "=";"),
+                     tags$style("height: 50px")
+                   )
+            )
+          )
+          ),
+          uiOutput("file_raw"),
+          uiOutput(outputId = "infoImport"),
+          conditionalPanel(
+            condition= "input.ext == 'xlsx' ||  input.ext =='csv'",
+            uiOutput(outputId = "infoTextLabel")
+          )
+        ),
+        conditionalPanel(
+          condition="input.load=='demo'",
+          selectInput("demo_file",
+                      label="Select sample texts",
+                      choices=c(
+                        "BBC news" = "bbc",
+                        "Bibliometrix" = "bibliometrix"
+                      ),
+                      selected = "bibliometrix"
+          ),
+          conditionalPanel(
+            condition = "input.demo_file=='bibliometrix'",
+            helpText(em("The dataset is composed of a collection of 444 scientific articles written in English
+                                           in which the authors used the Bibliometrix R package to perform systematic literature reviews."),
+                     br(),
+                     br(),
+                     em("The textual data consists of the article abstracts, while the additional information includes
+                                           metadata such as the list of co-authors, first author, year of publication, and journal name."),
+                     br(),
+                     br(),
+                     em("The abstracts have already been tokenized and POS tagged."))
+          ),
+          conditionalPanel(
+            condition = "input.demo_file=='bbc'",
+            helpText(em("A collection of 386 short news stories published in the entertainment section of the BBC News website."),
+                     br(),
+                     br(),
+                     em("The texts are in English."))
+          )
+        ),
+        conditionalPanel(
+          condition = "input.load == 'load_tall'",
+          helpText(em("Load a collection previously exported from Tall")),
+          fileInput(
+            "file1",
+            "Choose a file",
+            multiple = FALSE,
+            accept = c(
+              ".tall"
+            )
+          )
+        ),
+        conditionalPanel(condition = "input.load != 'null'",
+                         div(
+                           align = "center",
+                           width=12,
+                           actionButton(inputId="runImport",
+                                        label = div(icon(name="play",lib = "glyphicon"),strong("START")),
+                                        icon = NULL,
+                                        style = "border-radius: 20px; border-width: 1px;
+                                                                    font-size: 17px; color: #ffff;")
+                         )
+        )
+      )
+    } else {
+      list(
+      helpText(em("To load a new text collection,",
+                  br(),"it is necessary to reset the app."),
+               ),
+      br(),
+      br(),
+      div(
+        align = "center",
+        width=12,
+        actionButton(inputId="runReset2",
+                     label = div(icon(name ="refresh", lib="glyphicon"),strong("RESET")),
+                     icon = NULL,
+                     style = "border-radius: 20px; border-width: 1px;
+                                                                    font-size: 17px; color: #ffff;")
+      )
+      )
+    }
+
+
+  })
+
+
+
+
+observeEvent(input$runReset2, {
+  ask_confirmation(
+    inputId = "reset_confirmation2",
+    title = "Restart TALL",
+    text = HTML('Restarting TAll will result in the loss of all analyses currently in progress<br><br>
+                  <b>Do you want to confirm?</b>'),
+    html=TRUE,
+    type = "warning",
+    btn_labels = c("CANCEL", "CONFIRM")
+  )
+})
+
+observeEvent(input$reset_confirmation2, {
+  if (isTRUE(input$reset_confirmation2)){
+    reset_rv(input$runReset2)
+    session$reload()
+    param_stay_page <<- TRUE
+  }
+})
   ### IMPORT ----
 
   output$file_raw <- renderUI({
@@ -191,6 +360,7 @@ To ensure the functionality of TALL,
                  mutate(text = removeHTMLTags(text),
                    text_original = text) %>%
                  arrange(doc_id)
+               values$resetNeed <- TRUE
                #values$metadata <- setdiff(names(values$txt), c("text", "doc_id","original_doc_id"))
              }
            },
@@ -205,6 +375,7 @@ To ensure the functionality of TALL,
              values$language <- language
              values$D <- D
              values$where <- where
+             values$resetNeed <- TRUE
              #values$metadata <- metadata
              if (values$menu==1) updateTabItems(session, "sidebarmenu", "custTermList")
              if (values$menu==2) updateTabItems(session, "sidebarmenu", "posTagSelect")
@@ -221,6 +392,7 @@ To ensure the functionality of TALL,
                       values$language <- language
                       values$D <- D
                       values$where <- where
+                      values$resetNeed <- TRUE
                       if (values$menu==1) updateTabItems(session, "sidebarmenu", "custTermList")
                       if (values$menu==2) updateTabItems(session, "sidebarmenu", "posTagSelect")
                       if (ncol(values$dfTag)>1){showModal(loadTallgModal(session))}
@@ -231,6 +403,7 @@ To ensure the functionality of TALL,
                       txt <- read_files(files,ext="txt", subfolder=FALSE)
                       values$menu <- 0
                       values$custom_lists <- NULL
+                      values$resetNeed <- TRUE
                       values$txt <- txt %>%
                         mutate(text_original = text) %>%
                         arrange(doc_id)
@@ -240,6 +413,8 @@ To ensure the functionality of TALL,
                df <- wikiSearch(input$wikiWord, n=as.numeric(input$wikiN))
              if (is.null(df)){
 
+               #### AGGUNGERE POPUP
+
              } else{
                values$menu <- 0
                values$custom_lists <- NULL
@@ -248,7 +423,7 @@ To ensure the functionality of TALL,
                  rename(doc_id = title,
                         doc_selected = selected)
              }
-
+               values$resetNeed <- TRUE
            }
     )
   })
@@ -347,13 +522,30 @@ To ensure the functionality of TALL,
   })
 
   ### Convert Raw Data in Excel functions ----
+  # output$collection.save <- downloadHandler(
+  #   filename = function() {
+  #     paste("Tall-Export-File-", Sys.Date(), ".xlsx", sep="")
+  #   },
+  #   content <- function(file) {
+  #     suppressWarnings(openxlsx::write.xlsx(values$txt, file=file))
+  #   }, contentType = "xlsx"
+  # )
   output$collection.save <- downloadHandler(
     filename = function() {
-      paste("Tall-Export-File-", Sys.Date(), ".xlsx", sep="")
+      paste("Tall-Export-File-", Sys.Date(), ".csv", sep="")
     },
     content <- function(file) {
-      suppressWarnings(openxlsx::write.xlsx(values$txt, file=file))
-    }, contentType = "xlsx"
+      write_csv(
+        x=values$txt,
+        file=file,
+        na = "NA",
+        append = FALSE,
+        col_names = TRUE
+        # quote = c("needed"),
+        # escape = c("backslash"),
+        # eol = "\n"
+      )
+    }, contentType = "csv"
   )
 
   # Back to the original import text ----
@@ -385,7 +577,11 @@ To ensure the functionality of TALL,
 
   output$splitTextData <- DT::renderDT({
     splitDocFunc()
-    DTformat(values$txt %>% mutate(text = paste0(substr(text,1,500),"...")),left=2, nrow=5, filter="none", button=TRUE)
+    DTformat(values$txt %>%
+               mutate(text = paste0(substr(text,1,500),"...")) %>%
+               select(-"text_original") %>%
+               filter(doc_selected) ,
+             left=2, nrow=5, filter="none", button=TRUE, delete=TRUE)
   })
 
 
@@ -1139,12 +1335,6 @@ To ensure the functionality of TALL,
 
   output$wordcloudPlot <- renderWordcloud2({
     wcData()
-
-    color_number <- 20
-    color_palette <- colorRampPalette(brewer.pal(8, "Paired"))(color_number)
-
-    #values$wcPlot <- wordcloud2a(values$wcDfPlot, ellipticity = 0.5, #widgetsize = "100%",
-    #                             color = "random-dark", backgroundColor = "transparent")
     values$wcPlot <- wordcloud2a(values$wcDfPlot,
                                             fontFamily = "Impact", fontWeight = "normal", minSize=0,
                                             minRotation = 0, maxRotation = 0, shuffle = TRUE,
