@@ -413,7 +413,12 @@ observeEvent(input$reset_confirmation2, {
                df <- wikiSearch(input$wikiWord, n=as.numeric(input$wikiN))
              if (is.null(df)){
 
-               #### AGGUNGERE POPUP
+               show_alert(
+                 title = "No results found!",
+                 text = "It seems there are no Wikipedia pages matching your search.",
+                 type = "error"
+               )
+               values$resetNeed <- FALSE
 
              } else{
                values$menu <- 0
@@ -422,8 +427,10 @@ observeEvent(input$reset_confirmation2, {
                  mutate(text_original = text) %>%
                  rename(doc_id = title,
                         doc_selected = selected)
-             }
+
                values$resetNeed <- TRUE
+
+             }
            }
     )
   })
