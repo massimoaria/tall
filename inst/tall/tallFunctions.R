@@ -1372,7 +1372,7 @@ cooc_freq <- function(cooc){
 }
 
 network <- function(x, term="lemma", group=c("doc_id", "sentence_id"), n, minEdges, labelsize=4, opacity=0.6,
-                    interLinks=FALSE, normalization="none", remove.isolated=FALSE){
+                    interLinks=FALSE, normalization="none", remove.isolated=FALSE, community.repulsion=0){
 
   # size scaling
   scalemin <- 20*(1+labelsize/5)
@@ -1442,6 +1442,7 @@ network <- function(x, term="lemma", group=c("doc_id", "sentence_id"), n, minEdg
          cosine={edges$value <- edges$sCNorm},
          jaccard={edges$value <- edges$sJNorm})
 
+
   if (minEdges == "Auto"){
     y <- quantile(edges$value,seq(1,0,-0.01))
     x=1:length(y)
@@ -1482,6 +1483,23 @@ network <- function(x, term="lemma", group=c("doc_id", "sentence_id"), n, minEdg
   #Create group column
   nodes <- left_join(nodes, cluster_df, by = "id") %>%
     drop_na(group)
+
+  # Community repulsion
+  if (community.repulsion>0){
+    community.repulsion = round(community.repulsion*100)
+    # row <- as_edgelist(bsk.network)
+    row <- edges %>% select(1:2) %>% as.matrix()
+    membership <- nodes$group
+    names(membership) <- nodes$label
+
+    # membership <- V(bsk.network)$community
+    # names(membership) <- V(bsk.network)$name
+    repulsion <- community.repulsion * max(edges$value, na.rm=T)
+    edges$value <-  edges$value+apply(row,1,weight.community,membership,repulsion,1)
+
+  }
+
+
 
 
   ## opacity for label
@@ -1562,6 +1580,15 @@ net2vis <- function(nodes,edges){
     #visNetwork::visPhysics(barnesHut=list(avoidOverlap=1)) %>%
     visNetwork::visOptions(manipulation = FALSE, height ="100%", width = "100%") #%>%
   #visNetwork::addFontAwesome()
+}
+
+weight.community=function(row,membership,weigth.within,weight.between){
+  if(as.numeric(membership[which(names(membership)==row[1])])==as.numeric(membership[which(names(membership)==row[2])])){
+    weight=weigth.within
+  }else{
+    weight=weight.between
+  }
+  return(weight)
 }
 
 ## function to avoid label overlapping ----
