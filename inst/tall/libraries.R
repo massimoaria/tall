@@ -62,6 +62,43 @@ messageItem2 <- function (from, message, icon = shiny::icon("user"), time = NULL
       shiny::tags$small(shiny::icon("clock-o"), time)), shiny::p(message)))
 }
 
+messageItemCustom <- function (from, message, icon = shiny::icon("user"), time = NULL,
+                          href = NULL, inputId = NULL){
+
+  style_icon <- paste0("
+  background: url('",
+  icon,
+  ".svg') ;
+  background-size: cover;
+  background-position: left center;
+  background-repeat: no-repeat;
+  height: 30px;
+  width: 30px;
+  display: block;
+  font-family: Font Awesome 6 Free;
+  position: sticky;
+  text-align: center;
+  line-height: inherit;
+  left: 1.35em;
+  padding: 0.2em 0.25em 0.15em;
+  border-radius: var(--fa-border-radius, 0.1em);
+  border-style: var(--fa-border-style, solid);
+  border-width: var(--fa-border-width, 0em);
+  ")
+
+  icon <- icon(
+    name = NULL,
+    style = style_icon)
+
+  from <- paste0("&nbsp;&nbsp;",from)
+  if (is.null(href))
+    href <- "#"
+  shiny::tags$li(shiny::a(id = inputId, class = if (!is.null(inputId))
+    "action-button", href = href, target = "_blank", icon, shiny::h4(HTML(from), style = "font-style: inherit; text-align: left;", if (!is.null(time))
+      shiny::tags$small(shiny::icon("clock-o"), time)), shiny::p(message)))
+}
+
+
 # Custom Theme ----
 customTheme <- function(){
   shinyDashboardThemeDIY(

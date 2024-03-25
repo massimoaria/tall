@@ -24,6 +24,9 @@ server <- function(input, output, session){
   #   #browser.padding = 0,
   #   browser.fill = TRUE)
 
+  Chrome_url <- pagedown::find_chrome()
+  Sys.setenv (CHROMOTE_CHROME = Chrome_url)
+
   ## chrome configuration for shinyapps server
 
   if (identical(Sys.getenv("R_CONFIG_ACTIVE"), "shinyapps")) {
@@ -39,7 +42,7 @@ server <- function(input, output, session){
   ## end configuration
 
   ## Check if Chrome browser is installed on the computer
-  if(is.null(chromote::find_chrome())){
+  if(is.null(pagedown::find_chrome())){
     showModal(modalDialog(
       title = strong("Warning message!"),
       HTML("Chrome or a Chromium-based browser is not installed on your computer.<br>
@@ -903,8 +906,9 @@ observeEvent(input$reset_confirmation2, {
   PosFilterData <- eventReactive({
     input$posTagSelectRun
   },{
+    posTagFreq <- c("0%", "100%")
     selected <- (posTagAll(values$dfTag) %>% dplyr::filter(description %in% (input$posTagLists)))$pos
-    values$dfTag <- removeHapaxFreq(values$dfTag,input$posTagHapax,input$posTagFreq, input$posTagSingleChar)
+    values$dfTag <- removeHapaxFreq(values$dfTag,input$posTagHapax,posTagFreq, input$posTagSingleChar)
     values$dfTag <- posSel(values$dfTag, pos=selected)
     #print(input$posTagHapax)
     values$menu <- 2
@@ -2191,20 +2195,26 @@ observeEvent(input$closePlotModalDoc,{
              Paragraphs = {group <- c("doc_id", "paragraph_id")},
              Sentences = {group <- c("doc_id", "sentence_id")})
       ## check to verify if groups exist or not
+
+      #community.repulsion <- as.numeric(gsub("%","",input$community.repulsion))/100
+      community.repulsion <- 0
+
       if (input$w_groupNet == "Documents" & "ungroupDoc_id" %in% names(values$dfTag)){
         values$network <- network(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected), term=input$w_term, group=group,
                                   n=input$nMax, minEdges=input$minEdges,
                                   labelsize=input$labelSize, opacity=input$opacity,
                                   interLinks=input$interLinks, normalization=input$normalizationCooc,
-                                  remove.isolated=input$removeIsolated)
+                                  remove.isolated=input$removeIsolated, community.repulsion=community.repulsion)
       } else {
         values$network <- network(LemmaSelection(values$dfTag) %>% filter(docSelected), term=input$w_term, group=group,
                                   n=input$nMax, minEdges=input$minEdges,
                                   labelsize=input$labelSize, opacity=input$opacity,
                                   interLinks=input$interLinks, normalization=input$normalizationCooc,
-                                  remove.isolated=input$removeIsolated)
+                                  remove.isolated=input$removeIsolated, community.repulsion=community.repulsion)
       }
       ## end check
+      net=values$network
+      save(net, file="network.rdata")
 
       values$netVis <- net2vis(nodes=values$network$nodes, edges=values$network$edges)
 

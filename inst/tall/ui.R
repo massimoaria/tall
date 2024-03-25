@@ -4,6 +4,9 @@ source("libraries.R", local=TRUE)
 source("tallFunctions.R", local=TRUE)
 libraries()
 
+### input scale choices
+choices <- paste0(seq(from = 0, to = 100,by = 1),"%")
+
 ## button style and contents
 
 style_bttn <- "border-radius: 20px; border-width: 1px; font-size: 15px; text-align: center; color: #ffff; padding-left: 7px; padding-right: 20px"
@@ -62,6 +65,8 @@ donation <- 'https://www.bibliometrix.org/home/index.php/donation'
 k_synth <- 'https://www.k-synth.unina.it'
 github_aria <- 'https://github.com/massimoaria/tall'
 
+#includeCSS(file.path("www", "custom_icons.css"))
+
 header <- shinydashboardPlus::dashboardHeader(title = title_tall,
                                               titleWidth = 250, controlbarIcon = NULL,
                                               tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("dataGroupedBy"))))),
@@ -96,11 +101,11 @@ header <- shinydashboardPlus::dashboardHeader(title = title_tall,
                                                   href = "https://www.corradocuccurullo.com/",
                                                   icon = fa_i(name = "user-tie")
                                                 ),
-                                                messageItem2(
-                                                  from = "Maria Spano",
+                                                messageItemCustom(
+                                                  from ="Maria Spano",
                                                   message = "",
                                                   href = "https://scholar.google.com/citations?user=kh_hGT0AAAAJ&hl=it&oi=ao",
-                                                  icon = fa_i(name = "user-tie")
+                                                  icon = "businesswoman"
                                                 ),
                                                 messageItem2(
                                                   from = "Luca D'Aniello",
@@ -777,19 +782,20 @@ body <- dashboardBody(
                                            checkboxGroupInput("posTagSingleChar", label=NULL,
                                                               choices = c("Single Character"),
                                                               selected = NULL
-                                           ),
-                                           hr(),
-                                           h5("Term Frequency"),
-                                           sliderTextInput(
-                                             inputId = "posTagFreq",
-                                             label = NULL,
-                                             choices = paste0(seq(0,100,by=1),"%"),
-                                             selected = c("0%", "100%"),
-                                             from_min = "0%",
-                                             from_max = "20%",
-                                             to_min = "80%",
-                                             to_max = "100%"
                                            )
+                                           #
+                                           # ,hr(),
+                                           # h5("Term Frequency"),
+                                           # sliderTextInput(
+                                           #   inputId = "posTagFreq",
+                                           #   label = NULL,
+                                           #   choices = paste0(seq(0,100,by=1),"%"),
+                                           #   selected = c("0%", "100%"),
+                                           #   from_min = "0%",
+                                           #   from_max = "20%",
+                                           #   to_min = "80%",
+                                           #   to_max = "100%"
+                                           # )
                            )),
                            div(
                            hr(),
@@ -1807,6 +1813,18 @@ body <- dashboardBody(
                                                      min = 0,
                                                      step = 0.1)
                                )),
+                             # fluidRow(
+                             #   column(6,
+                             #          sliderTextInput(inputId = "community.repulsion",
+                             #                          label = "Cluster Repulsion",
+                             #                          choices = choices,
+                             #                          selected = choices[1],
+                             #                          grid = FALSE,
+                             #                          hide_min_max = FALSE,
+                             #                          animate = TRUE
+                             #          )
+                             #   ),column(6
+                             #   )),
                              tooltip = tooltipOptions(title = "Options"),
                              width = "300px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
