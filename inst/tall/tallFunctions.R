@@ -316,7 +316,7 @@ normalizationOptions <- function(){
     ## ordinary corpus
     "email",      # email
     #"endmark",    # endmark punctuation
-    "extraspaces",# two o more spaces
+    #"extraspaces",# two o more spaces
     "non_ascii",  # non ascii chars
     "percent",    # percentage symbols %
     "number",     # numbers
@@ -337,7 +337,7 @@ normalizationOptions <- function(){
     ## ordinary corpus
     "E-mails",      # email
     #"Endmarks",    # endmark punctuation
-    "Extra spaces",# two o more spaces
+    #"Extra spaces",# two o more spaces
     "Non ASCII chars",  # non ascii chars
     "Percent symbol %",    # percentage symbols %
     "Numbers",     # numbers
@@ -348,7 +348,8 @@ normalizationOptions <- function(){
     "Bibliographic Citations"    # bibliographic citations
   )
 
-  id <- c(1,2,3,4,7,5,6,16,15,14,13,8,9,10,11,12)
+  # id <- c(1,2,3,4,7,5,6,16,15,14,13,8,9,10,11,12)
+  id <- c(1,2,3,4,7,5,6,15,14,13,8,9,10,11,12)
 
   what <- data.frame(label,item,id)
   return(what)
@@ -601,13 +602,14 @@ posTagAll <- function(df){
   pos <- c(ordinaryPos,additionalPos)
   description <- c(posLegend$description[posLegend$pos %in% pos], rep("Custom PoS", length(additionalPos)))
   description <- paste(pos, description,sep=": ")
-  obj <- data.frame(pos=pos, description=description)
+  obj <- data.frame(pos=pos, description=description) %>%
+    filter(!pos=="NGRAM_MERGED" )
   return(obj)
 }
 
 ### GROUP MENU FUNCTIONS -----
 noGroupLabels <- function(label){
-  setdiff(label, c("paragraph_id","sentence_id","sentence","start","end","term_id", "noSingleChar",
+  setdiff(label, c("doc_id","paragraph_id","sentence_id","sentence","start","end","term_id", "noSingleChar",
                    "token_id","token","lemma","upos","xpos","feats","head_token_id","dep_rel",
                    "deps","misc","original_doc_id","ungroupDoc_id","ungroupP_id", "ungroupS_id",
                    "POSSelected","token_hl","start_hl","end_hl","sentence_hl","lemma_original_nomultiwords",
@@ -781,7 +783,7 @@ valueBoxesIndices <- function(x){
     filter(n==1) %>%
     ungroup() %>%
     summarize(n=sum(n)) %>%
-    as.numeric() / nTokens *100
+    as.numeric() / nDictionary *100
 
   # 10. Guiraud
   guiraud <- round(nDictionary/sqrt(nTokens),1)
@@ -799,6 +801,75 @@ valueBoxesIndices <- function(x){
               hapax=round(hapax,1),
               guiraud=guiraud
   )
+}
+
+## wordcloud2vis
+
+wordcloud2vis <- function(nodes, labelsize=7, opacity=1){
+
+  nodes <- nodes %>%
+    mutate(id = row_number())
+  # size scaling
+  scalemin <- 20*(1+labelsize/5)
+  scalemax <- 100*(1+labelsize/5)
+  N <- nrow(nodes)
+
+
+  colorlists <- colorlist()
+  colorlists <- sample(colorlists,N, replace=TRUE)
+
+  opacity.min <- 0.6
+  shape <- "text"
+  layout <- "layout_nicely"
+
+  nodes <- nodes %>%
+    mutate(font.color=colorlists,
+           id = row_number(),
+           shape=shape,
+           color = colorlists,
+           title = paste("<strong>",label,"</strong>","<br><h5>freq = ",value,"</h5>", sep=""))
+
+  nodes$font.size <- log(nodes$value)
+  Min <- min(nodes$font.size)
+  Max <- max(nodes$font.size)
+  if (Max>Min){
+    size <- (nodes$font.size-Min)/(Max-Min)*15*labelsize+10
+  } else {size=10*labelsize}
+  size[size<scalemin]=scalemin
+  size[size>scalemax]=scalemax
+  nodes$font.size <- size
+
+  if (shape %in% c("dot","square")){
+    nodes$font.vadjust <- -0.7*nodes$font.size
+  }else{
+    nodes$font.vadjust <-0
+  }
+
+  ## opacity for label
+  opacity_font <- sqrt((nodes$font.size-min(nodes$font.size))/diff(range(nodes$font.size)))*opacity+opacity.min+0.1
+  if(is.nan(opacity_font[1])) opacity_font <- rep(opacity.min,length(opacity_font))
+
+
+  # node colors
+  nodes$opacity.nodes <- (opacity_font-min(opacity_font))/(diff(range(opacity_font)))*0.5+opacity.min
+  nodes$opacity.nodes[is.nan(nodes$opacity.nodes)] <- 0.5
+
+
+  VIS <-
+    visNetwork::visNetwork(nodes = nodes, edges = NULL, type="full", smooth=TRUE, physics=TRUE) %>%
+    visNetwork::visNodes(shadow=FALSE, shape=nodes$shape, font=list(color=nodes$font.color, size=nodes$font.size,vadjust=nodes$font.vadjust)) %>%
+    # visPhysics(solver = "barnesHut", barnesHut=list(
+    #   gravitationalConstant=-2000,
+    #   avoidOverlap=1
+    # )) %>%
+    visNetwork::visOptions(highlightNearest =list(enabled = T, hover = T, degree=1), nodesIdSelection = T) %>%
+    visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed = 0.2) %>%
+    visEvents(click = "function(nodes){
+                  Shiny.onInputChange('click', nodes.nodes[0]);
+                  ;}"
+    ) %>%
+    visNetwork::visOptions(manipulation = FALSE, height ="100%", width = "100%")
+  return(VIS)
 }
 
 ## wordcloud function
@@ -1034,11 +1105,24 @@ wordCA <- function(x, n=50,  term="lemma", group=c("Documents")){
 
 
 ## caClustering ----
-caClustering <- function(results, method = "ward.D2", nDim=2, nclusters=1){
+caClustering <- function(results, method = "ward.D2", nDim=2, nclusters=1, lim.contr){
   vars <- "Dim"
+
+  # filter by contribution
+  contr <- results$contrib %>%
+    select(1:nDim) %>%
+    filter_all(all_vars(. < lim.contr)) %>%
+    rownames_to_column() %>%
+    select("rowname")
+  #
+
   D <- dist(
-    results$wordCoord %>% select(starts_with(vars)) %>%
-      select(all_of(1:nDim))
+    results$wordCoord %>%
+      select(starts_with(vars)) %>%
+      select(all_of(1:nDim)) %>%
+      rownames_to_column() %>%
+      right_join(contr, by="rowname") %>%
+      column_to_rownames(var="rowname")
   )
   h <- hclust(D, method=method)
 
@@ -1056,7 +1140,25 @@ caClustering <- function(results, method = "ward.D2", nDim=2, nclusters=1){
 
 
 ## CA Plot ----
-ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = Inf, topDocPlot=20, threshold=0.03, labelsize=16, size=5){
+ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = Inf, topDocPlot=20, threshold=0.03, labelsize=16, size=5, lim.contr){
+
+  # filter by contribution
+  contr <- results$contrib %>%
+    select(c(dimX,dimY)) %>%
+    filter_all(all_vars(. < lim.contr)) %>%
+    rownames_to_column() %>%
+    select("rowname")
+  #
+
+  results$contrib <- results$contrib %>%
+    rownames_to_column() %>%
+    right_join(contr,by="rowname") %>%
+    column_to_rownames()
+
+  results$wordCoord <-  results$wordCoord %>%
+    rownames_to_column() %>%
+    right_join(contr,by="rowname") %>%
+    column_to_rownames()
 
   xlabel <- paste0("Dim",dimX)
   ylabel <- paste0("Dim",dimY)
@@ -1295,9 +1397,6 @@ dist2df <- function(inDist) {
 }
 
 
-
-
-
 ### NETWORK -----
 
 ## cooccurrence matrix
@@ -1468,7 +1567,7 @@ network <- function(x, term="lemma", group=c("doc_id", "sentence_id"), n, minEdg
     if (length(id_remove)>0){
       nodes <- nodes %>%
         filter(!id %in% id_remove)
-      opacity_font <- opacity_font[-id_remove]
+      #opacity_font <- opacity_font[-id_remove]
     }
   }
 
@@ -2515,54 +2614,6 @@ highlightSentences <- function(dfTag, id){
   return(s)
 }
 
-# textrankDocument <- function(dfTag, id, n){
-#   df <- dfTag %>%
-#     filter(doc_id==id)
-#
-#   #n <- max(3,round(0.05*max(df$sentence_id)))
-#
-#   sentences <- df %>%
-#     select(sentence_id,sentence) %>%
-#     distinct()
-#
-#   terminology <- df %>%
-#     filter(POSSelected) %>%
-#     select(sentence_id, lemma)
-#
-#   tr <- textrank_sentences(data = sentences, terminology = terminology)
-#   s <- tr$sentences %>%
-#     arrange(desc(textrank))
-#
-#   n <- min(n,nrow(s))
-#
-#   s$h <- c(rep(1,n),rep(0,nrow(s)-n))
-#   s <- s %>%
-#     left_join(df %>% select(paragraph_id,sentence_id) %>% distinct(), by = c("textrank_id"="sentence_id"))
-#
-#   abstract <- s %>%
-#     filter(h==1) %>%
-#     group_by(paragraph_id) %>%
-#     summarize(paragraph = paste(sentence, collapse=" ")) %>%
-#     ungroup %>%
-#     summarize(text=paste(paragraph, collapse="<br><br>&nbsp&nbsp&nbsp&nbsp&nbsp")) %>%
-#     mutate(text= paste0("<h3>Document: <strong>",id,"</strong></h3><hr><br><em>",text,"</em>"))
-#
-#   s <- s %>%
-#     mutate(sentence = ifelse(h==1, paste0("<mark><strong>", sentence, "</strong></mark>"), sentence)) %>%
-#     arrange(textrank_id) %>%
-#     group_by(paragraph_id) %>%
-#     summarize(paragraph=paste(sentence, collapse=" "),
-#               highlighted=ifelse(sum(h)>0,"Yes","No")) %>%
-#     #filter(highlighted=="Yes") %>%
-#     arrange(paragraph_id) %>%
-#     select(paragraph_id,paragraph) %>%
-#     rename("Paragraph ID" = paragraph_id,
-#            "Paragraph" = paragraph)
-#
-#   results <- list(document=s, sentences=tr$sentences %>% arrange(desc(textrank)), abstract=abstract$text[1])
-#   return(results)
-# }
-
 textrankDocument <- function(dfTag, id){
   df <- dfTag[dfTag$doc_id==id,]
 
@@ -2969,13 +3020,6 @@ highlight <- function(df){
                                 paste0(substr(sentence,0,start_hl-1),token_hl,substr(sentence,end_hl+1,nchar(sentence))),
                                 sentence)) %>% ungroup()
 }
-
-
-
-
-
-
-
 
 ## saveTall function ----
 saveTall <- function(dfTag,custom_lists,language,menu,where,file){

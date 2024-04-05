@@ -3,6 +3,8 @@
 # Libraries ----
 libraries <- function(){
   if (!suppressPackageStartupMessages(require(shiny))){install.packages("shiny"); suppressPackageStartupMessages(require(shiny))}
+  if (!suppressPackageStartupMessages(require(ldatuning))){install.packages("ldatuning"); suppressPackageStartupMessages(require(ldatuning))}
+  if (!suppressPackageStartupMessages(require(ca))){install.packages("ca"); suppressPackageStartupMessages(require(ca))}
   if (!suppressPackageStartupMessages(require(shinydashboard))){install.packages("shinydashboard"); suppressPackageStartupMessages(require(shinydashboard))}
   if (!suppressPackageStartupMessages(require(shinydashboardPlus))){install.packages("shinydashboardPlus"); suppressPackageStartupMessages(require(shinydashboardPlus))}
   if (!suppressPackageStartupMessages(require(shinyWidgets))){install.packages("shinyWidgets"); suppressPackageStartupMessages(require(shinyWidgets))}
