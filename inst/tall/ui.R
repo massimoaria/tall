@@ -494,7 +494,7 @@ body <- dashboardBody(
                                            ),
                                            br(),
                                            checkboxGroupInput("textNormCorpusList", label="Ordinary corpus",
-                                                              choices = normalizationOptions()$label[7:16],
+                                                              choices = normalizationOptions()$label[7:15],
                                                               selected = ""
                                            )
                            )),
@@ -960,7 +960,9 @@ body <- dashboardBody(
                             ),
                             tabPanel("WordCloud",
                                      column(9,
-                                            wordcloud2::wordcloud2Output("wordcloudPlot", height = "75vh")
+                                            shinycssloaders::withSpinner(visNetworkOutput("wordcloudPlot", width="auto", height = "75vh"),
+                                                                         color = getOption("spinner.color", default = "#4F7942"))
+                                            # wordcloud2::wordcloud2Output("wordcloudPlot", height = "75vh")
                                      ),
                                      column(3,
                                             div(
@@ -973,7 +975,20 @@ body <- dashboardBody(
                                                                        label = "WordCloud by:",
                                                                        choices = c("Tokens"="token",
                                                                                    "Lemmas"="lemma"),
-                                                                       selected = "token"), style="margin-top:-3px"
+                                                                       selected = "token"),
+                                                           numericInput("nWC",
+                                                                        label = "Words",
+                                                                        value = 100,
+                                                                        min = 10,
+                                                                        max = 500,
+                                                                        step = 1),
+                                                           numericInput("labelsizeWC",
+                                                                        label = "Text Size",
+                                                                        value = 10,
+                                                                        min = 1,
+                                                                        max = 20,
+                                                                        step = 1),
+                                                           style="margin-top:-3px"
                                                          )
                                                   )),
                                                 fluidRow(
@@ -990,8 +1005,11 @@ body <- dashboardBody(
                                                          div(
                                                            align = "center",style="margin-top:15px",
                                                            width=12,
-                                                           do.call("actionButton", c(export_bttn, list(
-                                                             inputId = "wcSave")
+                                                           # do.call("actionButton", c(export_bttn, list(
+                                                           #   inputId = "wcSave")
+                                                           # ))
+                                                           do.call("downloadButton", c(export_bttn, list(
+                                                             outputId = "wcSave")
                                                            ))
                                                          )
                                                   )
@@ -1663,6 +1681,12 @@ body <- dashboardBody(
                                           value = 0,
                                           min = 0,
                                           step = 1),
+                             numericInput("lim.contribCA",
+                                          label = "Max Contribution",
+                                          value = 2,
+                                          min = 0.01,
+                                          max = 10,
+                                          step = 0.01),
                              fluidRow(
                                column(6,
                                       numericInput("labelsizeCA",
@@ -1708,7 +1732,7 @@ body <- dashboardBody(
                                      shinycssloaders::withSpinner(DT::DTOutput("caCoordTable"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
-                            tabPanel("Contributes",
+                            tabPanel("Contributions",
                                      shinycssloaders::withSpinner(DT::DTOutput("caContribTable"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),

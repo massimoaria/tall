@@ -1108,9 +1108,9 @@ observeEvent(input$reset_confirmation2, {
 
   #### box1 ---------------
   output$nDoc <- renderValueBox({
-    values$vb <- valueBoxesIndices(LemmaSelection(values$dfTag) %>% filter(docSelected))
+    values$vb <- valueBoxesIndices(values$dfTag %>% filter(docSelected))
 
-    values$VbData <- data.frame(Description=c("Documents", "Tokens", "Dictionary", "Lemmas", "Sentences",
+    values$VbData <- data.frame(Description=c("Documents", "Tokens", "Types", "Lemmas", "Sentences",
                                               "Docs Avg Length in Chars", "Doc Avg Length in Tokens",
                                               "Sent Avg Length in Tokens", "Sent Avg Length in Chars",
                                               "TTR", "Hapax (%)", "Guiraud Index"),
@@ -1119,7 +1119,6 @@ observeEvent(input$reset_confirmation2, {
              subtitle = p(strong(values$vb$nDoc), style = 'font-size:36px;color:white;', align="center"),
              icon = icon("duplicate", lib="glyphicon" ), color = "olive",
              width = NULL)
-
   })
 
   onclick('clickbox1', showModal(modalDialog(
@@ -1284,7 +1283,7 @@ observeEvent(input$reset_confirmation2, {
     p(HTML("<p style='margin:0cm;font-size:16px;font-family:'Calibri',sans-serif;'><span style='font-family:Helvetica;color:black;'>The words that occur just one time are called <strong style='font-weight: 700; color: rgb(0, 0, 0); font-family: Helvetica; font-size: 16px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;'>Hapax</strong> - the number of words that appear only once in a text.</span></p>
 <p style='margin:0cm;font-size:16px;font-family:'Calibri',sans-serif;'><span style='font-family:Helvetica;color:black;'><strong>Hapax (%)</strong> can be used to measure the <em>lexical richness</em> of a text.&nbsp;</span></p>
 <p style='margin:0cm;font-size:16px;font-family:'Calibri',sans-serif;'><br></p>
-<p style='margin: 0cm; font-size: 16px; font-family: Calibri, sans-serif; text-align: center;'><span style='font-family:Helvetica;color:black;'><span style='color: rgb(0, 0, 0); font-family: Helvetica; font-size: 16px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;'><em>Hapax (%) = (number of hapax / number of tokens) * 100</em></span></span></p>
+<p style='margin: 0cm; font-size: 16px; font-family: Calibri, sans-serif; text-align: center;'><span style='font-family:Helvetica;color:black;'><span style='color: rgb(0, 0, 0); font-family: Helvetica; font-size: 16px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;'><em>Hapax (%) = (number of hapax / number of types) * 100</em></span></span></p>
 <p style='margin: 0cm; font-size: 16px; font-family: Calibri, sans-serif; text-align: center;'><br></p>
 <p style='margin:0cm;font-size:16px;font-family:'Calibri',sans-serif;'><span style='font-family:Helvetica;color:black;'>A text with a high Hapax (%) is likely to be more lexically rich than a text with a low Hapax (%). It can also be used to compare different texts. For example, a text written in a technical field is likely to have a higher Hapax (%) than a text written in a general-interest field.&nbsp;</span><span style='font-family:Helvetica;color:black;'>&nbsp;</span></p>
 <p style='margin:0cm;font-size:16px;font-family:'Calibri',sans-serif;text-align:center;'><br></p>"), style = 'font-size:16px'),
@@ -1335,49 +1334,70 @@ observeEvent(input$reset_confirmation2, {
     input$wcApply
   },
   {
-    n <- 100 #showing the first 200 lemmas
-    dfWC <- LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected)
-    values$wcDfPlot <- freqByPos(dfWC, term=input$termWC, pos=unique(dfWC$upos[dfWC$docSelected==TRUE])) %>%
-      slice_head(n=n) %>%
-      rename(text = term,
-             freq = n)
+
+    N <- input$nWC #showing the first 100 lemmas
+    pos <- LemmaSelection(values$dfTag) %>%
+      dplyr::filter(docSelected) %>%
+      select(upos)
+    pos <- unique(pos$upos)
+
+    values$wcDfPlot <- freqByPos(LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected),
+                                 term=input$termWC,
+                                 pos=pos) %>%
+      slice_head(n=N) %>%
+      rename(label = term,
+             value = n)
+    values$WC2VIS <- wordcloud2vis(values$wcDfPlot, labelsize=input$labelsizeWC, opacity=1)
     })
 
-  output$wordcloudPlot <- renderWordcloud2({
+  output$wordcloudPlot <- renderVisNetwork({
     wcData()
-    values$wcPlot <- wordcloud2a(values$wcDfPlot,
-                                            fontFamily = "Impact", fontWeight = "normal", minSize=0,
-                                            minRotation = 0, maxRotation = 0, shuffle = TRUE,
-                                            rotateRatio = 0.7, shape = "circle",ellipticity = 0.65,
-                                            #widgetsize = "100%",
-                                            figPath = NULL,
-                                            #size = ifelse(length(values$wcDfPlot$text)>100,1,1.3),
-                                            color = "random-dark", backgroundColor = "transparent")
-    values$wcPlot
+    values$WC2VIS
   })
+  # output$wordcloudPlot <- renderWordcloud2({
+  #   wcData()
+  #   values$wcPlot <- wordcloud2a(values$wcDfPlot,
+  #                                           fontFamily = "Impact", fontWeight = "normal", minSize=0,
+  #                                           minRotation = 0, maxRotation = 0, shuffle = TRUE,
+  #                                           rotateRatio = 0.7, shape = "circle",ellipticity = 0.65,
+  #                                           #widgetsize = "100%",
+  #                                           figPath = NULL,
+  #                                           #size = ifelse(length(values$wcDfPlot$text)>100,1,1.3),
+  #                                           color = "random-dark", backgroundColor = "transparent")
+  #   values$wcPlot
+  # })
 
 
-  output$wcDfData <- renderDT(server=FALSE,{
-    wcData()
+  # output$wcDfData <- renderDT(server=FALSE,{
+  #   wcData()
+  #   DTformat(values$wcDfPlot,n=15, left=1, right=2, numeric=2, pagelength=TRUE, dom=TRUE, size='110%', filename="WordCloudData")
+  # })
 
-    DTformat(values$wcDfPlot,n=15, left=1, right=2, numeric=2, pagelength=TRUE, dom=TRUE, size='110%', filename="WordCloudData")
+  ## export WordClud button
+  output$wcSave <- downloadHandler(
+    filename = function() {
+      paste("Wordcloud-", Sys.Date(), ".png", sep="")
+    },
+    content <- function(file) {
+      plot2png(values$WC2VIS, filename=file, zoom = values$zoom)
+    },
+    contentType = "png"
+  )
 
-  })
-
-  ## export PNG button
-  observeEvent(input$wcSave,{
-    # remove old file
-    switch(Sys.info()[['sysname']],
-           Windows= {home <- Sys.getenv('R_USER')},
-           Linux  = {home <- Sys.getenv('HOME')},
-           Darwin = {home <- Sys.getenv('HOME')})
-    filename <- paste(home,"/Downloads/WordCloud-", paste0(Sys.Date(),"_",format(Sys.time(),'%H:%M:%S')), ".png", sep="")
-    file_old <- dir(paste0(home,"/Downloads"), pattern=paste("WordCloud-", Sys.Date(), ".png", sep=""))[1]
-    if(!is.na(file_old)){
-      file.remove(filename)
-    }
-    plot2png(values$wcPlot, filename=filename, zoom = values$zoom, type="plotly")
-  })
+  # ## export PNG button
+  # observeEvent(input$wcSave,{
+  #   # remove old file
+  #   switch(Sys.info()[['sysname']],
+  #          Windows= {home <- Sys.getenv('R_USER')},
+  #          Linux  = {home <- Sys.getenv('HOME')},
+  #          Darwin = {home <- Sys.getenv('HOME')})
+  #   filename <- paste(home,"/Downloads/WordCloud-", paste0(Sys.Date(),"_",format(Sys.time(),'%H:%M:%S')), ".png", sep="")
+  #   file_old <- dir(paste0(home,"/Downloads"), pattern=paste("WordCloud-", Sys.Date(), ".png", sep=""))[1]
+  #   if(!is.na(file_old)){
+  #     file.remove(filename)
+  #   }
+  #   plot2png(values$wcPlot, filename=filename, zoom = values$zoom, type="plotly")
+  # })
 
 
   ## VOCABULARY ----
@@ -2063,11 +2083,11 @@ observeEvent(input$closePlotModalDoc,{
         values$CA <- wordCA(LemmaSelection(values$dfTag) %>% filter(docSelected), n=input$nCA, term=input$termCA, group = input$groupCA)
       }
       ##
-      values$CA <- caClustering(values$CA, nclusters = input$nClustersCA, nDim=input$nDimsCA)
+      values$CA <- caClustering(values$CA, nclusters = input$nClustersCA, nDim=input$nDimsCA, lim.contr=input$lim.contribCA)
       values$CAdimY <- as.numeric(input$dimPlotCA)*2
       values$CAdimX <- values$CAdimY-1
       values$plotCA <- ca2plotly(values$CA, dimX = values$CAdimX, dimY = values$CAdimY,
-                                 topWordPlot = input$nCA, topDocPlot=input$nDocCA, threshold=0.03, labelsize = input$labelsizeCA, size=input$sizeCA)
+                                 topWordPlot = input$nCA, topDocPlot=input$nDocCA, threshold=0.03, labelsize = input$labelsizeCA, size=input$sizeCA, lim.contr=input$lim.contribCA)
       values$CADendrogram <- dend2vis(values$CA$clustering$h, labelsize=input$labelsizeCA, nclusters=input$nClustersCA, community=FALSE)
 
       #wordCoordData
@@ -2075,7 +2095,9 @@ observeEvent(input$closePlotModalDoc,{
         select(label, everything()) %>%
         left_join(
           data.frame(label=names(values$CA$clustering$groups), Group=values$CA$clustering$groups), by = "label") %>%
-        rename(Label = label)
+        rename(Label = label) %>%
+        select(Label, Group, everything()) %>%
+        rename(Cluster=Group)
 
       #contribData
       values$CA$contribData <- values$CA$contrib %>%
@@ -2114,8 +2136,8 @@ observeEvent(input$closePlotModalDoc,{
   # CA Table
   output$caCoordTable <- renderDT(server=FALSE,{
     caPlotFunction()
-    DTformat(values$CA$wordCoordData, size='100%',filename="CAWordCoordinatesTable", pagelength=TRUE, left=1, right=2:ncol(values$CA$wordCoord),
-             numeric=2:ncol(values$CA$wordCoord), dom=TRUE, filter="top", round=3)
+    DTformat(values$CA$wordCoordData, size='100%',filename="CAWordCoordinatesTable", pagelength=TRUE, left=1, right=2:ncol(values$CA$wordCoordData),
+             numeric=3:ncol(values$CA$wordCoordData), dom=TRUE, filter="top", round=3)
   })
 
   output$caContribTable <- renderDT(server=FALSE,{
@@ -2311,24 +2333,33 @@ observeEvent(input$closePlotModalDoc,{
 
   output$wordInContextNet <- renderDT(server=FALSE,{
     if (!is.null(input$click)) id <- input$click
-    if (input$sidebarmenu=="w_networkGrako") {
-      word_search<- values$grako$nodes$title[values$grako$nodes$id==id]
+    switch(input$sidebarmenu,
+           "w_networkGrako"={
+             word_search<- values$grako$nodes$title[values$grako$nodes$id==id]
 
-      selectedEdges <- values$grako$edges %>%
-        filter(term_from %in% word_search | term_to %in% word_search) %>%
-        mutate(grako = paste0(term_from, " ",term_to))
+             selectedEdges <- values$grako$edges %>%
+               filter(term_from %in% word_search | term_to %in% word_search) %>%
+               mutate(grako = paste0(term_from, " ",term_to))
 
-      sentences <- values$grako$multiwords %>%
-        filter(grako %in% selectedEdges$grako) %>%
-        select(doc_id, sentence_hl) %>%
-        distinct()
-    } else {
-      word_search<- values$network$nodes$label[values$network$nodes$id==id]
-      sentences <- values$dfTag %>%
-        filter(docSelected) %>%
-        filter(lemma %in% word_search) %>%
-        ungroup() %>% select(doc_id, lemma, token, sentence_hl)
-    }
+             sentences <- values$grako$multiwords %>%
+               filter(grako %in% selectedEdges$grako) %>%
+               select(doc_id, sentence_hl) %>%
+               distinct()
+           },
+           "overview"={
+             word_search<- values$WC2VIS$x$nodes$label[values$WC2VIS$x$nodes$id==id]
+             sentences <- values$dfTag %>%
+               filter(docSelected) %>%
+               filter(lemma %in% word_search|token %in% word_search) %>%
+               ungroup() %>% select(doc_id, lemma, token, sentence_hl)
+           },
+           {
+             word_search<- values$network$nodes$label[values$network$nodes$id==id]
+             sentences <- values$dfTag %>%
+               filter(docSelected) %>%
+               filter(lemma %in% word_search) %>%
+               ungroup() %>% select(doc_id, lemma, token, sentence_hl)
+           })
 
     # find sentences containing the tokens/lemmas
     DTformat(sentences, size='100%', button = TRUE)
