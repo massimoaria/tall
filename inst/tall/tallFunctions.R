@@ -244,42 +244,65 @@ wikiExtract <- function(df){
 }
 
 ### SPLIT TEXT INTO SUB-DOCS
-splitDoc <- function(df, word, txSplitBy="starting"){
+splitDoc <- function(df, word){
+  if (nchar(word)<=3){
+    return(df)
+  }
   df <- df %>% filter(doc_selected)
   df_splitted <- list()
   n <- length(unique(df$doc_id))
-  switch(txSplitBy,
-         # Row starting with a pattern (e.g. 'CHAPTER ')
-         starting={
-           pattern <- paste0("\n\n",word,"*")
-           for (i in seq_len(n)){
-             testo <- df$text[[i]]
-             ind <- unlist((gregexpr(pattern,testo)))
-             if (ind[1]>1){
-               start <- c(1,ind[-length(ind)])
-               end <- c(ind-1,nchar(testo))
-             } else{
-               start <- ind
-               end <- c(ind[-1]-1,nchar(testo))
-             }
-             text <- substr(rep(testo,length(ind)),start,end)
-             df_splitted[[i]] <- text
-           }
-         },
-         # split by a special char sequence e.g. H1__
-         into={
-           for (i in seq_len(n)){
-             testo <- df$text[i]
-             testo <- unlist(strsplit(testo, word))
-             df_splitted[[i]] <- testo[nchar(testo)>0]
-           }
-         })
+  # switch(txSplitBy,
+  #        # Row starting with a pattern (e.g. 'CHAPTER ')
+  #        starting={
+  #          pattern <- paste0("\n\n",word,"*")
+  #          for (i in seq_len(n)){
+  #            testo <- df$text[[i]]
+  #            ind <- unlist((gregexpr(pattern,testo)))
+  #            if (ind[1]>1){
+  #              start <- c(1,ind[-length(ind)])
+  #              end <- c(ind-1,nchar(testo))
+  #            } else{
+  #              start <- ind
+  #              end <- c(ind[-1]-1,nchar(testo))
+  #            }
+  #            text <- substr(rep(testo,length(ind)),start,end)
+  #            df_splitted[[i]] <- text
+  #          }
+  #        },
+  #        # split by a special char sequence e.g. H1__
+  #        into={
+  for (i in seq_len(n)){
+    testo <- df$text[i]
+    testo <- unlist(strsplit(testo, word))
+    df_splitted[[i]] <- testo[nchar(testo)>0]
+  }
+  # })
   doc_id_old <- rep(df$doc_id,lengths(df_splitted))
-  df_splitted <- unlist(df_splitted)
+
   df <- data.frame(doc_id=paste0("doc_",sprintf(paste0("%0",nchar(length(df_splitted)),"d"), 1:length(df_splitted))),
-                   text = df_splitted,
+                   text = unlist(df_splitted),
                    doc_id_old=doc_id_old,
-                   doc_selected=TRUE)
+                   doc_selected=TRUE) %>%
+    left_join(df %>%
+                select(-c("doc_selected", "text", "text_original")),
+              by = c("doc_id_old"="doc_id")
+    ) %>%
+    mutate("text_original" = text,
+           "split_word" = word)
+  return(df)
+}
+
+unsplitDoc <- function(df){
+  if ("doc_id_old" %in% names(df)){
+    word=df$split_word[1]
+    df <- df %>%
+      group_by(doc_id_old) %>%
+      mutate(text = paste(text, collapse=word),
+             doc_id=doc_id_old) %>%
+      ungroup() %>%
+      select(-c("doc_id_old","split_word")) %>%
+      distinct(doc_id, .keep_all = TRUE)
+  }
   return(df)
 }
 
@@ -613,7 +636,8 @@ noGroupLabels <- function(label){
                    "token_id","token","lemma","upos","xpos","feats","head_token_id","dep_rel",
                    "deps","misc","original_doc_id","ungroupDoc_id","ungroupP_id", "ungroupS_id",
                    "POSSelected","token_hl","start_hl","end_hl","sentence_hl","lemma_original_nomultiwords",
-                   "filename", "upos_original", "folder", "docSelected", "ngram","doc_selected", "noHapax","FrequencyRange","text_original")
+                   "filename", "upos_original", "folder", "docSelected", "ngram","doc_selected", "noHapax",
+                   "FrequencyRange","text_original", "doc_id_old", "split_word")
   )
 }
 
@@ -2868,6 +2892,31 @@ popUp <- function(title=NULL, type="success", btn_labels="OK"){
     showCancelButton = FALSE,
     btn_labels = btn_labels,
     btn_colors = btn_colors,
+    timer = timer,
+    imageUrl = "",
+    animation = TRUE
+  )
+}
+
+## generic popup ###
+
+popUpGeneric <- function(title=NULL, type="success", color=c("#1d8fe1","#913333","#FFA800"),
+                  subtitle="",
+                  btn_labels="OK"){
+  showButton = TRUE
+  timer = NA
+  show_alert(
+    title = title,
+    text = subtitle,
+    type = type,
+    size = "s",
+    closeOnEsc = TRUE,
+    closeOnClickOutside = TRUE,
+    html = FALSE,
+    showConfirmButton = showButton,
+    showCancelButton = FALSE,
+    btn_labels = btn_labels,
+    btn_colors = color,
     timer = timer,
     imageUrl = "",
     animation = TRUE

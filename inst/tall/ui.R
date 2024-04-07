@@ -286,18 +286,18 @@ body <- dashboardBody(
                            width = 12,
                            div(h3(strong(em("Split texts"))), style="margin-top:-57px"),
                            hr(),
-                           selectInput(inputId="txSplitBy",
-                                       label="Split texts by:",
-                                       choices = c("a word at the beginning of a line" = "starting",
-                                                   "a sequence of special characters" = "into"),
-                                       selected = "starting"),
+                           # selectInput(inputId="txSplitBy",
+                           #             label="Split texts by:",
+                           #             choices = c("a word at the beginning of a line" = "starting",
+                           #                         "a sequence of special characters" = "into"),
+                           #             selected = "starting"),
                            textInput(inputId="txSplitWord",
-                                     label="Insert a word or a sequence of special chars (e.g. H1__)",
+                                     label="Split texts by a sequence of characters (e.g. **H1**)",
                                      value=NULL),
                            hr(),
                            div(
                            fluidRow(
-                             column(6,
+                             column(4,
                                     div(align="center",
                                         title = t_run,
                                         do.call("actionButton", c(run_bttn, list(
@@ -305,7 +305,13 @@ body <- dashboardBody(
                                         ))
                                     )
                              ),
-                             column(6,
+                             column(4,
+                                    title = t_back,
+                                    do.call("actionButton", c(back_bttn, list(
+                                      inputId = "splitTextBack")
+                                    ))
+                             ),
+                             column(4,
                                     div(align="center",
                                         title = t_save,
                                         do.call("downloadButton", c(list(
