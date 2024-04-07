@@ -579,16 +579,35 @@ observeEvent(input$reset_confirmation2, {
   ### SPLIT ----
 
   splitDocFunc <- eventReactive(input$splitTextRun,{
-    #values$txt_original <- values$txt
-    values$txt <- splitDoc(values$txt, word=input$txSplitWord, txSplitBy=input$txSplitBy) %>%
-      mutate(text_original = text)
+    if (nchar(input$txSplitWord)<3){
+      popUpGeneric(title="Error",
+                   type="error", color=c("#913333"),
+                   subtitle="Sequence must be at least 3 characters long",
+                   btn_labels="OK")
+    } else {
+      values$txt <- splitDoc(values$txt, word=input$txSplitWord)
+      popUpGeneric(title=paste0("Split by: '",input$txSplitWord,"'"),
+                   type="success", color=c("#1d8fe1"),
+                   subtitle=paste0("Now you have ",nrow(values$txt)," documents"),
+                   btn_labels="OK")
+    }
+
+  })
+
+  ## back to the original txt
+  observeEvent(input$splitTextBack, {
+    values$txt <- unsplitDoc(values$txt)
+    popUpGeneric(title="Restored",
+                 type="waiting", color=c("#FFA800"),
+                 subtitle=paste0("Now you have ",nrow(values$txt)," documents"),
+                 btn_labels="OK")
   })
 
   output$splitTextData <- DT::renderDT({
     splitDocFunc()
     DTformat(values$txt %>%
                mutate(text = paste0(substr(text,1,500),"...")) %>%
-               select(-"text_original") %>%
+               select(-c("text_original", ends_with("id_old"))) %>%
                filter(doc_selected) ,
              left=2, nrow=5, filter="none", button=TRUE, delete=TRUE)
   })
