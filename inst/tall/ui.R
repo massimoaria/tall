@@ -295,6 +295,10 @@ body <- dashboardBody(
                                      label="Split texts by a sequence of characters (e.g. **H1**)",
                                      value=NULL),
                            hr(),
+                           helpText(em("The minimum sequence of characters required to split the text must consist of at least three characters.",
+                                       br(),br(),
+                                       "It's important to note that the text used as a delimiter for splitting is case sensitive (e.g., 'CHAPTER' is different from 'chapter').")
+                           ),
                            div(
                            fluidRow(
                              column(4,
@@ -306,10 +310,12 @@ body <- dashboardBody(
                                     )
                              ),
                              column(4,
+                                    div(align="center",
                                     title = t_back,
                                     do.call("actionButton", c(back_bttn, list(
                                       inputId = "splitTextBack")
                                     ))
+                                    )
                              ),
                              column(4,
                                     div(align="center",
@@ -724,7 +730,7 @@ body <- dashboardBody(
                            uiOutput("multiwordPosSel"),
                            hr(),
                            div(
-                           fluidRow(column(6,
+                           fluidRow(column(4,
                                            div(
                                              align = "center",style="margin-top:-15px",
                                              width=12,
@@ -734,7 +740,17 @@ body <- dashboardBody(
                                            )
 
                            ),
-                           column(6,
+                           column(4,
+                                  div(
+                                    align = "center",style="margin-top:-15px",
+                                    width=12,
+                                    title = t_back,
+                                    do.call("actionButton", c(back_bttn, list(
+                                      inputId = "multiwordCreatBack")
+                                    ))
+                                  )
+                           ),
+                           column(4,
                                   div(
                                     title = t_save,
                                     div(align="center",
@@ -753,6 +769,87 @@ body <- dashboardBody(
             )
     ),
 
+    ## Multiword By a List ----
+    tabItem(tabName = "multiwordByList",
+            fluidPage(
+              fluidRow(
+                column(12,
+                       h3(strong("Multi-Word Creation by a List"), align = "center"))),
+              br(),
+              br(),
+              fluidRow(
+                column(9,
+                       tabsetPanel(type = "tabs",
+                                   tabPanel("Multi-Word List",
+                                            shinycssloaders::withSpinner(DT::DTOutput("multiwordList2"),
+                                                                         color = getOption("spinner.color", default = "#4F7942"))
+                                   ),
+                                   tabPanel("Annotated Text including Multi-Word",
+                                            shinycssloaders::withSpinner(DT::DTOutput("multiwordData2"),
+                                                                         color = getOption("spinner.color", default = "#4F7942"))
+                                   )
+                       )
+                ),
+                column(3,
+                       div(
+                         box(
+                           width = 12,
+                           div(h3(strong(em("Import a Multi-Word List"))), style="margin-top:-57px"),
+                           hr(),
+                           selectInput("termMWL",
+                                       "Terms:",
+                                       choices = c("Tokens" = "token",
+                                                   "Lemmas" = "lemma"),
+                                       selected = "lemma"),
+                           helpText(h5("Please ensure that the Multi-Word List is formatted as an Excel/CSV file with one column.
+                                       Each cell of that column include a multi-word. Each term have to be separated by a single whitespace.")),
+                           fluidRow(column(12,
+                                           fileInput("multiword_lists", label=NULL,
+                                                     multiple = TRUE,
+                                                     accept = c(".csv",
+                                                                ".xls",
+                                                                ".xlsx"))
+                           )),
+                           div(
+                             hr(),
+                             div(
+                               fluidRow(column(4,
+                                               div(
+                                                 align = "center",style="margin-top:-15px",
+                                                 width=12,
+                                                 do.call("actionButton", c(run_bttn, list(
+                                                   inputId = "multiwordListRun")
+                                                 )))
+                               ),
+                               column(4,
+                                      div(
+                                        align = "center",style="margin-top:-15px",
+                                        width=12,
+                                        title = t_back,
+                                        do.call("actionButton", c(back_bttn, list(
+                                          inputId = "multiwordListBack")
+                                        ))
+                                      )
+                               ),
+                               column(4,
+                                      div(
+                                        title = t_save,
+                                        div(align="center",
+                                            do.call("downloadButton", c(save_bttn, list(
+                                              outputId = "multiwordListSave")
+
+                                            ))
+                                        )
+                                      )
+                               )
+                               ), style="margin-top: -8px"), style="margin-top:-15px")
+                         ),style="margin-top:40px"
+                       )
+                )
+
+              )
+            )
+    ),
     ## PoS Tag Selection -----
 
     tabItem(tabName = "posTagSelect",
