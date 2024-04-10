@@ -631,7 +631,7 @@ observeEvent(input$reset_confirmation2, {
     randomTextFunc()
     DTformat(values$txt %>%
                filter(doc_selected) %>%
-               select(-doc_selected) %>%
+               select(-c("doc_selected","text_original")) %>%
                mutate(text = paste0(substr(text,1,500),"...")),
              left=2, nrow=5, filter="none", button=TRUE)
   })
@@ -657,10 +657,10 @@ observeEvent(input$reset_confirmation2, {
     EXTINFOloading()
     DTformat(values$txt %>%
                filter(doc_selected) %>%
+               select(-c("text_original","doc_selected")) %>%
                mutate(text = paste0(substr(text,1,250),"...")),
              left=4, nrow=3, filter="top", button=TRUE, delete=TRUE)
   })
-
 
   output$doc_idExport <- downloadHandler(
     filename = function() {
@@ -698,7 +698,7 @@ observeEvent(input$reset_confirmation2, {
     #restoreOriginalText()
     if (values$menu==0){
       DTformat(values$txt %>%
-                 select(-text_original) %>%
+                 select(-"text_original") %>%
                  filter(doc_selected) %>%
                  mutate(text = paste0(substr(text,1,500),"...")) %>%
                  select(doc_id, text, everything()) %>%
@@ -910,6 +910,98 @@ observeEvent(input$reset_confirmation2, {
     }, contentType = "tall"
   )
 
+  ## back to the original txt
+  observeEvent(input$multiwordCreatBack, {
+    values$dfTag <- rakeReset(values$dfTag)
+    values$multiwords <- data.frame(keyword="",ngram=NA, freq=NA, rake=NA)
+    popUpGeneric(title="Multiword Removed",
+                 type="waiting", color=c("#FFA800"),
+                 subtitle=paste0("Now all multiwords have been remove from your documents"),
+                 btn_labels="OK")
+  })
+
+
+  ## Multi-Word by a list ----
+  observeEvent(
+    ignoreNULL = TRUE,
+    eventExpr = {
+      input$multiword_lists
+    },
+    handlerExpr = {
+      file <- input$multiword_lists
+      req(file$datapath[1])
+      keyword_lists <- lapply(file$datapath,function(x){
+        x <- read_excel(x) %>% select(1)
+        names(x) <- "keyword"
+        return(x)
+      })
+      keywordList <- do.call(rbind,keyword_lists)
+      values$keywordList <- keywordList
+    }
+  )
+
+  multiword2 <- eventReactive({
+    input$multiwordListRun
+  },{
+
+    ### RAKE Algorithm ####
+
+    # to replace with input values
+    term <-  input$termMWL
+
+    relevant <- unique(values$dfTag$upos)
+
+    obj <- rake(values$dfTag, relevant = relevant, term=term, type="bylist", keywordList = values$keywordList)
+
+    values$dfTag <- obj$dfTag
+
+    values$dfTag <- highlight(values$dfTag)
+    values$multiwords <- obj$multiwords
+  })
+
+  output$multiwordData2 <- renderDT({
+    multiword2()
+    DTformat(values$dfTag %>% dplyr::filter(POSSelected) %>%
+               group_by(doc_id,sentence_id) %>%
+               select(doc_id, sentence_id,sentence,token,lemma, upos) %>%
+               rename(D_id=doc_id,
+                      S_id=sentence_id,
+                      Sentence=sentence,
+                      Token=token,
+                      Lemma=lemma,
+                      "Part of Speech"=upos)
+    )
+  })
+
+  output$multiwordList2 <- renderDT(server=FALSE,{
+    multiword2()
+    DTformat(values$multiwords %>%  rename("Multi-Words" = keyword,
+                                           "Lenght" = ngram,
+                                           "Freq"=freq) %>%
+               arrange(desc(Freq), .by_group = FALSE))
+  })
+
+  output$multiwordListSave <- downloadHandler(
+    filename = function() {
+      paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
+    },
+    content <- function(file) {
+      saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "Multi-Word by a List", file)
+      # D <- date()
+      # save(dfTag,menu,D,where, file=file)
+    }, contentType = "tall"
+  )
+
+  ## back to the original txt
+  observeEvent(input$multiwordListBack, {
+    values$dfTag <- rakeReset(values$dfTag)
+    values$multiwords <- data.frame(keyword="",ngram=NA, freq=NA)
+
+    popUpGeneric(title="Multiword Removed",
+                 type="waiting", color=c("#FFA800"),
+                 subtitle=paste0("Now all multiwords have been remove from your documents"),
+                 btn_labels="OK")
+  })
 
   ## PoS Tag Selection ----
 

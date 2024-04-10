@@ -15,7 +15,7 @@ libraries <- function(){
   if (!suppressPackageStartupMessages(require(plotly))){install.packages("plotly"); suppressPackageStartupMessages(require(plotly))}
   if (!suppressPackageStartupMessages(require(openxlsx))){install.packages("openxlsx"); suppressPackageStartupMessages(require(openxlsx))}
   if (!suppressPackageStartupMessages(require(readxl))){install.packages("readxl"); suppressPackageStartupMessages(require(readxl))}
-  if (!suppressPackageStartupMessages(require(wordcloud2))){install.packages("wordcloud2"); suppressPackageStartupMessages(require(wordcloud2))}
+  #if (!suppressPackageStartupMessages(require(wordcloud2))){install.packages("wordcloud2"); suppressPackageStartupMessages(require(wordcloud2))}
   if (!suppressPackageStartupMessages(require(visNetwork))){install.packages("visNetwork", dependencies = TRUE); suppressPackageStartupMessages(require(visNetwork))}
   if (!suppressPackageStartupMessages(require(udpipe))){install.packages("udpipe"); suppressPackageStartupMessages(require(udpipe))}
   if (!suppressPackageStartupMessages(require(topicmodels))){install.packages("topicmodels"); suppressPackageStartupMessages(require(topicmodels))}

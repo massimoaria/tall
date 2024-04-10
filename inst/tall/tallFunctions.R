@@ -251,26 +251,6 @@ splitDoc <- function(df, word){
   df <- df %>% filter(doc_selected)
   df_splitted <- list()
   n <- length(unique(df$doc_id))
-  # switch(txSplitBy,
-  #        # Row starting with a pattern (e.g. 'CHAPTER ')
-  #        starting={
-  #          pattern <- paste0("\n\n",word,"*")
-  #          for (i in seq_len(n)){
-  #            testo <- df$text[[i]]
-  #            ind <- unlist((gregexpr(pattern,testo)))
-  #            if (ind[1]>1){
-  #              start <- c(1,ind[-length(ind)])
-  #              end <- c(ind-1,nchar(testo))
-  #            } else{
-  #              start <- ind
-  #              end <- c(ind[-1]-1,nchar(testo))
-  #            }
-  #            text <- substr(rep(testo,length(ind)),start,end)
-  #            df_splitted[[i]] <- text
-  #          }
-  #        },
-  #        # split by a special char sequence e.g. H1__
-  #        into={
   for (i in seq_len(n)){
     testo <- df$text[i]
     testo <- unlist(strsplit(testo, word))
@@ -279,7 +259,7 @@ splitDoc <- function(df, word){
   # })
   doc_id_old <- rep(df$doc_id,lengths(df_splitted))
 
-  df <- data.frame(doc_id=paste0("doc_",sprintf(paste0("%0",nchar(length(df_splitted)),"d"), 1:length(df_splitted))),
+  df <- data.frame(doc_id=paste0("doc_",sprintf(paste0("%0",nchar(lengths(df_splitted)),"d"), 1:lengths(df_splitted))),
                    text = unlist(df_splitted),
                    doc_id_old=doc_id_old,
                    doc_selected=TRUE) %>%
@@ -478,46 +458,55 @@ mergeCustomLists <- function(df,custom_lists){
 ### MULTI-WORD CREATION ----
 
 # rake function to create multi-words
-
-rake <- function(x, group = "doc_id", ngram_max=5, ngram_min=2,relevant = c("PROPN", "NOUN", "ADJ", "VERB"), rake.min=2, term="lemma"){
-
+rakeReset <- function(x){
   if ("upos_original" %in% names(x)){
     x <- x %>%
-      mutate(upos = upos_original) %>%
-      select(-upos_original)
+      select(-"upos") %>%
+      rename(upos = upos_original)
   }
 
-  switch(term,
-         lemma={
-           if ("lemma_original_nomultiwords" %in% names(x)){
-             x <- x %>%
-               mutate(lemma = lemma_original_nomultiwords) %>%
-               select(-"lemma_original_nomultiwords")
-           }
-         },
-         token={
-           if ("token_original_nomultiwords" %in% names(x)){
-             x <- x %>%
-               mutate(token = token_original_nomultiwords) %>%
-               select(-"token_original_nomultiwords")
-           }
-         })
-
+  if ("lemma_original_nomultiwords" %in% names(x)){
+    x <- x %>%
+      select(-"lemma") %>%
+      rename(lemma = lemma_original_nomultiwords)
+  }
+  if ("token_original_nomultiwords" %in% names(x)){
+    x <- x %>%
+      select(-"token") %>%
+      rename(token = token_original_nomultiwords)
+  }
 
   if ("ngram" %in% names(x)){
     x <- x %>%
       select(-"ngram")
   }
+  return(x)
+}
 
-  # rake multi-word creation
-  stats <- keywords_rake(x = x, term = term, group = group, ngram_max = ngram_max,
-                         relevant = x$upos %in% relevant)
+rake <- function(x, group = "doc_id", ngram_max=5, ngram_min=2,relevant = c("PROPN", "NOUN", "ADJ", "VERB"), rake.min=2, term="lemma", type="automatic", keywordList=NULL){
 
-  # identify ngrams>1 with reka index>reka.min
-  stats <- stats %>%
-    dplyr::filter(rake>=rake.min & ngram>=ngram_min)
+  if ("ngram" %in% names(x)){
+    x <- x %>%
+      select(-"ngram")
+  }
+  switch(type,
+         automatic={
+           # rake multi-word creation
+           stats <- keywords_rake(x = x, term = term, group = group, ngram_max = ngram_max,
+                                  relevant = x$upos %in% relevant)
 
-  # filter original token df removing POS excluded in reka
+           # identify ngrams>1 with reka index>reka.min
+           stats <- stats %>%
+             dplyr::filter(rake>=rake.min & ngram>=ngram_min)
+         },
+         {
+           stats <- keywordList %>%
+             mutate(keyword = trimws(keyword),
+                    ngram = lengths(strsplit(keyword," ")))
+         })
+
+
+  # filter original token df removing POS excluded in rake
   x2 <- x %>% filter(upos %in% relevant)
 
   # combine lemmas or tokens into multi-words
@@ -538,12 +527,33 @@ rake <- function(x, group = "doc_id", ngram_max=5, ngram_min=2,relevant = c("PRO
              mutate(multiword = ifelse(is.na(multiword),lemma,multiword),
                     upos_multiword = ifelse(is.na(upos_multiword),upos,upos_multiword),
                     POSSelected = ifelse(upos_multiword == "MULTIWORD", TRUE, POSSelected),
-                    POSSelected = ifelse(upos_multiword == "NGRAM_MERGED", FALSE, POSSelected)) %>%
-             rename(upos_original = upos,
-                    upos = upos_multiword)
+                    POSSelected = ifelse(upos_multiword == "NGRAM_MERGED", FALSE, POSSelected))
 
-           names(x)[names(x) == "lemma"] <- "lemma_original_nomultiwords"
-           names(x)[names(x) == "multiword"] <- "lemma"
+           if (!"upos_original" %in% names(x)) names(x)[names(x) == "upos"] <- "upos_original"
+             x <- x %>% select(-ends_with("upos")) %>%
+             rename(upos = upos_multiword)
+
+           if (!"lemma_original_nomultiwords" %in% names(x)) names(x)[names(x) == "lemma"] <- "lemma_original_nomultiwords"
+
+           x <- x %>%
+             select(-ends_with("lemma")) %>%
+             rename(lemma = multiword)
+
+
+           # names(x)[names(x) == "lemma"] <- "lemma_original_nomultiwords"
+           # names(x)[names(x) == "multiword"] <- "lemma"
+
+           stats<- x %>%
+             filter(upos == "MULTIWORD", lemma %in% stats$keyword) %>%
+             group_by(lemma) %>%
+             select(lemma) %>%
+             count() %>%
+             ungroup() %>%
+             rename(keyword = lemma,
+                    freq = n) %>%
+             right_join(stats %>%
+                          select(-starts_with("freq")),
+                        by="keyword")
          },
          token={
            x2$multiword <- txt_recode_ngram(x2$token, compound=stats$keyword, ngram=stats$ngram, sep = " ")
@@ -560,12 +570,31 @@ rake <- function(x, group = "doc_id", ngram_max=5, ngram_min=2,relevant = c("PRO
              mutate(multiword = ifelse(is.na(multiword),token,multiword),
                     upos_multiword = ifelse(is.na(upos_multiword),upos,upos_multiword),
                     POSSelected = ifelse(upos_multiword == "MULTIWORD", TRUE, POSSelected),
-                    POSSelected = ifelse(upos_multiword == "NGRAM_MERGED", FALSE, POSSelected)) %>%
-             rename(upos_original = upos,
-                    upos = upos_multiword)
+                    POSSelected = ifelse(upos_multiword == "NGRAM_MERGED", FALSE, POSSelected))
 
-           names(x)[names(x) == "token"] <- "token_original_nomultiwords"
-           names(x)[names(x) == "multiword"] <- "token"
+           if (!"upos_original" %in% names(x)) names(x)[names(x) == "upos"] <- "upos_original"
+           x <- x %>% select(-ends_with("upos")) %>%
+             rename(upos = upos_multiword)
+
+           if (!"token_original_nomultiwords" %in% names(x)) names(x)[names(x) == "token"] <- "token_original_nomultiwords"
+
+           x <- x %>%
+             select(-ends_with("token")) %>%
+             rename(token = multiword)
+           # names(x)[names(x) == "token"] <- "token_original_nomultiwords"
+           # names(x)[names(x) == "multiword"] <- "token"
+
+           stats<- x %>%
+             filter(upos == "MULTIWORD", token %in% stats$keyword) %>%
+             group_by(token) %>%
+             select(token) %>%
+             count() %>%
+             ungroup() %>%
+             rename(keyword = token,
+                    freq = n) %>%
+             right_join(stats %>%
+                          select(-starts_with("freq")),
+                        by="keyword")
          })
 
 
@@ -574,6 +603,14 @@ rake <- function(x, group = "doc_id", ngram_max=5, ngram_min=2,relevant = c("PRO
   ind <- which(!is.na(x$ngram))
   ind2 <- ind+(x$ngram[ind]-1)
   x$end[ind] <- x$end[ind2]
+
+  # calculate ngram
+  x <- x %>%
+    mutate(id=row_number()) %>%
+    group_by(id) %>%
+    mutate(ngram=ifelse(upos=="MULTIWORD", max(c(lengths(strsplit(lemma," "))),lengths(strsplit(token," "))), NA)) %>%
+    ungroup() %>%
+    select(-id)
 
   obj <- list(dfTag=x, multiwords=stats)
 
@@ -3123,8 +3160,10 @@ menuList <- function(menu){
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
                       menuSubItem("Text Normalization", tabName = "textNorm",icon = icon("chevron-right"), selected = TRUE),
                       menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
+                      menuItem("Multi-Word", tabName = "multiword", icon = icon("chevron-right"), startExpanded = TRUE,
+                               menuSubItem("Automatic", tabName = "multiwordCreat",icon = icon("chevron-right")),
+                               menuSubItem("By a List", tabName = "multiwordByList",icon = icon("chevron-right"))),
                       menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right"), selected = TRUE),
-                      menuSubItem("Multi-Word Creation", tabName = "multiwordCreat",icon = icon("chevron-right")),
                       menuSubItem("PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right"))
              ),
              menuItem("Settings",tabName = "settings", icon = icon("tasks"))
@@ -3140,8 +3179,10 @@ menuList <- function(menu){
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
                       menuSubItem("Text Normalization", tabName = "textNorm",icon = icon("chevron-right"), selected = TRUE),
                       menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
+                      menuItem("Multi-Word", tabName = "multiword", icon = icon("chevron-right"), startExpanded = TRUE,
+                      menuSubItem("Automatic", tabName = "multiwordCreat",icon = icon("chevron-right")),
+                      menuSubItem("By a List", tabName = "multiwordByList",icon = icon("chevron-right"))),
                       menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right")),
-                      menuSubItem("Multi-Word Creation", tabName = "multiwordCreat",icon = icon("chevron-right")),
                       menuSubItem("PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right")), selected = TRUE),
              menuItem("Filter", tabName = "filter_text", icon = icon("filter")),
              menuItem("Groups",tabName = "defineGroups", icon = icon("th", lib="glyphicon")),
