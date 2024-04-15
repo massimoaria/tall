@@ -38,14 +38,14 @@ read_files <- function(files, ext=c("txt","csv", "xlsx", "pdf"), subfolder=TRUE,
 
   switch(ext,
          txt={
-           #if (isTRUE(line_sep)){line_sep <- ". "}else{line_sep <- " "}
-
-           df <- data.frame(doc_id=doc_id,text=NA, folder=folder, file=file) %>%
+           ## detect text encoding for each file
+           df <- readtext(file)
+           encod <- suppressMessages(encoding(df, verbose=FALSE)$all)
+           ## read txt files using the right encoding
+           df <- data.frame(doc_id=doc_id,text=NA, folder=folder, file=file, encod=encod) %>%
              group_by(doc_id) %>%
-             mutate(text=readtext::readtext(file)$text) %>%
-             #mutate(text=gsub("\n\n","\n  \n",text)) %>%
-             #mutate(text = gsub("\\.\\.","\\.",paste(read_lines(file,skip_empty_rows = FALSE),sep="",collapse=line_sep))) %>%
-             select(-file)
+             mutate(text=readtext::readtext(file, encoding = encod, verbosity = 0)$text) %>%
+             select(-c(file,encod))
          },
          csv={
            listdf <- list()
