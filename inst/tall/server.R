@@ -857,46 +857,97 @@ observeEvent(input$reset_confirmation2, {
     input$multiwordCreatRun
   },{
 
-    ### REKA Algorithm ####
-
-    # to replace with input values
-    term <-  input$term
-    group <-  input$group
-    ngram_max <-  input$ngram_max
-    rake.min <- input$rake.min
+    ### REKA Algorithm
 
     values$posMwSel <- gsub(":","",gsub(":.*","",input$multiwordPosSel))
 
-    obj <- rake(values$dfTag, group = group, ngram_max=ngram_max, relevant = values$posMwSel, rake.min=rake.min, term=term)
+    values$stats <- rake(values$dfTag, group = "doc_id", ngram_max=input$ngram_max, relevant = values$posMwSel, rake.min=input$rake.min, freq.min=input$freq_minMW, term=input$term)
+
+  })
+
+  observeEvent(ignoreNULL = FALSE,
+                eventExpr = {input$multiwordList_rows_selected},
+               handlerExpr = {
+                 if (length(input$multiwordList_rows_selected)>0){
+                   output$multiwordCreatApply <- renderUI({
+                     run_bttn <- list(
+                       label = "Apply List",
+                       style ="border-radius: 15px; border-width: 1px; font-size: 15px; text-align: center; color: #ffff; ",
+                       icon = NULL
+                     )
+                     div(
+                       align = "center",style="margin-top:-5px",
+                       width=12,
+                       do.call("actionButton", c(run_bttn, list(
+                         inputId = "multiwordCreatApply")
+                       ))
+                     )
+                   })
+                 } else {
+                   output$multiwordCreatApply <- renderUI({})
+                 }
+
+               })
+  output$multiwordList <- renderDT(server=FALSE,{
+    multiword()
+    DTformat(values$stats %>%  rename("Multi-Words" = keyword,
+                                           "Lenght" = ngram,
+                                           "Freq"=freq,
+                                           "Rake value" = rake) %>%
+               arrange(desc(Freq), .by_group = FALSE),
+             numeric=4,
+             selection=TRUE, nrow=20)
+  })
+
+
+
+  output$multiwordData <- renderDT(server=TRUE,{
+    DTformat(values$dfTag %>% dplyr::filter(docSelected) %>%
+               select(doc_id, sentence,token,lemma, upos) %>%
+               rename(D_id=doc_id,
+                      Sentence=sentence,
+                      Token=token,
+                      Lemma=lemma,
+                      "Part of Speech"=upos),
+             size="60%"
+    )
+  })
+  observeEvent(input$multiwordCreatApply,{
+    row_sel <- input$multiwordList_rows_selected
+
+    # if (is.null(row_sel)) {
+    #   row_sel = 1:nrow(values$stats)
+    # }
+
+    stats <- values$stats[row_sel,]
+
+    obj <- applyRake(values$dfTag, stats=stats, relevant = values$posMwSel, term=input$term)
 
     values$dfTag <- obj$dfTag
 
     values$dfTag <- highlight(values$dfTag)
     values$multiwords <- obj$multiwords
-  })
 
-  output$multiwordData <- renderDT({
-    multiword()
-    DTformat(values$dfTag %>% dplyr::filter(POSSelected) %>%
-               group_by(doc_id,sentence_id) %>%
-               select(doc_id, sentence_id,sentence,token,lemma, upos) %>%
-               rename(D_id=doc_id,
-                      S_id=sentence_id,
-                      Sentence=sentence,
-                      Token=token,
-                      Lemma=lemma,
-                      "Part of Speech"=upos)
+    # text <- tagList(
+    #
+    # )
+
+    show_alert(
+      title = "Annotated Data with Multi-Words",
+      text = DTOutput("multiwordData"),
+      type = NULL,
+      width = "80%",
+      closeOnEsc = TRUE,
+      closeOnClickOutside = TRUE,
+      html = TRUE,
+      showConfirmButton = TRUE,
+      showCancelButton = FALSE,
+      btn_labels = "OK",
+      btn_colors = "#6CC283",
+      timer = NULL,
+      imageUrl = "",
+      animation = TRUE
     )
-  })
-
-  output$multiwordList <- renderDT(server=FALSE,{
-    multiword()
-    DTformat(values$multiwords %>%  rename("Multi-Words" = keyword,
-                                           "Lenght" = ngram,
-                                           "Freq"=freq,
-                                           "Rake value" = rake) %>%
-               arrange(desc(Freq), .by_group = FALSE),
-             numeric=4)
   })
 
   output$multiwordCreatSave <- downloadHandler(
@@ -943,8 +994,6 @@ observeEvent(input$reset_confirmation2, {
   multiword2 <- eventReactive({
     input$multiwordListRun
   },{
-
-    ### RAKE Algorithm ####
 
     # to replace with input values
     term <-  input$termMWL

@@ -8,7 +8,7 @@ tall(
   host = "127.0.0.1",
   port = NULL,
   launch.browser = TRUE,
-  maxUploadSize = 200
+  maxUploadSize = 1000
 )
 }
 \arguments{
@@ -23,7 +23,7 @@ Otherwise, use a random port.}
 after the app is started. Defaults to true in interactive sessions only. This value of
 this parameter can also be a function to call with the application's URL.}
 
-\item{maxUploadSize}{is a integer. The max upload file size argument. Default value is 200 (megabyte)}
+\item{maxUploadSize}{is a integer. The max upload file size argument. Default value is 1000 (megabyte)}
 }
 \description{
 \code{tall} performs text analysis for all.
