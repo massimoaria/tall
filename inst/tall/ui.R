@@ -158,6 +158,8 @@ sidebar <- dashboardSidebar(
 
 body <- dashboardBody(
   customTheme(),
+  ## workaround to solve visualization issues in Data Table
+  tags$head(tags$style(HTML( '.has-feedback .form-control { padding-right: 0px;}' ))),
   ## script to open more times the same modal ####
   tags$script("
     Shiny.addCustomMessageHandler('button_id', function(value) {
@@ -686,11 +688,11 @@ body <- dashboardBody(
                                    tabPanel("Multi-Word List",
                                             shinycssloaders::withSpinner(DT::DTOutput("multiwordList"),
                                                                          color = getOption("spinner.color", default = "#4F7942"))
-                                   ),
-                                   tabPanel("Annotated Text including Multi-Word",
-                                            shinycssloaders::withSpinner(DT::DTOutput("multiwordData"),
-                                                                         color = getOption("spinner.color", default = "#4F7942"))
                                    )
+                                   # ,tabPanel("Annotated Text including Multi-Word",
+                                   #          shinycssloaders::withSpinner(DT::DTOutput("multiwordData"),
+                                   #                                       color = getOption("spinner.color", default = "#4F7942"))
+                                   # )
                        )
                 ),
                 column(3,
@@ -706,19 +708,22 @@ body <- dashboardBody(
                                                                    "Lemmas" = "lemma"),
                                                        selected = "lemma")),
                                     column(6,
-                                           selectInput("group",
-                                                       "Group by:",
-                                                       choices = c("Docs" = "doc_id",
-                                                                   "Sentences" = "sentence_id"),
-                                                       selected = "doc_id"))),
+                                           numericInput(inputId = "ngram_max",
+                                                        label = "Ngrams",
+                                                        min = 2,
+                                                        max = 10,
+                                                        value = 4,
+                                                        step = 1)
+                                           )),
                            fluidRow(
                              column(6,
-                                    numericInput(inputId = "ngram_max",
-                                                 label = "Ngrams",
-                                                 min = 2,
-                                                 max = 10,
-                                                 value = 4,
-                                                 step = 1)),
+                                    numericInput(inputId = "freq_minMW",
+                                                 label = "Freq Min",
+                                                 min = 1,
+                                                 max = Inf,
+                                                 value = 10,
+                                                 step = 1)
+                                    ),
                              column(6,
                                     numericInput(inputId = "rake.min",
                                                  label = "Rake Min",
@@ -738,7 +743,6 @@ body <- dashboardBody(
                                                inputId = "multiwordCreatRun")
                                              ))
                                            )
-
                            ),
                            column(4,
                                   div(
@@ -761,7 +765,10 @@ body <- dashboardBody(
                                     )
                                   )
                            )
-                           ), style="margin-top:-15px")
+                           ), style="margin-top:-15px"),
+                           hr(),
+                           #prova pulsante apply multiword
+                           uiOutput("multiwordCreatApply")
                          ), style="margin-top:40px")
 
                 )
