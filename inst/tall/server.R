@@ -124,6 +124,12 @@ To ensure the functionality of TALL,
 
   ### SIDEBARMENU ----
   output$rest_of_sidebar <- renderMenu({
+    print(values$menu)
+    if (values$menu==2){
+      if (length(noGroupLabels(names(values$dfTag)))>0){
+        values$menu <- 3
+      }
+    }
     sidebarMenu(.list=menuList(values$menu))
   })
 
@@ -381,7 +387,7 @@ observeEvent(input$reset_confirmation2, {
              values$resetNeed <- TRUE
              #values$metadata <- metadata
              if (values$menu==1) updateTabItems(session, "sidebarmenu", "custTermList")
-             if (values$menu==2) updateTabItems(session, "sidebarmenu", "posTagSelect")
+             if (values$menu>1) updateTabItems(session, "sidebarmenu", "posTagSelect")
              if (ncol(values$dfTag)>1){showModal(loadTallgModal(session))}
            },
            demo={
@@ -397,7 +403,7 @@ observeEvent(input$reset_confirmation2, {
                       values$where <- where
                       values$resetNeed <- TRUE
                       if (values$menu==1) updateTabItems(session, "sidebarmenu", "custTermList")
-                      if (values$menu==2) updateTabItems(session, "sidebarmenu", "posTagSelect")
+                      if (values$menu>1) updateTabItems(session, "sidebarmenu", "posTagSelect")
                       if (ncol(values$dfTag)>1){showModal(loadTallgModal(session))}
                     },
                     bbc={
@@ -898,8 +904,6 @@ observeEvent(input$reset_confirmation2, {
              numeric=4,
              selection=TRUE, nrow=20)
   })
-
-
 
   output$multiwordData <- renderDT(server=TRUE,{
     DTformat(values$dfTag %>% dplyr::filter(docSelected) %>%
