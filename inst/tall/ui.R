@@ -203,6 +203,22 @@ body <- dashboardBody(
     tags$style(".sidebar-toggle {font-size: 15px}"),
     tags$style(".fa-users {font-size: 18px}"),
   ),
+  ##checkBoxGroup
+
+  tags$head(
+    tags$style(HTML("
+
+     .multicol {
+
+       -webkit-column-count: 2; /* Chrome, Safari, Opera */
+
+       -moz-column-count: 2; /* Firefox */
+
+       column-count: 2;
+
+     }
+
+   "))),
 
   tabItems(
 
@@ -220,6 +236,7 @@ body <- dashboardBody(
                     style="text-align:center; font-size:17px;"))
             )
     ),
+
 
     ### IMPORT ----
 
@@ -683,7 +700,7 @@ body <- dashboardBody(
               br(),
               br(),
               fluidRow(
-                column(9,
+                column(7,
                        tabsetPanel(type = "tabs",
                                    tabPanel("Multi-Word List",
                                             shinycssloaders::withSpinner(DT::DTOutput("multiwordList"),
@@ -695,7 +712,7 @@ body <- dashboardBody(
                                    # )
                        )
                 ),
-                column(3,
+                column(5,
                        div(
                          box(
                            width = 12,
@@ -714,7 +731,7 @@ body <- dashboardBody(
                                                         max = 10,
                                                         value = 4,
                                                         step = 1)
-                                           )),
+                                    )),
                            fluidRow(
                              column(6,
                                     numericInput(inputId = "freq_minMW",
@@ -723,7 +740,7 @@ body <- dashboardBody(
                                                  max = Inf,
                                                  value = 10,
                                                  step = 1)
-                                    ),
+                             ),
                              column(6,
                                     numericInput(inputId = "rake.min",
                                                  label = "Rake Min",
@@ -732,44 +749,54 @@ body <- dashboardBody(
                                                  value = 2,
                                                  step = 0.1))
                            ),
-                           uiOutput("multiwordPosSel"),
+                           fluidRow(column(12,
+                                           h5(em(strong("Multi-Words created by:")))
+                           ),
+                           ),
+                           fluidRow(
+                             column(12,
+                                    div(
+                                      class="multicol",
+                                      uiOutput("multiwordPosSel")
+                                    )
+                             )),
                            hr(),
                            div(
-                           fluidRow(column(4,
-                                           div(
-                                             align = "center",style="margin-top:-15px",
-                                             width=12,
-                                             do.call("actionButton", c(run_bttn, list(
-                                               inputId = "multiwordCreatRun")
-                                             ))
-                                           )
-                           ),
-                           column(4,
-                                  div(
-                                    align = "center",style="margin-top:-15px",
-                                    width=12,
-                                    title = t_back,
-                                    do.call("actionButton", c(back_bttn, list(
-                                      inputId = "multiwordCreatBack")
-                                    ))
-                                  )
-                           ),
-                           column(4,
-                                  div(
-                                    title = t_save,
-                                    div(align="center",
-                                        do.call("downloadButton", c(save_bttn, list(
-                                          outputId = "multiwordCreatSave")
-
-                                        ))
+                             fluidRow(column(4,
+                                             div(
+                                               align = "center",style="margin-top:-15px",
+                                               width=12,
+                                               do.call("actionButton", c(run_bttn, list(
+                                                 inputId = "multiwordCreatRun")
+                                               ))
+                                             )
+                             ),
+                             column(4,
+                                    div(
+                                      align = "center",style="margin-top:-15px",
+                                      width=12,
+                                      title = t_back,
+                                      do.call("actionButton", c(back_bttn, list(
+                                        inputId = "multiwordCreatBack")
+                                      ))
                                     )
-                                  )
-                           )
-                           ), style="margin-top:-15px"),
+                             ),
+                             column(4,
+                                    div(
+                                      title = t_save,
+                                      div(align="center",
+                                          do.call("downloadButton", c(save_bttn, list(
+                                            outputId = "multiwordCreatSave")
+
+                                          ))
+                                      )
+                                    )
+                             )
+                             ), style="margin-top:-15px"),
                            hr(),
                            #prova pulsante apply multiword
                            uiOutput("multiwordCreatApply")
-                         ), style="margin-top:40px")
+                         ), style="margin-top:40px; width:100%;")
 
                 )
               )
@@ -857,8 +884,8 @@ body <- dashboardBody(
               )
             )
     ),
-    ## PoS Tag Selection -----
 
+    ## PoS Tag Selection -----
     tabItem(tabName = "posTagSelect",
             fluidPage(
               fluidRow(
@@ -867,7 +894,7 @@ body <- dashboardBody(
               br(),
               br(),
               fluidRow(
-                column(9,
+                column(8,
                        tabsetPanel(type = "tabs",
                                    tabPanel("Annotated Text",
                                             shinycssloaders::withSpinner(DT::DTOutput("posTagSelectData"),
@@ -875,62 +902,56 @@ body <- dashboardBody(
                                    )
                        )
                 ),
-                column(3,
+                column(4,
                        div(
                          box(
                            width = 12,
                            div(h3(strong(em("Select:"))), style="margin-top:-57px"),
                            tags$hr(),
                            fluidRow(column(12,
-                                           uiOutput("posTagLists"),
+                                           div(
+                                             class="multicol",
+                                             uiOutput("posTagLists")
+                                           ),
                                            #h3(strong(em("Select Hapax:"))),
                                            hr(),
-                                           checkboxGroupInput("posTagHapax", label=NULL,
-                                                              choices = c("Hapax"),
-                                                              selected = "Hapax"
-                                           ),
-                                           checkboxGroupInput("posTagSingleChar", label=NULL,
-                                                              choices = c("Single Character"),
-                                                              selected = NULL
+                                           div(
+                                             class="multicol",
+                                             checkboxGroupInput("posTagHapax", label=NULL,
+                                                                choices = c("Hapax"),
+                                                                selected = "Hapax"
+                                             ),
+                                             checkboxGroupInput("posTagSingleChar", label=NULL,
+                                                                choices = c("Single Character"),
+                                                                selected = NULL
+                                             )
                                            )
-                                           #
-                                           # ,hr(),
-                                           # h5("Term Frequency"),
-                                           # sliderTextInput(
-                                           #   inputId = "posTagFreq",
-                                           #   label = NULL,
-                                           #   choices = paste0(seq(0,100,by=1),"%"),
-                                           #   selected = c("0%", "100%"),
-                                           #   from_min = "0%",
-                                           #   from_max = "20%",
-                                           #   to_min = "80%",
-                                           #   to_max = "100%"
-                                           # )
+
                            )),
                            div(
-                           hr(),
-                           div(
-                           fluidRow(column(6,
-                                           div(
-                                             align = "center",style="margin-top:-15px",
-                                             width=12,
-                                             do.call("actionButton", c(run_bttn, list(
-                                               inputId = "posTagSelectRun")
-                                             ))
-                                           )
-                           ),
-                           column(6,
-                                  div(
-                                    title = t_save,
-                                    div(align="center",
-                                        do.call("downloadButton", c(save_bttn, list(
-                                          outputId = "posTagSelectSave")
+                             hr(),
+                             div(
+                               fluidRow(column(6,
+                                               div(
+                                                 align = "center",style="margin-top:-15px",
+                                                 width=12,
+                                                 do.call("actionButton", c(run_bttn, list(
+                                                   inputId = "posTagSelectRun")
+                                                 ))
+                                               )
+                               ),
+                               column(6,
+                                      div(
+                                        title = t_save,
+                                        div(align="center",
+                                            do.call("downloadButton", c(save_bttn, list(
+                                              outputId = "posTagSelectSave")
 
-                                        ))
-                                    )
-                                  )
-                           )
-                           ), style="margin-top:-15px"), style="margin-top:-15px")
+                                            ))
+                                        )
+                                      )
+                               )
+                               ), style="margin-top:-15px"), style="margin-top:-15px")
                          ), style="margin-top:40px"
                        )
                 )
@@ -938,7 +959,6 @@ body <- dashboardBody(
               )
             )
     ),
-
     ### FILTER ----
     tabItem(tabName = "filter_text",
             fluidPage(
@@ -960,6 +980,31 @@ body <- dashboardBody(
                            uiOutput("filterList"),
                            uiOutput("filterValue"),
                            hr(),
+                           column(6,
+                                  div(
+                                    align = "center",style="margin-top:-5px",
+                                    width=12,
+                                    do.call("actionButton", list(
+                                      label = "Select All",
+                                      style ="border-radius: 15px; border-width: 1px; font-size: 15px; text-align: center; color: #ffff; ",
+                                      icon = NULL,
+                                      inputId = "filterAll")
+                                    )
+                                  )
+                                  ),
+                           column(6,
+                                  div(
+                                    align = "center",style="margin-top:-5px",
+                                    width=12,
+                                    do.call("actionButton", list(
+                                      label = "Deselect All",
+                                      style ="border-radius: 15px; border-width: 1px; font-size: 15px; text-align: center; color: #ffff; ",
+                                      icon = NULL,
+                                      inputId = "filterNone")
+                                    )
+                                  )
+                                  ),
+                           br(),
                            div(
                            fluidRow(
                                     div(align="center",

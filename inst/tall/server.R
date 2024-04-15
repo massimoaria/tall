@@ -124,7 +124,6 @@ To ensure the functionality of TALL,
 
   ### SIDEBARMENU ----
   output$rest_of_sidebar <- renderMenu({
-    print(values$menu)
     if (values$menu==2){
       if (length(noGroupLabels(names(values$dfTag)))>0){
         values$menu <- 3
@@ -323,16 +322,16 @@ observeEvent(input$reset_confirmation2, {
   output$file_raw <- renderUI({
     switch(input$ext,
            txt = {
-             ext <- c("text/plain", ".txt")
+             ext <- c("text/plain", ".txt",".zip")
            },
            csv = {
-             ext <- c("text/csv", ".csv")
+             ext <- c("text/csv", ".csv",".zip")
            },
            xlsx = {
-             ext <- c("excel", ".xlsx", ".xls")
+             ext <- c("excel", ".xlsx", ".xls",".zip")
            },
            pdf = {
-             ext <- ".pdf"
+             ext <- c(".pdf",".zip")
            })
 
     fileInput(
@@ -852,7 +851,7 @@ observeEvent(input$reset_confirmation2, {
   ## Multi-Word Creation ----
 
   output$multiwordPosSel <- renderUI({
-    checkboxGroupInput("multiwordPosSel", label="Multi-Words created by:",
+    checkboxGroupInput("multiwordPosSel", label=NULL,
                        choices = posTagAll(values$dfTag %>% dplyr::filter(!upos %in% c("MULTIWORD", "NGRAM_MERGED", "PUNCT", "SYM", "X", "NUM")))$description,
                        selected = posTagAll(values$dfTag %>% dplyr::filter(upos %in%  values$posMwSel))$description
 
@@ -877,7 +876,7 @@ observeEvent(input$reset_confirmation2, {
                  if (length(input$multiwordList_rows_selected)>0){
                    output$multiwordCreatApply <- renderUI({
                      run_bttn <- list(
-                       label = "Apply List",
+                       label = strong("Apply List"),
                        style ="border-radius: 15px; border-width: 1px; font-size: 15px; text-align: center; color: #ffff; ",
                        icon = NULL
                      )
@@ -1117,27 +1116,48 @@ observeEvent(input$reset_confirmation2, {
     )
   })
 
-  observeEvent(ignoreNULL = TRUE,
-               eventExpr={input$filterList},
-               handlerExpr = {
-                 if (nchar(input$filterList)>0){
-                   filtervalues <- LemmaSelection(values$dfTag) %>%
-                     select(all_of(input$filterList)) %>%
-                     distinct()
-                   filtervalues <- sort(filtervalues[[1]])
-                   values$selectedFilter <- input$filterList
+    observeEvent(ignoreNULL = TRUE,
+                 eventExpr={input$filterList},
+                 handlerExpr = {
+                   if (nchar(input$filterList)>0){
+                     filtervalues <- LemmaSelection(values$dfTag) %>%
+                       select(all_of(input$filterList)) %>%
+                       distinct()
+                     values$filtervalues <- sort(filtervalues[[1]])
+                     values$selectedFilter <- input$filterList
 
-                   output$filterValue <- renderUI({
-                     multiInput(
-                       inputId="filterValue",
-                       label=NULL,
-                       choices = filtervalues,
-                       selected = NULL,
-                       width = "100%"
-                     )
-                   })
-                 }
+                     output$filterValue <- renderUI({
+                       multiInput(
+                         inputId="filterValue",
+                         label=NULL,
+                         choices = values$filtervalues,
+                         selected = NULL,
+                         width = "100%"
+                       )
+                     })
+                   }
+     })
+
+  observeEvent(ignoreNULL = TRUE,
+               eventExpr={input$filterAll},
+               handlerExpr = {
+                 updateMultiInput(
+                   session = session,
+                   inputId = "filterValue",
+                   selected = values$filtervalues
+                 )
                })
+
+  observeEvent(ignoreNULL = TRUE,
+               eventExpr={input$filterNone},
+               handlerExpr = {
+                 updateMultiInput(
+                   session = session,
+                   inputId = "filterValue",
+                   selected = ""
+                 )
+               })
+
 
   filterDATA <- eventReactive(
     ignoreNULL = TRUE,
