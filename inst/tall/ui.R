@@ -980,6 +980,8 @@ body <- dashboardBody(
                            uiOutput("filterList"),
                            uiOutput("filterValue"),
                            hr(),
+                           conditionalPanel(
+                             condition = 'input.filterList !=""',
                            column(6,
                                   div(
                                     align = "center",style="margin-top:-5px",
@@ -1003,7 +1005,8 @@ body <- dashboardBody(
                                       inputId = "filterNone")
                                     )
                                   )
-                                  ),
+                                  )
+                           ),
                            br(),
                            div(
                            fluidRow(
