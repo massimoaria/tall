@@ -2589,12 +2589,19 @@ loadSentimentLanguage <- function(language){
   file_lang <- dir(path_language_model,pattern=paste0(language,".lexicon"))[1]
 
   if (is.na(file_lang)){
-    download.file(url = paste0("https://www.bibliometrix.org/tall_lexicon/",language,".lexicon"), destfile = paste0(path_language_model,"/",language,".lexicon"))
-    load(file=paste0(path_language_model,"/",language,".lexicon"))
-    #
-  } else {
-    load(file=paste0(path_language_model,"/",language,".lexicon"))
+    switch(Sys.info()[['sysname']],
+           Windows={
+             download.file(url = paste0("https://www.bibliometrix.org/tall_lexicon/",language,".lexicon"),
+                           destfile = paste0(path_language_model,"/",language,".lexicon"), mode = "wb")
+           },
+           {
+             download.file(url = paste0("https://www.bibliometrix.org/tall_lexicon/",language,".lexicon"),
+                           destfile = paste0(path_language_model,"/",language,".lexicon"))
+           }
+    )
   }
+
+  load(file=paste0(path_language_model,"/",language,".lexicon"))
 
   return(sentimentData)
 }
