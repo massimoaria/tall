@@ -746,6 +746,7 @@ observeEvent(input$reset_confirmation2, {
     # Merge metadata from the original txt object
     values$dfTag <- values$dfTag %>%
       left_join(values$txt %>% select(-text, -text_original), by = "doc_id") %>%
+      filter(!is.na(upos)) %>%
       posSel(., c("ADJ","NOUN","PROPN", "VERB"))
     values$dfTag <- highlight(values$dfTag)
     values$dfTag$docSelected <- TRUE
@@ -864,6 +865,8 @@ observeEvent(input$reset_confirmation2, {
 
     ### REKA Algorithm
 
+    values$dfTag <- rakeReset(values$dfTag) ## reset previous multiword creation steps
+
     values$posMwSel <- gsub(":","",gsub(":.*","",input$multiwordPosSel))
 
     values$stats <- rake(values$dfTag, group = "doc_id", ngram_max=input$ngram_max, relevant = values$posMwSel, rake.min=input$rake.min, freq.min=input$freq_minMW, term=input$term)
@@ -883,6 +886,7 @@ observeEvent(input$reset_confirmation2, {
                      div(
                        align = "center",style="margin-top:-5px",
                        width=12,
+                       helpText("Please note",br(),"pressing 'Apply List' will delete previous multiword entries"),
                        do.call("actionButton", c(run_bttn, list(
                          inputId = "multiwordCreatApply")
                        ))
@@ -1003,7 +1007,9 @@ observeEvent(input$reset_confirmation2, {
 
     relevant <- unique(values$dfTag$upos)
 
-    obj <- rake(values$dfTag, relevant = relevant, term=term, type="bylist", keywordList = values$keywordList)
+    stats <- rake(values$dfTag, relevant = relevant, term=term, type="bylist", keywordList = values$keywordList)
+
+    obj <- applyRake(values$dfTag, stats=stats, relevant = relevant, term=term)
 
     values$dfTag <- obj$dfTag
 
@@ -1804,7 +1810,7 @@ observeEvent(input$closePlotModalDoc,{
       input$nounApply
     },
     valueExpr = {
-      values$freqNoun <- freqByPos(values$dfTag %>% filter(docSelected), term="lemma", pos="NOUN")
+      values$freqNoun <- freqByPos(values$dfTag %>% filter(docSelected), term=input$nounTerm, pos="NOUN")
       values$nounPlotly <- freqPlotly(values$freqNoun,x="n",y="term",n=input$nounN, xlabel="Frequency",ylabel="NOUN", scale="identity")
 
       values$freqNounData <- values$freqNoun %>%
@@ -1860,7 +1866,7 @@ observeEvent(input$closePlotModalDoc,{
       input$propnApply
     },
     valueExpr = {
-      values$freqPropn <- freqByPos(values$dfTag %>% filter(docSelected), term="lemma", pos="PROPN")
+      values$freqPropn <- freqByPos(values$dfTag %>% filter(docSelected), term=input$propnTerm, pos="PROPN")
       values$propnPlotly <- freqPlotly(values$freqPropn,x="n",y="term",n=input$propnN, xlabel="Frequency",ylabel="PROPN", scale="identity")
 
       values$freqPropnData <- values$freqPropn %>%
@@ -1916,7 +1922,7 @@ observeEvent(input$closePlotModalDoc,{
       input$adjApply
     },
     valueExpr = {
-      values$freqAdj <- freqByPos(values$dfTag %>% filter(docSelected), term="lemma", pos="ADJ")
+      values$freqAdj <- freqByPos(values$dfTag %>% filter(docSelected), term=input$adjTerm, pos="ADJ")
       values$adjPlotly <- freqPlotly(values$freqAdj,x="n",y="term",n=input$adjN, xlabel="Frequency",ylabel="ADJ", scale="identity")
 
       values$freqAdjData <- values$freqAdj %>%
@@ -1971,7 +1977,7 @@ observeEvent(input$closePlotModalDoc,{
       input$verbApply
     },
     valueExpr = {
-      values$freqVerb <- freqByPos(values$dfTag %>% filter(docSelected), term="lemma", pos="VERB")
+      values$freqVerb <- freqByPos(values$dfTag %>% filter(docSelected), term=input$verbTerm, pos="VERB")
       values$verbPlotly <- freqPlotly(values$freqVerb,x="n",y="term",n=input$verbN, xlabel="Frequency",ylabel="VERB", scale="identity")
 
       values$freqVerbData <- values$freqVerb %>%
@@ -2135,7 +2141,7 @@ observeEvent(input$closePlotModalDoc,{
 
   output$posTable <- renderDT(server=FALSE,{
     posFreq()
-    DTformat(values$freqPOSData, left=1, right=2, round=0, numeric=2, filename="POSFreqList", dom=FALSE, pagelength=FALSE, size="110%")
+    DTformat(values$freqPOSData, left=1, right=2, round=0, numeric=2, filename="POSFreqList", dom=FALSE, size="110%")
   })
 
   output$posExport <- downloadHandler(
