@@ -322,7 +322,7 @@ normalizationOptions <- function(){
     #"extraspaces",# two o more spaces
     "non_ascii",  # non ascii chars
     "percent",    # percentage symbols %
-    "number",     # numbers
+    #"number",     # numbers
     "time2",       # time (time2 pattern)
     "date",       # date
     "zip",        # postal code
@@ -343,7 +343,7 @@ normalizationOptions <- function(){
     #"Extra spaces",# two o more spaces
     "Non ASCII chars",  # non ascii chars
     "Percent symbol %",    # percentage symbols %
-    "Numbers",     # numbers
+    #"Numbers",     # numbers
     "Time",       # time (time2 pattern)
     "Dates",       # date
     "Zip postal codes",        # postal code
@@ -352,12 +352,30 @@ normalizationOptions <- function(){
   )
 
   # id <- c(1,2,3,4,7,5,6,16,15,14,13,8,9,10,11,12)
-  id <- c(1,2,3,4,7,5,6,15,14,13,8,9,10,11,12)
+  #id <- c(1,2,3,4,7,5,6,14,13,12,8,9,10,11)
+  id <- c(2,3,4,5,7,6,1,14,13,12,8,9,10,11)
 
   what <- data.frame(label,item,id)
   return(what)
 }
 
+extractCorpusElements <- function(x,
+                                  regex_list=regex_list){
+
+  resList <- list()
+  what <- normalizationOptions() %>% arrange(id)
+
+  for (i in 1:nrow(what)){
+    item <- what$item[i]
+
+    results <- stringi::stri_extract_all_regex(x$text, regex_list[[item]])
+    resList[[i]] <- data.frame(doc=rep(x$doc_id,lengths(results)), item=unlist(results, recursive = F), tag=what$label[i])
+  }
+
+  resList <- bind_rows(resList)
+
+  return(resList)
+}
 
 applyNormalization <- function(x,textNormWebList,textNormCorpusList, regex_list){
   items <- c(textNormWebList,textNormCorpusList)
