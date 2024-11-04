@@ -900,6 +900,17 @@ observeEvent(input$reset_confirmation2, {
     }
   })
 
+  output$posSpecialSave <- downloadHandler(
+    filename = function() {
+      paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
+    },
+    content <- function(file) {
+      saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "POS Tag Selection", file)
+      # D <- date()
+      # save(dfTag,menu,D,where, file=file)
+    }, contentType = "tall"
+  )
+
   ## Click on Tagging Special Entities ----
   observeEvent(ignoreNULL = TRUE,
                eventExpr={input$button_id2},
@@ -912,7 +923,7 @@ observeEvent(input$reset_confirmation2, {
   modalSpecialEntities <- function(session) {
     ns <- session$ns
     modalDialog(
-      h3(strong(("Special Entity"))),
+      h3(strong(paste0("Frequency Distribution of ", firstUp(input$button_id2)," Entities"))),
       DTOutput(ns("specialEntityFreq")),
       size = "l",
       easyClose = FALSE,
@@ -932,6 +943,16 @@ observeEvent(input$reset_confirmation2, {
   output$specialEntityFreq <- renderDT(server=FALSE,{
     if (!is.null(input$button_id2)) id <- input$button_id2
     summarySpecialEntity <- values$posSpecialData %>% summarySpecialEntities(type=id)
+
+    if (id=="URL"){
+      summarySpecialEntity$item <- paste0(
+        '<a href=\"',
+        summarySpecialEntity$item ,
+        '\" target=\"_blank\">',
+        summarySpecialEntity$item ,
+        '</a>'
+      )
+    }
     # find sentences containing the tokens/lemmas
     DTformat(summarySpecialEntity, size='100%', button = FALSE)
   }, escape=FALSE)
@@ -1231,27 +1252,34 @@ observeEvent(input$reset_confirmation2, {
   PosFilterData <- eventReactive({
     input$posTagSelectRun
   },{
-    posTagFreq <- c("0%", "100%")
     selected <- (posTagAll(values$dfTag) %>% dplyr::filter(description %in% (input$posTagLists)))$pos
-    values$dfTag <- removeHapaxFreq(values$dfTag,input$posTagHapax,posTagFreq, input$posTagSingleChar)
+    values$dfTag <- removeHapaxFreq(values$dfTag,input$posTagHapax, input$posTagSingleChar)
     values$dfTag <- posSel(values$dfTag, pos=selected)
-    #print(input$posTagHapax)
     values$menu <- 2
+
+
+    # Update the DT proxy
+    proxy <- dataTableProxy('posTagSelectData')
+    replaceData(proxy, values$dfTag, resetPaging = FALSE)
+
   })
 
-  output$posTagSelectData <- renderDT({
+  output$posTagSelectData <- DT::renderDT({
     PosFilterData()
+
     if(!"lemma_original_nomultiwords" %in% names(values$dfTag)) values$dfTag <- values$dfTag %>% mutate(lemma_original_nomultiwords=lemma)
-    DTformat(LemmaSelection(values$dfTag) %>%
-               group_by(doc_id,sentence_id) %>%
-               mutate(SentenceByPos = paste(lemma_original_nomultiwords, collapse=" ")) %>%
-               select(doc_id, sentence_id,sentence,SentenceByPos,token,lemma, upos) %>%
-               rename(D_id=doc_id,
-                      S_id=sentence_id,
-                      Sentence=sentence,
-                      Token=token,
-                      Lemma=lemma,
-                      "Part of Speech"=upos)
+
+    DTformat(
+      LemmaSelection(values$dfTag) %>%
+        group_by(doc_id,sentence_id) %>%
+        mutate(SentenceByPos = paste(lemma_original_nomultiwords, collapse=" ")) %>%
+        select(doc_id, sentence_id,sentence,SentenceByPos,token,lemma, upos) %>%
+        rename(D_id=doc_id,
+               S_id=sentence_id,
+               Sentence=sentence,
+               Token=token,
+               Lemma=lemma,
+               "Part of Speech"=upos) %>% ungroup()
     )
   })
 

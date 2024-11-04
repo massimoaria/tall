@@ -675,11 +675,17 @@ body <- dashboardBody(
                      div(
                        box(
                          width = 12,
-                         # div(h3(strong(em("Language model"))), style="margin-top:-57px"),
-                         # tags$hr(),
-                         # helpText(h5("Before beginning the annotation process (i.e., tokenization, tagging, and lemmatization), a language model must be downloaded."),
-                         #          h5("TALL utilizes pre-trained models provided by Universal Dependencies treebanks."),
-                         #          h5("When using a language model for the first time, it will be downloaded from UDT and saved on your computer. In this case, an active internet connection is required.")),
+                         div(h3(strong(em("Special Entities"))), style="margin-top:-57px"),
+                         tags$hr(),
+                         helpText(h5("When processing text, special tags will be assigned to certain detected entities.")),
+                         helpText(h5("These include:")),
+                         helpText(h5("•⁠  ⁠Email addresses: example@domain.com")),
+                         helpText(h5("•⁠  ⁠URLs: https://www.example.com/path")),
+                         helpText(h5("•  ⁠Emojis: 😊, 🚀, ❤️")),
+                         helpText(h5("•⁠  ⁠Hashtags: #ExampleTag")),
+                         helpText(h5("•⁠  ⁠IP addresses: 192.168.1.1")),
+                         helpText(h5("•⁠  ⁠Mentions: @username")),
+                         helpText(h5("This ensures that these elements are identified and marked for further analysis within the text.")),
                          style="text-align: left; text-color: #989898",
                          hr(),
                          div(

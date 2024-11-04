@@ -486,14 +486,14 @@ loadLanguageModel <- function(language, model_version="-ud-2.5", model_repo = "j
 TaggingCorpusElements <- function(x){
 
   regexList <- c(
-    email="(?i)([_+a-z0-9-]+(\\.[_+a-z0-9-]+)*@[a-z0-9-]+(\\.[a-z0-9-]+)*(\\.[a-z]{2,14}))",
+    EMAIL="(?i)([_+a-z0-9-]+(\\.[_+a-z0-9-]+)*@[a-z0-9-]+(\\.[a-z0-9-]+)*(\\.[a-z]{2,14}))",
     #url="(https?://)?(www\\.)?([\\w.-]+\\.[a-z]{2,})(/[\\w\\-./?=&%]*)?",
-    url="\\b(https?://[\\w.-]+\\.[a-z]{2,6}(/\\S*)?|[\\w.-]+\\.(com|org|net|edu|gov|it|uk)\\b)",
-    hash="^#",
+    URL="\\b(https?://[\\w.-]+\\.[a-z]{2,6}(/\\S*)?|[\\w.-]+\\.(com|org|net|edu|gov|it|uk)\\b)",
+    HASH="^#",
     #emoji="([:;=8X][-~^]?[()\\[\\]{}|/\\\\DpP3><]+|[<>]?[:;=8xX][-~^o]?\\)+|<3|</3|[xX][-~^]?[DdPpOo]+|[\\p{So}\\p{Sk}\\p{Emoji_Presentation}])",
-    emoji="(?<!\\w)([:;=8][-o*']?[:()DPp3]|<3|[\\p{So}\\p{Sk}]+)(?!\\w)",
-    ip_address="\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b",
-    "tag@"="^@"
+    EMOJI="(?<!\\w)([:;=8][-o*']?[:()DPp3]|<3|[\\p{So}\\p{Sk}]+)(?!\\w)",
+    IP_ADDRESS="\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b",
+    MENTION="^@"
   )
   items <- names(regexList)
 
@@ -523,7 +523,7 @@ TaggingCorpusElements <- function(x){
 
 summarySpecialEntities <- function(resList, type="all"){
 
-  data.frame(UPOS = c("email", "url", "hash", "emoji", "ip_address", "tag@"), "N. of Items"=rep(0,6), "N. of Docs"=rep(0,6))
+  data.frame(UPOS = toupper(c("email", "url", "hash", "emoji", "ip_address", "mention")), "N. of Items"=rep(0,6), "N. of Docs"=rep(0,6))
 
   switch(type,
          "all"={
@@ -533,13 +533,13 @@ summarySpecialEntities <- function(resList, type="all"){
              rename(UPOS = tag,
                     "Frequency" = items) %>%
              ungroup() %>%
-             bind_rows(tibble(UPOS = c("email", "url", "hash", "emoji", "ip_address", "tag@"),
+             bind_rows(tibble(UPOS = toupper(c("email", "url", "hash", "emoji", "ip_address", "mention")),
                               "Frequency"=rep(0,6))) %>%
              group_by(UPOS) %>%
              summarize_all(sum)
          },
          {
-           label <- tolower(type)
+           label <- toupper(type)
            resList %>%
              rename(UPOS = tag) %>%
              filter(UPOS == label) %>%
@@ -3318,6 +3318,12 @@ resetValues <- function(){
   return(values)
 }
 
+firstUp <- function(x) {
+  x <- tolower(x)
+  substr(x, 1, 1) <- toupper(substr(x, 1, 1))
+  x
+}
+
 ## Color palette for plots
 colorlist <- function(){
   c("#E41A1C","#377EB8","#4DAF4A","#984EA3","#FF7F00","#A65628","#F781BF","#999999","#66C2A5","#FC8D62","#8DA0CB","#E78AC3","#A6D854","#FFD92F"
@@ -3335,9 +3341,9 @@ posSel <- function(dfTag, pos){
 }
 
 # remove Hapax and lowwer and higher lemmas
-removeHapaxFreq <- function(dfTag,hapax,posTagFreq,singleChar){
+removeHapaxFreq <- function(dfTag,hapax,singleChar){
 
-  posTagFreq <- as.numeric(gsub("%","",posTagFreq))
+  #posTagFreq <- as.numeric(gsub("%","",posTagFreq))
 
 
   ## reset noHapax column
@@ -3362,29 +3368,27 @@ removeHapaxFreq <- function(dfTag,hapax,posTagFreq,singleChar){
       mutate(noSingleChar = ifelse(nchar(lemma)>1,TRUE,FALSE))
   }
 
-  ## reset FrequencyRange column
-  dfTag <- dfTag %>%
-    mutate(FrequencyRange = TRUE)
-
-
-  # min and max frequency
-  Freq <- dfTag %>%
-    group_by(doc_id,lemma) %>%
-    count() %>%
-    ungroup() %>%
-    group_by(doc_id) %>%
-    mutate(perc=n/sum(n)*100) %>%
-    ungroup() %>%
-    dplyr::filter(perc<posTagFreq[1]|perc>posTagFreq[2])
-
-  FREQ <- unique(Freq$lemma)
-
-  if (length(FREQ)>0){
-    dfTag <- dfTag %>%
-      mutate(FrequencyRange = ifelse(lemma %in% FREQ,FALSE,TRUE))
-  }
-
-
+  # ## reset FrequencyRange column
+  # dfTag <- dfTag %>%
+  #   mutate(FrequencyRange = TRUE)
+  #
+  #
+  # # min and max frequency
+  # Freq <- dfTag %>%
+  #   group_by(doc_id,lemma) %>%
+  #   count() %>%
+  #   ungroup() %>%
+  #   group_by(doc_id) %>%
+  #   mutate(perc=n/sum(n)*100) %>%
+  #   ungroup() %>%
+  #   dplyr::filter(perc<posTagFreq[1]|perc>posTagFreq[2])
+  #
+  # FREQ <- unique(Freq$lemma)
+  #
+  # if (length(FREQ)>0){
+  #   dfTag <- dfTag %>%
+  #     mutate(FrequencyRange = ifelse(lemma %in% FREQ,FALSE,TRUE))
+  # }
 
   return(dfTag)
 }
@@ -3399,13 +3403,11 @@ LemmaSelection <- function(dfTag){
     dfTag <- dfTag %>%
       mutate(noSingleChar = TRUE)
   }
-  if (!"FrequencyRange" %in% names(dfTag)){
-    dfTag <- dfTag %>%
-      mutate(FrequencyRange = TRUE)
-  }
 
   dfTag <- dfTag %>%
-    dplyr::filter(POSSelected,noHapax,noSingleChar,FrequencyRange)
+    dplyr::filter(POSSelected,noHapax,noSingleChar) %>%
+    arrange(doc_id, paragraph_id, sentence_id)
+
   return(dfTag)
 }
 
@@ -3525,8 +3527,9 @@ menuList <- function(menu){
                       menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),
                       menuSubItem("Correspondence Analysis", tabName = "ca", icon = icon("chevron-right")),
                       menuItem("Network", tabName = "w_network", icon = icon("chevron-right"),
-                               menuSubItem("Co-word analysis", tabName = "w_networkCooc", icon = icon("chevron-right")),
-                               menuSubItem("Grako", tabName = "w_networkGrako", icon = icon("chevron-right")))),
+                               menuSubItem("Co-word analysis", tabName = "w_networkCooc", icon = icon("chevron-right"))
+                               # ,menuSubItem("Grako", tabName = "w_networkGrako", icon = icon("chevron-right"))
+                               )),
              menuItem("Documents",tabName = "documents", icon = icon(name="duplicate", lib="glyphicon"),
                       menuItem("Topic Modeling", tabName = "d_topicMod", icon = icon("chevron-right"),
                                menuSubItem("K choice", tabName = "d_tm_select", icon = icon("chevron-right")),
@@ -3571,8 +3574,9 @@ menuList <- function(menu){
                       menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),
                       menuSubItem("Correspondence Analysis", tabName = "ca", icon = icon("chevron-right")),
                       menuItem("Network", tabName = "w_network", icon = icon("chevron-right"),
-                               menuSubItem("Co-word analysis", tabName = "w_networkCooc", icon = icon("chevron-right")),
-                               menuSubItem("Grako", tabName = "w_networkGrako", icon = icon("chevron-right")))),
+                               menuSubItem("Co-word analysis", tabName = "w_networkCooc", icon = icon("chevron-right"))
+                               # ,menuSubItem("Grako", tabName = "w_networkGrako", icon = icon("chevron-right"))
+                               )),
              menuItem("Documents",tabName = "documents", icon = icon(name="duplicate", lib="glyphicon"),
                       menuItem("Topic Modeling", tabName = "d_topicMod", icon = icon("chevron-right"),
                                menuSubItem("K choice", tabName = "d_tm_select", icon = icon("chevron-right")),
