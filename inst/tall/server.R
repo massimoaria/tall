@@ -118,7 +118,7 @@ To ensure the functionality of TALL,
   values$zoom <- 2
   dpi <- 300
   set.seed(5)
-  load("data/regex_list.tall")
+  #load("data/regex_list.tall")
 
 
 
@@ -369,6 +369,7 @@ observeEvent(input$reset_confirmation2, {
                    text_original = text) %>%
                  arrange(doc_id)
                values$resetNeed <- TRUE
+               #showModal(corpusModal(session))
                #values$metadata <- setdiff(names(values$txt), c("text", "doc_id","original_doc_id"))
              }
            },
@@ -461,7 +462,35 @@ observeEvent(input$reset_confirmation2, {
     HTML(paste("<pre class='tab'>",path, sep = ''))
   })
 
-  ### Pop-up modal for Tall file loading ----
+  # ### Pop-up modal for Tall file loading ----
+  # corpusModal <- function(session) {
+  #   ns <- session$ns
+  #   modalDialog(
+  #     h3(strong(("Web, Social and Ordinary Tags"))),
+  #     br(),
+  #     DT::DTOutput(ns("corpusElements")),
+  #     size = "l",
+  #     easyClose = TRUE,
+  #     footer = tagList(
+  #       actionButton(label="Report", inputId = "missingReport",
+  #                    icon = icon("plus", lib = "glyphicon")),
+  #       modalButton(label="Close")),
+  #   )
+  # }
+  #
+  #
+  # output$corpusElements <- DT::renderDT({
+  #
+  #   values$corpusElements <- extractCorpusElements(values$txt, regex_list)
+  #   values$summaryCorpusElements <- summaryCorpusElements(values$corpusElements, type="all")
+  #
+  #   values$CorpusElementsDT <- DTformat(values$summaryCorpusElements,
+  #                                       left=1, nrow=nrow(values$summaryCorpusElements), filter="none", button=F, delete=F, dom=FALSE,pagelength=FALSE, size="110%",
+  #                                       filename="Corpus_Elements", title="")
+  #   values$CorpusElementsDT
+  #
+  # })
+
   loadTallgModal <- function(session) {
     ns <- session$ns
     modalDialog(
@@ -687,30 +716,74 @@ observeEvent(input$reset_confirmation2, {
 
   ### PRE-PROCESSING ----
 
-  ## Text Normalization ----
+  # ## Text Normalization ----
 
-  normalizeText <- eventReactive({
-    input$textNormRun
-  },{
-    values$txt <- applyNormalization(values$txt,
-                                     input$textNormWebList,
-                                     input$textNormCorpusList,
-                                     regex_list)
-  })
+  # normalizeText <- eventReactive({
+  #   input$textNormRun
+  # },{
+  #   values$txt <- restoreText(values$txt)
+  #   values$txt <- applyNormalization(values$txt,
+  #                                    input$textNormWebList,
+  #                                    input$textNormCorpusList,
+  #                                    regex_list)
+  #   if (ncol(values$txt)>0){
+  #     if (ncol(values$corpusElements)==0){
+  #       values$corpusElements <- extractCorpusElements(values$txt, regex_list)
+  #     }
+  #     values$summaryCorpusElements <- summaryCorpusElements(values$corpusElements, type="all")
+  #   } else {
+  #     values$summaryCorpusElements <- data.frame(Tag=NA, "N. of Items"=NA, "N. of Docs"=NA)
+  #   }
+  #
+  #   items <- c(input$textNormWebList,input$textNormCorpusList)
+  #
+  #   df <- values$summaryCorpusElements
+  #   df[df$Tag %in% items, c(2,3)] <- 0
+  #   values$normButton <- FALSE
+  #   values$CorpusElementsDTNorm <- DTformat(df,
+  #                                           left=1, nrow=nrow(df), filter="none", button=F, delete=F, dom=FALSE,pagelength=FALSE, size="110%",
+  #                                           filename="Corpus_Elements", title="")
+  #
+  #   values$CorpusElementsDTNorm
+  # }, ignoreNULL = FALSE)
 
-  output$textNormData <- DT::renderDT({
-    normalizeText()
-    #restoreOriginalText()
-    if (values$menu==0){
-      DTformat(values$txt %>%
-                 select(-"text_original") %>%
-                 filter(doc_selected) %>%
-                 mutate(text = paste0(substr(text,1,500),"...")) %>%
-                 select(doc_id, text, everything()) %>%
-                 select(-doc_selected),
-               left=3, nrow=5, filter="none", button=TRUE, delete=FALSE)
-    }
-  })
+  # output$corpusElementsNorm <- DT::renderDT({
+  #
+  #   normalizeText()
+  #   values$CorpusElementsDTNorm
+  #   })
+  #
+  # output$textNormData <- DT::renderDT({
+  #   normalizeText()
+  #   if (values$menu==0){
+  #     DTformat(values$txt %>%
+  #                select(-"text_original") %>%
+  #                filter(doc_selected) %>%
+  #                mutate(text = paste0(substr(text,1,500),"...")) %>%
+  #                select(doc_id, text, everything()) %>%
+  #                select(-doc_selected),
+  #              left=3, nrow=5, filter="none", button=TRUE, delete=FALSE)
+  #   }
+  # })
+  #
+  # output$corpusElementsExpl <- DT::renderDT(server=FALSE,{
+  #
+  #   req(input$textNormType)
+  #   what <- normalizationOptions()
+  #   if (ncol(values$txt)>0 & input$textNormType %in% what$label){
+  #     if (ncol(values$corpusElements)==0){
+  #       values$corpusElements <- extractCorpusElements(values$txt, regex_list)
+  #     }
+  #     type <- what$item[what$label==input$textNormType]
+  #
+  #     df <- summaryCorpusElements(values$corpusElements, type = type)
+  #     names(df) <- c("Item", "Frequency")
+  #     DTformat(df,
+  #              left=1, nrow=10, filter="none", button=F, delete=F, dom=TRUE,pagelength=TRUE, size="100%",
+  #              filename="Corpus_Elements_DIstribution", title="")
+  #   }
+  #
+  # })
 
   ## Tokenization & PoS Tagging ----
 
@@ -746,6 +819,7 @@ observeEvent(input$reset_confirmation2, {
     # Merge metadata from the original txt object
     values$dfTag <- values$dfTag %>%
       left_join(values$txt %>% select(-text, -text_original), by = "doc_id") %>%
+      filter(!is.na(upos)) %>%
       posSel(., c("ADJ","NOUN","PROPN", "VERB"))
     values$dfTag <- highlight(values$dfTag)
     values$dfTag$docSelected <- TRUE
@@ -780,6 +854,110 @@ observeEvent(input$reset_confirmation2, {
       # save(dfTag,menu,D,where, file=file)
     }, contentType = "tall"
   )
+
+  ## Tagging Special Entities ----
+  posSpecialTagging <- eventReactive({
+    input$posSpecialRun
+  },{
+    values$dfTag <- values$dfTag %>%
+      mutate(upos_special = upos)
+
+    res <- TaggingCorpusElements(values$dfTag)
+
+    values$dfTag <- res$x %>% filter(!token %in% c("#","@")) # remove empty hast and tags
+    values$posSpecialData <- res$resList %>% filter(!item %in% c("#","@"))
+
+    rm(res)
+    values$posSpecialTaggingDT <- DTformat(values$posSpecialData %>%
+                                             summarySpecialEntities(type="all"),
+                                          nrow=nrow(df), filter="none", button=F, delete=F, dom=FALSE,pagelength=FALSE,
+                                          size="110%",
+                                          filename="TaggingSpecialEntities", title="", specialtags=TRUE)
+
+    values$posSpecialTaggingDT
+  }, ignoreNULL = TRUE)
+
+  output$posSpecialTags <- DT::renderDT({
+
+    posSpecialTagging()
+    values$posSpecialTaggingDT
+  })
+
+  output$posSpecialData <- DT::renderDT({
+
+    posSpecialTagging()
+
+    if(!is.null(values$dfTag)){
+      DTformat(values$dfTag %>% filter(docSelected) %>% select(doc_id, paragraph_id, sentence_id,sentence,token,lemma, upos) %>%
+                 rename(D_id=doc_id,
+                        P_id=paragraph_id,
+                        S_id=sentence_id,
+                        Sentence=sentence,
+                        Token=token,
+                        Lemma=lemma,
+                        "Part of Speech"=upos)
+      )
+    }
+  })
+
+  output$posSpecialSave <- downloadHandler(
+    filename = function() {
+      paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
+    },
+    content <- function(file) {
+      saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "POS Tag Selection", file)
+      # D <- date()
+      # save(dfTag,menu,D,where, file=file)
+    }, contentType = "tall"
+  )
+
+  ## Click on Tagging Special Entities ----
+  observeEvent(ignoreNULL = TRUE,
+               eventExpr={input$button_id2},
+               handlerExpr = {
+                 if (input$button_id2!="null"){
+                   showModal(modalSpecialEntities(session))
+                 }
+               })
+
+  modalSpecialEntities <- function(session) {
+    ns <- session$ns
+    modalDialog(
+      h3(strong(paste0("Frequency Distribution of ", firstUp(input$button_id2)," Entities"))),
+      DTOutput(ns("specialEntityFreq")),
+      size = "l",
+      easyClose = FALSE,
+      footer = tagList(
+        actionButton(label="Close", inputId = "closeModalSpecialEntities", style="color: #ffff;",
+                     icon = icon("remove", lib = "glyphicon"))
+      ),
+    )
+  }
+
+  observeEvent(input$closeModalSpecialEntities,{
+    removeModal(session = getDefaultReactiveDomain())
+    #session$sendCustomMessage("click", 'null') # reset input value to plot modal more times
+    resetModalButtons(session = getDefaultReactiveDomain())
+  })
+
+  output$specialEntityFreq <- renderDT(server=FALSE,{
+    if (!is.null(input$button_id2)) id <- input$button_id2
+    summarySpecialEntity <- values$posSpecialData %>% summarySpecialEntities(type=id)
+
+    if (id=="URL"){
+      summarySpecialEntity$item <- paste0(
+        '<a href=\"',
+        summarySpecialEntity$item ,
+        '\" target=\"_blank\">',
+        summarySpecialEntity$item ,
+        '</a>'
+      )
+    }
+    # find sentences containing the tokens/lemmas
+    DTformat(summarySpecialEntity, size='100%', button = FALSE)
+  }, escape=FALSE)
+
+
 
   ## Custom Term List Merging ----
 
@@ -864,6 +1042,8 @@ observeEvent(input$reset_confirmation2, {
 
     ### REKA Algorithm
 
+    values$dfTag <- rakeReset(values$dfTag) ## reset previous multiword creation steps
+
     values$posMwSel <- gsub(":","",gsub(":.*","",input$multiwordPosSel))
 
     values$stats <- rake(values$dfTag, group = "doc_id", ngram_max=input$ngram_max, relevant = values$posMwSel, rake.min=input$rake.min, freq.min=input$freq_minMW, term=input$term)
@@ -883,6 +1063,7 @@ observeEvent(input$reset_confirmation2, {
                      div(
                        align = "center",style="margin-top:-5px",
                        width=12,
+                       helpText("Please note",br(),"pressing 'Apply List' will delete previous multiword entries"),
                        do.call("actionButton", c(run_bttn, list(
                          inputId = "multiwordCreatApply")
                        ))
@@ -1003,7 +1184,9 @@ observeEvent(input$reset_confirmation2, {
 
     relevant <- unique(values$dfTag$upos)
 
-    obj <- rake(values$dfTag, relevant = relevant, term=term, type="bylist", keywordList = values$keywordList)
+    stats <- rake(values$dfTag, relevant = relevant, term=term, type="bylist", keywordList = values$keywordList)
+
+    obj <- applyRake(values$dfTag, stats=stats, relevant = relevant, term=term)
 
     values$dfTag <- obj$dfTag
 
@@ -1069,27 +1252,34 @@ observeEvent(input$reset_confirmation2, {
   PosFilterData <- eventReactive({
     input$posTagSelectRun
   },{
-    posTagFreq <- c("0%", "100%")
     selected <- (posTagAll(values$dfTag) %>% dplyr::filter(description %in% (input$posTagLists)))$pos
-    values$dfTag <- removeHapaxFreq(values$dfTag,input$posTagHapax,posTagFreq, input$posTagSingleChar)
+    values$dfTag <- removeHapaxFreq(values$dfTag,input$posTagHapax, input$posTagSingleChar)
     values$dfTag <- posSel(values$dfTag, pos=selected)
-    #print(input$posTagHapax)
     values$menu <- 2
+
+
+    # Update the DT proxy
+    proxy <- dataTableProxy('posTagSelectData')
+    replaceData(proxy, values$dfTag, resetPaging = FALSE)
+
   })
 
-  output$posTagSelectData <- renderDT({
+  output$posTagSelectData <- DT::renderDT({
     PosFilterData()
+
     if(!"lemma_original_nomultiwords" %in% names(values$dfTag)) values$dfTag <- values$dfTag %>% mutate(lemma_original_nomultiwords=lemma)
-    DTformat(LemmaSelection(values$dfTag) %>%
-               group_by(doc_id,sentence_id) %>%
-               mutate(SentenceByPos = paste(lemma_original_nomultiwords, collapse=" ")) %>%
-               select(doc_id, sentence_id,sentence,SentenceByPos,token,lemma, upos) %>%
-               rename(D_id=doc_id,
-                      S_id=sentence_id,
-                      Sentence=sentence,
-                      Token=token,
-                      Lemma=lemma,
-                      "Part of Speech"=upos)
+
+    DTformat(
+      LemmaSelection(values$dfTag) %>%
+        group_by(doc_id,sentence_id) %>%
+        mutate(SentenceByPos = paste(lemma_original_nomultiwords, collapse=" ")) %>%
+        select(doc_id, sentence_id,sentence,SentenceByPos,token,lemma, upos) %>%
+        rename(D_id=doc_id,
+               S_id=sentence_id,
+               Sentence=sentence,
+               Token=token,
+               Lemma=lemma,
+               "Part of Speech"=upos) %>% ungroup()
     )
   })
 
@@ -1804,7 +1994,7 @@ observeEvent(input$closePlotModalDoc,{
       input$nounApply
     },
     valueExpr = {
-      values$freqNoun <- freqByPos(values$dfTag %>% filter(docSelected), term="lemma", pos="NOUN")
+      values$freqNoun <- freqByPos(values$dfTag %>% filter(docSelected), term=input$nounTerm, pos="NOUN")
       values$nounPlotly <- freqPlotly(values$freqNoun,x="n",y="term",n=input$nounN, xlabel="Frequency",ylabel="NOUN", scale="identity")
 
       values$freqNounData <- values$freqNoun %>%
@@ -1860,7 +2050,7 @@ observeEvent(input$closePlotModalDoc,{
       input$propnApply
     },
     valueExpr = {
-      values$freqPropn <- freqByPos(values$dfTag %>% filter(docSelected), term="lemma", pos="PROPN")
+      values$freqPropn <- freqByPos(values$dfTag %>% filter(docSelected), term=input$propnTerm, pos="PROPN")
       values$propnPlotly <- freqPlotly(values$freqPropn,x="n",y="term",n=input$propnN, xlabel="Frequency",ylabel="PROPN", scale="identity")
 
       values$freqPropnData <- values$freqPropn %>%
@@ -1916,7 +2106,7 @@ observeEvent(input$closePlotModalDoc,{
       input$adjApply
     },
     valueExpr = {
-      values$freqAdj <- freqByPos(values$dfTag %>% filter(docSelected), term="lemma", pos="ADJ")
+      values$freqAdj <- freqByPos(values$dfTag %>% filter(docSelected), term=input$adjTerm, pos="ADJ")
       values$adjPlotly <- freqPlotly(values$freqAdj,x="n",y="term",n=input$adjN, xlabel="Frequency",ylabel="ADJ", scale="identity")
 
       values$freqAdjData <- values$freqAdj %>%
@@ -1971,7 +2161,7 @@ observeEvent(input$closePlotModalDoc,{
       input$verbApply
     },
     valueExpr = {
-      values$freqVerb <- freqByPos(values$dfTag %>% filter(docSelected), term="lemma", pos="VERB")
+      values$freqVerb <- freqByPos(values$dfTag %>% filter(docSelected), term=input$verbTerm, pos="VERB")
       values$verbPlotly <- freqPlotly(values$freqVerb,x="n",y="term",n=input$verbN, xlabel="Frequency",ylabel="VERB", scale="identity")
 
       values$freqVerbData <- values$freqVerb %>%
@@ -2135,7 +2325,7 @@ observeEvent(input$closePlotModalDoc,{
 
   output$posTable <- renderDT(server=FALSE,{
     posFreq()
-    DTformat(values$freqPOSData, left=1, right=2, round=0, numeric=2, filename="POSFreqList", dom=FALSE, pagelength=FALSE, size="110%")
+    DTformat(values$freqPOSData, left=1, right=2, round=0, numeric=2, filename="POSFreqList", dom=FALSE, size="110%")
   })
 
   output$posExport <- downloadHandler(

@@ -306,102 +306,145 @@ loadExtInfo <- function(file, txt){
 
 ### PRE_PROCESSING ----
 
-### 0. NORMALIZATION ----
-normalizationOptions <- function(){
-  item <- c(
-    ## Web and social corpus
-    "url",        # website or ftp sites
-    "hash",       # hastags
-    "youtube_id", # youtube ids
-    "emoticon",   # emoticons
-    "tag",        # user tags in posts like: @massimoaria
-    "ip_address", # if addresses
-    ## ordinary corpus
-    "email",      # email
-    #"endmark",    # endmark punctuation
-    #"extraspaces",# two o more spaces
-    "non_ascii",  # non ascii chars
-    "percent",    # percentage symbols %
-    "number",     # numbers
-    "time2",       # time (time2 pattern)
-    "date",       # date
-    "zip",        # postal code
-    "pages",      # remove pp. and page numbers
-    "citation"    # bibliographic citations
-  )
-  label <- c(
-    ## Web and social corpus
-    "URLs",        # website or ftp sites
-    "Hashtags #",    # hashtags
-    "YouTube IDs", # youtube ids
-    "Emoji",      # emoticons
-    "Tags @",        # user tags in posts like: @massimoaria
-    "IP Addresses", # if addresses
-    ## ordinary corpus
-    "E-mails",      # email
-    #"Endmarks",    # endmark punctuation
-    #"Extra spaces",# two o more spaces
-    "Non ASCII chars",  # non ascii chars
-    "Percent symbol %",    # percentage symbols %
-    "Numbers",     # numbers
-    "Time",       # time (time2 pattern)
-    "Dates",       # date
-    "Zip postal codes",        # postal code
-    "Page abbrev.",      # remove pp. and page numbers
-    "Bibliographic Citations"    # bibliographic citations
-  )
-
-  # id <- c(1,2,3,4,7,5,6,16,15,14,13,8,9,10,11,12)
-  id <- c(1,2,3,4,7,5,6,15,14,13,8,9,10,11,12)
-
-  what <- data.frame(label,item,id)
-  return(what)
-}
-
-
-applyNormalization <- function(x,textNormWebList,textNormCorpusList, regex_list){
-  items <- c(textNormWebList,textNormCorpusList)
-  if (length(items)>0){
-    what <- normalizationOptions()
-    what <- what %>%
-      filter(label %in% items) %>%
-      arrange(id)
-
-    for (i in 1:nrow(what)){
-      x <- removeCorpusElements(x,
-                                what = what$item[i],
-                                replaceElement = "",
-                                regex_list = regex_list)
-    }
-    x <- x %>%
-      mutate(text = trimws(text))
-  } else {
-    x <- restoreText(x)
-  }
-  return(x)
-}
-
-removeCorpusElements <- function(x,
-                                 what,
-                                 replaceElement="",
-                                 regex_list=regex_list){
-  if (length(what)!=1){
-    message("Please provide a valid pattern name.")
-    return(NA)
-  }
-
-  if (what == "extraspaces"){
-    x <- x %>%
-      mutate(text = gsub("\\s+"," ",text))
-  } else if (what == "citation"){
-    x$text <- stringi::stri_replace_all_regex(x$text, regex_list[[what]], replaceElement)
-    x$text <- stringi::stri_replace_all_fixed(x$text,paste0("(",replaceElement,")"),"")
-  }
-  else {
-    x$text <- stringi::stri_replace_all_regex(x$text, regex_list[[what]], replaceElement)
-  }
-  return(x)
-}
+# ## 0. NORMALIZATION
+# normalizationOptions <- function(){
+#   item <- c(
+#     ## Web and social corpus
+#     "url",        # website or ftp sites
+#     "hash",       # hastags
+#     "youtube_id", # youtube ids
+#     "emoticon",   # emoticons
+#     "tag",        # user tags in posts like: @massimoaria
+#     "ip_address", # if addresses
+#     ## ordinary corpus
+#     "email",      # email
+#     #"endmark",    # endmark punctuation
+#     #"extraspaces",# two o more spaces
+#     "non_ascii",  # non ascii chars
+#     "percent",    # percentage symbols %
+#     #"number",     # numbers
+#     "time2",       # time (time2 pattern)
+#     "date",       # date
+#     "zip",        # postal code
+#     "pages",      # remove pp. and page numbers
+#     "citation"    # bibliographic citations
+#   )
+#   label <- c(
+#     ## Web and social corpus
+#     "URLs",        # website or ftp sites
+#     "Hashtags #",    # hashtags
+#     "YouTube IDs", # youtube ids
+#     "Emoji",      # emoticons
+#     "Tags @",        # user tags in posts like: @massimoaria
+#     "IP Addresses", # if addresses
+#     ## ordinary corpus
+#     "E-mails",      # email
+#     #"Endmarks",    # endmark punctuation
+#     #"Extra spaces",# two o more spaces
+#     "Non ASCII chars",  # non ascii chars
+#     "Percent symbol %",    # percentage symbols %
+#     #"Numbers",     # numbers
+#     "Time",       # time (time2 pattern)
+#     "Dates",       # date
+#     "Zip postal codes",        # postal code
+#     "Page abbrev.",      # remove pp. and page numbers
+#     "Bibliographic Citations"    # bibliographic citations
+#   )
+#
+#   # id <- c(1,2,3,4,7,5,6,16,15,14,13,8,9,10,11,12)
+#   #id <- c(1,2,3,4,7,5,6,14,13,12,8,9,10,11)
+#   id <- c(2,3,4,5,7,6,1,14,13,12,8,9,10,11)
+#
+#   what <- data.frame(label,item,id)
+#   return(what)
+# }
+#
+# extractCorpusElements <- function(x,
+#                                   regex_list=regex_list){
+#
+#   resList <- list()
+#   what <- normalizationOptions() %>% arrange(id)
+#
+#   for (i in 1:nrow(what)){
+#     item <- what$item[i]
+#
+#     results <- stringi::stri_extract_all_regex(x$text, regex_list[[item]])
+#     resList[[i]] <- data.frame(doc_id=rep(x$doc_id,lengths(results)), item=unlist(results, recursive = F), tag=what$label[i])
+#   }
+#
+#   resList <- bind_rows(resList) %>%
+#     filter(!is.na(item))
+#
+#   return(resList)
+# }
+#
+# summaryCorpusElements <- function(CorpusElements, type="all"){
+#   what <- normalizationOptions()
+#   if (!type %in% c("all",what$item)) type <- "all"
+#
+#   switch(type,
+#          "all"={
+#            CorpusElements %>%
+#              group_by(tag) %>%
+#              summarise(items = length(unique(item)),
+#                        docs = length(unique(doc_id))
+#              ) %>%
+#              rename(Tag = tag,
+#                     "N. of Items" = items,
+#                     "N. of Docs" = docs)
+#          },
+#          {
+#            label <- what$label[what$item==type]
+#            CorpusElements %>%
+#              filter(tag == label) %>%
+#              count(item) %>%
+#              arrange(desc(n))
+#          })
+# }
+#
+# applyNormalization <- function(x,textNormWebList,textNormCorpusList, regex_list){
+#   items <- c(textNormWebList,textNormCorpusList)
+#   if (length(items)>0){
+#     what <- normalizationOptions()
+#     what <- what %>%
+#       filter(label %in% items) %>%
+#       arrange(id)
+#
+#     for (i in 1:nrow(what)){
+#       x <- removeCorpusElements(x,
+#                                 what = what$item[i],
+#                                 replaceElement = "",
+#                                 regex_list = regex_list)
+#     }
+#     x <- x %>%
+#       mutate(text = trimws(text))
+#   } else {
+#     x <- restoreText(x)
+#   }
+#   return(x)
+# }
+#
+# removeCorpusElements <- function(x,
+#                                  what,
+#                                  replaceElement="",
+#                                  regex_list=regex_list){
+#   if (length(what)!=1){
+#     message("Please provide a valid pattern name.")
+#     return(NA)
+#   }
+#
+#   if (what == "extraspaces"){
+#     x <- x %>%
+#       mutate(text = gsub("\\s+"," ",text))
+#   } else if (what == "citation"){
+#     x$text <- stringi::stri_replace_all_regex(x$text, regex_list[[what]], replaceElement)
+#     x$text <- stringi::stri_replace_all_fixed(x$text,paste0("(",replaceElement,")"),"")
+#   }
+#   else {
+#     x$text <- stringi::stri_replace_all_regex(x$text, regex_list[[what]], replaceElement)
+#   }
+#   return(x)
+# }
 
 restoreText <- function(x){
   x <- x %>%
@@ -438,6 +481,73 @@ loadLanguageModel <- function(language, model_version="-ud-2.5", model_repo = "j
 
   return(udmodel_lang)
 }
+
+## Tagging Special Entites ----
+TaggingCorpusElements <- function(x){
+
+  regexList <- c(
+    EMAIL="(?i)([_+a-z0-9-]+(\\.[_+a-z0-9-]+)*@[a-z0-9-]+(\\.[a-z0-9-]+)*(\\.[a-z]{2,14}))",
+    #url="(https?://)?(www\\.)?([\\w.-]+\\.[a-z]{2,})(/[\\w\\-./?=&%]*)?",
+    URL="\\b(https?://[\\w.-]+\\.[a-z]{2,6}(/\\S*)?|[\\w.-]+\\.(com|org|net|edu|gov|it|uk)\\b)",
+    HASH="^#",
+    #emoji="([:;=8X][-~^]?[()\\[\\]{}|/\\\\DpP3><]+|[<>]?[:;=8xX][-~^o]?\\)+|<3|</3|[xX][-~^]?[DdPpOo]+|[\\p{So}\\p{Sk}\\p{Emoji_Presentation}])",
+    EMOJI="(?<!\\w)([:;=8][-o*']?[:()DPp3]|<3|[\\p{So}\\p{Sk}]+)(?!\\w)",
+    IP_ADDRESS="\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b",
+    MENTION="^@"
+  )
+  items <- names(regexList)
+
+  resList <- list()
+  j <- 0
+
+  for (i in 1:length(items)){
+    item <- items[i]
+    results <- stringi::stri_detect_regex(x$token, regexList[[item]])
+    if (sum(results)>0){
+      j <- j+1
+      resList[[j]] <- data.frame(doc_id=x$doc_id[results], item = x$token[results], tag=item)
+      x$upos[results] <- toupper(item)
+      x$POSSelected[results] <- FALSE
+    }
+  }
+
+  if (length(resList)>0){
+    resList <- bind_rows(resList) %>%
+      filter(!is.na(item))
+  } else {
+    resList <- tibble(doc_id=0, item=NA, tag="email") %>% filter(!is.na(item))
+  }
+
+  return(list(resList=resList,x=x))
+}
+
+summarySpecialEntities <- function(resList, type="all"){
+
+  data.frame(UPOS = toupper(c("email", "url", "hash", "emoji", "ip_address", "mention")), "N. of Items"=rep(0,6), "N. of Docs"=rep(0,6))
+
+  switch(type,
+         "all"={
+           resList %>%
+             group_by(tag) %>%
+             summarise(items = length(unique(item))) %>%
+             rename(UPOS = tag,
+                    "Frequency" = items) %>%
+             ungroup() %>%
+             bind_rows(tibble(UPOS = toupper(c("email", "url", "hash", "emoji", "ip_address", "mention")),
+                              "Frequency"=rep(0,6))) %>%
+             group_by(UPOS) %>%
+             summarize_all(sum)
+         },
+         {
+           label <- toupper(type)
+           resList %>%
+             rename(UPOS = tag) %>%
+             filter(UPOS == label) %>%
+             count(item) %>%
+             arrange(desc(n))
+         })
+}
+
 
 ## Custom Lists merging
 mergeCustomLists <- function(df,custom_lists){
@@ -878,7 +988,7 @@ noGroupLabels <- function(label){
                    "deps","misc","original_doc_id","ungroupDoc_id","ungroupP_id", "ungroupS_id",
                    "POSSelected","token_hl","start_hl","end_hl","sentence_hl","lemma_original_nomultiwords",
                    "filename", "upos_original", "folder", "docSelected", "ngram","doc_selected", "noHapax",
-                   "FrequencyRange","text_original", "doc_id_old", "split_word")
+                   "FrequencyRange","text_original", "doc_id_old", "split_word", "token_original_nomultiwords")
   )
 }
 
@@ -3180,10 +3290,12 @@ resetValues <- function(){
   values <- list()
   values <- reactiveValues()
   values$resetNeed <- FALSE
+  values$normButton <- FALSE
   values$path <- NULL
   values$menu <- -1
   values$custom_lists <- NULL
   values$txt <- data.frame()
+  values$corpusElements <- data.frame()
   values$txtOriginal <- data.frame()
   values$list_file <- data.frame(sheet=NULL,file=NULL,n=NULL)
   values$POSTagSelected <- ""
@@ -3206,6 +3318,12 @@ resetValues <- function(){
   return(values)
 }
 
+firstUp <- function(x) {
+  x <- tolower(x)
+  substr(x, 1, 1) <- toupper(substr(x, 1, 1))
+  x
+}
+
 ## Color palette for plots
 colorlist <- function(){
   c("#E41A1C","#377EB8","#4DAF4A","#984EA3","#FF7F00","#A65628","#F781BF","#999999","#66C2A5","#FC8D62","#8DA0CB","#E78AC3","#A6D854","#FFD92F"
@@ -3223,9 +3341,9 @@ posSel <- function(dfTag, pos){
 }
 
 # remove Hapax and lowwer and higher lemmas
-removeHapaxFreq <- function(dfTag,hapax,posTagFreq,singleChar){
+removeHapaxFreq <- function(dfTag,hapax,singleChar){
 
-  posTagFreq <- as.numeric(gsub("%","",posTagFreq))
+  #posTagFreq <- as.numeric(gsub("%","",posTagFreq))
 
 
   ## reset noHapax column
@@ -3250,29 +3368,27 @@ removeHapaxFreq <- function(dfTag,hapax,posTagFreq,singleChar){
       mutate(noSingleChar = ifelse(nchar(lemma)>1,TRUE,FALSE))
   }
 
-  ## reset FrequencyRange column
-  dfTag <- dfTag %>%
-    mutate(FrequencyRange = TRUE)
-
-
-  # min and max frequency
-  Freq <- dfTag %>%
-    group_by(doc_id,lemma) %>%
-    count() %>%
-    ungroup() %>%
-    group_by(doc_id) %>%
-    mutate(perc=n/sum(n)*100) %>%
-    ungroup() %>%
-    dplyr::filter(perc<posTagFreq[1]|perc>posTagFreq[2])
-
-  FREQ <- unique(Freq$lemma)
-
-  if (length(FREQ)>0){
-    dfTag <- dfTag %>%
-      mutate(FrequencyRange = ifelse(lemma %in% FREQ,FALSE,TRUE))
-  }
-
-
+  # ## reset FrequencyRange column
+  # dfTag <- dfTag %>%
+  #   mutate(FrequencyRange = TRUE)
+  #
+  #
+  # # min and max frequency
+  # Freq <- dfTag %>%
+  #   group_by(doc_id,lemma) %>%
+  #   count() %>%
+  #   ungroup() %>%
+  #   group_by(doc_id) %>%
+  #   mutate(perc=n/sum(n)*100) %>%
+  #   ungroup() %>%
+  #   dplyr::filter(perc<posTagFreq[1]|perc>posTagFreq[2])
+  #
+  # FREQ <- unique(Freq$lemma)
+  #
+  # if (length(FREQ)>0){
+  #   dfTag <- dfTag %>%
+  #     mutate(FrequencyRange = ifelse(lemma %in% FREQ,FALSE,TRUE))
+  # }
 
   return(dfTag)
 }
@@ -3287,13 +3403,11 @@ LemmaSelection <- function(dfTag){
     dfTag <- dfTag %>%
       mutate(noSingleChar = TRUE)
   }
-  if (!"FrequencyRange" %in% names(dfTag)){
-    dfTag <- dfTag %>%
-      mutate(FrequencyRange = TRUE)
-  }
 
   dfTag <- dfTag %>%
-    dplyr::filter(POSSelected,noHapax,noSingleChar,FrequencyRange)
+    dplyr::filter(POSSelected,noHapax,noSingleChar) %>%
+    arrange(doc_id, paragraph_id, sentence_id)
+
   return(dfTag)
 }
 
@@ -3355,7 +3469,6 @@ menuList <- function(menu){
                       menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
                       menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
-                      menuSubItem("Text Normalization", tabName = "textNorm",icon = icon("chevron-right"), selected = TRUE),
                       menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right"), selected = TRUE)
              ),
              menuItem("Settings",tabName = "settings", icon = icon("tasks"))
@@ -3364,13 +3477,13 @@ menuList <- function(menu){
          "1"={
            list(
              menuItem("Import", tabName = "import_tx", icon = icon("open-file", lib="glyphicon")),
-             menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
-                      menuSubItem("Split", tabName = "split_tx", icon = icon("chevron-right")),
-                      menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
-                      menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
+             # menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
+             #          menuSubItem("Split", tabName = "split_tx", icon = icon("chevron-right")),
+             #          menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
+             #          menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
-                      menuSubItem("Text Normalization", tabName = "textNorm",icon = icon("chevron-right"), selected = TRUE),
                       menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
+                      menuSubItem("Tagging Special Entities", tabName = "posSpecial",icon = icon("chevron-right")),
                       menuItem("Multi-Word", tabName = "multiword", icon = icon("chevron-right"), startExpanded = TRUE,
                                menuSubItem("Automatic", tabName = "multiwordCreat",icon = icon("chevron-right")),
                                menuSubItem("By a List", tabName = "multiwordByList",icon = icon("chevron-right"))),
@@ -3383,13 +3496,17 @@ menuList <- function(menu){
          "2"={
            list(
              menuItem("Import", tabName = "import_tx", icon = icon("open-file", lib="glyphicon")),
-             menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
-                      menuSubItem("Split", tabName = "split_tx", icon = icon("chevron-right")),
-                      menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
-                      menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
+             # menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
+             #          menuSubItem("Split", tabName = "split_tx", icon = icon("chevron-right")),
+             #          menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
+             #          menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
-                      menuSubItem("Text Normalization", tabName = "textNorm",icon = icon("chevron-right"), selected = TRUE),
-                      menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
+                      # menuItem("Text Normalization", tabName = "TextNorm", icon = icon("chevron-right"), startExpanded = TRUE,
+                      #          menuSubItem("Explore Tags", tabName = "textNormExpl",icon = icon("chevron-right"), selected = TRUE),
+                      #          menuSubItem("Remove Tags", tabName = "textNormRemove",icon = icon("chevron-right"), selected = TRUE)
+                      # ),
+                      # menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
+                      menuSubItem("Tagging Special Entities", tabName = "posSpecial",icon = icon("chevron-right")),
                       menuItem("Multi-Word", tabName = "multiword", icon = icon("chevron-right"), startExpanded = TRUE,
                                menuSubItem("Automatic", tabName = "multiwordCreat",icon = icon("chevron-right")),
                                menuSubItem("By a List", tabName = "multiwordByList",icon = icon("chevron-right"))),
@@ -3410,8 +3527,9 @@ menuList <- function(menu){
                       menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),
                       menuSubItem("Correspondence Analysis", tabName = "ca", icon = icon("chevron-right")),
                       menuItem("Network", tabName = "w_network", icon = icon("chevron-right"),
-                               menuSubItem("Co-word analysis", tabName = "w_networkCooc", icon = icon("chevron-right")),
-                               menuSubItem("Grako", tabName = "w_networkGrako", icon = icon("chevron-right")))),
+                               menuSubItem("Co-word analysis", tabName = "w_networkCooc", icon = icon("chevron-right"))
+                               # ,menuSubItem("Grako", tabName = "w_networkGrako", icon = icon("chevron-right"))
+                               )),
              menuItem("Documents",tabName = "documents", icon = icon(name="duplicate", lib="glyphicon"),
                       menuItem("Topic Modeling", tabName = "d_topicMod", icon = icon("chevron-right"),
                                menuSubItem("K choice", tabName = "d_tm_select", icon = icon("chevron-right")),
@@ -3425,13 +3543,17 @@ menuList <- function(menu){
          "3"={
            list(
              menuItem("Import", tabName = "import_tx", icon = icon("open-file", lib="glyphicon")),
-             menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
-                      menuSubItem("Split", tabName = "split_tx", icon = icon("chevron-right")),
-                      menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
-                      menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
+             # menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
+             #          menuSubItem("Split", tabName = "split_tx", icon = icon("chevron-right")),
+             #          menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
+             #          menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
-                      menuSubItem("Text Normalization", tabName = "textNorm",icon = icon("chevron-right"), selected = TRUE),
-                      menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
+                      # menuItem("Text Normalization", tabName = "TextNorm", icon = icon("chevron-right"), startExpanded = FALSE,
+                      #          menuSubItem("Explore Tags", tabName = "textNormExpl",icon = icon("chevron-right"), selected = TRUE),
+                      #          menuSubItem("Remove Tags", tabName = "textNormRemove",icon = icon("chevron-right"), selected = TRUE)
+                      # ),
+                      # menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
+                      menuSubItem("Tagging Special Entities", tabName = "posSpecial",icon = icon("chevron-right")),
                       menuItem("Multi-Word", tabName = "multiword", icon = icon("chevron-right"), startExpanded = TRUE,
                       menuSubItem("Automatic", tabName = "multiwordCreat",icon = icon("chevron-right")),
                       menuSubItem("By a List", tabName = "multiwordByList",icon = icon("chevron-right"))),
@@ -3452,8 +3574,9 @@ menuList <- function(menu){
                       menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),
                       menuSubItem("Correspondence Analysis", tabName = "ca", icon = icon("chevron-right")),
                       menuItem("Network", tabName = "w_network", icon = icon("chevron-right"),
-                               menuSubItem("Co-word analysis", tabName = "w_networkCooc", icon = icon("chevron-right")),
-                               menuSubItem("Grako", tabName = "w_networkGrako", icon = icon("chevron-right")))),
+                               menuSubItem("Co-word analysis", tabName = "w_networkCooc", icon = icon("chevron-right"))
+                               # ,menuSubItem("Grako", tabName = "w_networkGrako", icon = icon("chevron-right"))
+                               )),
              menuItem("Documents",tabName = "documents", icon = icon(name="duplicate", lib="glyphicon"),
                       menuItem("Topic Modeling", tabName = "d_topicMod", icon = icon("chevron-right"),
                                menuSubItem("K choice", tabName = "d_tm_select", icon = icon("chevron-right")),
@@ -3475,7 +3598,7 @@ menuList <- function(menu){
 
 # DATA TABLE FORMAT ----
 DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, right=NULL, numeric=NULL, dom=TRUE, size='85%', filter="top",
-                     columnShort=NULL, columnSmall=NULL, round=2, title="", button=FALSE, delete=FALSE, escape=FALSE, selection=FALSE){
+                     columnShort=NULL, columnSmall=NULL, round=2, title="", button=FALSE, delete=FALSE, escape=FALSE, selection=FALSE, specialtags=FALSE){
 
   if ("text" %in% names(df)){
     df <- df %>%
@@ -3534,9 +3657,15 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
   }
 
   if (isTRUE(button)){
+      df <- df %>%
+        mutate(Document = glue::glue('<button id="custom_btn" onclick="Shiny.onInputChange(\'button_id\', \'{doc_id}\')">View</button>')) %>%
+        select(Document, everything())
+  }
+
+  if (isTRUE(specialtags)){
     df <- df %>%
-      mutate(Document = glue::glue('<button id="custom_btn" onclick="Shiny.onInputChange(\'button_id\', \'{doc_id}\')">View</button>')) %>%
-      select(Document, everything())
+      mutate(Table = glue::glue('<button id2="custom_btn" onclick="Shiny.onInputChange(\'button_id2\', \'{UPOS}\')">View</button>')) %>%
+      select(Table, everything())
   }
 
   if (isTRUE(delete)){

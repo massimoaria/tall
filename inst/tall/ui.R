@@ -167,6 +167,11 @@ body <- dashboardBody(
     });
   "),
   tags$script("
+    Shiny.addCustomMessageHandler('button_id2', function(value) {
+    Shiny.setInputValue('button_id2', value);
+    });
+  "),
+  tags$script("
     Shiny.addCustomMessageHandler('click', function(value) {
     Shiny.setInputValue('click', value);
     });
@@ -494,72 +499,95 @@ body <- dashboardBody(
 
     ### PRE-PROCESSING ----
 
-    ## Text Normalization ----
-    tabItem(tabName = "textNorm",
-            fluidPage(
-              fluidRow(
-                column(12,
-                       h3(strong("Text Normalization"), align = "center"))),
-              br(),
-              br(),
-              fluidRow(
-                column(9,
-                       tabsetPanel(type = "tabs",
-                                   tabPanel("Normalized Text",
-                                            shinycssloaders::withSpinner(DT::DTOutput("textNormData"),
-                                                                         color = getOption("spinner.color", default = "#4F7942"))
-                                   )
-                       )
-                ),
-                column(3,
-                       div(
-                         box(
-                           width = 12,
-                           div(h3(strong(em("Remove: "))), style="margin-top:-57px"),
-                           tags$hr(),
-                           fluidRow(column(12,
-                                           #uiOutput("posTagLists")
-                                           checkboxGroupInput("textNormWebList", label="Web and social corpus",
-                                                              choices = normalizationOptions()$label[1:6],
-                                                              selected = ""
-                                           ),
-                                           br(),
-                                           checkboxGroupInput("textNormCorpusList", label="Ordinary corpus",
-                                                              choices = normalizationOptions()$label[7:15],
-                                                              selected = ""
-                                           )
-                           )),
-                           div(
-                             hr(),
-                             div(
-                               fluidRow(column(6,
-                                               div(
-                                                 align = "center",style="margin-top:-15px",
-                                                 width=12,
-                                                 do.call("actionButton", c(run_bttn, list(
-                                                   inputId = "textNormRun")
-                                                 ))
-                                               )
-                               ),
-                               column(6,
-                                      div(
-                                        title = t_save,
-                                        div(align="center",
-                                            do.call("downloadButton", c(save_bttn, list(
-                                              outputId = "textNormSave")
+    ## Text Normaliztion Explore ----
+    # tabItem(tabName = "textNormExpl",
+    #         fluidPage(
+    #           tabPanel("Explore Tags",
+    #                    h3(strong("Text Normalization"), align = "center"),
+    #                    br(),
+    #                    br(),
+    #                    selectInput("textNormType",
+    #                                "Tag:",
+    #                                choices = c(" ", normalizationOptions()$label),
+    #                                selected = " "),
+    #                    br(),
+    #                    shinycssloaders::withSpinner(DT::DTOutput("corpusElementsExpl"),
+    #                                                 color = getOption("spinner.color", default = "#4F7942"))
+    #           )
+    #         )
+    # ),
 
-                                            ))
-                                        )
-                                      )
-                               )
-                               ), style="margin-top:-15px"), style="margin-top:-15px")
-                         ), style="margin-top:40px"
-                       )
-                )
 
-              )
-            )
-    ),
+    # ## Text Normalization ----
+    # tabItem(tabName = "textNormRemove",
+    #         fluidPage(
+    #           fluidRow(
+    #             column(12,
+    #                    h3(strong("Text Normalization"), align = "center"))),
+    #           br(),
+    #           br(),
+    #           fluidRow(
+    #             column(9,
+    #                    tabsetPanel(type = "tabs",
+    #                                tabPanel("Web, Social and Ordinary Tags",
+    #                                         shinycssloaders::withSpinner(DT::DTOutput("corpusElementsNorm"),
+    #                                                                      color = getOption("spinner.color", default = "#4F7942"))
+    #                                ),
+    #                                tabPanel("Normalized Text",
+    #                                         shinycssloaders::withSpinner(DT::DTOutput("textNormData"),
+    #                                                                      color = getOption("spinner.color", default = "#4F7942"))
+    #                                )
+    #                    )
+    #             ),
+    #             column(3,
+    #                    div(
+    #                      box(
+    #                        width = 12,
+    #                        div(h3(strong(em("Remove: "))), style="margin-top:-57px"),
+    #                        tags$hr(),
+    #                        fluidRow(column(12,
+    #                                        #uiOutput("posTagLists")
+    #                                        checkboxGroupInput("textNormWebList", label="Web and social corpus",
+    #                                                           choices = normalizationOptions()$label[1:6],
+    #                                                           selected = ""
+    #                                        ),
+    #                                        br(),
+    #                                        checkboxGroupInput("textNormCorpusList", label="Ordinary corpus",
+    #                                                           choices = normalizationOptions()$label[7:14],
+    #                                                           selected = ""
+    #                                        )
+    #                        )),
+    #                        div(
+    #                          hr(),
+    #                          div(
+    #                            fluidRow(column(6,
+    #                                            div(
+    #                                              align = "center",style="margin-top:-15px",
+    #                                              width=12,
+    #                                              do.call("actionButton", c(run_bttn, list(
+    #                                                inputId = "textNormRun")
+    #                                              ))
+    #                                            )
+    #                            ),
+    #                            column(6,
+    #                                   div(
+    #                                     title = t_save,
+    #                                     div(align="center",
+    #                                         do.call("downloadButton", c(save_bttn, list(
+    #                                           outputId = "textNormSave")
+    #
+    #                                         ))
+    #                                     )
+    #                                   )
+    #                            )
+    #                            ), style="margin-top:-15px"), style="margin-top:-15px")
+    #                      ), style="margin-top:40px"
+    #                    )
+    #             )
+    #
+    #           )
+    #         )
+    # ),
 
     ## Tokenization & PoS Tagging -----
 
@@ -614,6 +642,70 @@ body <- dashboardBody(
                                            outputId = "tokPosSave")
                                          ))
                                   )), style="margin-top:-5px")
+                       )
+                     ),style="margin-top:40px"
+              )
+            )
+    ),
+
+    ### POS Special Tagging ----
+    tabItem(tabName = "posSpecial",
+            fluidPage(
+              fluidRow(
+                column(12,
+                       h3(strong("Tagging Special Entities"), align = "center"))
+              )
+            ),
+            br(),
+            br(),
+            fluidRow(
+              column(9,
+                     tabsetPanel(type = "tabs",
+                                 tabPanel("Special Entities Overview",
+                                          shinycssloaders::withSpinner(DT::DTOutput("posSpecialTags"),
+                                                                       color = getOption("spinner.color", default = "#4F7942"))
+                                 ),
+                                 tabPanel("Annotated Text Table",
+                                          shinycssloaders::withSpinner(DT::DTOutput("posSpecialData"),
+                                                                       color = getOption("spinner.color", default = "#4F7942"))
+                                 )
+                     )
+              ),
+              column(3,
+                     div(
+                       box(
+                         width = 12,
+                         div(h3(strong(em("Special Entities"))), style="margin-top:-57px"),
+                         tags$hr(),
+                         helpText(h5("When processing text, special tags will be assigned to certain detected entities.")),
+                         helpText(h5("These include:")),
+                         helpText(h5("•⁠  ⁠Email addresses: example@domain.com")),
+                         helpText(h5("•⁠  ⁠URLs: https://www.example.com/path")),
+                         helpText(h5("•  ⁠Emojis: 😊, 🚀, ❤️")),
+                         helpText(h5("•⁠  ⁠Hashtags: #ExampleTag")),
+                         helpText(h5("•⁠  ⁠IP addresses: 192.168.1.1")),
+                         helpText(h5("•⁠  ⁠Mentions: @username")),
+                         helpText(h5("This ensures that these elements are identified and marked for further analysis within the text.")),
+                         style="text-align: left; text-color: #989898",
+                         hr(),
+                         div(
+                           fluidRow(column(6,
+                                           title = t_run,
+                                           do.call("actionButton", c(run_bttn, list(
+                                             inputId = "posSpecialRun")
+                                           ))
+                                    ),
+                                    column(6,
+                                           title = t_save,
+                                           do.call("downloadButton", c(list(
+                                             label=NULL,
+                                             style ="display:block; height: 37px; width: 37px; border-radius: 50%;
+                                      border: 1px; margin-top: 15px;",
+                                             icon = icon(name ="floppy-save", lib="glyphicon")
+                                           ), list(
+                                             outputId = "posSpecialSave")
+                                           ))
+                                    )), style="margin-top:-5px")
                        )
                      ),style="margin-top:40px"
               )
@@ -1287,6 +1379,11 @@ body <- dashboardBody(
                              numericInput("nounN",
                                           label=("Number of Nouns"),
                                           value = 20),
+                             selectInput("nounTerm",
+                                         "Terms:",
+                                         choices = c("Tokens" = "token",
+                                                     "Lemmas" = "lemma"),
+                                         selected = "lemma"),
                              width = "220px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
                              tooltip = tooltipOptions(title = "Options"),
@@ -1348,6 +1445,11 @@ body <- dashboardBody(
                              numericInput("propnN",
                                           label=("Number of Proper Nouns"),
                                           value = 20),
+                             selectInput("propnTerm",
+                                         "Terms:",
+                                         choices = c("Tokens" = "token",
+                                                     "Lemmas" = "lemma"),
+                                         selected = "lemma"),
                              width = "220px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
                              tooltip = tooltipOptions(title = "Options"),
@@ -1408,6 +1510,11 @@ body <- dashboardBody(
                              numericInput("adjN",
                                           label=("Number of Adjectives"),
                                           value = 20),
+                             selectInput("adjTerm",
+                                         "Terms:",
+                                         choices = c("Tokens" = "token",
+                                                     "Lemmas" = "lemma"),
+                                         selected = "lemma"),
                              width = "220px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
                              tooltip = tooltipOptions(title = "Options"),
@@ -1468,6 +1575,11 @@ body <- dashboardBody(
                              numericInput("verbN",
                                           label=("Number of Verbs"),
                                           value = 20),
+                             selectInput("verbTerm",
+                                         "Terms:",
+                                         choices = c("Tokens" = "token",
+                                                     "Lemmas" = "lemma"),
+                                         selected = "lemma"),
                              width = "220px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
                              tooltip = tooltipOptions(title = "Options"),
@@ -1529,6 +1641,7 @@ body <- dashboardBody(
                              numericInput("otherN",
                                           label=("Number of Multi-Words"),
                                           value = 20),
+
                              width = "220px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
                              tooltip = tooltipOptions(title = "Options"),
