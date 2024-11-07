@@ -859,9 +859,6 @@ observeEvent(input$reset_confirmation2, {
   posSpecialTagging <- eventReactive({
     input$posSpecialRun
   },{
-    values$dfTag <- values$dfTag %>%
-      mutate(upos_special = upos)
-
     res <- TaggingCorpusElements(values$dfTag)
 
     values$dfTag <- res$x %>% filter(!token %in% c("#","@")) # remove empty hast and tags
@@ -874,7 +871,6 @@ observeEvent(input$reset_confirmation2, {
                                           size="110%",
                                           filename="TaggingSpecialEntities", title="", specialtags=TRUE)
 
-    values$posSpecialTaggingDT
   }, ignoreNULL = TRUE)
 
   output$posSpecialTags <- DT::renderDT({
@@ -898,6 +894,24 @@ observeEvent(input$reset_confirmation2, {
                         "Part of Speech"=upos)
       )
     }
+  })
+
+  ## back to the original txt
+  observeEvent(input$posSpecialBack, {
+    values$dfTag <- resetSpecialEntities(values$dfTag)
+    proxy2 <- dataTableProxy('posSpecialTags')
+    # tibble(UPOS = toupper(c("email", "url", "hash", "emoji", "ip_address", "mention")),
+    #        "Frequency"=rep(0,6)) %>%
+    #   mutate(Table = glue::glue('<button id2="custom_btn" onclick="Shiny.onInputChange(\'button_id2\', \'{UPOS}\')">View</button>')) %>%
+    #   select(Table, everything())
+    replaceData(proxy2, data.frame(Table=rep(NA,6), UPOS = toupper(c("email", "url", "hash", "emoji", "ip_address", "mention")), Frequency = rep(0,6)), resetPaging = FALSE)
+
+    popUpGeneric(title="Special Entities Tags Removed",
+                 type="waiting", color=c("#FFA800"),
+                 subtitle=paste0("Now all Special Entities Tags have been remove from your documents"),
+                 btn_labels="OK")
+
+
   })
 
   output$posSpecialSave <- downloadHandler(

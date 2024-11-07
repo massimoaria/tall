@@ -687,26 +687,41 @@ body <- dashboardBody(
                          helpText(h5("•⁠  ⁠Mentions: @username")),
                          helpText(h5("This ensures that these elements are identified and marked for further analysis within the text.")),
                          style="text-align: left; text-color: #989898",
-                         hr(),
+                         br(),
                          div(
-                           fluidRow(column(6,
-                                           title = t_run,
-                                           do.call("actionButton", c(run_bttn, list(
-                                             inputId = "posSpecialRun")
-                                           ))
-                                    ),
-                                    column(6,
-                                           title = t_save,
-                                           do.call("downloadButton", c(list(
-                                             label=NULL,
-                                             style ="display:block; height: 37px; width: 37px; border-radius: 50%;
-                                      border: 1px; margin-top: 15px;",
-                                             icon = icon(name ="floppy-save", lib="glyphicon")
-                                           ), list(
-                                             outputId = "posSpecialSave")
-                                           ))
-                                    )), style="margin-top:-5px")
-                       )
+                           hr(),
+                           div(
+                             fluidRow(column(4,
+                                             div(
+                                               align = "center",style="margin-top:-15px",
+                                               width=12,
+                                               do.call("actionButton", c(run_bttn, list(
+                                                 inputId = "posSpecialRun")
+                                               )))
+                             ),
+                             column(4,
+                                    div(
+                                      align = "center",style="margin-top:-15px",
+                                      width=12,
+                                      title = t_back,
+                                      do.call("actionButton", c(back_bttn, list(
+                                        inputId = "posSpecialBack")
+                                      ))
+                                    )
+                             ),
+                             column(4,
+                                    div(
+                                      title = t_save,
+                                      div(align="center",
+                                          do.call("downloadButton", c(save_bttn, list(
+                                            outputId = "posSpecialSave")
+
+                                          ))
+                                      )
+                                    )
+                             )
+                             ), style="margin-top: -8px"), style="margin-top:-15px")
+                   )
                      ),style="margin-top:40px"
               )
             )
@@ -808,8 +823,13 @@ body <- dashboardBody(
                        div(
                          box(
                            width = 12,
-                           div(h3(strong(em("Options: "))), style="margin-top:-57px"),
-                           tags$hr(),
+                           div(h3(strong(em("Automatic Multi-Words"))), style="margin-top:-57px"),
+                           helpText(h5("Multi-word creation extracts keywords (single terms or sequences) from the text.")),
+                           helpText(h5("After keywords are generated, select those you wish to include in your data from the list.")),
+                           hr(),
+                           style="text-align: left; text-color: #989898",
+                           #div(h3(strong(em("Options: ")))),#, style="margin-top:-57px"),
+                           #tags$hr(),
                            fluidRow(column(6,
                                            selectInput("term",
                                                        "Terms:",

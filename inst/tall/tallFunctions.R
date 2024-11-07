@@ -485,6 +485,12 @@ loadLanguageModel <- function(language, model_version="-ud-2.5", model_repo = "j
 ## Tagging Special Entites ----
 TaggingCorpusElements <- function(x){
 
+  if ("upos_specialentities" %in% names(x)){
+    x <- resetSpecialEntities(x)
+  } else {
+    x$upos_specialentities <- x$upos
+  }
+
   regexList <- c(
     EMAIL="(?i)([_+a-z0-9-]+(\\.[_+a-z0-9-]+)*@[a-z0-9-]+(\\.[a-z0-9-]+)*(\\.[a-z]{2,14}))",
     #url="(https?://)?(www\\.)?([\\w.-]+\\.[a-z]{2,})(/[\\w\\-./?=&%]*)?",
@@ -519,6 +525,17 @@ TaggingCorpusElements <- function(x){
   }
 
   return(list(resList=resList,x=x))
+}
+
+resetSpecialEntities <- function(x){
+  if ("upos_specialentities" %in% names(x)){
+    items <- toupper(c("email", "url", "hash", "emoji", "ip_address", "mention"))
+    x <- x %>%
+      mutate(upos = ifelse(upos %in% items,upos_specialentities,upos))
+  } else {
+    x$upos_specialentities <- x$upos
+  }
+  return(x)
 }
 
 summarySpecialEntities <- function(resList, type="all"){
