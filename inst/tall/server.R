@@ -1690,9 +1690,14 @@ observeEvent(input$reset_confirmation2, {
     title = "Guiraud Index",
     h3("Guiraud Index"),
     hr(),
-    p(HTML(""), style = 'font-size:16px'),
+    p(HTML("<span style='font-family: Calibri, sans-serif; font-size: 16px;'>The <strong>Guiraud Index (GI)</strong> is a lexical richness measure used in linguistic and text analysis to evaluate vocabulary diversity within a text. It is calculated by dividing the number of unique words (types) by the square root of the total number of words (tokens) in the text. The formula is:</span>
+             <div style='font-size:1.2em; color:'black'; text-align: center; margin:10px 0;'>
+          <p style='text-align: center;'><span style='font-size: 16px;'><em><span style='font-family: Calibri, sans-serif;'> Guiraud Index = (Number of Types / &#8730;Number of Tokens) * 100 </span></em></span></p>
+             </div>
+             <span style='font-family: Calibri, sans-serif; font-size: 16px;'> GI is less sensitive to text length than a simple type-to-token ratio, making it particularly useful for comparing texts of varying lengths. A higher </strong>GI</strong> indicates a richer vocabulary, reflecting greater lexical diversity.</span>"), style = 'font-size:16px'),
     easyClose = TRUE
   )))
+
 
   ## Overview Table ----
 
