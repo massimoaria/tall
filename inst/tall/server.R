@@ -628,6 +628,7 @@ observeEvent(input$reset_confirmation2, {
 
   })
 
+
   ## back to the original txt
   observeEvent(input$splitTextBack, {
     values$txt <- unsplitDoc(values$txt)
@@ -644,6 +645,32 @@ observeEvent(input$reset_confirmation2, {
                select(-c("text_original", ends_with("id_old"))) %>%
                filter(doc_selected) ,
              left=2, nrow=5, filter="none", button=TRUE, delete=TRUE)
+  })
+
+  output$splitTextSave <- downloadHandler(
+    filename = function() {
+      paste("Tall-Export-File-", Sys.Date(), ".csv", sep="")
+    },
+    content <- function(file) {
+      write_csv(
+        x=values$txt %>%
+          filter(doc_selected) %>%
+          select(-c("text_original", "doc_selected", ends_with("id_old"))),
+        file=file,
+        na = "NA",
+        append = FALSE,
+        col_names = TRUE
+        # quote = c("needed"),
+        # escape = c("backslash"),
+        # eol = "\n"
+      )
+    }, contentType = "csv"
+  )
+
+  # Back to the original import text ----
+  observeEvent(input$extInfoTextBack, {
+    values$txt <- values$txt %>%
+      mutate(doc_selected = TRUE)
   })
 
 
@@ -696,6 +723,7 @@ observeEvent(input$reset_confirmation2, {
              left=4, nrow=3, filter="top", button=TRUE, delete=TRUE)
   })
 
+
   output$doc_idExport <- downloadHandler(
     filename = function() {
       paste("Tall-Export-File-", Sys.Date(), ".xlsx", sep="")
@@ -706,6 +734,39 @@ observeEvent(input$reset_confirmation2, {
                                               select(doc_id),
                                             file=file))
     }, contentType = "xlsx"
+  )
+
+  # # Aggiunta del downloadHandler per il file .xlsx
+  # output$extInfoSave <- downloadHandler(
+  #   filename = function() {
+  #     paste("Tall_Export_File_", Sys.Date(), ".xlsx", sep = "")
+  #   },
+  #   content <- function(file) {
+  #     suppressWarnings(openxlsx::write.xlsx(values$txt %>%
+  #                                             filter(doc_selected) %>%
+  #                                           select(-c("text_original","doc_selected")),
+  #                                           file=file))
+  #   }, contentType = "xlsx"
+  # )
+
+  output$extInfoSave <- downloadHandler(
+    filename = function() {
+      paste("Tall-Export-File-", Sys.Date(), ".csv", sep="")
+    },
+    content <- function(file) {
+      write_csv(
+        x=values$txt %>%
+          filter(doc_selected) %>%
+          select(-c("text_original","doc_selected")),
+        file=file,
+        na = "NA",
+        append = FALSE,
+        col_names = TRUE
+        # quote = c("needed"),
+        # escape = c("backslash"),
+        # eol = "\n"
+      )
+    }, contentType = "csv"
   )
 
   # Back to the original import text ----
@@ -1690,9 +1751,14 @@ observeEvent(input$reset_confirmation2, {
     title = "Guiraud Index",
     h3("Guiraud Index"),
     hr(),
-    p(HTML(""), style = 'font-size:16px'),
+    p(HTML("<span style='font-family: Calibri, sans-serif; font-size: 16px;'>The <strong>Guiraud Index (GI)</strong> is a <em>lexical diversity</em> measure calculated by dividing the number of unique terms (types) by the square root of the total number of terms (tokens) in the text. The formula is:</span>
+             <div style='font-size:1.2em; color:'black'; text-align: center; margin:10px 0;'>
+          <p style='text-align: center;'><span style='font-size: 16px;'><em><span style='font-family: Calibri, sans-serif;'> Guiraud Index = (Number of Types / &#8730;Number of Tokens) * 100 </span></em></span></p>
+             </div>
+             <span style='font-family: Calibri, sans-serif; font-size: 16px;'> GI is less sensitive to text length than a simple type-to-token ratio, making it particularly useful for comparing texts of varying lengths. A higher </strong>GI</strong> indicates a richer vocabulary, reflecting greater lexical diversity.</span>"), style = 'font-size:16px'),
     easyClose = TRUE
   )))
+
 
   ## Overview Table ----
 
