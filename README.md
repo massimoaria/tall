@@ -1,28 +1,29 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# **TA*ll*** - **T**ext Analysis for **A*ll***
+# TALL - Text Analysis for ALL
 
 <img src="images/tall_logo.jpg" width="685" />
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-**TA*ll*** - **T**ext Analysis for **A*ll***, an R Shiny app that
-includes a wide set of methodologies specifically tailored for various
-text analysis tasks. It aims to address the needs of researchers without
-extensive programming skills, providing a versatile and general-purpose
-tool for analyzing textual data. With TA*ll*, researchers can leverage a
-wide range of text analysis techniques without the burden of extensive
-programming knowledge, enabling them to extract valuable insights from
-textual data in a more efficient and accessible manner.
+TALL - Text Analysis for ALL, an R Shiny app that includes a wide set of
+methodologies specifically tailored for various text analysis tasks. It
+aims to address the needs of researchers without extensive programming
+skills, providing a versatile and general-purpose tool for analyzing
+textual data. With TALL, researchers can leverage a wide range of text
+analysis techniques without the burden of extensive programming
+knowledge, enabling them to extract valuable insights from textual data
+in a more efficient and accessible manner.
 
 ## Setup
 
-You can install the development version of TA*ll* from
+You can install the development version of TALL from
 [GitHub](https://github.com/) with:
 
 ``` r
+# Note: 
 # install.packages("remotes")
 remotes::install_github("massimoaria/tall")
 ```
@@ -33,7 +34,7 @@ Load the library with:
 library("tall")
 ```
 
-and then start TA*ll* shiny app with:
+and then start TALL shiny app with:
 
 ``` r
 tall()
@@ -76,30 +77,29 @@ diverse backgrounds to effectively process and analyze textual data,
 fostering a more inclusive research environment and democratizing access
 to the transformative power of text analysis.
 
-For researchers who lack programming skills, TA*ll* offers a viable
+For researchers who lack programming skills, TALL offers a viable
 solution, providing an intuitive interface that allow researchers to
 interact with data and perform analyses without the need for extensive
 programming knowledge.
 
-TA*ll* offers a comprehensive workflow for data cleaning,
-pre-processing, statistical analysis, and visualization of textual data,
-by combining state-of-the-art text analysis techniques into an R Shiny
-app.
+TALL offers a comprehensive workflow for data cleaning, pre-processing,
+statistical analysis, and visualization of textual data, by combining
+state-of-the-art text analysis techniques into an R Shiny app.
 
-## TA*ll* workflow
+## TALL workflow
 
-First TA*ll* seamlessly integrates the functionalities of a suite of R
+First TALL seamlessly integrates the functionalities of a suite of R
 packages designed for NLP tasks with the user-friendly interface of web
 applications through the Shiny package environment.
 
-The TA*ll* workflow streamlines the discovery and analysis of textual
-data by systematically processing and exploring its content. This
+The TALL workflow streamlines the discovery and analysis of textual data
+by systematically processing and exploring its content. This
 comprehensive framework empowers researchers with a versatile toolkit
 for text analysis, enabling them to efficiently navigate and extract
 meaningful insights from large volumes of textual data.
 
 By leveraging the strengths of both R packages and Shiny’s interactive
-web interface, TA*ll* provides a powerful and accessible platform for
+web interface, TALL provides a powerful and accessible platform for
 researchers to conduct thorough the following workflow:
 
 ![](images/workflow.png)
@@ -110,17 +110,34 @@ researchers to conduct thorough the following workflow:
 
 3.  **Statistical Text Analysis and Dynamic Visualization**
 
-## Some screenshot from TA*ll*
+## Some screenshot from TALL
+
+### Import text from multiple file formats
 
 ![](images/import.png)
 
+### Edit, divide, and add external information
+
 ![](images/edit.png)
 
-![](images/normalize.png)
+### Automatic Lemmatization and PoS-Tagging through LLM
 
 ![](images/postag.png)
 
-![](images/customlist.png)
+### Tagging Special Entities through multiple regex
+
+![](images/SpecEntitiesTagging1.png)
+![](images/SpecEntitiesTagging2.png)
+
+### Semantic Tagging
+
+#### Automatic Multi-word creation
+
+![](images/automatic_multiword.png)
+
+#### Multi-word creation by a list and Custom Term List
+
+![](images/bylist_customlist.png)
 
 ![](images/overview.png)
 

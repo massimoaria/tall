@@ -8,12 +8,12 @@ output: github_document
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.path = "man/figures/README-",
+  fig.path = "tall_logo.jpg",
   out.width = "100%"
 )
 ```
 
-# **TA*ll*** - **T**ext Analysis for **A*ll***
+# TALL - Text Analysis for ALL
 
 ![](images/tall_logo.jpg){width="685"}
 
@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 
 <!-- badges: end -->
 
-**TA*ll*** - **T**ext Analysis for **A*ll***, an R Shiny app that includes a wide set of methodologies specifically tailored for various text analysis tasks. It aims to address the needs of researchers without extensive programming skills, providing a versatile and general-purpose tool for analyzing textual data. With TA*ll*, researchers can leverage a wide range of text analysis techniques without the burden of extensive programming knowledge, enabling them to extract valuable insights from textual data in a more efficient and accessible manner.
+TALL - Text Analysis for ALL, an R Shiny app that includes a wide set of methodologies specifically tailored for various text analysis tasks. It aims to address the needs of researchers without extensive programming skills, providing a versatile and general-purpose tool for analyzing textual data. With TALL, researchers can leverage a wide range of text analysis techniques without the burden of extensive programming knowledge, enabling them to extract valuable insights from textual data in a more efficient and accessible manner.
 
 ## Setup
 
@@ -57,11 +57,11 @@ TALL offers a comprehensive workflow for data cleaning, pre-processing, statisti
 
 ## TALL workflow
 
-First TA*ll* seamlessly integrates the functionalities of a suite of R packages designed for NLP tasks with the user-friendly interface of web applications through the Shiny package environment.
+First TALL seamlessly integrates the functionalities of a suite of R packages designed for NLP tasks with the user-friendly interface of web applications through the Shiny package environment.
 
-The TA*ll* workflow streamlines the discovery and analysis of textual data by systematically processing and exploring its content. This comprehensive framework empowers researchers with a versatile toolkit for text analysis, enabling them to efficiently navigate and extract meaningful insights from large volumes of textual data.
+The TALL workflow streamlines the discovery and analysis of textual data by systematically processing and exploring its content. This comprehensive framework empowers researchers with a versatile toolkit for text analysis, enabling them to efficiently navigate and extract meaningful insights from large volumes of textual data.
 
-By leveraging the strengths of both R packages and Shiny's interactive web interface, TA*ll* provides a powerful and accessible platform for researchers to conduct thorough the following workflow:
+By leveraging the strengths of both R packages and Shiny's interactive web interface, TALL provides a powerful and accessible platform for researchers to conduct thorough the following workflow:
 
 ![](images/workflow.png)
 
@@ -71,17 +71,30 @@ By leveraging the strengths of both R packages and Shiny's interactive web inter
 
 3.  **Statistical Text Analysis and Dynamic Visualization**
 
-## Some screenshot from TA*ll*
+## Some screenshot from TALL
 
-![](images/import.png)
+### Import text from multiple file formats
+![](images/import.png)\n
 
-![](images/edit.png)
+### Edit, divide, and add external information\n
+![](images/edit.png)\n
 
-![](images/normalize.png)
+### Automatic Lemmatization and PoS-Tagging through LLM
+![](images/postag.png)\n
 
-![](images/postag.png)
+### Tagging Special Entities through multiple regex
+![](images/SpecEntitiesTagging1.png)\n
+![](images/SpecEntitiesTagging2.png)\n
 
-![](images/customlist.png)
+### Semantic Tagging
+
+#### Automatic Multi-word creation
+![](images/automatic_multiword.png)
+
+#### Multi-word creation by a list and Custom Term List
+![](images/bylist_customlist.png)
+
+
 
 ![](images/overview.png)
 
