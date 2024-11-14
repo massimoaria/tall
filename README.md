@@ -139,9 +139,15 @@ researchers to conduct thorough the following workflow:
 
 ![](images/bylist_customlist.png)
 
+### Descriptive statistics, concordance analysis and word frequency distributions
+
 ![](images/overview.png)
 
+### WORDS - Multiple methods for Topic Detection
+
 ![](images/words.png)
+
+### DOCUMENTS - Multiple methods for Topic Detection
 
 ![](images/documents.png)
 
