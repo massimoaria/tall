@@ -28,7 +28,7 @@ TALL - Text Analysis for ALL, an R Shiny app that includes a wide set of methodo
 You can install the development version of TALL from [GitHub](https://github.com/) with:
 
 ``` r
-# Note: 
+# Note: If this is your first time installing TALL, run the following code line:
 # install.packages("remotes")
 remotes::install_github("massimoaria/tall")
 ```
