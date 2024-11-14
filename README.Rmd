@@ -25,9 +25,10 @@ knitr::opts_chunk$set(
 
 ## Setup
 
-You can install the development version of TA*ll* from [GitHub](https://github.com/) with:
+You can install the development version of TALL from [GitHub](https://github.com/) with:
 
 ``` r
+# Note: 
 # install.packages("remotes")
 remotes::install_github("massimoaria/tall")
 ```
@@ -38,7 +39,7 @@ Load the library with:
 library("tall")
 ```
 
-and then start TA*ll* shiny app with:
+and then start TALL shiny app with:
 
 ``` r
 tall()
@@ -50,11 +51,11 @@ In the age of information abundance, researchers across diverse disciplines are 
 
 Researchers can harness the power of these textual resources to delve into novel research questions, corroborate existing theories, and generate groundbreaking insights. Through the utilization of computational tools and methodologies, researchers can efficiently process and analyze expansive volumes of text, substantially reducing the time and effort expended compared to manual analysis. Furthermore, there is a burgeoning recognition of the need for text analysis tools tailored to individuals who may not possess in-depth programming expertise. While programming languages like R and Python offer powerful capabilities for data analysis, not all researchers have the time or resources to acquire proficiency in these languages. To address this challenge, a growing number of user-friendly text analysis tools have emerged, providing researchers with a viable alternative to traditional programming-based approaches. These tools empower researchers from diverse backgrounds to effectively process and analyze textual data, fostering a more inclusive research environment and democratizing access to the transformative power of text analysis.
 
-For researchers who lack programming skills, TA*ll* offers a viable solution, providing an intuitive interface that allow researchers to interact with data and perform analyses without the need for extensive programming knowledge.
+For researchers who lack programming skills, TALL offers a viable solution, providing an intuitive interface that allow researchers to interact with data and perform analyses without the need for extensive programming knowledge.
 
-TA*ll* offers a comprehensive workflow for data cleaning, pre-processing, statistical analysis, and visualization of textual data, by combining state-of-the-art text analysis techniques into an R Shiny app.
+TALL offers a comprehensive workflow for data cleaning, pre-processing, statistical analysis, and visualization of textual data, by combining state-of-the-art text analysis techniques into an R Shiny app.
 
-## TA*ll* workflow
+## TALL workflow
 
 First TA*ll* seamlessly integrates the functionalities of a suite of R packages designed for NLP tasks with the user-friendly interface of web applications through the Shiny package environment.
 
