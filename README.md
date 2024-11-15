@@ -16,7 +16,7 @@ textual data. With TALL, researchers can leverage a wide range of text
 analysis techniques without the burden of extensive programming
 knowledge, enabling them to extract valuable insights from textual data
 in a more efficient and accessible manner. [View
-tutorial](https://mariaspano.github.io/tall/slides_tutorial.html)
+tutorial](https://mariaspano.github.io/tall/TALL_tutorial.html)
 
 ## Setup
 
@@ -184,7 +184,7 @@ researchers to conduct thorough the following workflow:
 
 - Michelangelo Misuraca
 
-  - email: michelangelo.misuraca@unical.it
+  - email: mmisuraca@unisa.it
 
   - ORCID: <https://orcid.org/0000-0002-8794-966X>
 
