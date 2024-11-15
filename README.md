@@ -139,15 +139,15 @@ researchers to conduct thorough the following workflow:
 
 ![](images/bylist_customlist.png)
 
-### OVERVIEW - Descriptive statistics, concordance analysis and word frequency distributions
+### **OVERVIEW** - Descriptive statistics, concordance analysis and word frequency distributions
 
 ![](images/overview.png)
 
-### WORDS - Multiple methods for Topic Detection
+### **WORDS** - Multiple methods for Topic Detection
 
 ![](images/words.png)
 
-### DOCUMENTS - Main approaches for entire texts
+### **DOCUMENTS** - Main approaches for entire texts
 
 ![](images/documents.png)
 
