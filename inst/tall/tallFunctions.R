@@ -452,7 +452,7 @@ restoreText <- function(x){
 }
 
 ### 1. TOKENIZATION ----
-loadLanguageModel <- function(language, model_version="-ud-2.5", model_repo = "jwijffels/udpipe.models.ud.2.5"){
+loadLanguageModel <- function(language, model_version="-ud-2.14", model_repo = "jwijffels/udpipe.models.ud.2.5"){
   switch(Sys.info()[['sysname']],
          Windows= {home <- Sys.getenv('R_USER')},
          Linux  = {home <- Sys.getenv('HOME')},
