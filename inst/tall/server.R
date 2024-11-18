@@ -1933,7 +1933,7 @@ observeEvent(input$reset_confirmation2, {
     if (!is.null(elementY)){
       if (input$sidebarmenu == "d_tm_estim" & elementY %in% unique(values$dfTag$doc_id)){
         showModal(plotModalDoc(session))
-      } else if (input$sidebarmenu %in% c("w_noun","w_propn", "w_adj", "w_verb", "w_other", "ca", "d_tm_estim")){
+      } else if (input$sidebarmenu %in% c("w_freq", "ca", "d_tm_estim")){
         showModal(plotModalTerm(session))
       }
     }
@@ -1962,6 +1962,14 @@ observeEvent(input$reset_confirmation2, {
   output$wordInContext <- renderDT(server=FALSE,{
     values$d <- event_data("plotly_click")
     word <- values$d$y
+
+    # for URL frequency #
+    if (!is.null(word)) if (substr(word,1,8)=="<a href="){
+      href_regex <- "href=\"(https?://[^\"]+)\""
+      word <- sub(href_regex, "\\1", unlist(regmatches(word, gregexpr(href_regex, word, perl = TRUE))))
+    }
+    ###
+
     if (input$sidebarmenu=="w_other"){
       word_search <- word
       sentences <- values$dfTag %>%
@@ -2067,308 +2075,74 @@ observeEvent(input$closePlotModalDoc,{
 
   ## Frequency List ----
 
-  ## NOUN ----
+  ## Words Frequency by PoS ----
 
-  nounFreq <- eventReactive(
+  output$posSelectionFreq <-  renderUI({
+    selectInput(inputId = "posSelectionFreq",
+                "PoS Tag:",
+                choices = sort(unique(values$dfTag$upos)),
+                selected = "NOUN"
+    )
+  })
+
+  wFreq <- eventReactive(
+    ignoreNULL = TRUE,
     eventExpr = {
-      input$nounApply
+      input$wFreqApply
     },
     valueExpr = {
-      values$freqNoun <- freqByPos(values$dfTag %>% filter(docSelected), term=input$nounTerm, pos="NOUN")
-      values$nounPlotly <- freqPlotly(values$freqNoun,x="n",y="term",n=input$nounN, xlabel="Frequency",ylabel="NOUN", scale="identity")
+      if(!is.null(input$posSelectionFreq)){
+        values$wFreq <- freqByPos(values$dfTag %>% filter(docSelected), term=input$wFreqTerm, pos=input$posSelectionFreq)
+        values$wFreqPlotly <- freqPlotly(values$wFreq,x="n",y="term",n=input$wFreqN, xlabel="Frequency",ylabel=input$posSelectionFreq, scale="identity")
 
-      values$freqNounData <- values$freqNoun %>%
-        rename(Word = term,
-               Frequency = n)
-    }
-  )
-
-  output$nounPlot <- renderPlotly({
-    nounFreq()
-    values$nounPlotly
-  })
-
-  output$nounTable <- renderDT(server=FALSE,{
-    nounFreq()
-    DTformat(values$freqNounData, left=1, right=2, round=0, numeric=2, filename="NounFreqList", dom=FALSE, size="110%")
-  })
-
-  output$nounExport <- downloadHandler(
-    filename = function() {
-
-      paste("NounFrequency-", Sys.Date(), ".png", sep="")
-    },
-    content <- function(file) {
-      values$nounGgplot <- freqGgplot(values$freqNoun,x=2, y=1,n=input$nounN,
-                                      title = "Noun Frequency")
-      ggsave(filename = file, plot = values$nounGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
-    },
-    contentType = "png"
-  )
-
-  ## Report
-
-  observeEvent(input$nounReport,{
-    if(!is.null(values$freqNoun)){
-      values$nounGgplot <- freqGgplot(values$freqNoun,x=2, y=1,n=input$nounN,
-                                      title = "Noun Frequency")
-      list_df <- list(values$freqNounData)
-      list_plot <- list(values$nounGgplot)
-      wb <- addSheetToReport(list_df,list_plot,sheetname = "Noun", wb=values$wb)
-      values$wb <- wb
-      popUp(title="Most Used Words-NOUN", type="success")
-      values$myChoices <- sheets(values$wb)
-    } else {
-      popUp(type="error")
-    }
-  })
-
-
-  ## PROPN ----
-  propnFreq <- eventReactive(
-    eventExpr = {
-      input$propnApply
-    },
-    valueExpr = {
-      values$freqPropn <- freqByPos(values$dfTag %>% filter(docSelected), term=input$propnTerm, pos="PROPN")
-      values$propnPlotly <- freqPlotly(values$freqPropn,x="n",y="term",n=input$propnN, xlabel="Frequency",ylabel="PROPN", scale="identity")
-
-      values$freqPropnData <- values$freqPropn %>%
-        rename(Word = term,
-               Frequency = n)
-
-    }
-  )
-
-  output$propnPlot <- renderPlotly({
-    propnFreq()
-    values$propnPlotly
-  })
-
-  output$propnTable <- renderDT(server=FALSE,{
-    propnFreq()
-    DTformat(values$freqPropnData, left=1, right=2, round=0, numeric=2, filename="PropnFreqList", dom=FALSE, size="110%")
-  })
-
-  output$propnExport <- downloadHandler(
-    filename = function() {
-
-      paste("ProperNounFrequency-", Sys.Date(), ".png", sep="")
-    },
-    content <- function(file) {
-      values$propnGgplot <- freqGgplot(values$freqPropn,x=2, y=1,n=input$propnN,
-                                       title = "Proper Noun Frequency")
-      ggsave(filename = file, plot = values$propnGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
-    },
-    contentType = "png"
-  )
-
-  ## Report
-
-  observeEvent(input$propnReport,{
-    if(!is.null(values$freqPropn)){
-      values$propnGgplot <- freqGgplot(values$freqPropn,x=2, y=1,n=input$propnN,
-                                       title = "Proper Noun Frequency")
-      list_df <- list(values$freqPropnData)
-      list_plot <- list(values$propnGgplot)
-      wb <- addSheetToReport(list_df,list_plot,sheetname = "Propn", wb=values$wb)
-      values$wb <- wb
-      popUp(title="Most Used Words-PROPN", type="success")
-      values$myChoices <- sheets(values$wb)
-    } else {
-      popUp(type="error")
-    }
-  })
-
-  ## ADJ ----
-  adjFreq <- eventReactive(
-    eventExpr = {
-      input$adjApply
-    },
-    valueExpr = {
-      values$freqAdj <- freqByPos(values$dfTag %>% filter(docSelected), term=input$adjTerm, pos="ADJ")
-      values$adjPlotly <- freqPlotly(values$freqAdj,x="n",y="term",n=input$adjN, xlabel="Frequency",ylabel="ADJ", scale="identity")
-
-      values$freqAdjData <- values$freqAdj %>%
-        rename(Word = term,
-               Frequency = n)
-    }
-  )
-
-  output$adjPlot <- renderPlotly({
-    adjFreq()
-    values$adjPlotly
-  })
-
-  output$adjTable <- renderDT(server=FALSE,{
-    adjFreq()
-    DTformat(values$freqAdjData, left=1, right=2, round=0, numeric=2, filename="AdjFreqList", dom=FALSE, size="110%")
-  })
-
-  output$adjExport <- downloadHandler(
-    filename = function() {
-
-      paste("AdjectiveFrequency-", Sys.Date(), ".png", sep="")
-    },
-    content <- function(file) {
-      values$adjGgplot <- freqGgplot(values$freqAdj,x=2, y=1,n=input$adjN,
-                                     title = "Adjective Frequency")
-      ggsave(filename = file, plot = values$adjGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
-    },
-    contentType = "png"
-  )
-
-  ## Report
-
-  observeEvent(input$adjReport,{
-    if(!is.null(values$freqAdj)){
-      values$adjGgplot <- freqGgplot(values$freqAdj,x=2, y=1,n=input$adjN,
-                                     title = "Adjective Frequency")
-      list_df <- list(values$freqAdjData)
-      list_plot <- list(values$adjGgplot)
-      wb <- addSheetToReport(list_df,list_plot,sheetname = "Adj", wb=values$wb)
-      values$wb <- wb
-      popUp(title="Most Used Words-ADJ", type="success")
-      values$myChoices <- sheets(values$wb)
-    } else {
-      popUp(type="error")
-    }
-  })
-
-  ## VERB ----
-  verbFreq <- eventReactive(
-    eventExpr = {
-      input$verbApply
-    },
-    valueExpr = {
-      values$freqVerb <- freqByPos(values$dfTag %>% filter(docSelected), term=input$verbTerm, pos="VERB")
-      values$verbPlotly <- freqPlotly(values$freqVerb,x="n",y="term",n=input$verbN, xlabel="Frequency",ylabel="VERB", scale="identity")
-
-      values$freqVerbData <- values$freqVerb %>%
-        rename(Word = term,
-               Frequency = n)
-    }
-  )
-
-  output$verbPlot <- renderPlotly({
-    verbFreq()
-    values$verbPlotly
-  })
-
-  output$verbTable <- renderDT(server=FALSE,{
-    verbFreq()
-    DTformat(values$freqVerbData, left=1, right=2, round=0, numeric=2, filename="VerbFreqList", dom=FALSE, size="110%")
-  })
-
-  output$verbExport <- downloadHandler(
-    filename = function() {
-
-      paste("VerbFrequency-", Sys.Date(), ".png", sep="")
-    },
-    content <- function(file) {
-      values$verbGgplot <- freqGgplot(values$freqVerb,x=2, y=1,n=input$verbN,
-                                      title = "Verb Frequency")
-      ggsave(filename = file, plot = values$verbGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
-    },
-    contentType = "png"
-  )
-
-  ## Report
-
-  observeEvent(input$verbReport,{
-    if(!is.null(values$freqVerb)){
-      values$verbGgplot <- freqGgplot(values$freqVerb,x=2, y=1,n=input$verbN,
-                                      title = "Verb Frequency")
-      list_df <- list(values$freqVerbData)
-      list_plot <- list(values$verbGgplot)
-      wb <- addSheetToReport(list_df,list_plot,sheetname = "Verb", wb=values$wb)
-      values$wb <- wb
-      popUp(title="Most Used Words-VERB", type="success")
-      values$myChoices <- sheets(values$wb)
-    } else {
-      popUp(type="error")
-    }
-  })
-
-  ## OTHER ----
-
-  observeEvent(input$otherApply,{
-
-    if(is.null(values$multiwords)){
-
-      showModal(modalDialog(
-        title = h3(strong("Warning message!")),
-        h4(HTML("No Multi-Word found!<br>
-               Please return to the Pre-processing -> Multi-Word Creation menu to obtain them.")),
-        footer = tagList(
-          actionButton(label="Create Multi-Word", inputId = "modalMultiWord", style="color: #ffff;",
-                       icon = icon("edit", lib = "glyphicon")),
-          modalButton("Dismiss")
-          ),
-        easyClose = TRUE
-      ))
-    }
-  })
-
-  ## back to MultiWord creation menu
-  observeEvent(input$modalMultiWord,{
-    removeModal()
-    updateTabItems(session, "sidebarmenu", "multiwordCreat")
-  })
-
-
-
-  otherFreq <- eventReactive(
-    eventExpr = {
-      input$otherApply
-    },
-    valueExpr = {
-      if(!is.null(values$multiwords)){
-      values$freqOther <- freqByPos(values$dfTag %>% filter(docSelected), term="lemma", pos="MULTIWORD")
-      values$otherPlotly <- freqPlotly(values$freqOther,x="n",y="term",n=input$otherN, xlabel="Frequency",ylabel="Multi-Words", scale="identity")
-
-      values$freqOtherData <- values$freqOther %>%
-        rename(Word = term,
-               Frequency = n)
+        values$wFreqData <- values$wFreq %>%
+          rename(Word = term,
+                 Frequency = n)
+      }else{
+        popUpGeneric(title="No PoS Tag/Term selected!", type="error", color=c("#1d8fe1","#913333","#FFA800"),
+                     subtitle="Please, click on Option button and select by which PoS Tag and term /n
+                     measure the frequency distribution",
+                     btn_labels="OK")
       }
 
     }
   )
 
-  output$otherPlot <- renderPlotly({
-    otherFreq()
-    values$otherPlotly
+  output$wFreqPlot <- renderPlotly({
+    wFreq()
+    values$wFreqPlotly
   })
 
-  output$otherTable <- renderDT(server=FALSE,{
-    otherFreq()
-    DTformat(values$freqOtherData, left=1, right=2, round=0, numeric=2, filename="MultiWordFreqList", dom=FALSE, size="110%")
+  output$wFreqTable <- renderDT(server=FALSE,{
+    wFreq()
+    DTformat(values$wFreqData, left=1, right=2, round=0, numeric=2, filename="WordsFreqList", dom=FALSE, size="110%")
   })
 
-  output$otherExport <- downloadHandler(
+  output$wFreqExport <- downloadHandler(
     filename = function() {
 
-      paste("MultiWordFrequency-", Sys.Date(), ".png", sep="")
+      paste("WordsFrequency-", Sys.Date(), ".png", sep="")
     },
     content <- function(file) {
-      values$otherGgplot <- freqGgplot(values$freqOther,x=2, y=1,n=input$otherN,
-                                       title = "Multi-Words Frequency")
-      ggsave(filename = file, plot = values$otherGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
+      values$wFreqGgplot <- freqGgplot(values$wFreq,x=2, y=1,n=input$wFreqN,
+                                       title = paste0("Words Frequency by ", input$posSelectionFreq))
+      ggsave(filename = file, plot = values$wFreqGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
     },
     contentType = "png"
   )
 
   ## Report
 
-  observeEvent(input$otherReport,{
-    if(!is.null(values$freqOther)){
-      values$otherGgplot <- freqGgplot(values$freqOther,x=2, y=1,n=input$otherN,
-                                       title = "Multi-Words Frequency")
-      list_df <- list(values$freqOtherData)
-      list_plot <- list(values$otherGgplot)
-      wb <- addSheetToReport(list_df,list_plot,sheetname = "MultiWords", wb=values$wb)
+  observeEvent(input$wFreqReport,{
+    if(!is.null(values$wFreq)){
+      values$wFreqGgplot <- freqGgplot(values$wFreq,x=2, y=1,n=input$wFreqN,
+                                       title = paste0("Words Frequency by ", input$posSelectionFreq)
+      )
+      list_df <- list(values$wFreqData)
+      list_plot <- list(values$wFreqGgplot)
+      wb <- addSheetToReport(list_df,list_plot,sheetname = "WordsFreq", wb=values$wb)
       values$wb <- wb
-      popUp(title="Most Used Words-MULTIWORDS", type="success")
+      popUp(title=paste0("Words Frequency by-",input$posSelectionFreq) , type="success")
       values$myChoices <- sheets(values$wb)
     } else {
       popUp(type="error")
@@ -2425,13 +2199,13 @@ observeEvent(input$closePlotModalDoc,{
 
   observeEvent(input$posReport,{
     values$posGgplot <- freqGgplot(data.frame(values$freqPOS),x=2, y=1,n=length(values$freqPOS$PoS),
-                                   title = "PoS Frequency")
+                                   title = "PoS Tag Frequency")
     if(!is.null(values$freqPOS)){
       list_df <- list(values$freqPOSData)
       list_plot <- list(values$posGgplot)
-      wb <- addSheetToReport(list_df,list_plot,sheetname = "PoS", wb=values$wb)
+      wb <- addSheetToReport(list_df,list_plot,sheetname = "PoSFreq", wb=values$wb)
       values$wb <- wb
-      popUp(title="Most Used Words-PoS", type="success")
+      popUp(title="PoS Tag Frequency", type="success")
       values$myChoices <- sheets(values$wb)
     } else {
       popUp(type="error")

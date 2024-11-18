@@ -1364,17 +1364,19 @@ body <- dashboardBody(
 
     ## Frequency List----
 
-    ### NOUN ----
-    tabItem(tabName = "w_noun",
+    ## Words Frequency by PoS----
+
+    tabItem(tabName = "w_freq",
             fluidPage(
               fluidRow(
                 column(8,
-                       h3(strong("Noun Frequency List"), align = "center")),
+                       h3(strong("Words Frequency by PoS"), align = "center")
+                ),
                 div(
                   title = t_run,
                   column(1,
                          do.call("actionButton", c(run_bttn, list(
-                           inputId = "nounApply")
+                           inputId = "wFreqApply")
                          ))
                   )),
 
@@ -1382,24 +1384,25 @@ body <- dashboardBody(
                   title = t_export,
                   column(1,
                          do.call("downloadButton", c(export_bttn, list(
-                           outputId = "nounExport")
+                           outputId = "wFreqExport")
                          )),
                   )),
                 div(
                   title = t_report,
                   column(1,
                          do.call("actionButton", c(report_bttn, list(
-                           inputId = "nounReport")
+                           inputId = "wFreqReport")
                          ))
                   )),
                 div(column(1,
                            dropdown(
                              h4(strong("Options: ")),
                              hr(),
-                             numericInput("nounN",
-                                          label=("Number of Nouns"),
+                             numericInput("wFreqN",
+                                          label=("Number of words"),
                                           value = 20),
-                             selectInput("nounTerm",
+                             uiOutput("posSelectionFreq"),
+                             selectInput("wFreqTerm",
                                          "Terms:",
                                          choices = c("Tokens" = "token",
                                                      "Lemmas" = "lemma"),
@@ -1417,269 +1420,11 @@ body <- dashboardBody(
               fluidRow(
                 tabsetPanel(type = "tabs",
                             tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "nounPlot", height = "75vh",width ="98.9%"),
+                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "wFreqPlot", height = "75vh",width ="98.9%"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             ),
                             tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("nounTable", width = 700),
-                                                                  color = getOption("spinner.color", default = "#4F7942")),
-                                     align="center"
-                            )
-                )
-              )
-            )
-    ),
-
-    ### PROPN ----
-    tabItem(tabName = "w_propn",
-            fluidPage(
-              fluidRow(
-                column(8,
-                       h3(strong("Proper Noun Frequency List"), align = "center")),
-                div(
-                  title = t_run,
-                  column(1,
-                         do.call("actionButton", c(run_bttn, list(
-                           inputId = "propnApply")
-                         ))
-                  ),
-                ),
-                div(
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "propnExport")
-                         ))
-                  )),
-                div(
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "propnReport")
-                         ))
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             hr(),
-                             numericInput("propnN",
-                                          label=("Number of Proper Nouns"),
-                                          value = 20),
-                             selectInput("propnTerm",
-                                         "Terms:",
-                                         choices = c("Tokens" = "token",
-                                                     "Lemmas" = "lemma"),
-                                         selected = "lemma"),
-                             width = "220px", icon = icon("cog", lib="glyphicon"),
-                             right = TRUE, animate = TRUE,
-                             tooltip = tooltipOptions(title = "Options"),
-                             style = "material-circle", size = "sm"
-                           )
-
-                ),
-                style = style_opt
-                )
-              ),
-              fluidRow(
-                tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "propnPlot", height = "75vh",width ="98.9%"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            ),
-                            tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("propnTable", width = 700),
-                                                                  color = getOption("spinner.color", default = "#4F7942")),
-                                     align="center"
-                            )
-                )
-              )
-            )
-    ),
-
-    ### ADJ ----
-    tabItem(tabName = "w_adj",
-            fluidPage(
-              fluidRow(
-                column(8,
-                       h3(strong("Adjective Frequency List"), align = "center")),
-                div(
-                  title = t_run,
-                  column(1,
-                         do.call("actionButton", c(run_bttn, list(
-                           inputId = "adjApply")
-                         ))
-                  )),
-                div(
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "adjExport")
-                         ))
-                  )),
-                div(
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "adjReport")
-                         ))
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             hr(),
-                             numericInput("adjN",
-                                          label=("Number of Adjectives"),
-                                          value = 20),
-                             selectInput("adjTerm",
-                                         "Terms:",
-                                         choices = c("Tokens" = "token",
-                                                     "Lemmas" = "lemma"),
-                                         selected = "lemma"),
-                             width = "220px", icon = icon("cog", lib="glyphicon"),
-                             right = TRUE, animate = TRUE,
-                             tooltip = tooltipOptions(title = "Options"),
-                             style = "material-circle", size = "sm"
-                           )
-
-                ),
-                style = style_opt
-                )
-              ),
-              fluidRow(
-                tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "adjPlot", height = "75vh",width ="98.9%"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            ),
-                            tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("adjTable", width = 700),
-                                                                  color = getOption("spinner.color", default = "#4F7942")),
-                                     align="center"
-                            )
-                )
-              )
-            )
-    ),
-
-    ### VERB ----
-    tabItem(tabName = "w_verb",
-            fluidPage(
-              fluidRow(
-                column(8,
-                       h3(strong("Verb Frequency List"), align = "center")),
-                div(
-                  title = t_run,
-                  column(1,
-                         do.call("actionButton", c(run_bttn, list(
-                           inputId = "verbApply")
-                         ))
-                  )),
-                div(
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "verbExport")
-                         ))
-                  )),
-                div(
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "verbReport")
-                         ))
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             hr(),
-                             numericInput("verbN",
-                                          label=("Number of Verbs"),
-                                          value = 20),
-                             selectInput("verbTerm",
-                                         "Terms:",
-                                         choices = c("Tokens" = "token",
-                                                     "Lemmas" = "lemma"),
-                                         selected = "lemma"),
-                             width = "220px", icon = icon("cog", lib="glyphicon"),
-                             right = TRUE, animate = TRUE,
-                             tooltip = tooltipOptions(title = "Options"),
-                             style = "material-circle", size = "sm"
-                           )
-
-                ),
-                style = style_opt
-                )
-              ),
-              fluidRow(
-                tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "verbPlot", height = "75vh",width ="98.9%"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            ),
-                            tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("verbTable", width = 700),
-                                                                  color = getOption("spinner.color", default = "#4F7942")),
-                                     align="center"
-                            )
-                )
-              )
-            )
-    ),
-
-    ### MULTIWORD ----
-    tabItem(tabName = "w_other",
-            fluidPage(
-              fluidRow(
-                column(8,
-                       h3(strong("Multi-Word Frequency List"), align = "center")),
-                div(
-                  title = t_run,
-                  column(1,
-                         do.call("actionButton", c(run_bttn, list(
-                           inputId = "otherApply")
-                         ))
-                  )),
-                div(
-                  title = t_export,
-                  column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "otherExport")
-                         ))
-                  )),
-                div(
-                  title = t_report,
-                  column(1,
-                         do.call("actionButton", c(report_bttn, list(
-                           inputId = "otherReport")
-                         ))
-                  )),
-                div(column(1,
-                           dropdown(
-                             h4(strong("Options: ")),
-                             hr(),
-                             # uiOutput("otherFreq"),
-                             numericInput("otherN",
-                                          label=("Number of Multi-Words"),
-                                          value = 20),
-
-                             width = "220px", icon = icon("cog", lib="glyphicon"),
-                             right = TRUE, animate = TRUE,
-                             tooltip = tooltipOptions(title = "Options"),
-                             style = "material-circle", size = "sm"
-                           )
-
-                ),
-                style = style_opt
-                )
-              ),
-              fluidRow(
-                tabsetPanel(type = "tabs",
-                            tabPanel("Plot",
-                                     shinycssloaders::withSpinner(plotlyOutput(outputId = "otherPlot", height = "75vh",width ="98.9%"),
-                                                                  color = getOption("spinner.color", default = "#4F7942"))
-                            ),
-                            tabPanel("Table",
-                                     shinycssloaders::withSpinner(DT::DTOutput("otherTable", width = 700),
+                                     shinycssloaders::withSpinner(DT::DTOutput("wFreqTable", width = 700),
                                                                   color = getOption("spinner.color", default = "#4F7942")),
                                      align="center"
                             )

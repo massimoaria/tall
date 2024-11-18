@@ -452,7 +452,7 @@ restoreText <- function(x){
 }
 
 ### 1. TOKENIZATION ----
-loadLanguageModel <- function(language, model_version="-ud-2.14", model_repo = "jwijffels/udpipe.models.ud.2.5"){
+loadLanguageModel <- function(language, model_version="-ud-2.5", model_repo = "jwijffels/udpipe.models.ud.2.5"){
   switch(Sys.info()[['sysname']],
          Windows= {home <- Sys.getenv('R_USER')},
          Linux  = {home <- Sys.getenv('HOME')},
@@ -494,7 +494,8 @@ TaggingCorpusElements <- function(x){
   regexList <- c(
     EMAIL="(?i)([_+a-z0-9-]+(\\.[_+a-z0-9-]+)*@[a-z0-9-]+(\\.[a-z0-9-]+)*(\\.[a-z]{2,14}))",
     #url="(https?://)?(www\\.)?([\\w.-]+\\.[a-z]{2,})(/[\\w\\-./?=&%]*)?",
-    URL="\\b(https?://[\\w.-]+\\.[a-z]{2,6}(/\\S*)?|[\\w.-]+\\.(com|org|net|edu|gov|it|uk)\\b)",
+    URL="(?<!@)\\b(https?://[\\w.-]+\\.[a-z]{2,6}(/[\\S]*)?|[\\w.-]+\\.(com|org|net|edu|gov|it|uk)\\b)",
+    #URL="\\b(https?://[\\w.-]+\\.[a-z]{2,6}(/\\S*)?|[\\w.-]+\\.(com|org|net|edu|gov|it|uk)\\b)",
     HASH="^#",
     #emoji="([:;=8X][-~^]?[()\\[\\]{}|/\\\\DpP3><]+|[<>]?[:;=8xX][-~^o]?\\)+|<3|</3|[xX][-~^]?[DdPpOo]+|[\\p{So}\\p{Sk}\\p{Emoji_Presentation}])",
     EMOJI="(?<!\\w)([:;=8][-o*']?[:()DPp3]|<3|[\\p{So}\\p{Sk}]+)(?!\\w)",
@@ -1005,7 +1006,8 @@ noGroupLabels <- function(label){
                    "deps","misc","original_doc_id","ungroupDoc_id","ungroupP_id", "ungroupS_id",
                    "POSSelected","token_hl","start_hl","end_hl","sentence_hl","lemma_original_nomultiwords",
                    "filename", "upos_original", "folder", "docSelected", "ngram","doc_selected", "noHapax",
-                   "FrequencyRange","text_original", "doc_id_old", "split_word", "token_original_nomultiwords")
+                   "FrequencyRange","text_original", "doc_id_old", "split_word", "token_original_nomultiwords",
+                   "lemma_original", "upos_specialentities")
   )
 }
 
@@ -1064,6 +1066,17 @@ freqByPos <- function(df, term="lemma", pos="NOUN"){
     dplyr::filter(upos %in% pos) %>%
     count(term=.[[term]]) %>%
     arrange(desc(n))
+
+  if(pos=="URL"){
+    obj$term <- paste0(
+      '<a href=\"',
+      obj$term,
+      '\" target=\"_blank\">',
+      obj$term,
+      '</a>'
+    )
+  }
+  return(obj)
 }
 
 # freqPlotly ----
@@ -3190,15 +3203,16 @@ short2long <- function(df, myC){
 
 
 ## Labels sheets Report
+## Labels sheets Report
 dfLabel <- function(){
   short <- c("Empty Report",
              "Overview",
-             "Noun",
-             "Propn",
-             "Adj",
-             "Verb",
-             "MultiWords",
-             "PoS",
+             "WordsFreq",
+             # "Propn",
+             # "Adj",
+             # "Verb",
+             # "MultiWords",
+             "PoSFreq",
              "Clustering",
              "CorrespondenceAnalysis",
              "CoWord",
@@ -3211,12 +3225,13 @@ dfLabel <- function(){
 
   long <- c("Empty Report",
             "Overview",
-            "Most used Words-NOUN",
-            "Most Used Words-PROPN",
-            "Most Used Words-ADJ",
-            "Most Used Words-VERB",
-            "Most Used Words-MULTIWORDS",
-            "Most Used Words-PoS",
+            "Words Frequency",
+            #"Most used Words-NOUN",
+            # "Most Used Words-PROPN",
+            # "Most Used Words-ADJ",
+            # "Most Used Words-VERB",
+            # "Most Used Words-MULTIWORDS",
+            "PoS Tag Frequency",
             "Clustering",
             "Correspondence Analysis",
             "Co-Word Analysis",
@@ -3225,6 +3240,7 @@ dfLabel <- function(){
             "TM-Model Estimation",
             "Polarity Detection",
             "Summarization")
+
 
   data.frame(short=short,long=long)
 }
@@ -3533,12 +3549,8 @@ menuList <- function(menu){
              # menuItem("Groups",tabName = "defineGroups", icon = icon("th", lib="glyphicon")),
              menuItem("Overview", tabName = "overview", icon = icon("search", lib="glyphicon")),
              menuItem("Words", tabName = "words", icon = icon("font", lib = "glyphicon"),
-                      menuItem("Most Used Words", tabName = "freqList", icon = icon("chevron-right"),
-                               menuSubItem("Noun", tabName = "w_noun", icon = icon("chevron-right")),
-                               menuSubItem("Proper Noun", tabName = "w_propn", icon = icon("chevron-right")),
-                               menuSubItem("Adjective", tabName = "w_adj", icon = icon("chevron-right")),
-                               menuSubItem("Verb", tabName = "w_verb", icon = icon("chevron-right")),
-                               menuSubItem("Multi-Word", tabName = "w_other", icon = icon("chevron-right")),
+                      menuItem("Frequencies", tabName = "freqList", icon = icon("chevron-right"),
+                               menuSubItem("Words", tabName = "w_freq", icon = icon("chevron-right")),
                                menuSubItem("Part of Speech", tabName = "w_pos", icon = icon("chevron-right"))),
                       menuSubItem("Words in Context", tabName = "wordCont", icon = icon("chevron-right")),
                       menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),
@@ -3580,12 +3592,8 @@ menuList <- function(menu){
              menuItem("Groups",tabName = "defineGroups", icon = icon("th", lib="glyphicon")),
              menuItem("Overview", tabName = "overview", icon = icon("search", lib="glyphicon")),
              menuItem("Words", tabName = "words", icon = icon("font", lib = "glyphicon"),
-                      menuItem("Most Used Words", tabName = "freqList", icon = icon("chevron-right"),
-                               menuSubItem("Noun", tabName = "w_noun", icon = icon("chevron-right")),
-                               menuSubItem("Proper Noun", tabName = "w_propn", icon = icon("chevron-right")),
-                               menuSubItem("Adjective", tabName = "w_adj", icon = icon("chevron-right")),
-                               menuSubItem("Verb", tabName = "w_verb", icon = icon("chevron-right")),
-                               menuSubItem("Multi-Word", tabName = "w_other", icon = icon("chevron-right")),
+                      menuItem("Frequencies", tabName = "freqList", icon = icon("chevron-right"),
+                               menuSubItem("Words", tabName = "w_freq", icon = icon("chevron-right")),
                                menuSubItem("Part of Speech", tabName = "w_pos", icon = icon("chevron-right"))),
                       menuSubItem("Words in Context", tabName = "wordCont", icon = icon("chevron-right")),
                       menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),
