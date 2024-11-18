@@ -16,7 +16,7 @@ textual data. With TALL, researchers can leverage a wide range of text
 analysis techniques without the burden of extensive programming
 knowledge, enabling them to extract valuable insights from textual data
 in a more efficient and accessible manner. [View
-tutorial](https://mariaspano.github.io/tall/TALL_tutorial.html)
+tutorial](https://www.k-synth.com/tall/TALL_tutorial.html)
 
 ## Setup
 
