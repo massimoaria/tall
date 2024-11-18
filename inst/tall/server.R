@@ -1933,7 +1933,7 @@ observeEvent(input$reset_confirmation2, {
     if (!is.null(elementY)){
       if (input$sidebarmenu == "d_tm_estim" & elementY %in% unique(values$dfTag$doc_id)){
         showModal(plotModalDoc(session))
-      } else if (input$sidebarmenu %in% c("w_freq","w_propn", "w_adj", "w_verb", "w_other", "ca", "d_tm_estim")){
+      } else if (input$sidebarmenu %in% c("w_freq", "ca", "d_tm_estim")){
         showModal(plotModalTerm(session))
       }
     }
@@ -1962,6 +1962,14 @@ observeEvent(input$reset_confirmation2, {
   output$wordInContext <- renderDT(server=FALSE,{
     values$d <- event_data("plotly_click")
     word <- values$d$y
+
+    # for URL frequency #
+    if (!is.null(word)) if (substr(word,1,8)=="<a href="){
+      href_regex <- "href=\"(https?://[^\"]+)\""
+      word <- sub(href_regex, "\\1", unlist(regmatches(word, gregexpr(href_regex, word, perl = TRUE))))
+    }
+    ###
+
     if (input$sidebarmenu=="w_other"){
       word_search <- word
       sentences <- values$dfTag %>%

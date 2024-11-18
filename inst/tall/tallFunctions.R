@@ -494,7 +494,8 @@ TaggingCorpusElements <- function(x){
   regexList <- c(
     EMAIL="(?i)([_+a-z0-9-]+(\\.[_+a-z0-9-]+)*@[a-z0-9-]+(\\.[a-z0-9-]+)*(\\.[a-z]{2,14}))",
     #url="(https?://)?(www\\.)?([\\w.-]+\\.[a-z]{2,})(/[\\w\\-./?=&%]*)?",
-    URL="\\b(https?://[\\w.-]+\\.[a-z]{2,6}(/\\S*)?|[\\w.-]+\\.(com|org|net|edu|gov|it|uk)\\b)",
+    URL="(?<!@)\\b(https?://[\\w.-]+\\.[a-z]{2,6}(/[\\S]*)?|[\\w.-]+\\.(com|org|net|edu|gov|it|uk)\\b)",
+    #URL="\\b(https?://[\\w.-]+\\.[a-z]{2,6}(/\\S*)?|[\\w.-]+\\.(com|org|net|edu|gov|it|uk)\\b)",
     HASH="^#",
     #emoji="([:;=8X][-~^]?[()\\[\\]{}|/\\\\DpP3><]+|[<>]?[:;=8xX][-~^o]?\\)+|<3|</3|[xX][-~^]?[DdPpOo]+|[\\p{So}\\p{Sk}\\p{Emoji_Presentation}])",
     EMOJI="(?<!\\w)([:;=8][-o*']?[:()DPp3]|<3|[\\p{So}\\p{Sk}]+)(?!\\w)",
@@ -1065,6 +1066,17 @@ freqByPos <- function(df, term="lemma", pos="NOUN"){
     dplyr::filter(upos %in% pos) %>%
     count(term=.[[term]]) %>%
     arrange(desc(n))
+
+  if(pos=="URL"){
+    obj$term <- paste0(
+      '<a href=\"',
+      obj$term,
+      '\" target=\"_blank\">',
+      obj$term,
+      '</a>'
+    )
+  }
+  return(obj)
 }
 
 # freqPlotly ----
