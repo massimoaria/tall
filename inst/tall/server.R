@@ -2460,8 +2460,8 @@ observeEvent(input$closePlotModalDoc,{
                                   remove.isolated=input$removeIsolated, community.repulsion=community.repulsion)
       }
       ## end check
-      net=values$network
-      save(net, file="network.rdata")
+      #net=values$network
+      #save(net, file="network.rdata")
 
       values$netVis <- net2vis(nodes=values$network$nodes, edges=values$network$edges)
 
