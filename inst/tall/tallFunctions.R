@@ -969,7 +969,14 @@ posTagAll <- function(df){
                                 'SCONJ',
                                 'SYM',
                                 'VERB',
-                                'X'),
+                                'X',
+                                'EMAIL',
+                                'EMOJI',
+                                "HASH",
+                                "IP_ADDRESS",
+                                "MENTION",
+                                "URL",
+                                "MULTIWORD"),
                           description=c('Adjective',
                                         'Adposition',
                                         'Adverb',
@@ -986,11 +993,15 @@ posTagAll <- function(df){
                                         'Subord. Conjunction',
                                         'Symbol',
                                         'Verb',
-                                        'Other'))
+                                        'Other',
+                                        rep('Special Entity',6),
+                                        'Custom PoS'
+                                        ))
+  row.names(posLegend) <- posLegend$pos
 
   pos <- unique(df$upos)
-  additionalPos <- sort(setdiff(pos, posLegend$pos))
-  ordinaryPos <- sort(pos[!pos %in% additionalPos])
+  ordinaryPos <- intersect(posLegend$pos,pos)
+  additionalPos <- sort(setdiff(pos, ordinaryPos))
   pos <- c(ordinaryPos,additionalPos)
   description <- c(posLegend$description[posLegend$pos %in% pos], rep("Custom PoS", length(additionalPos)))
   description <- paste(pos, description,sep=": ")

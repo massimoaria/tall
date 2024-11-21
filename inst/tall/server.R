@@ -18,12 +18,7 @@ param_stay_page <- FALSE
 
 server <- function(input, output, session){
 
-  # sizingPolicy = htmlwidgets::sizingPolicy(
-  #   #viewer.padding = 0,
-  #   # viewer.suppress = T,
-  #   #browser.padding = 0,
-  #   browser.fill = TRUE)
-
+  ## TEST WITHOUT CHROME
   Chrome_url <- pagedown::find_chrome()
   Sys.setenv (CHROMOTE_CHROME = Chrome_url)
 
@@ -2078,9 +2073,11 @@ observeEvent(input$closePlotModalDoc,{
   ## Words Frequency by PoS ----
 
   output$posSelectionFreq <-  renderUI({
+
+
     selectInput(inputId = "posSelectionFreq",
                 "PoS Tag:",
-                choices = sort(unique(values$dfTag$upos)),
+                choices = posTagAll(values$dfTag)$pos,
                 selected = "NOUN"
     )
   })
