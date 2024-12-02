@@ -1632,6 +1632,123 @@ body <- dashboardBody(
             )
     ),
 
+    ### Reinart Clustering ----
+    tabItem(tabName = "w_reinclustering",
+            fluidPage(
+              fluidRow(
+                column(8,
+                       h3(strong("Reinart Clustering"), align = "center")),
+                div(
+                  title = t_run,
+                  column(1,
+                         do.call("actionButton", c(run_bttn, list(
+                           inputId = "w_reinclusteringApply")
+                         ))
+                  )),
+                div(
+                  title = t_export,
+                  column(1,
+                         do.call("downloadButton", c(export_bttn, list(
+                           outputId = "w_reinclusteringExport")
+                         ))
+                  )),
+                div(
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "w_reinclusteringReport")
+                         ))
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             hr(),
+                             selectInput("termReinClustering",
+                                         "By:",
+                                         choices = c("Tokens" = "token",
+                                                     "Lemmas" = "lemma"),
+                                         selected = "token"),
+                             fluidRow(
+                               column(6,
+                                      numericInput("w_rein_k",
+                                                   label = "Max N. of Clusters",
+                                                   value = 10,
+                                                   min = 1,
+                                                   step = 1
+                                      )
+                               ),
+                               column(6,
+                                      numericInput("w_rein_min_split_members",
+                                                   label = "Min. Segments per Cluster",
+                                                   value = 10,
+                                                   min = 1,
+                                                   step = 1
+                                      )
+                               )
+                             ),
+                             hr(),
+                             h4(("Segment parameters ")),
+                             fluidRow(
+                               column(6,
+                             numericInput("w_rein_segments_size",
+                                            label = "Segment Lenght",
+                                            value = 40,
+                                            min = 3,
+                                            step = 1
+                               )),
+                             column(6,
+                                    numericInput("w_rein_min_segments",
+                                                 label = "Min. Segment Lenght",
+                                                 value = 5,
+                                                 min = 3,
+                                                 step = 1
+                                    ))
+                             ),
+                             hr(),
+                             h4(("Future selection parameters")),
+                             fluidRow(
+                               column(6,
+                                      numericInput("w_rein_cc_test",
+                                                   label = "Contingency Coefficient Value",
+                                                   value = 0.3,
+                                                   min = 0.1,
+                                                   step = 0.1,
+                                                   max = 0.8
+                                      )),
+                               column(6,
+                                      numericInput("w_rein_tsj",
+                                                   label = "Min freq for future selection",
+                                                   value = 3,
+                                                   min = 1,
+                                                   step = 1
+                                      ))
+                             ),
+
+                             tooltip = tooltipOptions(title = "Options"),
+                             width = "300px", icon = icon("cog", lib="glyphicon"),
+                             right = TRUE, animate = TRUE,
+                             style = "material-circle", size = "sm"
+                           )
+                ),
+                style = style_opt
+                )
+              ),
+              fluidRow(
+                tabsetPanel(type = "tabs",
+                            tabPanel("Dendrogram",
+                                     shinycssloaders::withSpinner(visNetworkOutput("w_ReinClusteringPlot", width="auto", height = "75vh"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            )
+                            # ,tabPanel("Table",
+                            #          shinycssloaders::withSpinner(DT::DTOutput("w_ReinClusteringTable"),
+                            #                                       color = getOption("spinner.color", default = "#4F7942"))
+                            # )
+
+                )
+              )
+            )
+    ),
+
     ### Correspondence Analysis ----
     tabItem(tabName = "ca",
             fluidPage(

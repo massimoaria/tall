@@ -1,4 +1,4 @@
-utils::globalVariables(c("uce","segment_size","upos","noSingleChar","token","lemma","freq","chi_square"))
+utils::globalVariables(c("doc_id","uc","uce","segment_size","upos","noSingleChar","token","lemma","freq","chi_square"))
 
 
 #' Segment clustering based on the Reinert method - Simple clustering
@@ -454,102 +454,104 @@ merge_small_segments <- function(idTable, min_length=5) {
     select(-segment_size)  # Rimuove la colonna temporanea
 }
 
-cutree_reinart <- function(res, k = NULL) {
-  if (!is.null(k)){
-    res$uce_groups[[min(c(k-1,length(res$uce_groups)))]]
-  } else{
-    res$uce_groups[[length(res$uce_groups)]]
-  }
-
-}
-
-term_per_cluster <- function(res, cutree=NULL, k=1, negative=FALSE){
-
-  dtm <- res$dtm
-  groups <- cutree_reinart(res,cutree)
-  terms <- colnames(dtm)
-  select <- (groups == k & !is.na(groups))
-
-  ## integrate dtm with removed segments (by full-zero rows)
-  label <- row.names(dtm)
-  max_ind <- max(res$corresp_uce_uc_full$uc)
-
-  ind <- setdiff(as.character(1:max_ind),label)
-
-  if (length(ind)>0){
-    m <- matrix(0,length(ind),ncol(dtm))
-    row.names(m) <- ind
-    dtm <- rbind(dtm,m)
-    dtm <- dtm[order(as.numeric(rownames(dtm))), ]
-  }
-
-  ## list of segments following into the cluster k
-  segments <- row.names(dtm)[select]
-  segments_df <- tibble(uc=as.numeric(segments)) %>%
-    left_join(res$corresp_uce_uc_full, by="uc")
-
-
-  m1 <- colSums(dtm[select,])
-  m0 <- colSums(dtm[!select,])
-
-  totm1 <- sum(m1)
-  totm0 <- sum(m0)
-
-  chi_res <- list()
-
-  for (i in 1:length(m1)){
-    tab <- matrix(c(m1[i],m0[i],totm1,totm0),2,2)
-    chi_res[[i]] <- chi_squared_test(tab)
-    chi_res[[i]]$term <- terms[i]
-
-  }
-
-  signExcluded <- ifelse(isTRUE(negative),c("none"),c("none","negative"))
-
-  chi_res_df <- do.call(rbind, lapply(chi_res, function(x) {
-    data.frame(
-      chi_square = x$chi_square,
-      p_value = x$p_value,
-      sign = x$sign,
-      term = x$term,
-      freq = x$tab[1,1],
-      indep = x$tab[1,2]
-    )
-  })) %>% filter(!sign %in% signExcluded) %>% arrange(desc(chi_square))
-
-  row.names(chi_res_df) <- chi_res_df$term
-
-  return(list(terms = chi_res_df, segments = segments_df))
-}
-
-
-## Chi Square test between observed and theoretical distribution
-chi_squared_test <- function(tab) {
-  # Controlla che la tabella sia una matrice o un data frame
-  if (!is.matrix(tab) && !is.data.frame(tab)) {
-    stop("La tabella deve essere una matrice o un data frame.")
-  }
-
-  # Esegui il test chi-quadrato
-   suppressWarnings(test_result <-chisq.test(tab))
-
-  # Estrai i valori di interesse
-  chi_square_value <- test_result$statistic
-  p_value <- test_result$p.value
-
-  tab <- prop.table(tab,2)
-
-  if (p_value<0.001){
-    if ((tab[1,1]-tab[1,2])>0){
-      sign <- "positive"
-    }else{
-      sign <- "negative"
-    }
-  }else{
-    sign <- "none"
-  }
-
-  # Return results into a list
-  return(list(chi_square = chi_square_value, p_value = p_value, tab=tab, sign=sign))
-}
+# cutree_reinart <- function(res, k = NULL) {
+#   if (!is.null(k)){
+#     res$uce_groups[[min(c(k-1,length(res$uce_groups)))]]
+#   } else{
+#     res$uce_groups[[length(res$uce_groups)]]
+#   }
+#
+# }
+#
+# term_per_cluster <- function(res, cutree=NULL, k=1, negative=FALSE){
+#
+#   dtm <- res$dtm
+#   groups <- cutree_reinart(res,cutree)
+#   terms <- colnames(dtm)
+#   select <- (groups == k & !is.na(groups))
+#
+#   ## integrate dtm with removed segments (by full-zero rows)
+#   label <- row.names(dtm)
+#   max_ind <- max(res$corresp_uce_uc_full$uc)
+#
+#   ind <- setdiff(as.character(1:max_ind),label)
+#
+#   if (length(ind)>0){
+#     m <- matrix(0,length(ind),ncol(dtm))
+#     row.names(m) <- ind
+#     dtm <- rbind(dtm,m)
+#     dtm <- dtm[order(as.numeric(rownames(dtm))), ]
+#   }
+#
+#   ## list of segments following into the cluster k
+#   segments <- row.names(dtm)[select]
+#   segments_df <- tibble(uc=as.numeric(segments)) %>%
+#     left_join(res$corresp_uce_uc_full, by="uc")
+#
+#
+#   m1 <- colSums(dtm[select,])
+#   m0 <- colSums(dtm[!select,])
+#
+#   totm1 <- sum(m1)
+#   totm0 <- sum(m0)
+#
+#   chi_res <- list()
+#
+#   for (i in 1:length(m1)){
+#     tab <- matrix(c(m1[i],m0[i],totm1,totm0),2,2)
+#     chi_res[[i]] <- chi_squared_test(tab)
+#     chi_res[[i]]$term <- terms[i]
+#
+#   }
+#
+#   signExcluded <- ifelse(isTRUE(negative),c("none"),c("none","negative"))
+#
+#   chi_res_df <- do.call(rbind, lapply(chi_res, function(x) {
+#     data.frame(
+#       chi_square = x$chi_square,
+#       p_value = x$p_value,
+#       sign = x$sign,
+#       term = x$term,
+#       freq = x$tab[1,1],
+#       indep = x$tab[1,2]
+#     )
+#   })) %>% filter(!sign %in% signExcluded) %>% arrange(desc(chi_square))
+#
+#   row.names(chi_res_df) <- chi_res_df$term
+#
+#   return(list(terms = chi_res_df, segments = segments_df))
+#
+#   ### DA AGGIUNGERE L'EVIDENZIAZIONE DEI TERMINI DEI SEGMENTI CHE APPARTENGONO AL CLUSTER
+# }
+#
+#
+# ## Chi Square test between observed and theoretical distribution
+# chi_squared_test <- function(tab) {
+#   # Controlla che la tabella sia una matrice o un data frame
+#   if (!is.matrix(tab) && !is.data.frame(tab)) {
+#     stop("La tabella deve essere una matrice o un data frame.")
+#   }
+#
+#   # Esegui il test chi-quadrato
+#    suppressWarnings(test_result <-chisq.test(tab))
+#
+#   # Estrai i valori di interesse
+#   chi_square_value <- test_result$statistic
+#   p_value <- test_result$p.value
+#
+#   tab <- prop.table(tab,2)
+#
+#   if (p_value<0.001){
+#     if ((tab[1,1]-tab[1,2])>0){
+#       sign <- "positive"
+#     }else{
+#       sign <- "negative"
+#     }
+#   }else{
+#     sign <- "none"
+#   }
+#
+#   # Return results into a list
+#   return(list(chi_square = chi_square_value, p_value = p_value, tab=tab, sign=sign))
+# }
 

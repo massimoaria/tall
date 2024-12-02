@@ -2229,6 +2229,38 @@ observeEvent(input$closePlotModalDoc,{
   }, escape=FALSE)
 
 
+  ## Reinert Clustering ----
+  dendReinFunction <- eventReactive(
+    ignoreNULL = TRUE,
+    eventExpr = {input$w_reinclusteringApply},
+    valueExpr ={
+      values$reinert <- tall::reinert(x=values$dfTag, k = input$w_rein_k, term = input$termReinClustering,
+        segment_size = input$w_rein_segments_size,
+        min_segment_size = input$w_rein_min_segments,
+        min_split_members = input$w_rein_min_split_members,
+        cc_test = input$w_rein_cc_test, tsj = input$w_rein_tsj
+      )
+
+      # values$wordCluster <- results$cluster
+      # values$wordCluster<-values$wordCluster %>%
+      #   rename(Word=word, Group=group, Frequency=frequency)
+      # values$wordComm <- results$comm
+      # if (input$w_clusteringMode == "auto"){
+      #   nclusters <- max(values$wordComm$membership)
+      # } else {
+      #   nclusters <- min(input$w_nclusters, length(values$wordComm$membership)-1)
+      # }
+      values$ReinertDendrogram <- dend2vis(values$reinert, labelsize=10, nclusters = input$w_rein_k, community=FALSE)
+    }
+  )
+
+  output$w_ReinClusteringPlot <- renderVisNetwork({
+    dendReinFunction()
+    values$ReinertDendrogram
+  })
+
+
+
   ## Clustering ----
 
   ## Dendrogramm ----

@@ -1343,6 +1343,109 @@ tfidf <- function(dfTag, term="lemma", document="doc_id"){
   tibble(term=names(tfidf), TFIDF=as.numeric(tfidf)) %>% arrange(desc(tfidf))
 }
 
+### REINERT CLUSTERING ----
+cutree_reinart <- function(res, k = NULL) {
+  if (!is.null(k)){
+    res$uce_groups[[min(c(k-1,length(res$uce_groups)))]]
+  } else{
+    res$uce_groups[[length(res$uce_groups)]]
+  }
+
+}
+
+term_per_cluster <- function(res, cutree=NULL, k=1, negative=FALSE){
+
+  dtm <- res$dtm
+  groups <- cutree_reinart(res,cutree)
+  terms <- colnames(dtm)
+  select <- (groups == k & !is.na(groups))
+
+  ## integrate dtm with removed segments (by full-zero rows)
+  label <- row.names(dtm)
+  max_ind <- max(res$corresp_uce_uc_full$uc)
+
+  ind <- setdiff(as.character(1:max_ind),label)
+
+  if (length(ind)>0){
+    m <- matrix(0,length(ind),ncol(dtm))
+    row.names(m) <- ind
+    dtm <- rbind(dtm,m)
+    dtm <- dtm[order(as.numeric(rownames(dtm))), ]
+  }
+
+  ## list of segments following into the cluster k
+  segments <- row.names(dtm)[select]
+  segments_df <- tibble(uc=as.numeric(segments)) %>%
+    left_join(res$corresp_uce_uc_full, by="uc")
+
+
+  m1 <- colSums(dtm[select,])
+  m0 <- colSums(dtm[!select,])
+
+  totm1 <- sum(m1)
+  totm0 <- sum(m0)
+
+  chi_res <- list()
+
+  for (i in 1:length(m1)){
+    tab <- matrix(c(m1[i],m0[i],totm1,totm0),2,2)
+    chi_res[[i]] <- chi_squared_test(tab)
+    chi_res[[i]]$term <- terms[i]
+
+  }
+
+  signExcluded <- ifelse(isTRUE(negative),c("none"),c("none","negative"))
+
+  chi_res_df <- do.call(rbind, lapply(chi_res, function(x) {
+    data.frame(
+      chi_square = x$chi_square,
+      p_value = x$p_value,
+      sign = x$sign,
+      term = x$term,
+      freq = x$tab[1,1],
+      indep = x$tab[1,2]
+    )
+  })) %>% filter(!sign %in% signExcluded) %>% arrange(desc(chi_square))
+
+  row.names(chi_res_df) <- chi_res_df$term
+
+  return(list(terms = chi_res_df, segments = segments_df))
+
+  ### DA AGGIUNGERE L'EVIDENZIAZIONE DEI TERMINI DEI SEGMENTI CHE APPARTENGONO AL CLUSTER
+}
+
+
+## Chi Square test between observed and theoretical distribution
+chi_squared_test <- function(tab) {
+  # Controlla che la tabella sia una matrice o un data frame
+  if (!is.matrix(tab) && !is.data.frame(tab)) {
+    stop("La tabella deve essere una matrice o un data frame.")
+  }
+
+  # Esegui il test chi-quadrato
+  suppressWarnings(test_result <-chisq.test(tab))
+
+  # Estrai i valori di interesse
+  chi_square_value <- test_result$statistic
+  p_value <- test_result$p.value
+
+  tab <- prop.table(tab,2)
+
+  if (p_value<0.001){
+    if ((tab[1,1]-tab[1,2])>0){
+      sign <- "positive"
+    }else{
+      sign <- "negative"
+    }
+  }else{
+    sign <- "none"
+  }
+
+  # Return results into a list
+  return(list(chi_square = chi_square_value, p_value = p_value, tab=tab, sign=sign))
+}
+
+
 ### CLUSTERING ----
 clustering <- function(dfTag, n=50, group="doc_id", term="lemma",minEdges=25, normalization="association"){
 
@@ -1400,7 +1503,12 @@ dend2vis <- function(hc, labelsize, nclusters=1, community=TRUE){
 
   hc$height <- hc$height+h_tail
 
-  VIS <- visHclust(hc, cutree = nclusters, colorEdges = "grey60", horizontal = TRUE, export=FALSE)
+  if (nclusters<max(hc$group)){
+    VIS <- visHclust(hc, cutree = nclusters, colorEdges = "grey60", horizontal = TRUE, export=FALSE)
+  } else {
+    VIS <- visHclust(hc, colorEdges = "grey60", horizontal = TRUE, export=FALSE)
+  }
+
   VIS$x$edges <- data.frame(color=unique(VIS$x$edges$color)) %>%
     mutate(new_color=colorlist()[1:nrow(.)]) %>%
     right_join(VIS$x$edges, by = "color") %>%
@@ -1452,6 +1560,13 @@ dend2vis <- function(hc, labelsize, nclusters=1, community=TRUE){
       old_inertia <- as.character(VIS$x$nodes$inertia[i])
       inertia <- as.character(VIS$x$nodes$inertia[i]-h_tail)
       VIS$x$nodes$title[i] <- gsub(old_inertia,inertia,VIS$x$nodes$title[i])
+    }
+  }
+
+  if ("dtm" %in% names(hc)){
+    new_groups <- cutree(hc,nclusters)
+    for (i in names(new_groups)){
+      VIS$x$nodes$title[VIS$x$nodes$title==i] <- new_groups[i]
     }
   }
 
@@ -3564,7 +3679,8 @@ menuList <- function(menu){
                                menuSubItem("Words", tabName = "w_freq", icon = icon("chevron-right")),
                                menuSubItem("Part of Speech", tabName = "w_pos", icon = icon("chevron-right"))),
                       menuSubItem("Words in Context", tabName = "wordCont", icon = icon("chevron-right")),
-                      menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),
+                      #menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),
+                      menuSubItem("Reinert Clustering", tabName = "w_reinclustering", icon = icon("chevron-right")),
                       menuSubItem("Correspondence Analysis", tabName = "ca", icon = icon("chevron-right")),
                       menuItem("Network", tabName = "w_network", icon = icon("chevron-right"),
                                menuSubItem("Co-word analysis", tabName = "w_networkCooc", icon = icon("chevron-right"))
@@ -3607,7 +3723,8 @@ menuList <- function(menu){
                                menuSubItem("Words", tabName = "w_freq", icon = icon("chevron-right")),
                                menuSubItem("Part of Speech", tabName = "w_pos", icon = icon("chevron-right"))),
                       menuSubItem("Words in Context", tabName = "wordCont", icon = icon("chevron-right")),
-                      menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),
+                      #menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),
+                      menuSubItem("Reinert Clustering", tabName = "w_reinclustering", icon = icon("chevron-right")),
                       menuSubItem("Correspondence Analysis", tabName = "ca", icon = icon("chevron-right")),
                       menuItem("Network", tabName = "w_network", icon = icon("chevron-right"),
                                menuSubItem("Co-word analysis", tabName = "w_networkCooc", icon = icon("chevron-right"))
