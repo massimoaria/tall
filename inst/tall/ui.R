@@ -1705,7 +1705,7 @@ body <- dashboardBody(
                                     ))
                              ),
                              hr(),
-                             h4(("Future selection parameters")),
+                             h4(("Feature selection parameters")),
                              fluidRow(
                                column(6,
                                       numericInput("w_rein_cc_test",
@@ -1717,7 +1717,7 @@ body <- dashboardBody(
                                       )),
                                column(6,
                                       numericInput("w_rein_tsj",
-                                                   label = "Min freq for future selection",
+                                                   label = "Min freq",
                                                    value = 3,
                                                    min = 1,
                                                    step = 1
@@ -1736,6 +1736,8 @@ body <- dashboardBody(
               fluidRow(
                 tabsetPanel(type = "tabs",
                             tabPanel("Dendrogram",
+                                     br(),
+                                     uiOutput("ReinCutree"),
                                      shinycssloaders::withSpinner(visNetworkOutput("w_ReinClusteringPlot", width="auto", height = "75vh"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             )

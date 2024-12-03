@@ -2241,23 +2241,37 @@ observeEvent(input$closePlotModalDoc,{
         cc_test = input$w_rein_cc_test, tsj = input$w_rein_tsj
       )
 
-      # values$wordCluster <- results$cluster
-      # values$wordCluster<-values$wordCluster %>%
-      #   rename(Word=word, Group=group, Frequency=frequency)
-      # values$wordComm <- results$comm
-      # if (input$w_clusteringMode == "auto"){
-      #   nclusters <- max(values$wordComm$membership)
-      # } else {
-      #   nclusters <- min(input$w_nclusters, length(values$wordComm$membership)-1)
-      # }
+      output$ReinCutree <- renderUI({
+        req(input$w_rein_k)
+        fluidRow(column(9),
+                 column(3,
+                        selectInput("ReinCutree",
+                                    label = "Dendrogram Pruning",
+                                    choices = input$w_rein_k:1,
+                                    selected = input$w_rein_k
+                        )))
+      })
+
       values$ReinertDendrogram <- dend2vis(values$reinert, labelsize=10, nclusters = input$w_rein_k, community=FALSE)
     }
   )
 
+  cutree_event <- eventReactive(ignoreNULL = TRUE,
+                                eventExpr = {input$ReinCutree},
+                                valueExpr ={
+                                  values$ReinertDendrogram <- dend2vis(values$reinert,
+                                                                       labelsize=10,
+                                                                       nclusters = as.numeric(input$ReinCutree),
+                                                                       community=FALSE)
+                                })
+
   output$w_ReinClusteringPlot <- renderVisNetwork({
     dendReinFunction()
+    cutree_event()
     values$ReinertDendrogram
   })
+
+
 
 
 
