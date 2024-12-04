@@ -1972,16 +1972,18 @@ observeEvent(input$reset_confirmation2, {
         filter(lemma %in% word_search) %>%
         ungroup() %>% select(doc_id, lemma, token, sentence_hl) ## add doci_id
     } else if (input$sidebarmenu=="ca"){
-      X <- round(values$d$x,6)
-      Y <- round(values$d$y,6)
-      word <- values$CA$wordCoord %>%
-        dplyr::filter(round(.[,1],6)==X,round(.[,2],6)==Y)
-      word <- word$label
-      word_search <- unique(c(word, values$dfTag$token[values$dfTag$lemma==word]))
-      sentences <- values$dfTag %>%
-        filter(docSelected) %>%
-        filter(token %in% word_search) %>%
-        ungroup() %>% select(doc_id, lemma, token, sentence_hl)
+      if (!is.null(values$d)){
+        X <- round(values$d$x,6)
+        Y <- round(values$d$y,6)
+        word <- values$CA$wordCoord %>%
+          dplyr::filter(round(.[,1],6)==X,round(.[,2],6)==Y)
+        word <- word$label
+        word_search <- unique(c(word, values$dfTag$token[values$dfTag$lemma==word]))
+        sentences <- values$dfTag %>%
+          filter(docSelected) %>%
+          filter(token %in% word_search) %>%
+          ungroup() %>% select(doc_id, lemma, token, sentence_hl)
+      }
     } else {
       word_search <- unique(c(word, values$dfTag$token[values$dfTag$lemma==word]))
       sentences <- values$dfTag %>%
@@ -2241,6 +2243,13 @@ observeEvent(input$closePlotModalDoc,{
         cc_test = input$w_rein_cc_test, tsj = input$w_rein_tsj
       )
 
+      groups <- tibble(uc=1:length(values$reinert$group), Cluster=values$reinert$group)
+      values$segments <- values$reinert$corresp_uce_uc_full %>%
+        left_join(groups, by = "uc") %>%
+        group_by(Cluster) %>%
+        arrange(uc, .by_group = TRUE) %>%
+        select(-"uc")
+
       output$ReinCutree <- renderUI({
         req(input$w_rein_k)
         fluidRow(column(9),
@@ -2271,8 +2280,11 @@ observeEvent(input$closePlotModalDoc,{
     values$ReinertDendrogram
   })
 
-
-
+  output$w_ReinClusteringTableSegments <- renderDT({
+    dendReinFunction()
+    # find sentences containing the tokens/lemmas
+    DTformat(values$segments, size='100%', button=TRUE)
+  })
 
 
   ## Clustering ----
@@ -2637,12 +2649,13 @@ observeEvent(input$closePlotModalDoc,{
   }, escape=FALSE)
 
 
+
   ## Click on Dendrogram: WORDS IN CONTEXT ----
   observeEvent(ignoreNULL = TRUE,
                eventExpr={input$click_dend},
                handlerExpr = {
                  if (input$click_dend!="null"){
-                 showModal(plotModalTermDend(session))
+                   showModal(plotModalTermDend(session))
                  }
                })
 
@@ -2688,6 +2701,91 @@ observeEvent(input$closePlotModalDoc,{
     # find sentences containing the tokens/lemmas
     DTformat(sentences, size='100%', button=TRUE)
   }, escape=FALSE)
+
+  ## Report
+
+  observeEvent(input$w_networkCoocReport,{
+    if(!is.null(values$network$nodes)){
+      popUp(title=NULL, type="waiting")
+      sheetname <- "CoWord"
+      list_df <- list(values$network$nodesData
+                      ,values$network$edgesData
+      )
+      res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
+      #values$wb <- res$wb
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      values$filenetVis <- plot2png(values$netVis, filename="CoWord.png", zoom = values$zoom)
+      values$list_file <- rbind(values$list_file, c(sheetname=res$sheetname,values$filenetVis,res$col))
+      popUp(title="Co-Word Analysis Results", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
+  })
+
+
+  ## Click on Reinert Dendrogram: WORDS IN CONTEXT ----
+  observeEvent(ignoreNULL = TRUE,
+               eventExpr={input$click_rein},
+               handlerExpr = {
+                 if (input$click_rein!="null"){
+                   id <- unlist(input$click_rein)
+                   words_id <- c(id, unlist(values$ReinertDendrogram$x$nodes$neib[values$ReinertDendrogram$x$nodes$id==id]))
+                   words <- unlist(values$ReinertDendrogram$x$nodes$label[values$ReinertDendrogram$x$nodes$id %in% words_id])
+                   word_search <- as.numeric(words[!is.na(words)])
+                   values$word_search_rein <- word_search
+
+                   if (length(word_search)>0){
+                     values$tc <- term_per_cluster(res, cutree = NULL, k=word_search)
+                     values$tc <- highlight_segments(values$tc, n=10)
+                   }
+                   showModal(plotModalTermRein(session))
+                 }
+               })
+
+  plotModalTermRein <- function(session) {
+    ns <- session$ns
+      modalDialog(
+        tabsetPanel(type = "tabs",
+                    tabPanel("Terms by Cluster",
+                             h3(strong((paste0("Terms associated to Cluster(s): ",paste0(values$word_search_rein,collapse=", "), collape="")))),
+                             plotlyOutput(ns("plotInContextRein"))
+        ),
+        tabPanel("Segments by Cluster",
+                 h3(strong((paste0("Segments associated to Cluster(s): ",paste0(values$word_search_rein,collapse=", "), collape="")))),
+                 DTOutput(ns("wordInContextRein"))
+        ),
+        ),
+        size = "l",
+        easyClose = TRUE,
+        footer = tagList(
+          actionButton(label="Close", inputId = "closeplotModalTermRein", style="color: #ffff;",
+                       icon = icon("remove", lib = "glyphicon"))
+        ),
+      )
+  }
+
+  observeEvent(input$closeplotModalTermRein,{
+    removeModal(session = getDefaultReactiveDomain())
+    #session$sendCustomMessage("click_dend",'null') # reset input value to plot modal more times
+    resetModalButtons(session = getDefaultReactiveDomain())
+  })
+
+  output$wordInContextRein <- renderDT(server=FALSE,{
+    sentences <- values$tc$segments %>%
+      group_by(doc_id) %>%
+      arrange(uc, .by_group = TRUE) %>%
+      select(doc_id, uc, segment, cluster)
+
+    # find sentences containing the tokens/lemmas
+    DTformat(sentences, nrow=5, size='80%', button=TRUE)
+  }, escape=FALSE)
+
+  output$plotInContextRein <- renderPlotly({
+    reinPlot(values$tc$terms, nPlot=10)
+  })
+
 
   ## Report
 

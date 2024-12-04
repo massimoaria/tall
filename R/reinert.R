@@ -468,7 +468,6 @@ merge_small_segments <- function(idTable, min_length=5) {
 #   dtm <- res$dtm
 #   groups <- cutree_reinart(res,cutree)
 #   terms <- colnames(dtm)
-#   select <- (groups == k & !is.na(groups))
 #
 #   ## integrate dtm with removed segments (by full-zero rows)
 #   label <- row.names(dtm)
@@ -483,43 +482,58 @@ merge_small_segments <- function(idTable, min_length=5) {
 #     dtm <- dtm[order(as.numeric(rownames(dtm))), ]
 #   }
 #
-#   ## list of segments following into the cluster k
-#   segments <- row.names(dtm)[select]
-#   segments_df <- tibble(uc=as.numeric(segments)) %>%
-#     left_join(res$corresp_uce_uc_full, by="uc")
+#   terms_list <- list()
+#   segments_list <- list()
+#   K <- k
+#   for (i in 1:length(K)){
+#     k <- K[i]
+#     ## list of segments following into the cluster k
+#     select <- (groups == k & !is.na(groups))
+#     segments <- row.names(dtm)[select]
+#     segments_df <- tibble(uc=as.numeric(segments)) %>%
+#       left_join(res$corresp_uce_uc_full, by="uc") %>%
+#       mutate(cluster = k)
+#     segments_list[[k]] <-segments_df
 #
 #
-#   m1 <- colSums(dtm[select,])
-#   m0 <- colSums(dtm[!select,])
+#     m1 <- colSums(dtm[select,])
+#     m0 <- colSums(dtm[!select,])
 #
-#   totm1 <- sum(m1)
-#   totm0 <- sum(m0)
+#     totm1 <- sum(m1)
+#     totm0 <- sum(m0)
 #
-#   chi_res <- list()
+#     chi_res <- list()
 #
-#   for (i in 1:length(m1)){
-#     tab <- matrix(c(m1[i],m0[i],totm1,totm0),2,2)
-#     chi_res[[i]] <- chi_squared_test(tab)
-#     chi_res[[i]]$term <- terms[i]
+#     for (i in 1:length(m1)){
+#       tab <- matrix(c(m1[i],m0[i],totm1,totm0),2,2)
+#       chi_res[[i]] <- chi_squared_test(tab)
+#       chi_res[[i]]$term <- terms[i]
 #
+#     }
+#
+#     signExcluded <- ifelse(isTRUE(negative),c("none"),c("none","negative"))
+#
+#     chi_res_df <- do.call(rbind, lapply(chi_res, function(x) {
+#       data.frame(
+#         chi_square = x$chi_square,
+#         p_value = x$p_value,
+#         sign = x$sign,
+#         term = x$term,
+#         freq = x$tab[1,1],
+#         indep = x$tab[1,2]
+#       )
+#     })) %>% filter(!sign %in% signExcluded) %>% arrange(desc(chi_square))
+#
+#     row.names(chi_res_df) <- chi_res_df$term
+#     chi_res_df$cluster <- k
+#     terms_list[[k]] <- chi_res_df
 #   }
 #
-#   signExcluded <- ifelse(isTRUE(negative),c("none"),c("none","negative"))
+#   terms_list <- bind_rows(terms_list)
+#   segments_list <- bind_rows(segments_list) %>% drop_na("doc_id")
 #
-#   chi_res_df <- do.call(rbind, lapply(chi_res, function(x) {
-#     data.frame(
-#       chi_square = x$chi_square,
-#       p_value = x$p_value,
-#       sign = x$sign,
-#       term = x$term,
-#       freq = x$tab[1,1],
-#       indep = x$tab[1,2]
-#     )
-#   })) %>% filter(!sign %in% signExcluded) %>% arrange(desc(chi_square))
 #
-#   row.names(chi_res_df) <- chi_res_df$term
-#
-#   return(list(terms = chi_res_df, segments = segments_df))
+#   return(list(terms =  terms_list, segments = segments_list))
 #
 #   ### DA AGGIUNGERE L'EVIDENZIAZIONE DEI TERMINI DEI SEGMENTI CHE APPARTENGONO AL CLUSTER
 # }
@@ -554,4 +568,4 @@ merge_small_segments <- function(idTable, min_length=5) {
 #   # Return results into a list
 #   return(list(chi_square = chi_square_value, p_value = p_value, tab=tab, sign=sign))
 # }
-
+#

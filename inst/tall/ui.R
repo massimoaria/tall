@@ -1637,7 +1637,7 @@ body <- dashboardBody(
             fluidPage(
               fluidRow(
                 column(8,
-                       h3(strong("Reinart Clustering"), align = "center")),
+                       h3(strong("Reinert Clustering"), align = "center")),
                 div(
                   title = t_run,
                   column(1,
@@ -1741,10 +1741,10 @@ body <- dashboardBody(
                                      shinycssloaders::withSpinner(visNetworkOutput("w_ReinClusteringPlot", width="auto", height = "75vh"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             )
-                            # ,tabPanel("Table",
-                            #          shinycssloaders::withSpinner(DT::DTOutput("w_ReinClusteringTable"),
-                            #                                       color = getOption("spinner.color", default = "#4F7942"))
-                            # )
+                            ,tabPanel("Segments by Cluster",
+                                     shinycssloaders::withSpinner(DT::DTOutput("w_ReinClusteringTable"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            )
 
                 )
               )
