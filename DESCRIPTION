@@ -1,5 +1,5 @@
 Package: tall
-Title: What the Package Does (One Line, Title Case)
+Title: Text Analysis for All
 Version: 0.0.0.9000
 Authors@R: 
     person("Massimo", "Aria", , "massimo.aria@gmail.com", role = c("aut", "cre"),
@@ -13,9 +13,17 @@ URL: https://github.com/massimoaria/tall
 BugReports: https://github.com/massimoaria/tall/issues
 Imports: 
     graphics,
-    stats,
+    dplyr (>= 1.1.0), 
+    tidyr, 
+    purrr, 
+    stringr,
+    Rcpp (>= 1.0.3),
+    RSpectra,
+    rlang,
     shiny,
+    stats,
     udpipe
 Depends: 
-    R (>= 2.10)
+    R (>= 3.5.0)
 LazyData: true
+LinkingTo: Rcpp
