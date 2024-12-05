@@ -2,6 +2,7 @@
 #  Function source ----
 source("libraries.R", local=TRUE)
 source("tallFunctions.R", local=TRUE)
+source("helpContent.R", local=TRUE)
 libraries()
 
 ### input scale choices
@@ -65,7 +66,7 @@ donation <- 'https://www.bibliometrix.org/home/index.php/donation'
 k_synth <- 'https://www.k-synth.unina.it'
 github_aria <- 'https://github.com/massimoaria/tall'
 
-#includeCSS(file.path("www", "custom_icons.css"))
+reinert_references <- helpContent()$reinert
 
 header <- shinydashboardPlus::dashboardHeader(title = title_tall,
                                               titleWidth = 250, controlbarIcon = NULL,
@@ -1632,7 +1633,7 @@ body <- dashboardBody(
             )
     ),
 
-    ### Reinart Clustering ----
+    ### Reinert Clustering ----
     tabItem(tabName = "w_reinclustering",
             fluidPage(
               fluidRow(
@@ -1749,6 +1750,18 @@ body <- dashboardBody(
                                      shinycssloaders::withSpinner(DT::DTOutput("w_ReinClusteringTableSegments"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             )
+                            ,tabPanel("References",
+                                     fluidPage(
+                                       fluidRow(
+                                         column(1),
+                                         column(10,
+                                                br(),
+                                                HTML(reinert_references)
+                                         ),
+                                         column(1)
+                                       )
+                                     ))
+
 
                 )
               )

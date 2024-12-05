@@ -1,4 +1,3 @@
-## @import stats
 #' @import graphics
 #' @import shiny
 #' @import dplyr
@@ -9,9 +8,7 @@
 #' @import RSpectra
 #' @importFrom rlang sym
 #' @importFrom stats chisq.test
-## usethis namespace: start
 #' @useDynLib tall
-## usethis namespace: end
 NULL
 
 ## usethis namespace: start

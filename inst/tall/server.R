@@ -18,9 +18,13 @@ param_stay_page <- FALSE
 
 server <- function(input, output, session){
 
-  ## TEST WITHOUT CHROME
-  Chrome_url <- pagedown::find_chrome()
-  Sys.setenv (CHROMOTE_CHROME = Chrome_url)
+  if(inherits(try(pagedown::find_chrome(), silent=T), "try-error")) {
+    Chrome_url <- NULL
+  }else{
+    Chrome_url <- pagedown::find_chrome()
+  }
+
+  #  Sys.setenv (CHROMOTE_CHROME = Chrome_url)
 
   ## chrome configuration for shinyapps server
 
@@ -37,7 +41,7 @@ server <- function(input, output, session){
   ## end configuration
 
   ## Check if Chrome browser is installed on the computer
-  if(is.null(pagedown::find_chrome())){
+  if(is.null(Chrome_url)){
     showModal(modalDialog(
       title = strong("Warning message!"),
       HTML("Chrome or a Chromium-based browser is not installed on your computer.<br>
@@ -47,6 +51,8 @@ To ensure the functionality of TALL,
       footer = modalButton("Dismiss"),
       easyClose = TRUE
     ))
+  } else {
+    Sys.setenv (CHROMOTE_CHROME = Chrome_url)
   }
 
   ## Code to reset shiny app
