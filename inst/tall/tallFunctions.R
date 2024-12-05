@@ -1353,7 +1353,7 @@ cutree_reinart <- function(res, k = NULL) {
 
 }
 
-term_per_cluster <- function(res, cutree=NULL, k=1, negative=FALSE){
+term_per_cluster <- function(res, cutree=NULL, k=1, negative=TRUE){
 
   dtm <- res$dtm
   groups <- cutree_reinart(res,cutree)
@@ -3639,7 +3639,6 @@ highlight_segments <- function(tc,n){
   id <- tc$terms %>%
     slice_max(order_by = chi_square, n=n)
   id <- id$term
-  segments$segment_hl <- ""
   for (i in 1:length(id)){
     segments$segment <- stringi::stri_replace_all_fixed(segments$segment, id[i], paste0("<mark><strong>", id[i], "</strong></mark>"))
   }

@@ -6,3 +6,6 @@
 temp_functions$
 file_test$
 inst/bbc$
+^images$
+^loc$
+^entertainment$

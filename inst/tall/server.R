@@ -2243,10 +2243,11 @@ observeEvent(input$closePlotModalDoc,{
         cc_test = input$w_rein_cc_test, tsj = input$w_rein_tsj
       )
 
-      groups <- tibble(uc=1:length(values$reinert$group), Cluster=values$reinert$group)
-      values$segments <- values$reinert$corresp_uce_uc_full %>%
-        left_join(groups, by = "uc") %>%
-        group_by(Cluster) %>%
+      values$tc <- term_per_cluster(values$reinert, cutree=NULL, k=unique(values$reinert$group))
+
+      #groups <- tibble(uc=1:length(values$reinert$group), Cluster=values$reinert$group)
+      values$tc$segments <- values$tc$segments %>%
+        group_by(cluster) %>%
         arrange(uc, .by_group = TRUE) %>%
         select(-"uc")
 
@@ -2283,9 +2284,22 @@ observeEvent(input$closePlotModalDoc,{
   output$w_ReinClusteringTableSegments <- renderDT({
     dendReinFunction()
     # find sentences containing the tokens/lemmas
-    DTformat(values$segments, size='100%', button=TRUE)
+    DTformat(values$tc$segments, size='100%', button=TRUE)
   })
 
+  output$w_ReinClusteringTableTerms <- renderDT({
+    dendReinFunction()
+    DTformat(values$tc$terms %>%
+               mutate(freq = round(freq*100,1)) %>%
+               select(term, freq, chi_square, p_value, sign, cluster) %>%
+               rename("Term" = term,
+                      "% in Cluster" = freq,
+                      "Chi^2" = chi_square,
+                      "P-Value" = p_value,
+                      "Sign" = sign,
+                      "Cluster" = cluster),
+             size='85%', button=FALSE, numeric=c(3,4), round=3)
+  })
 
   ## Clustering ----
 
@@ -2737,8 +2751,17 @@ observeEvent(input$closePlotModalDoc,{
                    values$word_search_rein <- word_search
 
                    if (length(word_search)>0){
-                     values$tc <- term_per_cluster(res, cutree = NULL, k=word_search)
-                     values$tc <- highlight_segments(values$tc, n=10)
+                     #values$tc <- term_per_cluster(res, cutree = NULL, k=word_search)
+                     values$tc_k <- values$tc
+                     values$tc_k$terms <- values$tc_k$terms %>% filter(cluster %in% word_search)
+                     values$tc_k$segments <- values$tc_k$segments %>% filter(cluster %in% word_search)
+                     segments <- values$tc
+                     values$tc_k <- highlight_segments(values$tc_k, n=10)
+
+                     # values$tc_k$segments <- values$tc_k$segments %>%
+                     #   group_by(doc_id) %>%
+                     #   arrange(uc, .by_group = TRUE) %>%
+                     #   select(doc_id, uc, segment, cluster)
                    }
                    showModal(plotModalTermRein(session))
                  }
@@ -2773,17 +2796,12 @@ observeEvent(input$closePlotModalDoc,{
   })
 
   output$wordInContextRein <- renderDT(server=FALSE,{
-    sentences <- values$tc$segments %>%
-      group_by(doc_id) %>%
-      arrange(uc, .by_group = TRUE) %>%
-      select(doc_id, uc, segment, cluster)
-
     # find sentences containing the tokens/lemmas
-    DTformat(sentences, nrow=5, size='80%', button=TRUE)
+    DTformat(values$tc_k$segments, nrow=5, size='80%', button=TRUE)
   }, escape=FALSE)
 
   output$plotInContextRein <- renderPlotly({
-    reinPlot(values$tc$terms, nPlot=10)
+    reinPlot(values$tc_k$terms, nPlot=10)
   })
 
 
