@@ -1,11 +1,6 @@
 ##  Server ####
 source("tallFunctions.R", local=TRUE)
 
-### da rimuovere alla fine
-#if (!require(remotes)){install.packages("remotes")}
-#if (!require(tall)){remotes::install_github("massimoaria/tall", ref="develop"); require(tall, quietly=TRUE)}
-#library(tall)
-
 ## suppress warnings
 options(warn = -1)
 
