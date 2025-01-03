@@ -5,6 +5,11 @@ source("tallFunctions.R", local=TRUE)
 source("helpContent.R", local=TRUE)
 libraries()
 
+## Language model list
+languages <- langrepo()
+label_lang <- unique(languages$language_name)
+names(label_lang) <- gsub("_"," ",label_lang)
+
 ### input scale choices
 choices <- paste0(seq(from = 0, to = 100,by = 1),"%")
 
@@ -624,7 +629,14 @@ body <- dashboardBody(
                          div(
                          fluidRow(column(6,
                                          div(
-                                           uiOutput("optionsTokenization"))
+                                           #uiOutput("optionsTokenization")
+                                           selectInput(
+                                            inputId = 'language_model', label="Select language", choices = label_lang,
+                                            multiple=FALSE,
+                                            width = "100%"
+                                          ),
+                                          selectInput("treebank", "Select a treebank", choices = NULL)
+                                          )
                                          ,style="margin-top:-9px"),
                                   column(3,
                                          title = t_run,

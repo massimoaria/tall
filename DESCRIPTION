@@ -1,32 +1,33 @@
 Package: tall
 Title: Text Analysis for All
-Version: 0.0.0.9000
-Authors@R: 
-    person("Massimo", 
-           "Aria", , 
-           "massimo.aria@gmail.com", 
+Version: 0.0.9
+Authors@R: c(
+    person(given = "Massimo", 
+           family = "Aria",
+           email = "massimo.aria@gmail.com", 
            role = c("aut", "cre", "cph"),
            comment=(ORCID = "0000-0002-8517-9411")),
-    person("Maria", 
-           "Spano", 
-           "maria.spano@unina.it", 
+    person(given = "Maria", 
+           family = "Spano", 
+           email = "maria.spano@unina.it", 
            role = c("aut"),
            comment= c(ORCID = "0000-0002-3103-2342")),
-    person("Luca", 
-           "D'Aniello", 
-           "luca.daniello@unina.it", 
+    person(given ="Luca", 
+           family = "D'Aniello", 
+           email = "luca.daniello@unina.it", 
            role = c("aut"),
            comment= c(ORCID = "0000-0003-1019-9212")),
-    person("Corrado", 
-           "Cuccurullo", 
-           "corrado.cuccurullo@unicampania.it", 
+    person(given = "Corrado", 
+           family = "Cuccurullo", 
+           email = "corrado.cuccurullo@unicampania.it", 
            role = c("ctb"),
            comment= c(ORCID = "0000-0002-7401-8575")),
-    person("Michelangelo", 
-           "Misuraca", 
-           "mmisuraca@unisa.it", 
+    person(given = "Michelangelo", 
+           family = "Misuraca", 
+           email = "mmisuraca@unisa.it", 
            role = c("ctb"),
-           comment= c(ORCID = "0000-0002-8794-966X")),
+           comment= c(ORCID = "0000-0002-8794-966X"))
+    )
 Description: An R Shiny app designed for diverse text analysis tasks, offering a wide range of methodologies tailored to NLP needs. 
              It is a versatile, general-purpose tool for analyzing textual data. 
              TALL features a comprehensive workflow, including data cleaning, pre-processing, statistical analysis, and visualization, all integrated for effective text analysis.

@@ -458,35 +458,6 @@ observeEvent(input$reset_confirmation2, {
     HTML(paste("<pre class='tab'>",path, sep = ''))
   })
 
-  # ### Pop-up modal for Tall file loading ----
-  # corpusModal <- function(session) {
-  #   ns <- session$ns
-  #   modalDialog(
-  #     h3(strong(("Web, Social and Ordinary Tags"))),
-  #     br(),
-  #     DT::DTOutput(ns("corpusElements")),
-  #     size = "l",
-  #     easyClose = TRUE,
-  #     footer = tagList(
-  #       actionButton(label="Report", inputId = "missingReport",
-  #                    icon = icon("plus", lib = "glyphicon")),
-  #       modalButton(label="Close")),
-  #   )
-  # }
-  #
-  #
-  # output$corpusElements <- DT::renderDT({
-  #
-  #   values$corpusElements <- extractCorpusElements(values$txt, regex_list)
-  #   values$summaryCorpusElements <- summaryCorpusElements(values$corpusElements, type="all")
-  #
-  #   values$CorpusElementsDT <- DTformat(values$summaryCorpusElements,
-  #                                       left=1, nrow=nrow(values$summaryCorpusElements), filter="none", button=F, delete=F, dom=FALSE,pagelength=FALSE, size="110%",
-  #                                       filename="Corpus_Elements", title="")
-  #   values$CorpusElementsDT
-  #
-  # })
-
   loadTallgModal <- function(session) {
     ns <- session$ns
     modalDialog(
@@ -773,91 +744,29 @@ observeEvent(input$reset_confirmation2, {
 
   ### PRE-PROCESSING ----
 
-  # ## Text Normalization ----
-
-  # normalizeText <- eventReactive({
-  #   input$textNormRun
-  # },{
-  #   values$txt <- restoreText(values$txt)
-  #   values$txt <- applyNormalization(values$txt,
-  #                                    input$textNormWebList,
-  #                                    input$textNormCorpusList,
-  #                                    regex_list)
-  #   if (ncol(values$txt)>0){
-  #     if (ncol(values$corpusElements)==0){
-  #       values$corpusElements <- extractCorpusElements(values$txt, regex_list)
-  #     }
-  #     values$summaryCorpusElements <- summaryCorpusElements(values$corpusElements, type="all")
-  #   } else {
-  #     values$summaryCorpusElements <- data.frame(Tag=NA, "N. of Items"=NA, "N. of Docs"=NA)
-  #   }
-  #
-  #   items <- c(input$textNormWebList,input$textNormCorpusList)
-  #
-  #   df <- values$summaryCorpusElements
-  #   df[df$Tag %in% items, c(2,3)] <- 0
-  #   values$normButton <- FALSE
-  #   values$CorpusElementsDTNorm <- DTformat(df,
-  #                                           left=1, nrow=nrow(df), filter="none", button=F, delete=F, dom=FALSE,pagelength=FALSE, size="110%",
-  #                                           filename="Corpus_Elements", title="")
-  #
-  #   values$CorpusElementsDTNorm
-  # }, ignoreNULL = FALSE)
-
-  # output$corpusElementsNorm <- DT::renderDT({
-  #
-  #   normalizeText()
-  #   values$CorpusElementsDTNorm
-  #   })
-  #
-  # output$textNormData <- DT::renderDT({
-  #   normalizeText()
-  #   if (values$menu==0){
-  #     DTformat(values$txt %>%
-  #                select(-"text_original") %>%
-  #                filter(doc_selected) %>%
-  #                mutate(text = paste0(substr(text,1,500),"...")) %>%
-  #                select(doc_id, text, everything()) %>%
-  #                select(-doc_selected),
-  #              left=3, nrow=5, filter="none", button=TRUE, delete=FALSE)
-  #   }
-  # })
-  #
-  # output$corpusElementsExpl <- DT::renderDT(server=FALSE,{
-  #
-  #   req(input$textNormType)
-  #   what <- normalizationOptions()
-  #   if (ncol(values$txt)>0 & input$textNormType %in% what$label){
-  #     if (ncol(values$corpusElements)==0){
-  #       values$corpusElements <- extractCorpusElements(values$txt, regex_list)
-  #     }
-  #     type <- what$item[what$label==input$textNormType]
-  #
-  #     df <- summaryCorpusElements(values$corpusElements, type = type)
-  #     names(df) <- c("Item", "Frequency")
-  #     DTformat(df,
-  #              left=1, nrow=10, filter="none", button=F, delete=F, dom=TRUE,pagelength=TRUE, size="100%",
-  #              filename="Corpus_Elements_DIstribution", title="")
-  #   }
-  #
-  # })
-
   ## Tokenization & PoS Tagging ----
 
-  output$optionsTokenization <- renderUI({
-    selectInput(
-      inputId = 'language_model', label="Select language", choices = values$label_lang,
-      multiple=FALSE,
-      width = "100%"
-    )
+  # output$optionsTokenization <- renderUI({
+  #   selectInput(
+  #     inputId = 'language_model', label="Select language", choices = values$label_lang,
+  #     multiple=FALSE,
+  #     width = "100%"
+  #   )
+  # })
+
+  observeEvent(input$language_model, {
+    selected_treebanks <- values$languages$treebank[values$languages$language_name == input$language_model]
+    updateSelectInput(session, "treebank", choices = selected_treebanks)
   })
+  
 
   posTagging <- eventReactive({
     input$tokPosRun
   },{
-    values$language <- sub("-.*","",input$language_model)
+    values$language <- input$language_model
+    values$language_file <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(file) %>% as.character()
     ## download and load model language
-    udmodel_lang <- loadLanguageModel(language = input$language_model)
+    udmodel_lang <- loadLanguageModel(file = values$language_file)
 
     ## set cores for parallel computing
     ncores <- max(1,parallel::detectCores()-1)
