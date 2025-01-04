@@ -754,6 +754,26 @@ observeEvent(input$reset_confirmation2, {
   #   )
   # })
 
+  output$info_treebank <- renderUI({
+    ud_description <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(description) %>% as.character()
+    ud_contributors <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(contributors) %>% as.character()
+    ud_hub_page_link <-  values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(hub_page_link) %>% as.character()
+    #  HTML
+    tagList(
+      tags$div(
+        class = "card",
+        #style = "border: 1px solid #ddd; border-radius: 5px; padding: 15px; margin: 10px;",
+        tags$h4("Description"),
+        tags$p(ud_description, style = "font-size: 12px;"),
+        tags$h4("Contributors"),
+        tags$p(ud_contributors, style = "font-size: 12px;"),
+        #tags$h4("Hub Page"),
+        tags$a(href = ud_hub_page_link, target = "_blank", "UD Treebank link", style = "font-size: 14px; color: blue; text-decoration: underline;")
+      )
+    )
+
+  })
+
   observeEvent(input$language_model, {
     selected_treebanks <- values$languages$treebank[values$languages$language_name == input$language_model]
     updateSelectInput(session, "treebank", choices = selected_treebanks)
