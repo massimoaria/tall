@@ -5,6 +5,11 @@ source("tallFunctions.R", local=TRUE)
 source("helpContent.R", local=TRUE)
 libraries()
 
+## Language model list
+languages <- langrepo()
+label_lang <- unique(languages$language_name)
+names(label_lang) <- gsub("_"," ",label_lang)
+
 ### input scale choices
 choices <- paste0(seq(from = 0, to = 100,by = 1),"%")
 
@@ -615,24 +620,46 @@ body <- dashboardBody(
                        box(
                          width = 12,
                          div(h3(strong(em("Language model"))), style="margin-top:-57px"),
-                         tags$hr(),
-                         helpText(h5("Before beginning the annotation process (i.e., tokenization, tagging, and lemmatization), a language model must be downloaded."),
-                                  h5("TALL utilizes pre-trained models provided by Universal Dependencies treebanks."),
-                                  h5("When using a language model for the first time, it will be downloaded from UDT and saved on your computer. In this case, an active internet connection is required.")),
-                         style="text-align: left; text-color: #989898",
+                         helpText(
+                          p(
+                            "TALL uses pre-trained annotation models based solely on ",
+                            tags$a("Universal Dependencies 2.15", href = "https://universaldependencies.org/", target = "_blank"),
+                            " treebanks."
+                          ),
+                          p(
+                            "When using a language model for the first time, it will be downloaded from our repository and saved on your computer. In this case, an active internet connection is required."
+                          )
+                        ),
+                        #  helpText(p("TALL uses pre-trained annotation models based solely on Universal Dependencies 2.15 treebanks."),
+                        #  p("When using a language model for the first time, it will be downloaded from our repository and saved on your computer. In this case, an active internet connection is required.")),
+                         style="text-align: left; text-color: #989898; font-size: 12px;",
                          hr(),
                          div(
                          fluidRow(column(6,
                                          div(
-                                           uiOutput("optionsTokenization"))
-                                         ,style="margin-top:-9px"),
-                                  column(3,
+                                           #uiOutput("optionsTokenization")
+                                           selectInput(
+                                            inputId = 'language_model', label="Language", choices = label_lang,
+                                            multiple=FALSE,
+                                            width = "100%"
+                                          )),style="margin-top:-9px"),
+                                          column(6,
+                                            div(
+                                            selectInput("treebank", "Treebank", choices = NULL)),style="margin-top:-9px")
+                         ),
+                         fluidRow(column(6,
+                          div(
+                            align = "center",style="margin-top:-15px",
+                            width=12,
                                          title = t_run,
                                          do.call("actionButton", c(run_bttn, list(
                                            inputId = "tokPosRun")
-                                         ))
+                                         )))
                                   ),
-                                  column(3,
+                                  column(6,
+                                    div(
+                                      align = "center",style="margin-top:-15px",
+                                      width=12,
                                          title = t_save,
                                          do.call("downloadButton", c(list(
                                            label=NULL,
@@ -642,7 +669,9 @@ body <- dashboardBody(
                                          ), list(
                                            outputId = "tokPosSave")
                                          ))
-                                  )), style="margin-top:-5px")
+                         ))), style="margin-top:-5px"),
+                                  tags$hr(),
+                         uiOutput("info_treebank")
                        )
                      ),style="margin-top:40px"
               )
