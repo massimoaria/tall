@@ -542,17 +542,6 @@ body <- dashboardBody(
                        box(
                          width = 12,
                          div(h4(strong(em("Language model"))), style="margin-top:-57px"),
-                        #  helpText(
-                        #   p(
-                        #     "TALL uses pre-trained annotation models based solely on ",
-                        #     tags$a("Universal Dependencies 2.15", href = "https://universaldependencies.org/", target = "_blank"),
-                        #     " treebanks."
-                        #   ),
-                        #   p(
-                        #     "When using a language model for the first time, it will be downloaded from our repository and saved on your computer. In this case, an active internet connection is required."
-                        #   ),style="text-align: left; text-color: #6c6b6b; font-size: 12px;"
-                        # ),
-                        # #  style="text-align: left; text-color: #989898; font-size: 12px;",
                         hr(),
                          div(
                          fluidRow(column(6,
