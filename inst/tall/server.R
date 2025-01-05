@@ -754,25 +754,31 @@ observeEvent(input$reset_confirmation2, {
   #   )
   # })
 
-  output$info_treebank <- renderUI({
-    ud_description <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(description) %>% as.character()
-    ud_contributors <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(contributors) %>% as.character()
-    ud_hub_page_link <-  values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(hub_page_link) %>% as.character()
-    #  HTML
-    tagList(
-      tags$div(
-        class = "card",
-        #style = "border: 1px solid #ddd; border-radius: 5px; padding: 15px; margin: 10px;",
-        tags$h4("Description"),
-        tags$p(ud_description, style = "font-size: 12px;"),
-        tags$h4("Contributors"),
-        tags$p(ud_contributors, style = "font-size: 12px;"),
-        #tags$h4("Hub Page"),
-        tags$a(href = ud_hub_page_link, target = "_blank", "UD Treebank link", style = "font-size: 14px; color: blue; text-decoration: underline;")
-      )
+output$info_treebank <- renderUI({
+  ud_description <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(description) %>% as.character()
+  ud_info <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(tokens,words,sentences) 
+  ud_info <- paste0("Tokens: ",format(as.numeric(ud_info$tokens), big.mark = ",", scientific = FALSE),
+    " - Words: ",format(as.numeric(ud_info$words), big.mark = ",", scientific = FALSE),
+    " - Sentences: ",format(as.numeric(ud_info$sentences), big.mark = ",", scientific = FALSE))
+  ud_contributors <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(contributors) %>% as.character()
+  ud_hub_page_link <-  values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(hub_page_link) %>% as.character()
+  #  HTML
+  tagList(
+    tags$div(
+      class = "card",
+      #style = "border: 1px solid #ddd; border-radius: 5px; padding: 15px; margin: 10px;",
+      tags$h4(strong(em("Description")),style = "font-size: 12px;"),
+      tags$p(ud_description, style = "font-size: 11px;"),
+      tags$h4(strong(em("Treebank Data")),style = "font-size: 12px;"),
+      tags$p(ud_info, style = "font-size: 11px;"),
+      tags$h4(strong(em("Contributors")),style = "font-size: 12px;"),
+      tags$p(ud_contributors, style = "font-size: 10px;"),
+      #tags$h4("Hub Page"),
+      tags$a(href = ud_hub_page_link, target = "_blank", "UD Treebank link", style = "font-size: 10px; color: blue; text-decoration: underline;")
     )
-
-  })
+  )
+  
+})
 
   observeEvent(input$language_model, {
     selected_treebanks <- values$languages$treebank[values$languages$language_name == input$language_model]

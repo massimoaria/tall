@@ -4141,295 +4141,303 @@ resetModalButtons <- function(session){
 }
 
 #### language models repo ----
-langrepo <- function() {
+
+langrepo <- function(){
   
-  #Annotated pre-trained models for TALL from UD 2.15
+  language_name <- c( "afrikaans", "ancient_greek", "ancient_greek", "arabic", "armenian", "basque", "belarusian", "bulgarian", "catalan", "chinese", "chinese", "classical_chinese", "coptic", "croatian", "czech", "czech", "czech", "czech", "danish", "dutch", "dutch", "english", "english", "english", "english", "estonian", "estonian", "finnish", "finnish", "french", "french", "french", "galician", "galician", "german", "german", "gothic", "greek", "hebrew", "hindi", "hungarian", "indonesian", "irish", "italian", "italian", "italian", "italian", "italian", "japanese", "korean", "korean", "latin", "latin", "latin", "latvian", "lithuanian", "lithuanian", "maltese", "marathi", "norwegian", "norwegian", "old_church_slavonic", "persian", "polish", "polish", "portuguese", "portuguese", "romanian", "romanian", "russian", "russian", "russian", "scottish_gaelic", "serbian", "slovak", "slovenian", "slovenian", "spanish", "spanish", "swedish", "swedish", "tamil", "telugu", "turkish", "ukrainian", "urdu", "uyghur", "vietnamese", "wolof"   )
   
-  language_name <- c(
-    "afrikaans", "ancient_greek", "arabic", "armenian", "basque", "belarusian", "bulgarian", 
-    "catalan", "chinese", "croatian", "czech", "danish", "dutch", "english", "english", "english", 
-    "english", "estonian", "finnish", "french", "galician", "german", "greek", "hebrew", "hindi",
-    "hungarian", "indonesian", "irish", "italian", "italian", "korean", "latin", "latvian", 
-    "lithuanian", "maltese", "marathi", "north_sami", "norwegian", "old_church_slavonic", "persian",
-    "polish", "portuguese", "romanian", "romanian", "russian", "scottish_gaelic", "serbian", 
-    "slovak", "slovenian", "spanish", "swedish", "tamil", "telugu", "turkish", "ukrainian", "urdu", 
-    "uyghur", "vietnamese", "wolof"
-  )
-  
-  treebank <- c(
-    "afribooms", "perseus", "padt", "armtdp", "bdt", "hse", "btb", "ancora", "gsdsimp", "set", 
-    "cac", "ddt", "lassysmall", "ewt", "gum", "lines", "partut", "edt", "tdt", "gsd", "ctg", "gsd",
-    "gdt", "htb", "hdtb", "szeged", "gsd", "idt", "isdt", "postwita", "kaist", "ittb", "lvtb", 
-    "alksnis", "mudt", "ufal", "giella", "bokmaal", "proiel", "seraji", "pdb", "gsd", "nonstandard", 
-    "rrt", "syntagrus", "arcosg", "set", "snk", "ssj", "ancora", "talbanken", "ttb", "mtg", "imst", 
-    "iu", "udtb", "udt", "vtb", "wtb"
-  )
-  
-  file <- c(
-    "af_afribooms", "grc_perseus", "ar_padt", "hy_armtdp", "eu_bdt", "be_hse", "bg_btb", 
-    "ca_ancora", "zh_gsdsimp", "hr_set", "cs_cac", "da_ddt", "nl_lassysmall", "en_ewt", "en_gum", 
-    "en_lines", "en_partut", "et_edt", "fi_tdt", "fr_gsd", "gl_ctg", "de_gsd", "el_gdt", "he_htb", 
-    "hi_hdtb", "hu_szeged", "id_gsd", "ga_idt", "it_isdt", "it_postwita", "ko_kaist", "la_ittb", 
-    "lv_lvtb", "lt_alksnis", "mt_mudt", "mr_ufal", "sme_giella", "no_bokmaal", "cu_proiel", 
-    "fa_seraji", "pl_pdb", "pt_gsd", "ro_nonstandard", "ro_rrt", "ru_syntagrus", "gd_arcosg", 
-    "sr_set", "sk_snk", "sl_ssj", "es_ancora", "sv_talbanken", "ta_ttb", "te_mtg", "tr_imst", 
-    "uk_iu", "ur_udtb", "ug_udt", "vi_vtb", "wo_wtb"
-  )
+  treebank <- c( 'AfriBooms', 'Perseus', 'PROIEL', 'PADT', 'ArmTDP', 'BDT', 'HSE', 'BTB', 'AnCora', 'GSD', 'GSDSimp', 'Kyoto', 'Scriptorium', 'SET', 'CAC', 'CLTT', 'FicTree', 'PDT', 'DDT', 'Alpino', 'LassySmall', 'EWT', 'GUM', 'LinES', 'ParTUT', 'EDT', 'EWT', 'FTB', 'TDT', 'GSD', 'ParTUT', 'Sequoia', 'CTG', 'TreeGal', 'GSD', 'HDT', 'PROIEL', 'GDT', 'HTB', 'HDTB', 'Szeged', 'GSD', 'IDT', 'ISDT', 'ParTUT', 'PoSTWITA', 'TWITTIRO', 'VIT', 'GSD', 'GSD', 'Kaist', 'ITTB', 'Perseus', 'PROIEL', 'LVTB', 'ALKSNIS', 'HSE', 'MUDT', 'UFAL', 'Bokmaal', 'Nynorsk', 'PROIEL', 'Seraji', 'LFG', 'PDB', 'Bosque', 'GSD', 'Nonstandard', 'RRT', 'GSD', 'SynTagRus', 'Taiga', 'ARCOSG', 'SET', 'SNK', 'SSJ', 'SST', 'AnCora', 'GSD', 'LinES', 'Talbanken', 'TTB', 'MTG', 'IMST', 'IU', 'UDTB', 'UDT', 'VTB', 'WTB'   )   
   
   description <- c(
     "UD Afrikaans-AfriBooms is a conversion of the AfriBooms Dependency Treebank, originally annotated with a simplified PoS set and dependency relations according to a subset of the Stanford tag set. The corpus consists of public government documents.",
-    "This Universal Dependencies Ancient Greek Treebank consists of an automatic",
+    "This Universal Dependencies Ancient Greek Treebank consists of an automatic conversion of a selection of passages from the Ancient Greek and Latin Dependency Treebank 2.1",
+    "UD_Ancient_Greek-PROIEL is converted from the Ancient Greek data in the PROIEL treebank, and consists of the New Testament plus selections from Herodotus.",
     "The Arabic-PADT UD treebank is based on the",
     "A Universal Dependencies treebank for Eastern Armenian developed for UD originally by the ArmTDP team led by Marat M. Yavrumyan at the Yerevan State University.",
-    "The Basque UD treebank is based on an automatic conversion from part of the Basque Dependency Treebank (BDT), created at the University of the Basque Country by the IXA NLP research group. The treebank consists of 8,993 sentences (121,443 tokens) and covers mainly literary and journalistic texts.",
-    "The Belarusian UD treebank is based on a sample of the news texts included in the Belarusian-Russian parallel subcorpus of the Russian National Corpus.",
-    "UD_Bulgarian-BTB is based on the HPSG-based BulTreeBank.",
+    "The Basque UD treebank is based on a automatic conversion from part of the Basque Dependency Treebank (BDT), created at the University of of the Basque Country by the IXA NLP research group. The treebank consists of 8.993 sentences (121.443 tokens) and covers mainly literary and journalistic texts.",
+    "The Belarusian UD treebank is based on a sample of the news texts included in the Belarusian-Russian parallel subcorpus of the Russian National Corpus,",
+    "UD_Bulgarian-BTB is based on the HPSG-based BulTreeBank,",
     "Catalan data from the [AnCora](http://clic.ub.edu/corpus/) corpus.",
+    "Traditional Chinese Universal Dependencies Treebank annotated and converted by",
     "Simplified Chinese Universal Dependencies dataset converted from the GSD (traditional) dataset with manual corrections.",
+    "Classical Chinese Universal Dependencies Treebank annotated and converted by Institute for Research in Humanities, Kyoto University.",
+    "UD Coptic contains manually annotated Sahidic Coptic texts, including Biblical texts, sermons, letters, and hagiography.",
     "The Croatian UD treebank is based on the extension of the SETimes-HR corpus, the [hr500k](http://hdl.handle.net/11356/1183) corpus.",
-    "The UD_Czech-CAC treebank is based on the Czech Academic Corpus 2.0 (CAC).",
+    "The UD_Czech-CAC treebank is based on the Czech Academic Corpus 2.0 (CAC;",
+    "The UD_Czech-CLTT treebank is based on the Czech Legal Text Treebank 2.0,",
+    "FicTree is a treebank of Czech fiction, automatically converted into the UD",
+    "The Czech-PDT UD treebank is based on the Prague Dependency Treebank – Consolidated 1.0",
     "The Danish UD treebank is a conversion of the Danish Dependency Treebank.",
+    "This corpus consists of samples from various treebanks annotated at the University of Groningen using the Alpino annotation tools and guidelines.",
     "This corpus contains sentences from the Wikipedia section of the Lassy Small Treebank.",
-    "A Gold Standard Universal Dependencies Corpus for English.",
-    "Universal Dependencies syntax annotations from the GUM corpus (https://gucorpling.org/gum/).",
-    "UD English_LinES is the English half of the LinES Parallel Treebank.",
-    "UD_English-ParTUT is a conversion of a multilingual parallel treebank developed at the University of Turin.",
+    "A Gold Standard Universal Dependencies Corpus for English,",
+    "Universal Dependencies syntax annotations from the GUM corpus (https://gucorpling.org/gum/)",
+    "UD English_LinES is the English half of the LinES Parallel Treebank",
+    "UD_English-ParTUT is a conversion of a multilingual parallel treebank developed at the University of Turin,",
     "UD Estonian is a converted version of the Estonian Dependency Treebank (EDT), originally annotated in the Constraint Grammar (CG) annotation scheme, and consisting of genres of fiction, newspaper texts and scientific texts. The treebank contains 30,972 trees, 437,769 tokens.",
-    "UD_Finnish-TDT is based on the Turku Dependency Treebank (TDT), a broad-coverage dependency treebank of general Finnish covering numerous genres.",
-    "The **UD_French-GSD** was converted in 2015 from the content head version of the universal.",
-    "The Galician UD treebank is based on the automatic parsing of the Galician Technical Corpus (http://sli.uvigo.gal/CTG) created at the University of Vigo by the TALG NLP research group.",
-    "The German UD is converted from the content head version of the universal.",
-    "The Greek UD treebank (UD_Greek-GDT) is derived from the Greek Dependency Treebank.",
+    "UD EWT treebank consists of different genres of new media. The treebank contains 7,190 trees, 90,585 tokens.",
+    "FinnTreeBank 1 consists of manually annotated grammatical examples",
+    "UD_Finnish-TDT is based on the Turku Dependency Treebank (TDT), a broad-coverage dependency treebank of general Finnish covering numerous genres. The conversion to UD was followed by extensive manual checks and corrections, and the treebank closely adheres to the UD guidelines.",
+    "The **UD_French-GSD** was converted in 2015 from the content head version of the universal",
+    "UD_French-ParTUT is a conversion of a multilingual parallel treebank developed at the University of Turin,",
+    "**UD_French-Sequoia** is an automatic conversion of the [SUD_French-Sequoia](https://github.com/surfacesyntacticud/SUD_French-Sequoia) treebank, which comes from the former corpus [French Sequoia corpus](http://deep-sequoia.inria.fr).",
+    "The Galician UD treebank is based on the automatic parsing of the Galician Technical Corpus (http://sli.uvigo.gal/CTG) created at the University of Vigo by the the TALG NLP research group.",
+    "The Galician-TreeGal is a treebank for Galician developed at LyS Group (Universidade da Coruña) and at CiTIUS (Universidade de Santiago de Compostela).",
+    "The German UD is converted from the content head version of the [universal",
+    "UD German-HDT is a conversion of the Hamburg Dependency Treebank, created at the University of Hamburg through manual annotation in conjunction with a standard for morphologically and syntactically annotating sentences as well as a constraint-based parser.",
+    "The UD Gothic treebank is based on the Gothic data from the PROIEL treebank, and consists of Wulfila's Bible translation.",
+    "The Greek UD treebank (UD_Greek-GDT) is derived from the Greek Dependency Treebank",
     "A Universal Dependencies Corpus for Hebrew.",
-    "The Hindi UD treebank is based on the Hindi Dependency Treebank (HDTB).",
+    "The Hindi UD treebank is based on the Hindi Dependency Treebank (HDTB),",
     "The Hungarian UD treebank is derived from the Szeged Dependency Treebank (Vincze et al. 2010).",
-    "The Indonesian-GSD treebank was originally converted from the content head version of the universal dependency treebank v2.0.",
+    "The Indonesian-GSD treebank was originally converted from the content head version of the [universal dependency treebank v2.0 (legacy)](https://github.com/ryanmcd/uni-dep-tb) in 2015. In order to comply with the latest Indonesian annotation guidelines, the treebank has undergone a major revision between UD releases v2.8 and v2.9 (2021).",
     "A Universal Dependencies 4910-sentence treebank for modern Irish.",
-    "The Italian corpus annotated according to the UD annotation scheme was obtained by conversion from ISDT.",
+    "The Italian corpus annotated according to the UD annotation scheme was obtained by conversion from ISDT (Italian Stanford Dependency Treebank), released for the dependency parsing shared task of Evalita-2014 (Bosco et al. 2014).",
+    "UD_Italian-ParTUT is a conversion of a multilingual parallel treebank developed at the University of Turin,",
     "PoSTWITA-UD is a collection of Italian tweets annotated in Universal Dependencies that can be exploited for the training of NLP systems to enhance their performance on social media texts.",
-    "The KAIST Korean Universal Dependency Treebank is generated by Chun et al., 2018.",
-    "Latin data from the _Index Thomisticus_ Treebank.",
-    "Latvian UD Treebank is based on Latvian Treebank (LVTB).",
+    "TWITTIRÒ-UD is a collection of ironic Italian tweets annotated in Universal Dependencies.",
+    "The UD_Italian-VIT corpus was obtained by conversion from VIT (Venice Italian Treebank), developed at the Laboratory of Computational Linguistics of the Università Ca' Foscari in Venice (Delmonte et al. 2007; Delmonte 2009; http://rondelmo.it/resource/VIT/Browser-VIT/index.htm).",
+    "This Universal Dependencies (UD) Japanese treebank is based on the definition of UD Japanese convention described in the UD documentation.  The original sentences are from Google UDT 2.0.",
+    "The Google Korean Universal Dependency Treebank is first converted from the [Universal",
+    "The KAIST Korean Universal Dependency Treebank is generated by Chun et al., 2018 from the constituency trees in the [KAIST Tree-Tagging Corpus](http://semanticweb.kaist.ac.kr/home/index.php/Corpus4).",
+    "Latin data from the _Index Thomisticus_ Treebank. Data are taken from the _Index Thomisticus_ corpus by Roberto Busa SJ, which contains the complete work by Thomas Aquinas (1225–1274; Medieval Latin) and by 61 other authors related to Thomas.",
+    "This Universal Dependencies Latin Treebank consists of an automatic conversion of a selection of passages from the Ancient Greek and Latin Dependency Treebank 2.1",
+    "The Latin PROIEL treebank is based on the Latin data from the PROIEL treebank, and contains most of the Vulgate New Testament translations plus selections from Caesar's Gallic War, Cicero's Letters to Atticus, Palladius' Opus Agriculturae and the first book of Cicero's De officiis.",
+    "Latvian UD Treebank is based on Latvian Treebank ([LVTB](http://sintakse.korpuss.lv)), being created at University of Latvia, Institute of Mathematics and Computer Science, [Artificial Intelligence Laboratory](http://ailab.lv).",
     "The Lithuanian dependency treebank ALKSNIS v3.0 (Vytautas Magnus University).",
-    "MUDT (Maltese Universal Dependencies Treebank) is a manually annotated treebank of Maltese.",
-    "UD Marathi is a manually annotated treebank consisting primarily of stories from Wikisource.",
-    "This is a North Sámi treebank based on a manually disambiguated and function-labelled gold-standard.",
-    "The Norwegian UD treebank is based on the Bokmål section of the Norwegian.",
+    "Lithuanian treebank annotated manually (dependencies) using the Morphological Annotator by CCL, Vytautas Magnus University (http://tekstynas.vdu.lt/) and manual disambiguation.",
+    "MUDT (Maltese Universal Dependencies Treebank) is a manually annotated treebank of Maltese, a Semitic language of Malta descended from North African Arabic with a significant amount of Italo-Romance influence.",
+    "UD Marathi is a manually annotated treebank consisting primarily of stories from Wikisource, and parts of an article on Wikipedia.",
+    "The Norwegian UD treebank is based on the Bokmål section of the Norwegian",
+    "The Norwegian UD treebank is based on the Nynorsk section of the Norwegian",
     "The Old Church Slavonic (OCS) UD treebank is based on canonical Old Church Slavonic data from the PROIEL and TOROT treebanks.",
     "The Persian Universal Dependency Treebank (Seraji) is based on Uppsala Persian Dependency Treebank (UPDT).",
-    "The Polish PDB-UD treebank is automatically converted from the Polish Dependency Bank 2.0.",
-    "The Brazilian Portuguese UD is converted from the Google Universal Dependency.",
-    "The Romanian Non-standard UD treebank (called UAIC-RoDia) is based on UAIC-RoDia Treebank.",
+    "The LFG Enhanced UD treebank of Polish is based on a corpus of LFG (Lexical Functional Grammar) syntactic structures generated by an LFG grammar of Polish, POLFIE, and manually disambiguated by human annotators.",
+    "The Polish PDB-UD treebank is automatically converted from the Polish Dependency Bank 2.0 (PDB 2.0). Both treebanks were created at the [Institute of Computer Science, Polish Academy of Sciences](https://ipipan.waw.pl/en/) in Warsaw (Poland).",
+    "This Universal Dependencies (UD) Portuguese treebank is based on the",
+    "The Brazilian Portuguese UD is converted from the [Google Universal Dependency",
+    "The Romanian Non-standard UD treebank (called UAIC-RoDia) is based on UAIC-RoDia Treebank. UAIC-RoDia = ISLRN 156-635-615-024-0",
     "The Romanian UD treebank (called RoRefTrees) (Barbu Mititelu et al., 2016) is the reference treebank in UD format for standard Romanian.",
+    "Russian Universal Dependencies Treebank annotated and converted by Google.",
     "Russian data from the SynTagRus corpus.",
-    "A treebank of Scottish Gaelic based on the.",
-    "The Serbian UD treebank is based on the [SETimes-SR](http://hdl.handle.net/11356/1200) corpus.",
-    "The Slovak UD treebank is based on data originally annotated as part of the.",
-    "The SSJ treebank is the reference UD treebank for Slovenian.",
+    "Universal Dependencies treebank is based on data samples extracted from Taiga Corpus and MorphoRuEval-2017 and GramEval-2020 shared tasks collections.",
+    "A treebank of Scottish Gaelic based on the [Annotated Reference Corpus Of Scottish Gaelic (ARCOSG)](https://github.com/Gaelic-Algorithmic-Research-Group/ARCOSG).",
+    "The Serbian UD treebank is based on the [SETimes-SR](http://hdl.handle.net/11356/1200) corpus and",
+    "The Slovak UD treebank is based on data originally annotated as part of the",
+    "The SSJ treebank is the reference UD treebank for Slovenian, consisting of approximately 13,000 sentences and 267,097 tokens from fiction, non-fiction, periodical and Wikipedia texts in standard modern Slovenian. As of UD release 2.10 in May 2022, the original version of the SSJ UD treebank has been partially manually revised and extended with new manually annotated data.",
+    "The Spoken Slovenian Treebank (SST) is a manually annotated collection of transcribed audio recordings featuring spontaneous speech in various everyday situations. It includes 344 unique speech events (documents) amounting to approximately 10 hours of speech, encompassing a total of 6,108 utterances and 98,396 tokens.",
     "Spanish data from the [AnCora](http://clic.ub.edu/corpus/) corpus.",
-    "The Swedish-Talbanken treebank is based on Talbanken, a treebank developed at Lund University.",
-    "The UD Tamil treebank is based on the Tamil Dependency Treebank created at the.",
+    "The Spanish UD is converted from the content head version of the [universal",
+    "UD Swedish_LinES is the Swedish half of the LinES Parallel Treebank with UD annotations.",
+    "The Swedish-Talbanken treebank is based on Talbanken, a treebank developed at Lund University",
+    "The UD Tamil treebank is based on the Tamil Dependency Treebank created at the",
     "The Telugu UD treebank is created in UD based on manual annotations of sentences from a grammar book.",
-    "The UD Turkish Treebank, also called the IMST-UD Treebank, is a semi-automatic conversion of the IMST Treebank.",
-    "Gold standard Universal Dependencies corpus for Ukrainian.",
-    "The Urdu Universal Dependency Treebank was automatically converted from Urdu Dependency Treebank (UDTB).",
-    "The Uyghur UD treebank is based on the Uyghur Dependency Treebank (UDT).",
-    "The Vietnamese UD treebank is a conversion of the constituent treebank created in the VLSP project.",
-    "UD_Wolof-WTB is a natively manual developed treebank for Wolof."
-  )
-
-  folder <- paste0("UD_", language_name, "-", treebank)  # Generazione dinamica
-
-  hub_page_link <- c(
-    "https://universaldependencies.org/treebanks/af_afribooms/index.html",
-    "https://universaldependencies.org/treebanks/grc_perseus/index.html",
-    "https://universaldependencies.org/treebanks/ar_padt/index.html",
-    "https://universaldependencies.org/treebanks/hy_armtdp/index.html",
-    "https://universaldependencies.org/treebanks/eu_bdt/index.html",
-    "https://universaldependencies.org/treebanks/be_hse/index.html",
-    "https://universaldependencies.org/treebanks/bg_btb/index.html",
-    "https://universaldependencies.org/treebanks/ca_ancora/index.html",
-    "https://universaldependencies.org/treebanks/zh_gsdsimp/index.html",
-    "https://universaldependencies.org/treebanks/hr_set/index.html",
-    "https://universaldependencies.org/treebanks/cs_cac/index.html",
-    "https://universaldependencies.org/treebanks/da_ddt/index.html",
-    "https://universaldependencies.org/treebanks/nl_lassysmall/index.html",
-    "https://universaldependencies.org/treebanks/en_ewt/index.html",
-    "https://universaldependencies.org/treebanks/en_gum/index.html",
-    "https://universaldependencies.org/treebanks/en_lines/index.html",
-    "https://universaldependencies.org/treebanks/en_partut/index.html",
-    "https://universaldependencies.org/treebanks/et_edt/index.html",
-    "https://universaldependencies.org/treebanks/fi_tdt/index.html",
-    "https://universaldependencies.org/treebanks/fr_gsd/index.html",
-    "https://universaldependencies.org/treebanks/gl_ctg/index.html",
-    "https://universaldependencies.org/treebanks/de_gsd/index.html",
-    "https://universaldependencies.org/treebanks/el_gdt/index.html",
-    "https://universaldependencies.org/treebanks/he_htb/index.html",
-    "https://universaldependencies.org/treebanks/hi_hdtb/index.html",
-    "https://universaldependencies.org/treebanks/hu_szeged/index.html",
-    "https://universaldependencies.org/treebanks/id_gsd/index.html",
-    "https://universaldependencies.org/treebanks/ga_idt/index.html",
-    "https://universaldependencies.org/treebanks/it_isdt/index.html",
-    "https://universaldependencies.org/treebanks/it_postwita/index.html",
-    "https://universaldependencies.org/treebanks/ko_kaist/index.html",
-    "https://universaldependencies.org/treebanks/la_ittb/index.html",
-    "https://universaldependencies.org/treebanks/lv_lvtb/index.html",
-    "https://universaldependencies.org/treebanks/lt_alksnis/index.html",
-    "https://universaldependencies.org/treebanks/mt_mudt/index.html",
-    "https://universaldependencies.org/treebanks/mr_ufal/index.html",
-    "https://universaldependencies.org/treebanks/sme_giella/index.html",
-    "https://universaldependencies.org/treebanks/no_bokmaal/index.html",
-    "https://universaldependencies.org/treebanks/cu_proiel/index.html",
-    "https://universaldependencies.org/treebanks/fa_seraji/index.html",
-    "https://universaldependencies.org/treebanks/pl_pdb/index.html",
-    "https://universaldependencies.org/treebanks/pt_gsd/index.html",
-    "https://universaldependencies.org/treebanks/ro_nonstandard/index.html",
-    "https://universaldependencies.org/treebanks/ro_rrt/index.html",
-    "https://universaldependencies.org/treebanks/ru_syntagrus/index.html",
-    "https://universaldependencies.org/treebanks/gd_arcosg/index.html",
-    "https://universaldependencies.org/treebanks/sr_set/index.html",
-    "https://universaldependencies.org/treebanks/sk_snk/index.html",
-    "https://universaldependencies.org/treebanks/sl_ssj/index.html",
-    "https://universaldependencies.org/treebanks/es_ancora/index.html",
-    "https://universaldependencies.org/treebanks/sv_talbanken/index.html",
-    "https://universaldependencies.org/treebanks/ta_ttb/index.html",
-    "https://universaldependencies.org/treebanks/te_mtg/index.html",
-    "https://universaldependencies.org/treebanks/tr_imst/index.html",
-    "https://universaldependencies.org/treebanks/uk_iu/index.html",
-    "https://universaldependencies.org/treebanks/ur_udtb/index.html",
-    "https://universaldependencies.org/treebanks/ug_udt/index.html",
-    "https://universaldependencies.org/treebanks/vi_vtb/index.html",
-    "https://universaldependencies.org/treebanks/wo_wtb/index.html"
-  )
+    "The UD Turkish Treebank, also called the IMST-UD Treebank, is a semi-automatic conversion of the IMST Treebank (Sulubacak&Eryiğit, 2018; Sulubacak et al., 2016).",
+    "Gold standard Universal Dependencies corpus for Ukrainian, developed for UD originally, by [Institute for Ukrainian](https://mova.institute), NGO.   [[українською](https://mova.institute/золотий_стандарт)]",
+    "The Urdu Universal Dependency Treebank was automatically converted from Urdu Dependency Treebank (UDTB) which is part of an ongoing effort of creating multi-layered treebanks for Hindi and Urdu.",
+    "The Uyghur UD treebank is based on the Uyghur Dependency Treebank (UDT),",
+    "The Vietnamese UD treebank is a conversion of the constituent treebank created in the VLSP project",
+    "UD_Wolof-WTB is a natively manual developed treebank for Wolof. Sentences were collected from encyclopedic, fictional, biographical, religious texts and news."
+)
+    
   
   contributors <- c(
-    "Peter Dirix, Liesbeth Augustinus, Daniel van Niekerk",
-    "Giuseppe G. A. Celano, Daniel Zeman",
-    "Daniel Zeman, Zdeněk Žabokrtský, Shadi Saleh",
-    "Marat M. Yavrumyan",
-    "Maria Jesus Aranzabe, Aitziber Atutxa, Kepa Bengoetxea, Arantza Diaz de Ilarraza, Iakes Goenaga, Koldo Gojenola, Larraitz Uria",
-    "Olga Lyashevskaya, Angelika Peljak-Łapińska, Daria Petrova, Yana Shishkina",
-    "Kiril Simov, Petya Osenova, Martin Popel",
-    "Héctor Martínez Alonso, Elena Pascual, Daniel Zeman",
-    "Peng Qi, Koichi Yasuoka",
-    "Željko Agić, Nikola Ljubešić, Daniel Zeman",
-    "Barbora Hladká, Daniel Zeman",
-    "Anders Johannsen, Héctor Martínez Alonso, Barbara Plank",
-    "Gosse Bouma, Gertjan van Noord",
-    "Natalia Silveira, Timothy Dozat, Christopher Manning, Sebastian Schuster, Ethan Chi, John Bauer, Miriam Connor, Marie-Catherine de Marneffe, Nathan Schneider, Sam Bowman, Hanzhi Zhu, Daniel Galbraith, John Bauer",
-    "Siyao Peng, Amir Zeldes",
-    "Lars Ahrenberg",
-    "Cristina Bosco, Manuela Sanguinetti",
-    "Kadri Muischnek, Kaili Müürisep, Tiina Puolakainen, Andriela Rääbis, Liisi Torga",
-    "Filip Ginter, Jenna Kanerva, Veronika Laippala, Niko Miekka, Anna Missilä, Stina Ojala, Sampo Pyysalo",
-    "Marie-Catherine de Marneffe, Bruno Guillaume, Ryan McDonald, Alane Suhr, Joakim Nivre, Matias Grioni, Carly Dickerson, Guy Perrier",
-    "Xavier Gómez Guinovart",
-    "Slav Petrov, Wolfgang Seeker, Ryan McDonald, Joakim Nivre, Daniel Zeman, Adriane Boyd",
-    "Prokopis Prokopidis",
-    "Yoav Goldberg, Reut Tsarfaty, Amir More, Shoval Sadde, Victoria Basmov, Yuval Pinter",
-    "Riyaz Ahmad Bhat, Daniel Zeman",
-    "Richárd Farkas, Katalin Simkó, Zsolt Szántó, Viktor Varga, Veronika Vincze",
-    "Ryan McDonald, Joakim Nivre, Daniel Zeman, Septina Dian Larasati, Ika Alfina",
-    "Teresa Lynn, Jennifer Foster, Sarah McGuinness, Abigail Walsh, Jason Phelan, Kevin Scannell",
-    "Cristina Bosco, Alessandro Lenci, Simonetta Montemagni, Maria Simi",
-    "Cristina Bosco, Manuela Sanguinetti",
-    "Jinho Choi, Na-Rae Han, Jena Hwang, Jayeol Chun",
-    "Marco Passarotti, Marinella Testori, Daniel Zeman, Berta González Saavedra, Flavio Massimiliano Cecchini",
-    "Lauma Pretkalniņa, Laura Rituma, Gunta Nešpore-Bērzkalne, Baiba Saulīte, Artūrs Znotiņš, Normunds Grūzītis",
-    "Andrius Utka, Erika Rimkutė, Agnė Bielinskienė, Jolanta Kovalevskaitė, Loïc Boizou, Gabrielė Aleksandravičiūtė, Kristina Brokaitė, Daniel Zeman, Natalia Perkova, Bernadeta Griciūtė",
-    "Slavomír Čéplö, Daniel Zeman",
-    "Vinit Ravishankar",
-    "Trond Trosterud, Lene Antonsen, Francis Tyers",
-    "Lilja Øvrelid, Fredrik Jørgensen, Petter Hohle, Ingerid Løyning Dale, Per Erik Solberg, Andre Kåsen",
-    "Dag Haug",
-    "Mojgan Seraji, Filip Ginter, Joakim Nivre, Martin Popel, Daniel Zeman",
-    "Alina Wróblewska, Daniel Zeman, Jan Mašek, Rudolf Rosa",
-    "Alexandre Rademaker, Ryan McDonald, Joakim Nivre, Daniel Zeman, Fabricio Chalub, Carlos Ramisch, Juan Belieni, Vanessa Berwanger Wille, Rodrigo Pintucci",
-    "Cătălina Mărănduc, Cenel-Augusto Perez, Victoria Bobicev, Cătălin Mititelu, Florinel Hociung, Valentin Roșca, Roman Untilov, Petru Rebeja",
-    "Verginica Barbu Mititelu, Elena Irimia, Cenel-Augusto Perez, Radu Ion, Radu Simionescu, Martin Popel",
-    "Kira Droganova, Olga Lyashevskaya, Daniel Zeman",
-    "Colin Batchelor",
-    "Tanja Samardžić, Nikola Ljubešić",
-    "Katarína Gajdošová, Mária Šimková, Daniel Zeman",
-    "Kaja Dobrovoljc, Tomaž Erjavec, Simon Krek",
-    "Héctor Martínez Alonso, Daniel Zeman",
-    "Joakim Nivre, Aaron Smith, Victor Norrman",
-    "Loganathan Ramasamy, Daniel Zeman",
-    "Taraka Rama, Sowmya Vajjala",
-    "Utku Türk, Şaziye Betül Özateş, Büşra Marşan, Salih Furkan Akkurt, Çağrı Çöltekin, Gülşen Cebiroğlu Eryiğit, Memduh Gökırmak, Hüner Kaşıkara, Umut Sulubacak, Francis Tyers",
-    "Natalia Kotsyba, Bohdan Moskalevskyi, Mykhailo Romanenko",
-    "Riyaz Ahmad Bhat, Daniel Zeman",
-    "Marhaba Eli, Daniel Zeman, Francis Tyers",
-    "Lương Nguyễn Thị, Linh Hà Mỹ, Phương Lê Hồng, Huyền Nguyễn Thị Minh",
-    "Bamba Dione"
+    'Peter Dirix, Liesbeth Augustinus, Daniel van Niekerk',
+    'Giuseppe G. A. Celano, Daniel Zeman',
+    'Dag Haug',
+    'Daniel Zeman, Zdeněk Žabokrtský, Shadi Saleh',
+    'Marat M. Yavrumyan',
+    'Maria Jesus Aranzabe, Aitziber Atutxa, Kepa Bengoetxea, Arantza Diaz de Ilarraza, Iakes Goenaga, Koldo Gojenola, Larraitz Uria',
+    'Olga Lyashevskaya, Angelika Peljak-Łapińska, Daria Petrova, Yana Shishkina',
+    'Kiril Simov, Petya Osenova, Martin Popel',
+    'Héctor Martínez Alonso, Elena Pascual, Daniel Zeman',
+    'Mo Shen, Ryan McDonald, Daniel Zeman, Peng Qi',
+    'Peng Qi, Koichi Yasuoka',
+    'Koichi Yasuoka, Christian Wittern, Tomohiko Morioka, Takumi Ikeda, Naoki Yamazaki, Yoshihiro Nikaido, Shingo Suzuki, Shigeki Moro, Yuan Li, Hiroyuki Shirasu, Kazunori Fujita',
+    'Mitchell Abrams, Elizabeth Davidson, Amir Zeldes',
+    'Željko Agić, Nikola Ljubešić, Daniel Zeman',
+    'Barbora Hladká, Daniel Zeman',
+    'Barbora Hladká, Daniel Zeman, Martin Popel',
+    'Tomáš Jelínek, Daniel Zeman',
+    'Daniel Zeman, Jan Hajič',
+    'Anders Johannsen, Héctor Martínez Alonso, Barbara Plank',
+    'Daniel Zeman, Zdeněk Žabokrtský, Gosse Bouma, Gertjan van Noord',
+    'Gosse Bouma, Gertjan van Noord',
+    'Natalia Silveira, Timothy Dozat, Christopher Manning, Sebastian Schuster, Ethan Chi, John Bauer, Miriam Connor, Marie-Catherine de Marneffe, Nathan Schneider, Sam Bowman, Hanzhi Zhu, Daniel Galbraith, John Bauer',
+    'Siyao Peng, Amir Zeldes',
+    'Lars Ahrenberg',
+    'Cristina Bosco, Manuela Sanguinetti',
+    'Kadri Muischnek, Kaili Müürisep, Tiina Puolakainen, Andriela Rääbis, Liisi Torga',
+    'Kadri Muischnek, Kaili Müürisep, Tiina Puolakainen, Dage Särg, Sandra Eiche, Andriela Rääbis',
+    'Jussi Piitulainen, Hanna Nurmi, Jack Rueter',
+    'Filip Ginter, Jenna Kanerva, Veronika Laippala, Niko Miekka, Anna Missilä, Stina Ojala, Sampo Pyysalo',
+    'Marie-Catherine de Marneffe, Bruno Guillaume, Ryan McDonald, Alane Suhr, Joakim Nivre, Matias Grioni, Carly Dickerson, Guy Perrier',
+    'Cristina Bosco, Manuela Sanguinetti',
+    'Marie Candito, Djamé Seddah, Guy Perrier, Bruno Guillaume',
+    'Xavier Gómez Guinovart',
+    'Marcos Garcia, Xulia Sánchez-Rodríguez',
+    'Slav Petrov, Wolfgang Seeker, Ryan McDonald, Joakim Nivre, Daniel Zeman, Adriane Boyd',
+    'Emanuel Borges Völker, Felix Hennig, Arne Köhn, Maximilan Wendt, Verena Blaschke, Nina Böbel, Leonie Weissweiler',
+    'Dag Haug',
+    'Prokopis Prokopidis',
+    'Yoav Goldberg, Reut Tsarfaty, Amir More, Shoval Sadde, Victoria Basmov, Yuval Pinter',
+    'Riyaz Ahmad Bhat, Daniel Zeman',
+    'Richárd Farkas, Katalin Simkó, Zsolt Szántó, Viktor Varga, Veronika Vincze',
+    'Ryan McDonald, Joakim Nivre, Daniel Zeman, Septina Dian Larasati, Ika Alfina',
+    'Teresa Lynn, Jennifer Foster, Sarah McGuinness, Abigail Walsh, Jason Phelan, Kevin Scannell',
+    'Cristina Bosco, Alessandro Lenci, Simonetta Montemagni, Maria Simi',
+    'Cristina Bosco, Manuela Sanguinetti',
+    'Cristina Bosco, Manuela Sanguinetti',
+    'Alessandra T. Cignarella, Cristina Bosco, Manuela Sanguinetti',
+    'Fabio Tamburini, Maria Simi, Cristina Bosco',
+    'Mai Omura, Yusuke Miyao, Hiroshi Kanayama, Hiroshi Matsuda, Aya Wakasa, Kayo Yamashita, Masayuki Asahara, Takaaki Tanaka, Yugo Murawaki, Yuji Matsumoto, Shinsuke Mori, Sumire Uematsu, Ryan McDonald, Joakim Nivre, Daniel Zeman',
+    'Ryan McDonald, Joakim Nivre, Daniel Zeman, Jinho Choi, Na-Rae Han, Jena Hwang, Jayeol Chun',
+    'Jinho Choi, Na-Rae Han, Jena Hwang, Jayeol Chun',
+    'Marco Passarotti, Marinella Testori, Daniel Zeman, Berta González Saavedra, Flavio Massimiliano Cecchini',
+    'Giuseppe G. A. Celano, Daniel Zeman, Federica Gamba',
+    'Dag Haug',
+    'Lauma Pretkalniņa, Laura Rituma, Gunta Nešpore-Bērzkalne, Baiba Saulīte, Artūrs Znotiņš, Normunds Grūzītis',
+    'Andrius Utka, Erika Rimkutė, Agnė Bielinskienė, Jolanta Kovalevskaitė, Loïc Boizou, Gabrielė Aleksandravičiūtė, Kristina Brokaitė, Daniel Zeman, Natalia Perkova, Bernadeta Griciūtė',
+    'Olga Lyashevskaya, Dmitri Sitchinava',
+    'Slavomír Čéplö, Daniel Zeman',
+    'Vinit Ravishankar',
+    'Lilja Øvrelid, Fredrik Jørgensen, Petter Hohle, Ingerid Løyning Dale, Per Erik Solberg, Andre Kåsen',
+    'Lilja Øvrelid, Fredrik Jørgensen, Petter Hohle, Ingerid Løyning Dale, Per Erik Solberg, Andre Kåsen',
+    'Dag Haug',
+    'Mojgan Seraji, Filip Ginter, Joakim Nivre, Martin Popel, Daniel Zeman',
+    'Agnieszka Patejuk, Adam Przepiórkowski',
+    'Alina Wróblewska, Daniel Zeman, Jan Mašek, Rudolf Rosa',
+    'Alexandre Rademaker, Cláudia Freitas, Elvis de Souza, Aline Silveira, Tatiana Cavalcanti, Wograine Evelyn, Luisa Rocha, Isabela Soares-Bastos, Eckhard Bick, Fabricio Chalub, Guilherme Paulino-Passos, Livy Real, Valeria de Paiva, Daniel Zeman, Martin Popel, David Mareček, Natalia Silveira, André Martins',
+    'Alexandre Rademaker, Ryan McDonald, Joakim Nivre, Daniel Zeman, Fabricio Chalub, Carlos Ramisch, Juan Belieni, Vanessa Berwanger Wille, Rodrigo Pintucci',
+    'Cătălina Mărănduc, Cenel-Augusto Perez, Victoria Bobicev, Cătălin Mititelu, Florinel Hociung, Valentin Roșca, Roman Untilov, Petru Rebeja',
+    'Verginica Barbu Mititelu, Elena Irimia, Cenel-Augusto Perez, Radu Ion, Radu Simionescu, Martin Popel',
+    'Ryan McDonald, Vitaly Nikolaev, Olga Lyashevskaya',
+    'Kira Droganova, Olga Lyashevskaya, Daniel Zeman',
+    'Olga Lyashevskaya, Olga Rudina, Natalia Vlasova, Anna Zhuravleva',
+    'Colin Batchelor',
+    'Tanja Samardžić, Nikola Ljubešić',
+    'Katarína Gajdošová, Mária Šimková, Daniel Zeman',
+    'Kaja Dobrovoljc, Tomaž Erjavec, Simon Krek',
+    'Kaja Dobrovoljc, Joakim Nivre',
+    'Héctor Martínez Alonso, Daniel Zeman',
+    'Miguel Ballesteros, Héctor Martínez Alonso, Ryan McDonald, Elena Pascual, Natalia Silveira, Daniel Zeman, Joakim Nivre',
+    'Lars Ahrenberg',
+    'Joakim Nivre, Aaron Smith, Victor Norrman',
+    'Loganathan Ramasamy, Daniel Zeman',
+    'Taraka Rama, Sowmya Vajjala',
+    'Utku Türk, Şaziye Betül Özateş, Büşra Marşan, Salih Furkan Akkurt, Çağrı Çöltekin, Gülşen Cebiroğlu Eryiğit, Memduh Gökırmak, Hüner Kaşıkara, Umut Sulubacak, Francis Tyers',
+    'Natalia Kotsyba, Bohdan Moskalevskyi, Mykhailo Romanenko',
+    'Riyaz Ahmad Bhat, Daniel Zeman',
+    'Marhaba Eli, Daniel Zeman, Francis Tyers',
+    'Lương Nguyễn Thị, Linh Hà Mỹ, Phương Lê Hồng, Huyền Nguyễn Thị Minh',
+    'Bamba Dione'
   )
-
-  chapter_vec <- c(
-    "hoofstuk",        # afrikaans
-    "κεφάλαιον",       # ancient_greek
-    "فصل",            # arabic
-    "գլուխ",           # armenian
-    "kapitulu",        # basque
-    "раздзел",         # belarusian
-    "глава",           # bulgarian
-    "capítol",         # catalan
-    "章节",             # chinese (simplified)
-    "poglavlje",       # croatian
-    "kapitola",        # czech
-    "kapitel",         # danish
-    "hoofdstuk",       # dutch
-    "chapter",         # english
-    "chapter",         # english (repeated)
-    "chapter",         # english (repeated)
-    "chapter",         # english (repeated)
-    "peatükk",         # estonian
-    "luku",            # finnish
-    "chapitre",        # french
-    "capítulo",        # galician
-    "Kapitel",         # german
-    "κεφάλαιο",        # greek
-    "פרק",             # hebrew
-    "अध्याय",          # hindi
-    "fejezet",         # hungarian
-    "bab",             # indonesian
-    "caibidil",        # irish
-    "capitolo",        # italian
-    "capitolo",        # italian (repeated)
-    "장",              # korean
-    "capitulum",       # latin
-    "nodaļa",          # latvian
-    "skyrius",         # lithuanian
-    "kapitlu",         # maltese
-    "अध्याय",          # marathi
-    "duodji",         # nord sami
-    "kapittel",        # norwegian
-    "глава",           # old_church_slavonic
-    "فصل",            # persian
-    "rozdział",        # polish
-    "capítulo",        # portuguese
-    "capitol",         # romanian
-    "capitol",         # romanian (repeated)
-    "глава",           # russian
-    "caibideil",       # scottish_gaelic
-    "поглавље",        # serbian
-    "kapitola",        # slovak
-    "poglavje",        # slovenian
-    "capítulo",        # spanish
-    "kapitel",         # swedish
-    "அத்தியாயம்",       # tamil
-    "అధ్యాయం",         # telugu
-    "bölüm",           # turkish
-    "розділ",          # ukrainian
-    "باب",             # urdu
-    "باب",             # uyghur
-    "chương",          # vietnamese
-    "bàkka"            # wolof
-  )
-
-  index <- c(7, 52, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 1, 1, 1, 1, 19, 20, 3, 
-    21, 5, 22, 23, 24, 25, 26, 27, 2, 2, 28, 29, 30, 31, 32, 33, 53, 34, 54, 
-    35, 36, 6, 38, 38, 39, 55, 40, 41, 42, 4, 43, 44, 45, 46, 47, 48, 49, 50, 51)
   
+  file <- c( "af_afribooms", "grc_perseus", "grc_proiel", "ar_padt", "hy_armtdp", "eu_bdt", "be_hse", "bg_btb", "ca_ancora", "zh_gsd", "zh_gsdsimp", "lzh_kyoto", "cop_scriptorium", "hr_set", "cs_cac", "cs_cltt", "cs_fictree", "cs_pdt", "da_ddt", "nl_alpino", "nl_lassysmall", "en_ewt", "en_gum", "en_lines", "en_partut", "et_edt", "et_ewt", "fi_ftb", "fi_tdt", "fr_gsd", "fr_partut", "fr_sequoia", "gl_ctg", "gl_treegal", "de_gsd", "de_hdt", "got_proiel", "el_gdt", "he_htb", "hi_hdtb", "hu_szeged", "id_gsd", "ga_idt", "it_isdt", "it_partut", "it_postwita", "it_twittiro", "it_vit", "ja_gsd", "ko_gsd", "ko_kaist", "la_ittb", "la_perseus", "la_proiel", "lv_lvtb", "lt_alksnis", "lt_hse", "mt_mudt", "mr_ufal", "no_bokmaal", "no_nynorsk", "cu_proiel", "fa_seraji", "pl_lfg", "pl_pdb", "pt_bosque", "pt_gsd", "ro_nonstandard", "ro_rrt", "ru_gsd", "ru_syntagrus", "ru_taiga", "gd_arcosg", "sr_set", "sk_snk", "sl_ssj", "sl_sst", "es_ancora", "es_gsd", "sv_lines", "sv_talbanken", "ta_ttb", "te_mtg", "tr_imst", "uk_iu", "ur_udtb", "ug_udt", "vi_vtb", "wo_wtb"   )   
+  
+  hub_link <- paste0("https://universaldependencies.org/treebanks/",file,"/index.html")
+  
+  tokens <- c('22369','202989','214005','93712','52220','121443','305417','156149','537767','123291','123291','433168','26837','2247925','494142','36007','166602','1526323','506231','208745','297486','251536','208446','93200','49601','438312','50473','159314','202209','389367','27638','68593','126011','23479','287721','3399390','87266','61773','114648','351704','1182501','119830','115990','278461','51614','119334','28384','259625','193654','80322','350090','450480','28868','328476','328305','70049','5356','44162','13089','310221','301353','553686','151625','130967','347319','210958','296169','1896343','218522','97994','1517881','197001','86089','97673','365490','267097','98393','555670','423346','90961','96859','8635','6465','56422','122934','138077','40236','58069','42832')
+
+  words <- c('25017','202989','214005','94390','52585','121443','305417','156149','553638','123291','123291','433168','57098','2252453','495219','36023','167226','1529074','506232','208746','297486','254865','212035','94217','49632','438313','50486','159612','202453','400391','28576','70545','138837','25548','292769','3455580','88934','63441','160195','351704','1183884','122019','115990','298375','55558','124515','29602','280153','193654','80322','350090','450517','29221','328476','328305','70049','5356','44162','13089','310221','301353','553686','152920','130967','349978','227827','318666','1896343','218522','97994','1517881','197001','89958','97673','365490','267097','98393','568249','431600','90961','96859','9581','6465','58096','122983','138077','40236','58069','44258')
+  
+  sentences <- c('1975','13919','17082','4800','2500','8993','25231','11138','16678','4997','4997','86239','2203','127794','24709','1121','12760','87907','30723','13603','17120','16622','12146','5243','2090','30930','2829','18723','15136','16342','1020','3099','3993','1000','15590','189928','4328','2521','6143','16649','53564','5598','4910','14167','2090','6712','1424','10087','8100','6339','27363','26977','2273','19387','19367','3642','263','2074','1144','20044','17575','40085','5997','17246','22152','9357','12020','116324','9524','5030','87336','17872','4741','4384','19543','13435','6108','17662','16014','5243','6026','600','1328','5635','7092','5130','3456','3323','2107')
+
+  folder <- paste0("UD_", language_name, "-", treebank)  # Generazione dinamica
+  
+  chapter <- c(
+    "Hoofstuk",  # Afrikaans
+    "κεφάλαιο",  # Ancient Greek
+    "κεφάλαιο",  # Ancient Greek (duplicated)
+    "فصل",      # Arabic
+    "Գլուխ",    # Armenian
+    "Kapitulua",     # Basque
+    "Глава",    # Belarusian
+    "Глава",    # Bulgarian
+    "Capítol",   # Catalan
+    "章节",     # Chinese (Simplified)
+    "章",   # Chinese (Traditional)
+    "章节",     # Classical Chinese
+    "ⲕⲁⲡⲓⲧⲓⲗⲟⲛ",   # Coptic
+    "Poglavlje",     # Croatian
+    "Kapitola",  # Czech
+    "Kapitola",  # Czech (duplicated)
+    "Kapitola",  # Czech (duplicated)
+    "Kapitola",  # Czech (duplicated)
+    "Kapitel",   # Danish
+    "Hoofdstuk",     # Dutch
+    "Hoofdstuk",     # Dutch (duplicated)
+    "Chapter",   # English
+    "Chapter",   # English (duplicated)
+    "Chapter",   # English (duplicated)
+    "Chapter",   # English (duplicated)
+    "Peatükk",   # Estonian
+    "Peatükk",   # Estonian (duplicated)
+    "Luku",      # Finnish
+    "Luku",      # Finnish (duplicated)
+    "Chapitre",  # French
+    "Chapitre",  # French (duplicated)
+    "Chapitre",  # French (duplicated)
+    "Capítulo",  # Galician
+    "Capítulo",  # Galician (duplicated)
+    "Kapitel",   # German
+    "Kapitel",   # German (duplicated)
+    "𐍉𐌼𐌿𐌽𐌳𐌰𐌽𐌾𐌾𐌰",  # Gothic
+    "Κεφάλαιο",  # Greek
+    "פרק",      # Hebrew
+    "अध्याय",  # Hindi
+    "Fejezet",   # Hungarian
+    "Bab",   # Indonesian
+    "Caibidil",  # Irish
+    "Capitolo",  # Italian
+    "Capitolo",  # Italian (duplicated)
+    "Capitolo",  # Italian (duplicated)
+    "Capitolo",  # Italian (duplicated)
+    "Capitolo",  # Italian (duplicated)
+    "章",   # Japanese
+    "장",   # Korean
+    "장",   # Korean (duplicated)
+    "Capitulum",     # Latin
+    "Capitulum",     # Latin (duplicated)
+    "Capitulum",     # Latin (duplicated)
+    "Nodaļa",    # Latvian
+    "Skyrius",   # Lithuanian
+    "Skyrius",   # Lithuanian (duplicated)
+    "Kapitel",   # Maltese
+    "अध्याय",  # Marathi
+    "Kapittel",  # Norwegian
+    "Kapittel",  # Norwegian (duplicated)
+    "Глава",    # Old Church Slavonic
+    "فصل",      # Persian
+    "Rozdział",  # Polish
+    "Rozdział",  # Polish (duplicated)
+    "Capítulo",  # Portuguese
+    "Capítulo",  # Portuguese (duplicated)
+    "Capitol",   # Romanian
+    "Capitol",   # Romanian (duplicated)
+    "Глава",    # Russian
+    "Глава",    # Russian (duplicated)
+    "Глава",    # Russian (duplicated)
+    "Caibideil",     # Scottish Gaelic
+    "Глава",    # Serbian
+    "Kapitola",  # Slovak
+    "Poglavje",  # Slovenian
+    "Poglavje",  # Slovenian (duplicated)
+    "Capítulo",  # Spanish
+    "Capítulo",  # Spanish (duplicated)
+    "Kapitel",   # Swedish
+    "Kapitel",   # Swedish (duplicated)
+    "அத்தியாயம்",  # Tamil
+    "అధ్యాయం",    # Telugu
+    "Bölüm",    # Turkish
+    "Розділ",   # Ukrainian
+    "باب",     # Urdu
+    "باب",     # Uyghur
+    "Chương",   # Vietnamese
+    "Kàll"     # Wolof
+  )
+  
+  index <- c( 22, 23, 24, 25, 44, 45, 46, 47, 48, 78, 79, 30, 31, 32, 35, 36, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 26, 27, 28, 29, 33, 34, 37, 38, 39, 40, 41, 42, 43, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89  )  
   
   df <- data.frame(
     language_name = language_name,
@@ -4438,10 +4446,15 @@ langrepo <- function() {
     description = description,
     file = file,
     folder = folder,
-    hub_page_link = hub_page_link,
-    chapter = toupper(chapter_vec),
+    hub_page_link = hub_link,
+    tokens = tokens,
+    words = words,
+    sentences = sentences,
+    chapter = toupper(chapter),
     index = index
-  ) %>% arrange(index) %>% select(-index)
+  ) 
+  df <- df[index,] 
+  df <- df %>% select(-index)
   
   return(df)
 }

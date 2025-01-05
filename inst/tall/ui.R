@@ -505,107 +505,29 @@ body <- dashboardBody(
 
     ### PRE-PROCESSING ----
 
-    ## Text Normaliztion Explore ----
-    # tabItem(tabName = "textNormExpl",
-    #         fluidPage(
-    #           tabPanel("Explore Tags",
-    #                    h3(strong("Text Normalization"), align = "center"),
-    #                    br(),
-    #                    br(),
-    #                    selectInput("textNormType",
-    #                                "Tag:",
-    #                                choices = c(" ", normalizationOptions()$label),
-    #                                selected = " "),
-    #                    br(),
-    #                    shinycssloaders::withSpinner(DT::DTOutput("corpusElementsExpl"),
-    #                                                 color = getOption("spinner.color", default = "#4F7942"))
-    #           )
-    #         )
-    # ),
-
-
-    # ## Text Normalization ----
-    # tabItem(tabName = "textNormRemove",
-    #         fluidPage(
-    #           fluidRow(
-    #             column(12,
-    #                    h3(strong("Text Normalization"), align = "center"))),
-    #           br(),
-    #           br(),
-    #           fluidRow(
-    #             column(9,
-    #                    tabsetPanel(type = "tabs",
-    #                                tabPanel("Web, Social and Ordinary Tags",
-    #                                         shinycssloaders::withSpinner(DT::DTOutput("corpusElementsNorm"),
-    #                                                                      color = getOption("spinner.color", default = "#4F7942"))
-    #                                ),
-    #                                tabPanel("Normalized Text",
-    #                                         shinycssloaders::withSpinner(DT::DTOutput("textNormData"),
-    #                                                                      color = getOption("spinner.color", default = "#4F7942"))
-    #                                )
-    #                    )
-    #             ),
-    #             column(3,
-    #                    div(
-    #                      box(
-    #                        width = 12,
-    #                        div(h3(strong(em("Remove: "))), style="margin-top:-57px"),
-    #                        tags$hr(),
-    #                        fluidRow(column(12,
-    #                                        #uiOutput("posTagLists")
-    #                                        checkboxGroupInput("textNormWebList", label="Web and social corpus",
-    #                                                           choices = normalizationOptions()$label[1:6],
-    #                                                           selected = ""
-    #                                        ),
-    #                                        br(),
-    #                                        checkboxGroupInput("textNormCorpusList", label="Ordinary corpus",
-    #                                                           choices = normalizationOptions()$label[7:14],
-    #                                                           selected = ""
-    #                                        )
-    #                        )),
-    #                        div(
-    #                          hr(),
-    #                          div(
-    #                            fluidRow(column(6,
-    #                                            div(
-    #                                              align = "center",style="margin-top:-15px",
-    #                                              width=12,
-    #                                              do.call("actionButton", c(run_bttn, list(
-    #                                                inputId = "textNormRun")
-    #                                              ))
-    #                                            )
-    #                            ),
-    #                            column(6,
-    #                                   div(
-    #                                     title = t_save,
-    #                                     div(align="center",
-    #                                         do.call("downloadButton", c(save_bttn, list(
-    #                                           outputId = "textNormSave")
-    #
-    #                                         ))
-    #                                     )
-    #                                   )
-    #                            )
-    #                            ), style="margin-top:-15px"), style="margin-top:-15px")
-    #                      ), style="margin-top:40px"
-    #                    )
-    #             )
-    #
-    #           )
-    #         )
-    # ),
-
     ## Tokenization & PoS Tagging -----
 
     tabItem(tabName = "tokPos",
             fluidPage(
               fluidRow(
                 column(12,
-                       h3(strong("Tokenization & PoS Tagging"), align = "center"))
+                       h3(strong("Tokenization & PoS Tagging"), align = "center"),
+                       br(),
+                       helpText(
+                        p(
+                          "TALL uses pre-trained annotation models based solely on ",
+                          tags$a("Universal Dependencies 2.15", href = "https://universaldependencies.org/", target = "_blank"),
+                          " treebanks."
+                        ),
+                        p(
+                          "When using a language model for the first time, it will be downloaded from our repository and saved on your computer. In this case, an active internet connection is required."
+                        ),style="text-align: left; text-color: #6c6b6b; font-size: 14px;", align = "center"
+                      )
+                )
               )
             ),
-            br(),
-            br(),
+            # br(),
+            # br(),
             fluidRow(
               column(9,
                      tabsetPanel(type = "tabs",
@@ -619,21 +541,8 @@ body <- dashboardBody(
                      div(
                        box(
                          width = 12,
-                         div(h3(strong(em("Language model"))), style="margin-top:-57px"),
-                         helpText(
-                          p(
-                            "TALL uses pre-trained annotation models based solely on ",
-                            tags$a("Universal Dependencies 2.15", href = "https://universaldependencies.org/", target = "_blank"),
-                            " treebanks."
-                          ),
-                          p(
-                            "When using a language model for the first time, it will be downloaded from our repository and saved on your computer. In this case, an active internet connection is required."
-                          )
-                        ),
-                        #  helpText(p("TALL uses pre-trained annotation models based solely on Universal Dependencies 2.15 treebanks."),
-                        #  p("When using a language model for the first time, it will be downloaded from our repository and saved on your computer. In this case, an active internet connection is required.")),
-                         style="text-align: left; text-color: #989898; font-size: 12px;",
-                         hr(),
+                         div(h4(strong(em("Language model"))), style="margin-top:-57px"),
+                        hr(),
                          div(
                          fluidRow(column(6,
                                          div(
