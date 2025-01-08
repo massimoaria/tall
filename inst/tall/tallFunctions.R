@@ -484,18 +484,18 @@ loadLanguageModel <- function(file, model_repo = "2.15"){
 
 tall_download_model <- function(file,
   model_dir = getwd(),
-  model_repo = "2.15", 
+  model_repo = "2.15",
   overwrite = TRUE){
-  
+
     filename <- paste0(file,"-ud-",model_repo,".udpipe")
-  
+
       url <- file.path("https://raw.githubusercontent.com/massimoaria/udpipe.models/main",
       model_repo, filename)
       to <- file.path(model_dir, filename)
       download_failed <- FALSE
       download_message <- "OK"
       dl <- suppressWarnings(try(
-        utils::download.file(url = url, destfile = to, mode = "wb"),  
+        utils::download.file(url = url, destfile = to, mode = "wb"),
         silent = TRUE))
       if(inherits(dl, "try-error")){
         download_failed  <- TRUE
@@ -510,14 +510,14 @@ tall_download_model <- function(file,
       }else{
         message(sprintf("Downloading finished, model stored at '%s'", to))
       }
-    
+
       data.frame(language = file,
         file_model = to,
         url = url,
         download_failed = download_failed,
         download_message = download_message,
         stringsAsFactors = FALSE)
-  
+
   }
 
 ## Tagging Special Entites ----
@@ -1116,7 +1116,7 @@ freqByPos <- function(df, term="lemma", pos="NOUN"){
     count(term=.[[term]]) %>%
     arrange(desc(n))
 
-  if(pos=="URL"){
+  if("URL" %in% pos){
     obj$term <- paste0(
       '<a href=\"',
       obj$term,
@@ -3367,11 +3367,11 @@ addGgplotsWb <- function(list_plot, wb, sheetname, col, width=10, height=7, dpi=
 # from igraph to png file
 igraph2PNG <- function(x, filename, width = 10, height = 7, dpi=75){
   V(x)$centr <- centr_betw(x)$res
-  df <- data.frame(name=V(x)$label,cluster=V(x)$color, centr=V(x)$centr) %>% 
-    group_by(cluster) %>% 
+  df <- data.frame(name=V(x)$label,cluster=V(x)$color, centr=V(x)$centr) %>%
+    group_by(cluster) %>%
     slice_head(n=3)
   V(x)$label[!(V(x)$label %in% df$name)] <- ""
-  png(filename = filename, width = width, height = height, unit="in", res=dpi) 
+  png(filename = filename, width = width, height = height, unit="in", res=dpi)
   grid::grid.draw(plot(x))
   dev.off()
 }
@@ -3574,6 +3574,8 @@ resetValues <- function(){
   values$posMwSel <- c("ADJ", "NOUN", "PROPN") # POS selected by default for multiword creation
   values$myChoices <- "Empty Report"
 
+  accuracy <- model_accuracy()
+  values$accuracy <- accuracy
   languages_df <- langrepo()
   values$languages <- languages_df
   label_lang <- unique(languages_df$language_name)
@@ -4143,11 +4145,11 @@ resetModalButtons <- function(session){
 #### language models repo ----
 
 langrepo <- function(){
-  
+
   language_name <- c( "afrikaans", "ancient_greek", "ancient_greek", "arabic", "armenian", "basque", "belarusian", "bulgarian", "catalan", "chinese", "chinese", "classical_chinese", "coptic", "croatian", "czech", "czech", "czech", "czech", "danish", "dutch", "dutch", "english", "english", "english", "english", "estonian", "estonian", "finnish", "finnish", "french", "french", "french", "galician", "galician", "german", "german", "gothic", "greek", "hebrew", "hindi", "hungarian", "indonesian", "irish", "italian", "italian", "italian", "italian", "italian", "japanese", "korean", "korean", "latin", "latin", "latin", "latvian", "lithuanian", "lithuanian", "maltese", "marathi", "norwegian", "norwegian", "old_church_slavonic", "persian", "polish", "polish", "portuguese", "portuguese", "romanian", "romanian", "russian", "russian", "russian", "scottish_gaelic", "serbian", "slovak", "slovenian", "slovenian", "spanish", "spanish", "swedish", "swedish", "tamil", "telugu", "turkish", "ukrainian", "urdu", "uyghur", "vietnamese", "wolof"   )
-  
-  treebank <- c( 'AfriBooms', 'Perseus', 'PROIEL', 'PADT', 'ArmTDP', 'BDT', 'HSE', 'BTB', 'AnCora', 'GSD', 'GSDSimp', 'Kyoto', 'Scriptorium', 'SET', 'CAC', 'CLTT', 'FicTree', 'PDT', 'DDT', 'Alpino', 'LassySmall', 'EWT', 'GUM', 'LinES', 'ParTUT', 'EDT', 'EWT', 'FTB', 'TDT', 'GSD', 'ParTUT', 'Sequoia', 'CTG', 'TreeGal', 'GSD', 'HDT', 'PROIEL', 'GDT', 'HTB', 'HDTB', 'Szeged', 'GSD', 'IDT', 'ISDT', 'ParTUT', 'PoSTWITA', 'TWITTIRO', 'VIT', 'GSD', 'GSD', 'Kaist', 'ITTB', 'Perseus', 'PROIEL', 'LVTB', 'ALKSNIS', 'HSE', 'MUDT', 'UFAL', 'Bokmaal', 'Nynorsk', 'PROIEL', 'Seraji', 'LFG', 'PDB', 'Bosque', 'GSD', 'Nonstandard', 'RRT', 'GSD', 'SynTagRus', 'Taiga', 'ARCOSG', 'SET', 'SNK', 'SSJ', 'SST', 'AnCora', 'GSD', 'LinES', 'Talbanken', 'TTB', 'MTG', 'IMST', 'IU', 'UDTB', 'UDT', 'VTB', 'WTB'   )   
-  
+
+  treebank <- c( 'AfriBooms', 'Perseus', 'PROIEL', 'PADT', 'ArmTDP', 'BDT', 'HSE', 'BTB', 'AnCora', 'GSD', 'GSDSimp', 'Kyoto', 'Scriptorium', 'SET', 'CAC', 'CLTT', 'FicTree', 'PDT', 'DDT', 'Alpino', 'LassySmall', 'EWT', 'GUM', 'LinES', 'ParTUT', 'EDT', 'EWT', 'FTB', 'TDT', 'GSD', 'ParTUT', 'Sequoia', 'CTG', 'TreeGal', 'GSD', 'HDT', 'PROIEL', 'GDT', 'HTB', 'HDTB', 'Szeged', 'GSD', 'IDT', 'ISDT', 'ParTUT', 'PoSTWITA', 'TWITTIRO', 'VIT', 'GSD', 'GSD', 'Kaist', 'ITTB', 'Perseus', 'PROIEL', 'LVTB', 'ALKSNIS', 'HSE', 'MUDT', 'UFAL', 'Bokmaal', 'Nynorsk', 'PROIEL', 'Seraji', 'LFG', 'PDB', 'Bosque', 'GSD', 'Nonstandard', 'RRT', 'GSD', 'SynTagRus', 'Taiga', 'ARCOSG', 'SET', 'SNK', 'SSJ', 'SST', 'AnCora', 'GSD', 'LinES', 'Talbanken', 'TTB', 'MTG', 'IMST', 'IU', 'UDTB', 'UDT', 'VTB', 'WTB'   )
+
   description <- c(
     "UD Afrikaans-AfriBooms is a conversion of the AfriBooms Dependency Treebank, originally annotated with a simplified PoS set and dependency relations according to a subset of the Stanford tag set. The corpus consists of public government documents.",
     "This Universal Dependencies Ancient Greek Treebank consists of an automatic conversion of a selection of passages from the Ancient Greek and Latin Dependency Treebank 2.1",
@@ -4239,8 +4241,8 @@ langrepo <- function(){
     "The Vietnamese UD treebank is a conversion of the constituent treebank created in the VLSP project",
     "UD_Wolof-WTB is a natively manual developed treebank for Wolof. Sentences were collected from encyclopedic, fictional, biographical, religious texts and news."
 )
-    
-  
+
+
   contributors <- c(
     'Peter Dirix, Liesbeth Augustinus, Daniel van Niekerk',
     'Giuseppe G. A. Celano, Daniel Zeman',
@@ -4332,19 +4334,19 @@ langrepo <- function(){
     'Lương Nguyễn Thị, Linh Hà Mỹ, Phương Lê Hồng, Huyền Nguyễn Thị Minh',
     'Bamba Dione'
   )
-  
-  file <- c( "af_afribooms", "grc_perseus", "grc_proiel", "ar_padt", "hy_armtdp", "eu_bdt", "be_hse", "bg_btb", "ca_ancora", "zh_gsd", "zh_gsdsimp", "lzh_kyoto", "cop_scriptorium", "hr_set", "cs_cac", "cs_cltt", "cs_fictree", "cs_pdt", "da_ddt", "nl_alpino", "nl_lassysmall", "en_ewt", "en_gum", "en_lines", "en_partut", "et_edt", "et_ewt", "fi_ftb", "fi_tdt", "fr_gsd", "fr_partut", "fr_sequoia", "gl_ctg", "gl_treegal", "de_gsd", "de_hdt", "got_proiel", "el_gdt", "he_htb", "hi_hdtb", "hu_szeged", "id_gsd", "ga_idt", "it_isdt", "it_partut", "it_postwita", "it_twittiro", "it_vit", "ja_gsd", "ko_gsd", "ko_kaist", "la_ittb", "la_perseus", "la_proiel", "lv_lvtb", "lt_alksnis", "lt_hse", "mt_mudt", "mr_ufal", "no_bokmaal", "no_nynorsk", "cu_proiel", "fa_seraji", "pl_lfg", "pl_pdb", "pt_bosque", "pt_gsd", "ro_nonstandard", "ro_rrt", "ru_gsd", "ru_syntagrus", "ru_taiga", "gd_arcosg", "sr_set", "sk_snk", "sl_ssj", "sl_sst", "es_ancora", "es_gsd", "sv_lines", "sv_talbanken", "ta_ttb", "te_mtg", "tr_imst", "uk_iu", "ur_udtb", "ug_udt", "vi_vtb", "wo_wtb"   )   
-  
+
+  file <- c( "af_afribooms", "grc_perseus", "grc_proiel", "ar_padt", "hy_armtdp", "eu_bdt", "be_hse", "bg_btb", "ca_ancora", "zh_gsd", "zh_gsdsimp", "lzh_kyoto", "cop_scriptorium", "hr_set", "cs_cac", "cs_cltt", "cs_fictree", "cs_pdt", "da_ddt", "nl_alpino", "nl_lassysmall", "en_ewt", "en_gum", "en_lines", "en_partut", "et_edt", "et_ewt", "fi_ftb", "fi_tdt", "fr_gsd", "fr_partut", "fr_sequoia", "gl_ctg", "gl_treegal", "de_gsd", "de_hdt", "got_proiel", "el_gdt", "he_htb", "hi_hdtb", "hu_szeged", "id_gsd", "ga_idt", "it_isdt", "it_partut", "it_postwita", "it_twittiro", "it_vit", "ja_gsd", "ko_gsd", "ko_kaist", "la_ittb", "la_perseus", "la_proiel", "lv_lvtb", "lt_alksnis", "lt_hse", "mt_mudt", "mr_ufal", "no_bokmaal", "no_nynorsk", "cu_proiel", "fa_seraji", "pl_lfg", "pl_pdb", "pt_bosque", "pt_gsd", "ro_nonstandard", "ro_rrt", "ru_gsd", "ru_syntagrus", "ru_taiga", "gd_arcosg", "sr_set", "sk_snk", "sl_ssj", "sl_sst", "es_ancora", "es_gsd", "sv_lines", "sv_talbanken", "ta_ttb", "te_mtg", "tr_imst", "uk_iu", "ur_udtb", "ug_udt", "vi_vtb", "wo_wtb"   )
+
   hub_link <- paste0("https://universaldependencies.org/treebanks/",file,"/index.html")
-  
+
   tokens <- c('22369','202989','214005','93712','52220','121443','305417','156149','537767','123291','123291','433168','26837','2247925','494142','36007','166602','1526323','506231','208745','297486','251536','208446','93200','49601','438312','50473','159314','202209','389367','27638','68593','126011','23479','287721','3399390','87266','61773','114648','351704','1182501','119830','115990','278461','51614','119334','28384','259625','193654','80322','350090','450480','28868','328476','328305','70049','5356','44162','13089','310221','301353','553686','151625','130967','347319','210958','296169','1896343','218522','97994','1517881','197001','86089','97673','365490','267097','98393','555670','423346','90961','96859','8635','6465','56422','122934','138077','40236','58069','42832')
 
   words <- c('25017','202989','214005','94390','52585','121443','305417','156149','553638','123291','123291','433168','57098','2252453','495219','36023','167226','1529074','506232','208746','297486','254865','212035','94217','49632','438313','50486','159612','202453','400391','28576','70545','138837','25548','292769','3455580','88934','63441','160195','351704','1183884','122019','115990','298375','55558','124515','29602','280153','193654','80322','350090','450517','29221','328476','328305','70049','5356','44162','13089','310221','301353','553686','152920','130967','349978','227827','318666','1896343','218522','97994','1517881','197001','89958','97673','365490','267097','98393','568249','431600','90961','96859','9581','6465','58096','122983','138077','40236','58069','44258')
-  
+
   sentences <- c('1975','13919','17082','4800','2500','8993','25231','11138','16678','4997','4997','86239','2203','127794','24709','1121','12760','87907','30723','13603','17120','16622','12146','5243','2090','30930','2829','18723','15136','16342','1020','3099','3993','1000','15590','189928','4328','2521','6143','16649','53564','5598','4910','14167','2090','6712','1424','10087','8100','6339','27363','26977','2273','19387','19367','3642','263','2074','1144','20044','17575','40085','5997','17246','22152','9357','12020','116324','9524','5030','87336','17872','4741','4384','19543','13435','6108','17662','16014','5243','6026','600','1328','5635','7092','5130','3456','3323','2107')
 
   folder <- paste0("UD_", language_name, "-", treebank)  # Generazione dinamica
-  
+
   chapter <- c(
     "Hoofstuk",  # Afrikaans
     "κεφάλαιο",  # Ancient Greek
@@ -4436,9 +4438,9 @@ langrepo <- function(){
     "Chương",   # Vietnamese
     "Kàll"     # Wolof
   )
-  
-  index <- c( 22, 23, 24, 25, 44, 45, 46, 47, 48, 78, 79, 30, 31, 32, 35, 36, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 26, 27, 28, 29, 33, 34, 37, 38, 39, 40, 41, 42, 43, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89  )  
-  
+
+  index <- c( 22, 23, 24, 25, 44, 45, 46, 47, 48, 78, 79, 30, 31, 32, 35, 36, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 26, 27, 28, 29, 33, 34, 37, 38, 39, 40, 41, 42, 43, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89  )
+
   df <- data.frame(
     language_name = language_name,
     treebank = treebank,
@@ -4452,9 +4454,143 @@ langrepo <- function(){
     sentences = sentences,
     chapter = toupper(chapter),
     index = index
-  ) 
-  df <- df[index,] 
-  df <- df %>% select(-index)
-  
+  )
+  df <- df[index,]
+  df <- df %>% select(-index) %>%
+    filter(!file %in% c("de_hdt","gl_treegal","la_perseus"))
+
   return(df)
+}
+
+model_accuracy <- function(){
+
+  # Creazione dei vettori stringa per ciascuna colonna
+  Language <- c("Afrikaans", "Arabic", "Belarusian", "Bulgarian", "Catalan", "Coptic", "Czech", "Czech", "Czech",
+  "Czech", "Old Church Slavonic", "Danish", "German", "Greek", "English", "English", "English",
+  "English", "Spanish", "Spanish", "Estonian", "Estonian", "Basque", "Persian", "Finnish", "Finnish",
+  "French", "French", "French", "Irish", "Scottish Gaelic", "Galician", "Gothic", "Ancient Greek",
+  "Ancient Greek", "Hebrew", "Hindi", "Croatian", "Hungarian", "Armenian", "Indonesian", "Italian",
+  "Italian", "Italian", "Italian", "Italian", "Japanese", "Korean", "Korean", "Latin", "Latin",
+  "Lithuanian", "Lithuanian", "Latvian", "Classical Chinese", "Marathi", "Maltese", "Dutch", "Dutch",
+  "Norwegian", "Norwegian", "Polish", "Polish", "Portuguese", "Portuguese", "Romanian", "Romanian",
+  "Russian", "Russian", "Russian", "Slovak", "Slovenian", "Slovenian", "Serbian", "Swedish", "Swedish",
+  "Tamil", "Telugu", "Turkish", "Uyghur", "Ukrainian", "Urdu", "Vietnamese", "Wolof", "Chinese",
+  "Chinese")
+
+  Treebank <- c("AfriBooms", "PADT", "HSE", "BTB", "AnCora", "Scriptorium", "CAC", "CLTT", "FicTree", "PDT",
+  "PROIEL", "DDT", "GSD", "GDT", "EWT", "GUM", "LinES", "ParTUT", "AnCora", "GSD", "EDT", "EWT",
+  "BDT", "Seraji", "FTB", "TDT", "GSD", "ParTUT", "Sequoia", "IDT", "ARCOSG", "CTG", "PROIEL",
+  "Perseus", "PROIEL", "HTB", "HDTB", "SET", "Szeged", "ArmTDP", "GSD", "ISDT", "ParTUT",
+  "PoSTWITA", "TWITTIRO", "VIT", "GSD", "GSD", "Kaist", "ITTB", "PROIEL", "ALKSNIS", "HSE", "LVTB",
+  "Kyoto", "UFAL", "MUDT", "Alpino", "LassySmall", "Bokmaal", "Nynorsk", "LFG", "PDB", "Bosque",
+  "GSD", "Nonstandard", "RRT", "GSD", "SynTagRus", "Taiga", "SNK", "SSJ", "SST", "SET", "LinES",
+  "Talbanken", "TTB", "MTG", "IMST", "UDT", "IU", "UDTB", "VTB", "WTB", "GSD", "GSDSimp")
+
+  Words <- c(99.93, 94.51, 99.28, 99.92, 99.94, 75.38, 99.96, 99.37, 99.99, 99.91,
+    100.00, 99.93, 99.56, 99.89, 99.14, 99.57, 99.94, 99.78, 99.94, 99.72,
+    99.88, 98.95, 99.98, 99.65, 99.99, 99.68, 98.89, 99.41, 99.09, 99.67,
+    97.39, 99.14, 100.00, 99.98, 100.00, 85.08, 99.99, 99.91, 99.69, 99.38,
+    99.45, 99.80, 99.70, 99.36, 99.02, 99.75, 95.77, 99.85, 99.99, 99.97,
+    99.99, 99.95, 97.65, 99.23, 97.70, 95.27, 99.79, 99.59, 99.83, 99.82,
+    99.90, 99.86, 99.85, 99.67, 99.27, 98.88, 99.68, 99.53, 99.57, 98.74,
+    100.00, 99.89, 100.00, 100.00, 99.96, 99.91, 94.93, 100.00, 97.60, 99.74,
+    99.71, 99.99, 85.11, 99.16, 89.89, 89.05)
+
+  Sentences <- c(99.65, 81.43, 84.80, 94.67, 99.08, 30.20, 99.76, 93.79, 97.56, 91.91,
+      34.43, 89.92, 78.69, 89.51, 86.17, 95.07, 87.88, 99.02, 97.92, 94.54,
+      89.81, 75.16, 99.42, 98.00, 86.93, 85.59, 93.45, 98.64, 85.01, 97.57,
+      56.07, 94.80, 28.25, 98.73, 45.89, 99.69, 97.69, 93.54, 94.48, 97.28,
+      90.47, 96.59, 99.02, 24.37, 28.57, 96.73, 99.45, 93.63, 100.00, 92.53,
+      28.48, 87.75, 92.04, 99.06, 42.03, 81.19, 82.32, 89.99, 81.93, 97.34,
+      92.74, 99.83, 96.06, 89.56, 87.99, 96.92, 94.01, 97.41, 97.55, 84.37,
+      77.73, 99.07, 93.73, 93.84, 86.83, 94.20, 95.08, 98.98, 97.51, 82.17,
+      96.71, 97.12, 97.02, 90.27, 98.80, 98.80)
+
+  UPOS <- c(95.79, 88.91, 96.07, 98.01, 98.22, 72.69, 98.56, 94.87, 97.60, 98.63,
+        91.36, 95.24, 64.12, 95.13, 94.10, 95.77, 95.07, 94.30, 98.25, 95.49,
+        95.45, 88.85, 92.43, 96.02, 92.01, 94.28, 96.24, 95.26, 96.42, 93.43,
+        91.38, 96.23, 93.73, 81.44, 95.34, 80.84, 95.84, 96.67, 90.96, 92.39,
+        93.22, 97.24, 96.73, 94.25, 90.37, 96.38, 93.50, 91.40, 92.95, 98.42,
+        94.53, 90.37, 71.39, 95.23, 87.70, 78.79, 93.79, 94.18, 94.79, 96.39,
+        95.92, 96.86, 97.30, 96.12, 95.58, 94.94, 96.91, 95.00, 97.42, 93.42,
+        92.98, 96.78, 94.83, 97.36, 94.67, 95.71, 78.41, 90.29, 88.85, 88.80,
+        94.85, 91.53, 76.10, 91.73, 82.84, 82.28)
+
+  XPOS <- c(91.39, 82.35, 95.40, 94.72, 95.04, 72.55, 90.88, 82.33, 90.26, 93.12,
+          91.63, 99.92, 64.29, 95.13, 93.23, 95.32, 94.08, 93.86, 94.92, 99.72,
+          96.80, 91.47, 99.98, 95.78, 90.74, 95.43, 98.89, 94.69, 99.09, 92.20,
+          83.27, 95.80, 94.20, 71.34, 95.65, 80.84, 94.91, 89.99, 99.69, 99.38,
+          91.90, 97.11, 96.37, 93.88, 89.60, 95.37, 92.80, 81.07, 80.41, 93.26,
+          94.73, 81.26, 70.36, 87.53, 87.29, 95.27, 93.49, 91.51, 92.21, 97.70,
+          97.30, 87.18, 88.49, 99.67, 82.76, 90.06, 95.94, 94.74, 99.57, 98.74,
+          77.04, 90.26, 88.51, 90.76, 91.95, 93.90, 76.99, 90.29, 88.54, 90.12,
+          84.03, 89.00, 75.07, 91.42, 83.56, 82.98)
+
+  UFeats <- c(93.67, 82.44, 88.30, 95.77, 97.68, 72.88, 89.58, 82.64, 90.96, 93.21,
+            82.50, 94.48, 53.65, 89.96, 94.37, 95.10, 94.94, 94.21, 97.94, 95.97,
+            93.71, 86.94, 87.17, 95.92, 92.21, 90.54, 95.34, 92.58, 94.91, 84.15,
+            85.18, 98.92, 86.76, 84.62, 87.71, 78.57, 90.17, 90.59, 87.20, 83.70,
+            94.17, 97.12, 96.40, 94.26, 90.00, 96.33, 95.75, 99.50, 99.99, 93.98,
+            86.89, 82.42, 66.42, 91.82, 88.09, 70.06, 99.79, 93.28, 93.95, 95.06,
+            94.93, 87.48, 88.84, 94.07, 91.78, 88.31, 96.09, 85.57, 90.50, 86.33,
+            79.32, 90.53, 88.67, 91.10, 90.11, 94.18, 79.37, 98.89, 84.31, 83.63,
+            83.67, 80.26, 85.11, 90.89, 88.57, 87.79)
+
+  AllTags <- c(91.26, 82.16, 87.69, 94.39, 94.83, 71.87, 89.45, 82.23, 90.14, 92.83,
+              80.73, 93.22, 50.34, 88.75, 91.61, 93.69, 91.84, 92.45, 94.54, 93.55,
+              92.15, 83.72, 84.68, 95.31, 89.00, 89.50, 94.51, 91.12, 94.17, 81.76,
+              82.49, 95.38, 84.55, 71.24, 86.28, 77.75, 87.68, 89.95, 85.84, 82.79,
+              86.65, 96.33, 95.19, 92.50, 87.00, 94.18, 92.30, 78.74, 80.41, 92.63,
+              85.59, 80.88, 60.98, 87.48, 84.79, 67.88, 93.20, 90.78, 91.41, 93.74,
+              93.29, 86.56, 87.88, 92.66, 82.58, 87.67, 95.83, 84.50, 90.11, 85.42,
+              76.77, 89.80, 87.49, 90.73, 86.66, 92.43, 72.93, 90.29, 81.58, 76.78,
+              82.86, 75.43, 75.04, 88.62, 82.30, 81.76)
+
+  Lemma <- c(96.40, 87.36, 88.77, 92.88, 98.19, 73.30, 96.24, 92.93, 95.60, 97.50,
+                81.73, 94.46, 86.07, 92.74, 95.15, 96.55, 95.78, 94.76, 98.17, 94.08,
+                87.93, 84.30, 91.09, 92.74, 85.76, 84.52, 96.78, 95.84, 96.60, 91.96,
+                91.33, 95.18, 89.51, 79.90, 90.77, 79.01, 98.05, 93.30, 87.29, 90.83,
+                87.32, 96.98, 96.35, 93.84, 89.43, 96.52, 94.21, 86.96, 88.12, 98.04,
+                91.73, 86.89, 68.95, 93.35, 97.46, 83.15, 99.79, 90.82, 92.16, 96.04,
+                95.47, 92.56, 94.28, 96.50, 91.72, 91.61, 95.16, 89.90, 95.24, 89.54,
+                83.32, 95.04, 94.84, 93.40, 94.50, 95.13, 82.41, 100.00, 85.77, 83.47,
+                91.39, 91.47, 83.66, 92.81, 89.83, 89.00)
+
+  UAS <- c(82.55, 67.64, 77.08, 87.98, 86.97, 50.32, 84.81, 72.06, 84.95, 83.49,
+                  66.17, 77.57, 71.43, 83.36, 81.03, 81.52, 81.11, 82.15, 85.23, 83.40,
+                  77.08, 66.96, 74.57, 79.98, 77.89, 76.79, 86.39, 85.33, 84.69, 80.52,
+                  74.56, 75.72, 70.88, 58.70, 68.94, 59.74, 90.44, 82.08, 70.59, 75.17,
+                  80.88, 87.46, 86.26, 72.70, 70.77, 81.76, 84.20, 60.94, 72.96, 79.31,
+                  63.36, 65.80, 43.34, 78.23, 65.90, 62.55, 75.31, 78.21, 80.11, 85.36,
+                  83.85, 90.64, 84.74, 83.83, 82.18, 81.26, 82.69, 81.58, 83.19, 72.77,
+                  78.84, 84.17, 70.58, 84.90, 81.31, 81.51, 59.66, 87.93, 61.37, 67.06,
+                  77.54, 81.25, 47.83, 75.18, 58.96, 58.27)
+
+  LAS <- c(77.97, 62.60, 73.45, 83.52, 83.75, 48.26, 81.13, 67.99, 80.79, 80.18,
+                    59.74, 73.77, 65.53, 79.58, 77.64, 78.18, 76.60, 78.75, 81.52, 79.41,
+                    73.13, 60.45, 69.35, 75.19, 72.65, 72.74, 83.00, 82.11, 81.63, 72.83,
+                    68.31, 72.53, 63.47, 51.74, 63.73, 56.38, 85.86, 77.39, 64.95, 67.58,
+                    74.29, 84.47, 83.08, 67.74, 64.11, 77.58, 82.36, 51.64, 61.60, 75.58,
+                    57.80, 59.65, 31.05, 73.52, 60.15, 51.15, 68.95, 73.20, 75.79, 82.30,
+                    80.62, 86.73, 80.83, 79.97, 78.52, 75.55, 77.96, 76.41, 79.37, 67.12,
+                    74.61, 80.51, 65.41, 80.63, 76.54, 77.23, 49.62, 75.45, 52.36, 53.01,
+                    72.78, 74.23, 40.71, 69.40, 55.27, 54.47)
+
+  df <- data.frame(
+                      language_name = gsub(" ","_",tolower(Language)),
+                      treebank = Treebank,
+                      Words = Words,
+                      Sentences = Sentences,
+                      UPOS = UPOS,
+                      XPOS = XPOS,
+                      UFeats = UFeats,
+                      AllTags = AllTags,
+                      Lemma = Lemma,
+                      UAS = UAS,
+                      LAS = LAS,
+                      stringsAsFactors = FALSE # Per mantenere le colonne di testo come stringhe
+  )
+
+  return(df)
+
 }
