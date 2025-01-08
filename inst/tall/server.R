@@ -760,6 +760,9 @@ output$info_treebank <- renderUI({
   ud_info <- paste0("Tokens: ",format(as.numeric(ud_info$tokens), big.mark = ",", scientific = FALSE),
     " - Words: ",format(as.numeric(ud_info$words), big.mark = ",", scientific = FALSE),
     " - Sentences: ",format(as.numeric(ud_info$sentences), big.mark = ",", scientific = FALSE))
+  accuracy <- values$accuracy %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(Words,Lemma, Sentences, UPOS)
+  ud_accuracy1 <- paste0("Words: ",accuracy$Words,"%  ---  Lemma: ",accuracy$Lemma, "%")
+  ud_accuracy2 <- paste0("Sentences: ",accuracy$Sentences, "%  ---  PoS: ",accuracy$UPOS,"%")
   ud_contributors <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(contributors) %>% as.character()
   ud_hub_page_link <-  values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(hub_page_link) %>% as.character()
   #  HTML
@@ -771,6 +774,9 @@ output$info_treebank <- renderUI({
       tags$p(ud_description, style = "font-size: 11px;"),
       tags$h4(strong(em("Treebank Data")),style = "font-size: 12px;"),
       tags$p(ud_info, style = "font-size: 11px;"),
+      tags$h4(strong(em("Model Accuracy")),style = "font-size: 12px;"),
+      tags$p(ud_accuracy1, style = "font-size: 11px;"),
+      tags$p(ud_accuracy2, style = "font-size: 11px;"),
       tags$h4(strong(em("Contributors")),style = "font-size: 12px;"),
       tags$p(ud_contributors, style = "font-size: 10px;"),
       #tags$h4("Hub Page"),
