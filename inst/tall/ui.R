@@ -846,7 +846,7 @@ body <- dashboardBody(
                              ), style="margin-top:-15px"),
                            hr(),
                            #prova pulsante apply multiword
-                           uiOutput("multiwordCreatApply")
+                           uiOutput("multiwordCreatApplyUI")
                          ), style="margin-top:40px; width:100%;")
 
                 )
@@ -962,7 +962,7 @@ body <- dashboardBody(
                            fluidRow(column(12,
                                            div(
                                              class="multicol",
-                                             uiOutput("posTagLists")
+                                             uiOutput("posTagListsUI")
                                            ),
                                            #h3(strong(em("Select Hapax:"))),
                                            hr(),
@@ -1028,7 +1028,7 @@ body <- dashboardBody(
                            div(h3(strong(em("Filter by"))), style="margin-top:-57px"),
                            hr(),
                            helpText(h5("Select an external information to filter docs:")),
-                           uiOutput("filterList"),
+                           uiOutput("filterListUI"),
                            uiOutput("filterValue"),
                            hr(),
                            conditionalPanel(

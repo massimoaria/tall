@@ -208,7 +208,7 @@ To ensure the functionality of TALL,
             )
           )
           ),
-          uiOutput("file_raw"),
+          uiOutput("file_rawUI"),
           uiOutput(outputId = "infoImport"),
           conditionalPanel(
             condition= "input.ext == 'xlsx' ||  input.ext =='csv'",
@@ -315,7 +315,7 @@ observeEvent(input$reset_confirmation2, {
 })
   ### IMPORT ----
 
-  output$file_raw <- renderUI({
+  output$file_rawUI <- renderUI({
     switch(input$ext,
            txt = {
              ext <- c("text/plain", ".txt",".zip")
@@ -761,8 +761,8 @@ output$info_treebank <- renderUI({
     " - Words: ",format(as.numeric(ud_info$words), big.mark = ",", scientific = FALSE),
     " - Sentences: ",format(as.numeric(ud_info$sentences), big.mark = ",", scientific = FALSE))
   accuracy <- values$accuracy %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(Words,Lemma, Sentences, UPOS)
-  ud_accuracy1 <- paste0("Words: ",accuracy$Words,"%  ---  Lemma: ",accuracy$Lemma, "%")
-  ud_accuracy2 <- paste0("Sentences: ",accuracy$Sentences, "%  ---  PoS: ",accuracy$UPOS,"%")
+  ud_accuracy1 <- paste0("Words: ",accuracy$Words,"% ---  Lemma: ",accuracy$Lemma, "%")
+  ud_accuracy2 <- paste0("Sentences: ",accuracy$Sentences, "%  ---  PoS:   ",accuracy$UPOS,"%")
   ud_contributors <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(contributors) %>% as.character()
   ud_hub_page_link <-  values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(hub_page_link) %>% as.character()
   #  HTML
@@ -1041,7 +1041,7 @@ output$info_treebank <- renderUI({
   ## Multi-Word Creation ----
 
   output$multiwordPosSel <- renderUI({
-    checkboxGroupInput("multiwordPosSel", label=NULL,
+    checkboxGroupInput("multiwordPosSelGroup", label=NULL,
                        choices = posTagAll(values$dfTag %>% dplyr::filter(!upos %in% c("MULTIWORD", "NGRAM_MERGED", "PUNCT", "SYM", "X", "NUM")))$description,
                        selected = posTagAll(values$dfTag %>% dplyr::filter(upos %in%  values$posMwSel))$description
 
@@ -1056,7 +1056,7 @@ output$info_treebank <- renderUI({
 
     values$dfTag <- rakeReset(values$dfTag) ## reset previous multiword creation steps
 
-    values$posMwSel <- gsub(":","",gsub(":.*","",input$multiwordPosSel))
+    values$posMwSel <- gsub(":","",gsub(":.*","",input$multiwordPosSelGroup))
 
     values$stats <- rake(values$dfTag, group = "doc_id", ngram_max=input$ngram_max, relevant = values$posMwSel, rake.min=input$rake.min, freq.min=input$freq_minMW, term=input$term)
 
@@ -1066,7 +1066,7 @@ output$info_treebank <- renderUI({
                 eventExpr = {input$multiwordList_rows_selected},
                handlerExpr = {
                  if (length(input$multiwordList_rows_selected)>0){
-                   output$multiwordCreatApply <- renderUI({
+                   output$multiwordCreatApplyUI <- renderUI({
                      run_bttn <- list(
                        label = strong("Apply List"),
                        style ="border-radius: 15px; border-width: 1px; font-size: 15px; text-align: center; color: #ffff; ",
@@ -1082,7 +1082,7 @@ output$info_treebank <- renderUI({
                      )
                    })
                  } else {
-                   output$multiwordCreatApply <- renderUI({})
+                   output$multiwordCreatApplyUI <- renderUI({})
                  }
 
                })
@@ -1253,7 +1253,7 @@ output$info_treebank <- renderUI({
   ## PoS Tag Selection ----
 
   observe({
-    output$posTagLists <- renderUI({
+    output$posTagListsUI <- renderUI({
       checkboxGroupInput("posTagLists", label=NULL,
                          choices = posTagAll(values$dfTag)$description,
                          selected = (posTagAll(values$dfTag %>% dplyr::filter(POSSelected)))$description
@@ -1307,7 +1307,7 @@ output$info_treebank <- renderUI({
   )
 
   ## FILTER ----
-  output$filterList <- renderUI({
+  output$filterListUI <- renderUI({
     label <- c("",sort(noGroupLabels(names(values$dfTag))))
     selectInput(
       inputId = "filterList",
