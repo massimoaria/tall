@@ -610,7 +610,7 @@ observeEvent(input$reset_confirmation2, {
     DTformat(values$txt %>%
                mutate(text = paste0(substr(text,1,500),"...")) %>%
                select(-c("text_original", ends_with("id_old"))) %>%
-               filter(doc_selected) ,
+               filter(doc_selected) %>% select(-"doc_selected") ,
              left=2, nrow=5, filter="none", button=TRUE, delete=TRUE)
   })
 
