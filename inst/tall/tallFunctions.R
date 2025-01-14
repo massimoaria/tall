@@ -3583,6 +3583,7 @@ resetValues <- function(){
   names(label_lang) <- gsub("_"," ",label_lang)
   values$label_lang <- label_lang
   values$chapter <- languages_df$chapter
+  values$flag <- "GB.svg"
   values$TMplotIndex <- 1
   values$TMdocIndex <- 1
   values$tmTopSentences <- FALSE
@@ -4439,8 +4440,14 @@ langrepo <- function(){
     "Chương",   # Vietnamese
     "Kàll"     # Wolof
   )
+
+flag <-c('AF.svg','GRC.svg','GRC.svg','AR.svg','HY.svg','EU.svg','BE.svg','BG.svg','CA.svg','ZH.svg','ZH.svg','LZH.svg','COP.svg','HR.svg','CS.svg','CS.svg',
+'CS.svg','CS.svg','DA.svg','NL.svg','NL.svg','EN.svg','EN.svg','EN.svg','EN.svg','ET.svg','ET.svg','FI.svg','FI.svg','FR.svg','FR.svg','FR.svg','GL.svg','GL.svg',
+'DE.svg','DE.svg','GOT.svg','EL.svg','HE.svg','HI.svg','HU.svg','ID.svg','GA.svg','IT.svg','IT.svg','IT.svg','IT.svg','IT.svg','JA.svg','KO.svg','KO.svg','LA.svg',
+'LA.svg','LA.svg','LV.svg','LT.svg','LT.svg','MT.svg','MR.svg','NO.svg','NO.svg','CU.svg','FA.svg','PL.svg','PL.svg','PT.svg','PT.svg','RO.svg','RO.svg','RU.svg','RU.svg','RU.svg',
+'GD.svg','SR.svg','SK.svg','SL.svg','SL.svg','ES.svg','ES.svg','SV.svg','SV.svg','TA.svg','TE.svg','TR.svg','UK.svg','UR.svg','UG.svg','VI.svg','WO.svg')
   
-  ranking <- c(21,22,23,24,25,26,27,28,29,19,20,30,31,32,33,34,35,36,37,38,39,2,1,3,4,40,41,42,43,10,11,12,44,45,15,16,46,47,48,49,50,51,52,5,6,7,8,9,
+ranking <- c(21,22,23,24,25,26,27,28,29,19,20,30,31,32,33,34,35,36,37,38,39,2,1,3,4,40,41,42,43,10,11,12,44,45,15,16,46,47,48,49,50,51,52,5,6,7,8,9,
                53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,17,18,70,71,72,73,74,75,76,77,78,79,13,14,80,81,82,83,84,85,86,87,88,89)
   
   df <- data.frame(
@@ -4451,6 +4458,7 @@ langrepo <- function(){
     file = file,
     folder = folder,
     hub_page_link = hub_link,
+    flag = flag,
     tokens = tokens,
     words = words,
     sentences = sentences,

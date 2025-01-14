@@ -754,6 +754,11 @@ observeEvent(input$reset_confirmation2, {
   #   )
   # })
 
+  output$flagUI <- renderUI({
+    tags$img(src = values$flag, height = "25px", width = "40px", style = "margin-top:-30px;")
+  })
+
+
 output$info_treebank <- renderUI({
   ud_description <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(description) %>% as.character()
   ud_info <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(tokens,words,sentences) 
@@ -765,6 +770,7 @@ output$info_treebank <- renderUI({
   ud_accuracy2 <- paste0("Sentences: ",accuracy$Sentences, "%  ---  PoS:   ",accuracy$UPOS,"%")
   ud_contributors <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(contributors) %>% as.character()
   ud_hub_page_link <-  values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(hub_page_link) %>% as.character()
+  values$flag <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(flag) %>% as.character()
   #  HTML
   tagList(
     tags$div(

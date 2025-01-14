@@ -541,8 +541,12 @@ body <- dashboardBody(
                      div(
                        box(
                          width = 12,
-                         div(h4(strong(em("Language model"))), style="margin-top:-57px"),
-                        hr(),
+                         title = tags$div(
+                          style = "display: flex; align-items: center;", # Allineamento orizzontale
+                          tags$h4("Language Model   ", style = "margin-top:-20px; margin-right: 40px; font-weight: bold"), # Testo con margine a destra
+                          uiOutput("flagUI") # Immagine SVG
+                        ),
+                        br(),
                          div(
                          fluidRow(column(6,
                                          div(
