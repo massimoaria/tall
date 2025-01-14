@@ -38,7 +38,7 @@ utils::globalVariables(c("doc_id","uc","uce","segment_size","upos","noSingleChar
 reinert <- function(
   x, k = 10, term="token",
   segment_size = 40,
-  min_segment_size = 0,
+  min_segment_size = 3,
   min_split_members = 5,
   cc_test = 0.3, tsj = 3
   ) {
@@ -107,14 +107,27 @@ reinert <- function(
   ## Initialize results list with first dtm
   res <- list(list(tabs = list(dtm)))
 
+  exclusion_list <- NULL
   ## Display progress bar
   # progressr::with_progress({
   #   p <- progressr::progressor(along = seq_len(k - 1))
 
-    for (i in 1:(k - 1)) {
+    #for (i in 1:(k - 1)) {
+  i <- 1
+
+  while(i<k){
 
       ## Split the biggest group
-      biggest_group <- which.max(purrr::map(res[[i]]$tabs, nrow))
+      nrows <- purrr::map(res[[i]]$tabs, nrow)
+      names(nrows) <- 1:length(nrows)
+      #nrows <- lapply(nrows, function(x) if (is.null(x)) 0 else x)
+      #biggest_group <- which.max(nrows)
+      if (length(exclusion_list)>0){
+        biggest_group <- as.numeric(names(which.max(nrows[-exclusion_list])))
+      } else {
+        biggest_group <- as.numeric(names(which.max(nrows)))
+      }
+
       if (nrow(res[[i]]$tabs[[biggest_group]]) < min_split_members) {
         message("! No more group bigger than min_split_members. Stopping after iteration ", i, ".")
         k <- i
@@ -132,20 +145,24 @@ reinert <- function(
       tab <- tab[rowSums(tab) > 0, colSums(tab) > 0]
 
       clusters <- cluster_tab(tab, cc_test = cc_test, tsj = tsj)
-      #p()
+      if ("matrix" %in% class(clusters$tabs[[1]]) & "matrix" %in% class(clusters$tabs[[2]])){
+        ## Populate results
+        res[[i + 1]] <- list()
+        res[[i + 1]]$height <- clusters$height
+        res[[i + 1]]$splitted <- c(biggest_group, biggest_group + 1)
+        res[[i + 1]]$tabs <- append(res[[i]]$tabs[-biggest_group],
+                                    clusters$tabs,
+                                    after = biggest_group - 1
+        )
+        res[[i + 1]]$groups <- append(res[[i]]$groups[-biggest_group],
+                                      clusters$groups,
+                                      after = biggest_group - 1
+        )
+        i <- i + 1
+      } else {
+        exclusion_list <- c(exclusion_list, biggest_group)
+      }
 
-      ## Populate results
-      res[[i + 1]] <- list()
-      res[[i + 1]]$height <- clusters$height
-      res[[i + 1]]$splitted <- c(biggest_group, biggest_group + 1)
-      res[[i + 1]]$tabs <- append(res[[i]]$tabs[-biggest_group],
-        clusters$tabs,
-        after = biggest_group - 1
-      )
-      res[[i + 1]]$groups <- append(res[[i]]$groups[-biggest_group],
-        clusters$groups,
-        after = biggest_group - 1
-      )
     }
   #})
 

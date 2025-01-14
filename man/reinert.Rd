@@ -9,7 +9,7 @@ reinert(
   k = 10,
   term = "token",
   segment_size = 40,
-  min_segment_size = 0,
+  min_segment_size = 3,
   min_split_members = 5,
   cc_test = 0.3,
   tsj = 3
