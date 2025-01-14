@@ -823,7 +823,7 @@ output$info_treebank <- renderUI({
     # Merge metadata from the original txt object
     values$dfTag <- values$dfTag %>%
       left_join(values$txt %>% select(-text, -text_original), by = "doc_id") %>%
-      filter(!is.na(upos)) %>%
+      filter(!is.na(upos)) %>% ##
       posSel(., c("ADJ","NOUN","PROPN", "VERB"))
     values$dfTag <- highlight(values$dfTag)
     values$dfTag$docSelected <- TRUE
@@ -1845,24 +1845,24 @@ output$info_treebank <- renderUI({
     values$tfidfDATA <- LemmaSelection(values$dfTag) %>%
       dplyr::filter(docSelected) %>%
       tfidf(term=input$termTfidf)
+    
+    if(input$termTfidf=="lemma"){
+      values$tfidfDATA <- values$tfidfDATA  %>%
+                 rename(
+                   "Lemma" = term,
+                   "TF-IDF" = TFIDF)}
+      else{
+        values$tfidfDATA <- values$tfidfDATA  %>%
+          rename(
+            "Token" = term,
+            "TF-IDF" = TFIDF)}
   })
 
 
   output$tfidfData <- renderDT(server=FALSE,{
     tf_idf()
-    if(input$termTfidf=="lemma"){
-    DTformat(values$tfidfDATA  %>%
-               rename(
-                 Lemma = term,
-                 "TF-IDF" = TFIDF),
-             left=1, numeric=2,round=4, size="110%"
-    )}
-    else{DTformat(values$tfidfDATA  %>%
-                     rename(
-                       Token = term,
-                       "TF-IDF" = TFIDF),
-                   left=1, numeric=2,round=4, size="110%"
-    )}
+    DTformat(values$tfidfDATA,
+             left=1, numeric=2,round=4, size="110%")
   })
 
 
