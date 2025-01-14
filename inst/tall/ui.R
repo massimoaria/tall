@@ -541,8 +541,12 @@ body <- dashboardBody(
                      div(
                        box(
                          width = 12,
-                         div(h4(strong(em("Language model"))), style="margin-top:-57px"),
-                        hr(),
+                         title = tags$div(
+                          style = "display: flex; align-items: center;", # Allineamento orizzontale
+                          tags$h4("Language Model   ", style = "margin-top:-20px; margin-right: 40px; font-weight: bold"), # Testo con margine a destra
+                          uiOutput("flagUI") # Immagine SVG
+                        ),
+                        br(),
                          div(
                          fluidRow(column(6,
                                          div(
@@ -846,7 +850,7 @@ body <- dashboardBody(
                              ), style="margin-top:-15px"),
                            hr(),
                            #prova pulsante apply multiword
-                           uiOutput("multiwordCreatApply")
+                           uiOutput("multiwordCreatApplyUI")
                          ), style="margin-top:40px; width:100%;")
 
                 )
@@ -962,7 +966,7 @@ body <- dashboardBody(
                            fluidRow(column(12,
                                            div(
                                              class="multicol",
-                                             uiOutput("posTagLists")
+                                             uiOutput("posTagListsUI")
                                            ),
                                            #h3(strong(em("Select Hapax:"))),
                                            hr(),
@@ -1028,7 +1032,7 @@ body <- dashboardBody(
                            div(h3(strong(em("Filter by"))), style="margin-top:-57px"),
                            hr(),
                            helpText(h5("Select an external information to filter docs:")),
-                           uiOutput("filterList"),
+                           uiOutput("filterListUI"),
                            uiOutput("filterValue"),
                            hr(),
                            conditionalPanel(
