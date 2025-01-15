@@ -761,7 +761,7 @@ observeEvent(input$reset_confirmation2, {
 
 output$info_treebank <- renderUI({
   ud_description <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(description) %>% as.character()
-  ud_info <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(tokens,words,sentences) 
+  ud_info <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(tokens,words,sentences)
   ud_info <- paste0("Tokens: ",format(as.numeric(ud_info$tokens), big.mark = ",", scientific = FALSE),
     " - Words: ",format(as.numeric(ud_info$words), big.mark = ",", scientific = FALSE),
     " - Sentences: ",format(as.numeric(ud_info$sentences), big.mark = ",", scientific = FALSE))
@@ -789,14 +789,14 @@ output$info_treebank <- renderUI({
       tags$a(href = ud_hub_page_link, target = "_blank", "UD Treebank link", style = "font-size: 10px; color: blue; text-decoration: underline;")
     )
   )
-  
+
 })
 
   observeEvent(input$language_model, {
     selected_treebanks <- values$languages$treebank[values$languages$language_name == input$language_model]
     updateSelectInput(session, "treebank", choices = selected_treebanks)
   })
-  
+
 
   posTagging <- eventReactive({
     input$tokPosRun
@@ -989,26 +989,48 @@ output$info_treebank <- renderUI({
       req(file$datapath[1])
       custom_lists <- lapply(file$datapath,function(x){
         x <- read_excel(x) %>% select(c(1,2))
-        names(x) <- c("lemma", "upos")
+        names(x) <- c(input$CTLterm, "upos")
         return(x)
       })
       custom_lists <- do.call(rbind,custom_lists)
       values$custom_lists <- custom_lists
+
+      show_alert(
+        title = "Custom List",
+        text = DTOutput("customListData"),
+        type = NULL,
+        width = "80%",
+        closeOnEsc = TRUE,
+        closeOnClickOutside = TRUE,
+        html = TRUE,
+        showConfirmButton = TRUE,
+        showCancelButton = FALSE,
+        btn_labels = "OK",
+        btn_colors = "#6CC283",
+        timer = NULL,
+        imageUrl = "",
+        animation = TRUE
+      )
     }
   )
+
+  proxy1 <- dataTableProxy('posTagSelectData')
 
   customListMerging <- eventReactive({
     input$custTermListRun
   },{
-    if (!is.null(values$custom_lists)){
-      values$dfTag <- mergeCustomLists(values$dfTag,values$custom_lists)
-      values$dfTag <- highlight(values$dfTag)
-    }
+    #req(input$custom_lists)
+    values$dfTag <- mergeCustomLists(values$dfTag,values$custom_lists, input$CTLterm)
+    # Update the DT proxy
+   
+    replaceData(proxy1, values$dfTag, resetPaging = FALSE)
   })
+  
 
   output$customPosTagData<- DT::renderDT({
+    
     customListMerging()
-
+    
     if(!is.null(values$dfTag)){
       DTformat(values$dfTag%>% select(doc_id, sentence_id,sentence,token,lemma, upos) %>%
                  rename(D_id=doc_id,
@@ -1021,16 +1043,32 @@ output$info_treebank <- renderUI({
     }
   })
 
-  output$customListData<- DT::renderDT(server=FALSE,{
-    customListMerging()
 
-    if (is.null(values$custom_lists)){
-      DTformat(data.frame(Lemma=NULL,POSTag=NULL), n=1)
-    } else {
-      DTformat(values$custom_lists %>% rename(
-        Lemma = lemma,
-        "Part of Speech"=upos))
-    }
+
+  output$customListData<- DT::renderDT(server=FALSE,{
+    #customListMerging()
+
+    switch(input$CTLterm,
+      lemma={
+        if (is.null(values$custom_lists)){
+          DTdf <- DTformat(data.frame(Lemma=NULL,POSTag=NULL))
+        } else {
+          DTdf <- DTformat(values$custom_lists %>% rename(
+            Lemma = lemma,
+            "Part of Speech"=upos))
+        }
+      },
+      token={
+        if (is.null(values$custom_lists)){
+          DTdf <- DTformat(data.frame(Token=NULL,POSTag=NULL))
+        } else {
+          DTdf <- DTformat(values$custom_lists %>% rename(
+            Token = token,
+            "Part of Speech"=upos))
+        }
+      }
+    )
+    DTdf
   })
 
   output$custTermSave <- downloadHandler(
@@ -1043,6 +1081,21 @@ output$info_treebank <- renderUI({
       # save(dfTag,menu,D,where, file=file)
     }, contentType = "tall"
   )
+
+  
+    ## back to the original txt
+  observeEvent(input$custTermListBack, {
+
+      values$custom_list <- NULL
+      values$dfTag <- customListsReset(values$dfTag)
+
+      popUpGeneric(title="Custom List Removed",
+                   type="waiting", color=c("#FFA800"),
+                   subtitle=paste0("Now all Custom PoS have been remove from your documents"),
+                   btn_labels="OK")
+          # Update the DT proxy
+    replaceData(proxy1, values$dfTag, resetPaging = FALSE)
+  })
 
   ## Multi-Word Creation ----
 
@@ -1117,10 +1170,6 @@ output$info_treebank <- renderUI({
   observeEvent(input$multiwordCreatApply,{
     row_sel <- input$multiwordList_rows_selected
 
-    # if (is.null(row_sel)) {
-    #   row_sel = 1:nrow(values$stats)
-    # }
-
     stats <- values$stats[row_sel,]
 
     obj <- applyRake(values$dfTag, stats=stats, relevant = values$posMwSel, term=input$term)
@@ -1129,10 +1178,6 @@ output$info_treebank <- renderUI({
 
     values$dfTag <- highlight(values$dfTag)
     values$multiwords <- obj$multiwords
-
-    # text <- tagList(
-    #
-    # )
 
     show_alert(
       title = "Annotated Data with Multi-Words",
@@ -1196,7 +1241,7 @@ output$info_treebank <- renderUI({
   multiword2 <- eventReactive({
     input$multiwordListRun
   },{
-
+    req(input$multiword_lists)
     # to replace with input values
     term <-  input$termMWL
 
@@ -1402,7 +1447,7 @@ output$info_treebank <- renderUI({
 
   ### Define groups ----
 
-  output$defineGroupsList <- renderUI({
+  output$defineGroupsListUI <- renderUI({
     label <- noGroupLabels(names(values$dfTag))
     multiInput(
       inputId = "defineGroupsList",
@@ -1706,7 +1751,7 @@ output$info_treebank <- renderUI({
   ## Overview Table ----
 
   output$overviewData <- renderDT(server = FALSE,{
-    DTformat(values$VbData,n=12, left=1, right=2, numeric=2, pagelength=FALSE, dom=FALSE, size='110%', filename="Overview")
+    DTformat(values$VbData,nrow=12, left=1, right=2, numeric=2, pagelength=FALSE, dom=FALSE, size='110%', filename="Overview")
   })
 
   ## Report
@@ -1845,7 +1890,7 @@ output$info_treebank <- renderUI({
     values$tfidfDATA <- LemmaSelection(values$dfTag) %>%
       dplyr::filter(docSelected) %>%
       tfidf(term=input$termTfidf)
-    
+
     if(input$termTfidf=="lemma"){
       values$tfidfDATA <- values$tfidfDATA  %>%
                  rename(
@@ -3386,7 +3431,7 @@ output$optionsSummarization <- renderUI({
 
   ### Report UI elements
   observe({
-    output$reportSheets <- renderUI({
+    output$reportSheetsUI <- renderUI({
       prettyCheckboxGroup(
         inputId = "reportSheets",
         label = NULL, #short2long(df=values$dfLabel, myC=values$myChoices),

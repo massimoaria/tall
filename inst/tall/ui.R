@@ -685,11 +685,11 @@ body <- dashboardBody(
                                    tabPanel("Pos Tagging with Custom Lists",
                                             shinycssloaders::withSpinner(DT::DTOutput("customPosTagData"),
                                                                          color = getOption("spinner.color", default = "#4F7942"))
-                                   ),
-                                   tabPanel("Custom Term List",
-                                            shinycssloaders::withSpinner(DT::DTOutput("customListData"),
-                                                                         color = getOption("spinner.color", default = "#4F7942"))
-                                   )
+                                   )#,
+                                  #  tabPanel("Custom Term List",
+                                  #           shinycssloaders::withSpinner(DT::DTOutput("customListData"),
+                                  #                                        color = getOption("spinner.color", default = "#4F7942"))
+                                  #  )
                        )
                 ),
                 column(3,
@@ -698,21 +698,21 @@ body <- dashboardBody(
                            width = 12,
                            div(h3(strong(em("Import Custom Term List"))), style="margin-top:-57px"),
                            hr(),
-
+                           selectInput("CTLterm",
+                                       "Terms:",
+                                       choices = c("Tokens" = "token",
+                                                   "Lemma" = "lemma"),
+                                       selected = "lemma"),
                            helpText(h5("Please ensure that the Custom Term List is formatted as an Excel file with two columns.
                                        In the first column include the desired terms.
                                        In the second column provide the corresponding list of PoS associated with each term.")),
-                           fluidRow(column(12,
                                            fileInput("custom_lists", label=NULL,
                                                      multiple = TRUE,
                                                      accept = c(".csv",
                                                                 ".xls",
-                                                                ".xlsx"))
-                           )),
-                           div(
+                                                                ".xlsx")),
                            hr(),
-                           div(
-                           fluidRow(column(6,
+                           fluidRow(column(4,
                                            div(
                                              align = "center",style="margin-top:-15px",
                                              width=12,
@@ -720,7 +720,17 @@ body <- dashboardBody(
                                                inputId = "custTermListRun")
                                              )))
                            ),
-                           column(6,
+                           column(4,
+                            div(
+                              align = "center",style="margin-top:-15px",
+                              width=12,
+                              title = t_back,
+                              do.call("actionButton", c(back_bttn, list(
+                                inputId = "custTermListBack")
+                              ))
+                            )
+                     ),
+                           column(4,
                                   div(
                                     title = t_save,
                                     div(align="center",
@@ -731,7 +741,12 @@ body <- dashboardBody(
                                     )
                                   )
                            )
-                           ), style="margin-top: -8px"), style="margin-top:-15px")
+                           ),
+                           hr(),
+                           div(
+                            helpText("Pressing Run Button will delete previous custom PoS"),
+                            style = "text-align: center"
+                           )
                          ),style="margin-top:40px"
                        )
                 )
@@ -771,8 +786,6 @@ body <- dashboardBody(
                            helpText(h5("After keywords are generated, select those you wish to include in your data from the list.")),
                            hr(),
                            style="text-align: left; text-color: #989898",
-                           #div(h3(strong(em("Options: ")))),#, style="margin-top:-57px"),
-                           #tags$hr(),
                            fluidRow(column(6,
                                            selectInput("term",
                                                        "Terms:",
@@ -858,7 +871,7 @@ body <- dashboardBody(
             )
     ),
 
-    ## Multiword By a List ----
+    ## Multi-word By a List ----
     tabItem(tabName = "multiwordByList",
             fluidPage(
               fluidRow(
@@ -1100,7 +1113,7 @@ body <- dashboardBody(
                            div(h3(strong(em("Select external information"))), style="margin-top:-57px"),
                            hr(),
                            helpText(h5("Select an external information to define new document groups:")),
-                           uiOutput("defineGroupsList"),
+                           uiOutput("defineGroupsListUI"),
                            uiOutput(outputId = "infoGroups"),
                            hr(),
                            div(
@@ -2565,7 +2578,7 @@ body <- dashboardBody(
                          border-top-color:black;
                          border-width:2px;
                                          }")),
-                           uiOutput('reportSheets'),
+                           uiOutput('reportSheetsUI'),
                            tags$style("#reportSheets {font-size:18px;}")
                        )
                 ),#column(1),

@@ -467,18 +467,49 @@ summarySpecialEntities <- function(resList, type="all"){
 
 
 ## Custom Lists merging
-mergeCustomLists <- function(df,custom_lists){
+mergeCustomLists <- function(df,custom_lists, term="lemma"){
+  if (!is.null(custom_lists)){
+    switch (term,
+      "lemma" = {
+        df <- df %>%
+      customListsReset() %>%
+      #mutate(lemma_norm = ifelse(upos!="PROPN", tolower(lemma), lemma)) %>%
+      left_join(custom_lists, by = c("lemma" = "lemma")) %>%
+      mutate(upos.x = ifelse(!is.na(upos.y),toupper(upos.y),upos.x),
+             POSSelected = ifelse(upos.x %in% c("ADJ","NOUN","PROPN", "VERB"), TRUE, FALSE)) %>%
+      select(-upos.y) %>%
+      rename(upos = upos.x) %>%
+          highlight()
+      },
+      "token" = {
+        df <- df %>%
+      customListsReset() %>%
+      #mutate(lemma_norm = ifelse(upos!="PROPN", tolower(lemma), lemma)) %>%
+      left_join(custom_lists, by = c("token" = "token")) %>%
+      mutate(upos.x = ifelse(!is.na(upos.y),toupper(upos.y),upos.x),
+             POSSelected = ifelse(upos.x %in% c("ADJ","NOUN","PROPN", "VERB"), TRUE, FALSE)) %>%
+      select(-upos.y) %>%
+      rename(upos = upos.x) %>%
+        highlight()
+      }
+    )
+  } else {
+    print("RESET")
+    df <- df %>% customListsReset()
+  }
+  return(df)
+}
 
-  ## merge term custom lists
-  df %>%
-    mutate(lemma_original = lemma) %>%
-    #mutate(lemma_norm = ifelse(upos!="PROPN", tolower(lemma), lemma)) %>%
-    left_join(custom_lists, by = c("lemma" = "lemma")) %>%
-    mutate(upos.x = ifelse(!is.na(upos.y),toupper(upos.y),upos.x),
-           POSSelected = ifelse(upos.x %in% c("ADJ","NOUN","PROPN", "VERB"), TRUE, FALSE)) %>%
-    select(-upos.y) %>%
-    rename(upos = upos.x)
+customListsReset <- function(df){
+  if ("upos_original_custom" %in% names(df)){
+    df <- df %>%
+      mutate(upos = upos_original_custom)
+  } else {
+    df <- df %>%
+      mutate(upos_original_custom = upos)
+  }
 
+  return(df)
 }
 
 
