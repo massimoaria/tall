@@ -3137,18 +3137,6 @@ igraph2PNG <- function(x, filename, width = 10, height = 7, dpi=75){
   dev.off()
 }
 
-# screenSh <- function(selector){
-#   fileName <- tempfile(pattern = "figureImage",
-#                        tmpdir = "",
-#                        fileext = "") %>% substr(.,2,nchar(.))
-#   if (is.null(selector)){
-#     shinyscreenshot::screenshot(filename=fileName, download=FALSE, server_dir = tempdir())
-#   } else {
-#     shinyscreenshot::screenshot(selector=selector, filename=fileName, download=FALSE, server_dir = tempdir())
-#   }
-#   file <- paste(tempdir(),"/",fileName,".png",sep="")
-#   return(file)
-# }
 
 addScreenWb <- function(df, wb, width=14, height=8, dpi=75){
   names(df) <- c("sheet","file","n")
@@ -3206,12 +3194,8 @@ dfLabel <- function(){
   short <- c("Empty Report",
              "Overview",
              "WordsFreq",
-             # "Propn",
-             # "Adj",
-             # "Verb",
-             # "MultiWords",
              "PoSFreq",
-             "Clustering",
+             "Reinert",
              "CorrespondenceAnalysis",
              "CoWord",
              "Grako",
@@ -3224,13 +3208,8 @@ dfLabel <- function(){
   long <- c("Empty Report",
             "Overview",
             "Words Frequency",
-            #"Most used Words-NOUN",
-            # "Most Used Words-PROPN",
-            # "Most Used Words-ADJ",
-            # "Most Used Words-VERB",
-            # "Most Used Words-MULTIWORDS",
             "PoS Tag Frequency",
-            "Clustering",
+            "Reinert Clustering",
             "Correspondence Analysis",
             "Co-Word Analysis",
             "Grako",
@@ -3493,19 +3472,6 @@ saveTall <- function(dfTag,custom_lists,language,menu,where,file){
 
 ###Export Tall analysis in .tall file ----
 
-# Pre-processing - export function
-
-# output$preProSave <- downloadHandler(
-#   filename = function() {
-#     paste("TallAnalysis-Export-File-", Sys.Date(), ".rdata" , sep="")
-#   },
-#   content <- function(file) {
-#
-#     tall_analysis <- list(df=values$txt)
-#
-#     save(tall_analysis, file=file)
-#   }, contentType = "rdata"
-# )
 
 
 # SIDEBARMENU DYNAMIC ----

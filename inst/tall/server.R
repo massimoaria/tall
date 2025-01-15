@@ -1022,15 +1022,15 @@ output$info_treebank <- renderUI({
     #req(input$custom_lists)
     values$dfTag <- mergeCustomLists(values$dfTag,values$custom_lists, input$CTLterm)
     # Update the DT proxy
-   
+
     replaceData(proxy1, values$dfTag, resetPaging = FALSE)
   })
-  
+
 
   output$customPosTagData<- DT::renderDT({
-    
+
     customListMerging()
-    
+
     if(!is.null(values$dfTag)){
       DTformat(values$dfTag%>% select(doc_id, sentence_id,sentence,token,lemma, upos) %>%
                  rename(D_id=doc_id,
@@ -1082,7 +1082,7 @@ output$info_treebank <- renderUI({
     }, contentType = "tall"
   )
 
-  
+
     ## back to the original txt
   observeEvent(input$custTermListBack, {
 
@@ -2292,6 +2292,52 @@ observeEvent(input$closePlotModalDoc,{
                       "Sign" = sign,
                       "Cluster" = cluster),
              size='85%', button=FALSE, numeric=c(3,4), round=3)
+  })
+
+
+
+  ## export CLustering button
+  output$w_reinclusteringExport <- downloadHandler(
+    filename = function() {
+      paste("ReinertDendrogram-", Sys.Date(), ".png", sep="")
+    },
+    content <- function(file) {
+      #go to a temp dir to avoid permission issues
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      plot2png(values$ReinertDendrogram, filename=file, type="vis")
+    },
+    contentType = "png"
+  )
+
+  ## Report
+
+  observeEvent(input$w_reinclusteringReport,{
+    if(!is.null(values$reinert)){
+      popUp(title=NULL, type="waiting")
+      sheetname <- "Reinert"
+      list_df <- list(values$tc$terms %>%
+                        mutate(freq = round(freq*100,1)) %>%
+                        select(term, freq, chi_square, p_value, sign, cluster) %>%
+                        rename("Term" = term,
+                               "% in Cluster" = freq,
+                               "Chi^2" = chi_square,
+                               "P-Value" = p_value,
+                               "Sign" = sign,
+                               "Cluster" = cluster)
+                      ,values$tc$segments
+      )
+      res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
+      #values$wb <- res$wb
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      values$fileReinertDendrogram <-plot2png(values$ReinertDendrogram, filename="ReinertDendrogram.png", type="vis",zoom = values$zoom)
+      values$list_file <- rbind(values$list_file, c(sheetname=res$sheetname, values$fileReinertDendrogram,res$col))
+      popUp(title="Reinert Clustering Results", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
   })
 
   ## Clustering ----
