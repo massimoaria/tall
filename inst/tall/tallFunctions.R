@@ -467,18 +467,49 @@ summarySpecialEntities <- function(resList, type="all"){
 
 
 ## Custom Lists merging
-mergeCustomLists <- function(df,custom_lists){
+mergeCustomLists <- function(df,custom_lists, term="lemma"){
+  if (!is.null(custom_lists)){
+    switch (term,
+      "lemma" = {
+        df <- df %>%
+      customListsReset() %>%
+      #mutate(lemma_norm = ifelse(upos!="PROPN", tolower(lemma), lemma)) %>%
+      left_join(custom_lists, by = c("lemma" = "lemma")) %>%
+      mutate(upos.x = ifelse(!is.na(upos.y),toupper(upos.y),upos.x),
+             POSSelected = ifelse(upos.x %in% c("ADJ","NOUN","PROPN", "VERB"), TRUE, FALSE)) %>%
+      select(-upos.y) %>%
+      rename(upos = upos.x) %>%
+          highlight()
+      },
+      "token" = {
+        df <- df %>%
+      customListsReset() %>%
+      #mutate(lemma_norm = ifelse(upos!="PROPN", tolower(lemma), lemma)) %>%
+      left_join(custom_lists, by = c("token" = "token")) %>%
+      mutate(upos.x = ifelse(!is.na(upos.y),toupper(upos.y),upos.x),
+             POSSelected = ifelse(upos.x %in% c("ADJ","NOUN","PROPN", "VERB"), TRUE, FALSE)) %>%
+      select(-upos.y) %>%
+      rename(upos = upos.x) %>%
+        highlight()
+      }
+    )
+  } else {
+    print("RESET")
+    df <- df %>% customListsReset()
+  }
+  return(df)
+}
 
-  ## merge term custom lists
-  df %>%
-    mutate(lemma_original = lemma) %>%
-    #mutate(lemma_norm = ifelse(upos!="PROPN", tolower(lemma), lemma)) %>%
-    left_join(custom_lists, by = c("lemma" = "lemma")) %>%
-    mutate(upos.x = ifelse(!is.na(upos.y),toupper(upos.y),upos.x),
-           POSSelected = ifelse(upos.x %in% c("ADJ","NOUN","PROPN", "VERB"), TRUE, FALSE)) %>%
-    select(-upos.y) %>%
-    rename(upos = upos.x)
+customListsReset <- function(df){
+  if ("upos_original_custom" %in% names(df)){
+    df <- df %>%
+      mutate(upos = upos_original_custom)
+  } else {
+    df <- df %>%
+      mutate(upos_original_custom = upos)
+  }
 
+  return(df)
 }
 
 
@@ -3106,18 +3137,6 @@ igraph2PNG <- function(x, filename, width = 10, height = 7, dpi=75){
   dev.off()
 }
 
-# screenSh <- function(selector){
-#   fileName <- tempfile(pattern = "figureImage",
-#                        tmpdir = "",
-#                        fileext = "") %>% substr(.,2,nchar(.))
-#   if (is.null(selector)){
-#     shinyscreenshot::screenshot(filename=fileName, download=FALSE, server_dir = tempdir())
-#   } else {
-#     shinyscreenshot::screenshot(selector=selector, filename=fileName, download=FALSE, server_dir = tempdir())
-#   }
-#   file <- paste(tempdir(),"/",fileName,".png",sep="")
-#   return(file)
-# }
 
 addScreenWb <- function(df, wb, width=14, height=8, dpi=75){
   names(df) <- c("sheet","file","n")
@@ -3175,12 +3194,8 @@ dfLabel <- function(){
   short <- c("Empty Report",
              "Overview",
              "WordsFreq",
-             # "Propn",
-             # "Adj",
-             # "Verb",
-             # "MultiWords",
              "PoSFreq",
-             "Clustering",
+             "Reinert",
              "CorrespondenceAnalysis",
              "CoWord",
              "Grako",
@@ -3193,13 +3208,8 @@ dfLabel <- function(){
   long <- c("Empty Report",
             "Overview",
             "Words Frequency",
-            #"Most used Words-NOUN",
-            # "Most Used Words-PROPN",
-            # "Most Used Words-ADJ",
-            # "Most Used Words-VERB",
-            # "Most Used Words-MULTIWORDS",
             "PoS Tag Frequency",
-            "Clustering",
+            "Reinert Clustering",
             "Correspondence Analysis",
             "Co-Word Analysis",
             "Grako",
@@ -3462,19 +3472,6 @@ saveTall <- function(dfTag,custom_lists,language,menu,where,file){
 
 ###Export Tall analysis in .tall file ----
 
-# Pre-processing - export function
-
-# output$preProSave <- downloadHandler(
-#   filename = function() {
-#     paste("TallAnalysis-Export-File-", Sys.Date(), ".rdata" , sep="")
-#   },
-#   content <- function(file) {
-#
-#     tall_analysis <- list(df=values$txt)
-#
-#     save(tall_analysis, file=file)
-#   }, contentType = "rdata"
-# )
 
 
 # SIDEBARMENU DYNAMIC ----
