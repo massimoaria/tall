@@ -771,10 +771,10 @@ body <- dashboardBody(
                                             shinycssloaders::withSpinner(DT::DTOutput("multiwordList"),
                                                                          color = getOption("spinner.color", default = "#4F7942"))
                                    )
-                                   # ,tabPanel("Annotated Text including Multi-Word",
-                                   #          shinycssloaders::withSpinner(DT::DTOutput("multiwordData"),
-                                   #                                       color = getOption("spinner.color", default = "#4F7942"))
-                                   # )
+                                   ,tabPanel("Annotated Text including Multi-Word",
+                                            shinycssloaders::withSpinner(DT::DTOutput("multiwordData"),
+                                                                         color = getOption("spinner.color", default = "#4F7942"))
+                                   )
                        )
                 ),
                 column(5,

@@ -148,6 +148,22 @@ To ensure the functionality of TALL,
     updateTabItems(session, "sidebarmenu", "multiwordCreat")
   })
 
+  observeEvent(input$multiwordCreatApply, {
+    updateTabItems(session, "sidebarmenu", "multiwordCreat")
+  })
+
+  observeEvent(input$multiwordCreatBack, {
+    updateTabItems(session, "sidebarmenu", "multiwordCreat")
+  })
+
+  observeEvent(input$multiwordListRun, {
+    updateTabItems(session, "sidebarmenu", "multiwordByList")
+  })
+
+  observeEvent(input$multiwordListBack, {
+    updateTabItems(session, "sidebarmenu", "multiwordByList")
+  })
+
   output$runButton <- renderUI({
 
     if (!isTRUE(values$resetNeed)){
@@ -900,14 +916,11 @@ output$info_treebank <- renderUI({
     }
   })
 
+  proxy2 <- dataTableProxy('posSpecialTags')
   ## back to the original txt
   observeEvent(input$posSpecialBack, {
     values$dfTag <- resetSpecialEntities(values$dfTag)
-    proxy2 <- dataTableProxy('posSpecialTags')
-    # tibble(UPOS = toupper(c("email", "url", "hash", "emoji", "ip_address", "mention")),
-    #        "Frequency"=rep(0,6)) %>%
-    #   mutate(Table = glue::glue('<button id2="custom_btn" onclick="Shiny.onInputChange(\'button_id2\', \'{UPOS}\')">View</button>')) %>%
-    #   select(Table, everything())
+
     replaceData(proxy2, data.frame(Table=rep(NA,6), UPOS = toupper(c("email", "url", "hash", "emoji", "ip_address", "mention")), Frequency = rep(0,6)), resetPaging = FALSE)
 
     popUpGeneric(title="Special Entities Tags Removed",
@@ -1099,27 +1112,31 @@ output$info_treebank <- renderUI({
 
   ## Multi-Word Creation ----
 
-  output$multiwordPosSel <- renderUI({
-    checkboxGroupInput("multiwordPosSelGroup", label=NULL,
-                       choices = posTagAll(values$dfTag %>% dplyr::filter(!upos %in% c("MULTIWORD", "NGRAM_MERGED", "PUNCT", "SYM", "X", "NUM")))$description,
-                       selected = posTagAll(values$dfTag %>% dplyr::filter(upos %in%  values$posMwSel))$description
+output$multiwordPosSel <- renderUI({
+  checkboxGroupInput("multiwordPosSelGroup", label=NULL,
+  choices = posTagAll(values$dfTag %>% dplyr::filter(!upos %in% c("MULTIWORD", "NGRAM_MERGED", "PUNCT", "SYM", "X", "NUM")))$description,
+  selected = posTagAll(values$dfTag %>% dplyr::filter(upos %in%  values$posMwSel))$description
 
-    )
-  })
+)
+})
 
-  multiword <- eventReactive({
-    input$multiwordCreatRun
-  },{
+#proxy3 <- dataTableProxy('multiwordList')
+proxy4 <- dataTableProxy('multiwordData')
 
-    ### REKA Algorithm
+multiword <- eventReactive({
+  input$multiwordCreatRun
+},{
 
-    values$dfTag <- rakeReset(values$dfTag) ## reset previous multiword creation steps
+  ### REKA Algorithm
 
-    values$posMwSel <- gsub(":","",gsub(":.*","",input$multiwordPosSelGroup))
+  values$dfTag <- rakeReset(values$dfTag) ## reset previous multiword creation steps
 
-    values$stats <- rake(values$dfTag, group = "doc_id", ngram_max=input$ngram_max, relevant = values$posMwSel, rake.min=input$rake.min, freq.min=input$freq_minMW, term=input$term)
+  values$posMwSel <- gsub(":","",gsub(":.*","",input$multiwordPosSelGroup))
 
-  })
+  values$rakeResults <- rake(values$dfTag, group = "doc_id", ngram_max=input$ngram_max, relevant = values$posMwSel, rake.min=input$rake.min, freq.min=input$freq_minMW, term=input$term)
+
+  values$stats <- values$rakeResults$stats
+})
 
   observeEvent(ignoreNULL = FALSE,
                 eventExpr = {input$multiwordList_rows_selected},
@@ -1164,37 +1181,40 @@ output$info_treebank <- renderUI({
                       Token=token,
                       Lemma=lemma,
                       "Part of Speech"=upos),
-             size="60%"
+             size="80%"
     )
   })
   observeEvent(input$multiwordCreatApply,{
     row_sel <- input$multiwordList_rows_selected
 
-    stats <- values$stats[row_sel,]
+    if (length(row_sel)>0){
+      values$dfTag <- applyRake(values$dfTag, rakeResults=values$rakeResults, row_sel=row_sel, term=input$term)
 
-    obj <- applyRake(values$dfTag, stats=stats, relevant = values$posMwSel, term=input$term)
+      dfTagMW <- highlight(values$dfTag  %>% filter(upos=="MULTIWORD")) %>%
+        select("doc_id","token_id","sentence_hl")
 
-    values$dfTag <- obj$dfTag
+      values$dfTag$sentence_hl[match(paste(dfTagMW$doc_id, dfTagMW$token_id), paste(values$dfTag$doc_id, values$dfTag$token_id))] <- dfTagMW$sentence_hl
 
-    values$dfTag <- highlight(values$dfTag)
-    values$multiwords <- obj$multiwords
+      replaceData(proxy4, values$dfTag, resetPaging = FALSE)
 
-    show_alert(
-      title = "Annotated Data with Multi-Words",
-      text = DTOutput("multiwordData"),
-      type = NULL,
-      width = "80%",
-      closeOnEsc = TRUE,
-      closeOnClickOutside = TRUE,
-      html = TRUE,
-      showConfirmButton = TRUE,
-      showCancelButton = FALSE,
-      btn_labels = "OK",
-      btn_colors = "#6CC283",
-      timer = NULL,
-      imageUrl = "",
-      animation = TRUE
-    )
+      show_alert(
+        title = "Annotated Data with Multi-Words",
+        paste0("Now Multi-Words have been added to your documents"),
+        type = NULL,
+        width = "50%",
+        closeOnEsc = TRUE,
+        closeOnClickOutside = TRUE,
+        html = TRUE,
+        showConfirmButton = TRUE,
+        showCancelButton = FALSE,
+        btn_labels = "OK",
+        btn_colors = "#6CC283",
+        timer = NULL,
+        imageUrl = "",
+        animation = TRUE
+      )
+    }
+
   })
 
   output$multiwordCreatSave <- downloadHandler(
@@ -1202,7 +1222,7 @@ output$info_treebank <- renderUI({
       paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
     },
     content <- function(file) {
-      saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "Multi-Word Creation", file)
+      saveTall(values$dfTag, values$stats, values$language, values$menu, "Multi-Word Creation", file)
       # D <- date()
       # save(dfTag,menu,D,where, file=file)
     }, contentType = "tall"
@@ -1247,14 +1267,17 @@ output$info_treebank <- renderUI({
 
     relevant <- unique(values$dfTag$upos)
 
-    stats <- rake(values$dfTag, relevant = relevant, term=term, type="bylist", keywordList = values$keywordList)
+    values$rakeResults <- rake(values$dfTag, relevant = relevant, term=term, freq.min=1, type="bylist", keywordList = values$keywordList)
 
-    obj <- applyRake(values$dfTag, stats=stats, relevant = relevant, term=term)
+    row_sel <- 1:nrow(values$rakeResults$stats)
 
-    values$dfTag <- obj$dfTag
+    values$dfTag  <- applyRake(values$dfTag, rakeResults=values$rakeResults, row_sel=row_sel, term=input$term)
 
-    values$dfTag <- highlight(values$dfTag)
-    values$multiwords <- obj$multiwords
+    dfTagMW <- highlight(values$dfTag %>% filter(upos=="MULTIWORD")) %>%
+      select("doc_id","token_id","sentence_hl")
+
+    values$dfTag$sentence_hl[match(paste(dfTagMW$doc_id, dfTagMW$token_id), paste(values$dfTag$doc_id, values$dfTag$token_id))] <- dfTagMW$sentence_hl
+
   })
 
   output$multiwordData2 <- renderDT({
@@ -1273,7 +1296,7 @@ output$info_treebank <- renderUI({
 
   output$multiwordList2 <- renderDT(server=FALSE,{
     multiword2()
-    DTformat(values$multiwords %>%  rename("Multi-Words" = keyword,
+    DTformat(values$rakeResults$stats %>%  rename("Multi-Words" = keyword,
                                            "Lenght" = ngram,
                                            "Freq"=freq) %>%
                arrange(desc(Freq), .by_group = FALSE))
@@ -2258,6 +2281,7 @@ observeEvent(input$closePlotModalDoc,{
       values$ReinertDendrogram <- dend2vis(values$reinert, labelsize=10, nclusters = input$w_rein_k, community=FALSE)
     }
   )
+
 
   cutree_event <- eventReactive(ignoreNULL = TRUE,
                                 eventExpr = {input$ReinCutree},
