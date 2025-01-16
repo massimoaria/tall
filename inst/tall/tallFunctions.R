@@ -1151,6 +1151,7 @@ cutree_reinart <- function(res, k = NULL) {
 
 term_per_cluster <- function(res, cutree=NULL, k=1, negative=TRUE){
 
+  k <- k[!is.na(k)]
   dtm <- res$dtm
   groups <- cutree_reinart(res,cutree)
   terms <- colnames(dtm)
@@ -1356,7 +1357,7 @@ dend2vis <- function(hc, labelsize, nclusters=1, community=TRUE){
 
   if (!"group" %in% names(hc)) hc$group <- nclusters+1
 
-  if (nclusters<max(hc$group)){
+  if (nclusters<max(hc$group, na.rm=T)){
     VIS <- visHclust(hc, cutree = nclusters, colorEdges = "grey60", horizontal = TRUE, export=FALSE)
   } else {
     VIS <- visHclust(hc, colorEdges = "grey60", horizontal = TRUE, export=FALSE)
@@ -1414,9 +1415,12 @@ dend2vis <- function(hc, labelsize, nclusters=1, community=TRUE){
   }
 
   if ("dtm" %in% names(hc)){
-    new_groups <- cutree(hc,nclusters)
-    for (i in names(new_groups)){
-      VIS$x$nodes$title[VIS$x$nodes$title==i] <- new_groups[i]
+    k <- max(hc$group,na.rm=TRUE)
+    if (nclusters<k){
+      new_groups <- cutree(hc,nclusters)
+      for (i in names(new_groups)){
+        VIS$x$nodes$title[VIS$x$nodes$title==i] <- new_groups[i]
+      }
     }
     VIS <- VIS %>%
       visEvents(click = "function(nodes){
