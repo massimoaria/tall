@@ -22,6 +22,7 @@ style_start <-  "border-radius: 15px; border-width: 3px; font-size: 15px; width:
 t_report  <-  "Add Results to the Report"
 t_export  <-  "Export Plot as PNG"
 t_run <- "Run the Analysis"
+t_view <- "View document"
 t_save <- "Save the Analysis"
 t_back <- "Back to the original text(s)"
 
@@ -2528,25 +2529,13 @@ body <- dashboardBody(
                              ),
                              column(4,
                                     div(align="center",
-                                        title = t_run,
+                                        title = t_view,
                                         do.call("actionButton", c(view_bttn, list(
                                           inputId = "d_summarizationView")
                                         ))
                                     )
                              ),
-                             column(4,
-                                    div(align="center",
-                                        title = t_save,
-                                        do.call("downloadButton", c(list(
-                                          label=NULL,
-                                          style ="display:block; height: 37px; width: 37px; border-radius: 50%;
-                                      border: 1px; margin-top: 16px;",
-                                          icon = icon(name ="download-alt", lib="glyphicon"),
-                                          outputId = "d_summarizationSave")
-                                        )
-                                        )
-                                    )
-                             )
+                             column(4)
                            ), style="margin-top:-15px")
                          ),style="margin-top:40px"
                        )

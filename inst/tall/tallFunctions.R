@@ -3010,7 +3010,7 @@ textrankDocument <- function(dfTag, id){
     arrange(desc(textrank))
 
   s <- s %>%
-    left_join(df %>% select(paragraph_id,sentence_id) %>% distinct(), by = c("textrank_id"="sentence_id"))
+    left_join(df %>% select(paragraph_id,sentence_id, sentence) %>% distinct(), by = c("sentence"))
   results <- list(s=s,id=id,sentences=tr$sentences %>% arrange(desc(textrank)))
   return(results)
 }
@@ -3033,6 +3033,7 @@ abstractingDocument <- function(s,n,id){
   abstract <- s %>%
     filter(h==1) %>%
     group_by(paragraph_id) %>%
+    arrange(sentence_id, .by_group = TRUE) %>%
     summarize(paragraph = paste(sentence, collapse=" ")) %>%
     ungroup %>%
     summarize(text=paste(paragraph, collapse="<br><br>&nbsp&nbsp&nbsp&nbsp&nbsp")) %>%
