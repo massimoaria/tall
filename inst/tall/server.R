@@ -762,14 +762,6 @@ observeEvent(input$reset_confirmation2, {
 
   ## Tokenization & PoS Tagging ----
 
-  # output$optionsTokenization <- renderUI({
-  #   selectInput(
-  #     inputId = 'language_model', label="Select language", choices = values$label_lang,
-  #     multiple=FALSE,
-  #     width = "100%"
-  #   )
-  # })
-
   output$flagUI <- renderUI({
     tags$img(src = values$flag, height = "25px", width = "40px", style = "margin-top:-30px;")
   })
@@ -818,6 +810,7 @@ output$info_treebank <- renderUI({
     input$tokPosRun
   },{
     values$language <- input$language_model
+    values$treebank <- input$treebank
     values$language_file <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(file) %>% as.character()
     ## download and load model language
     udmodel_lang <- loadLanguageModel(file = values$language_file)
@@ -869,7 +862,7 @@ output$info_treebank <- renderUI({
       paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
     },
     content <- function(file) {
-      saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "Custom Term Lists", file)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$treebank, values$menu, "Custom Term Lists", file)
       # D <- date()
       # save(dfTag,menu,D,where, file=file)
     }, contentType = "tall"
@@ -936,7 +929,7 @@ output$info_treebank <- renderUI({
       paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
     },
     content <- function(file) {
-      saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "POS Tag Selection", file)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "POS Tag Selection", file)
       # D <- date()
       # save(dfTag,menu,D,where, file=file)
     }, contentType = "tall"
@@ -1089,7 +1082,7 @@ output$info_treebank <- renderUI({
       paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
     },
     content <- function(file) {
-      saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "Custom Term Lists", file)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Custom Term Lists", file)
       # D <- date()
       # save(dfTag,menu,D,where, file=file)
     }, contentType = "tall"
@@ -1222,7 +1215,7 @@ multiword <- eventReactive({
       paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
     },
     content <- function(file) {
-      saveTall(values$dfTag, values$stats, values$language, values$menu, "Multi-Word Creation", file)
+      saveTall(values$dfTag, values$stats, values$language, values$treebank, values$menu, "Multi-Word Creation", file)
       # D <- date()
       # save(dfTag,menu,D,where, file=file)
     }, contentType = "tall"
@@ -1307,7 +1300,7 @@ multiword <- eventReactive({
       paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
     },
     content <- function(file) {
-      saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "Multi-Word by a List", file)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Multi-Word by a List", file)
       # D <- date()
       # save(dfTag,menu,D,where, file=file)
     }, contentType = "tall"
@@ -1374,7 +1367,7 @@ multiword <- eventReactive({
       paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
     },
     content <- function(file) {
-      saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "POS Tag Selection", file)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$treebank, values$menu, "POS Tag Selection", file)
       # D <- date()
       # save(dfTag,menu,D,where, file=file)
     }, contentType = "tall"

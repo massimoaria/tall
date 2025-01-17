@@ -1158,7 +1158,6 @@ term_per_cluster <- function(res, cutree=NULL, k=1, negative=TRUE){
       mutate(cluster = k)
     segments_list[[k]] <-segments_df
 
-
     m1 <- colSums(dtm[select,])
     m0 <- colSums(dtm[!select,])
 

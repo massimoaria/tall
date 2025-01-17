@@ -83,7 +83,10 @@ reinert <- function(
   ## Table with segments
   corresp_uce_uc_full <- corresp_uce_uc_full %>%
     group_by(doc_id, uc) %>%
-    summarize(segment = paste0(term,collapse = " "))
+    summarize(segment = paste0(term,collapse = " ")) %>%
+    as.data.frame()
+
+  row.names(corresp_uce_uc_full) <- corresp_uce_uc_full$uc
 
   dtf <- document_term_frequencies(x, document="uc",term=colTerm)
 
@@ -116,7 +119,6 @@ reinert <- function(
   i <- 1
 
   while(i<k){
-
       ## Split the biggest group
       nrows <- purrr::map(res[[i]]$tabs, nrow)
       names(nrows) <- 1:length(nrows)
@@ -186,10 +188,12 @@ reinert <- function(
   # Compute groups by uce at each k
   uce_groups <- list()
   for (i in 1:(k - 1)) {
-    group <- rep(NA, nrow(corresp_uce_uc))
+    #group <- rep(NA, nrow(corresp_uce_uc))
+    group <- rep(NA, nrow(corresp_uce_uc_full))
     indices <- res[[i]]$groups
     for (group_index in seq_along(indices)) {
-      group[corresp_uce_uc$uc %in% indices[[group_index]]] <- group_index
+      group[corresp_uce_uc_full[indices[[group_index]],"uc"]] <- group_index
+      #group[corresp_uce_uc_full$uc %in% as.numeric(indices[[group_index]])] <- group_index
     }
     uce_groups[[i]] <- group
   }
