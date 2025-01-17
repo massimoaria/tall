@@ -863,7 +863,7 @@ freqByPos <- function(df, term="lemma", pos="NOUN"){
 }
 
 # freqPlotly ----
-freqPlotly <- function(dfPlot,x,y,n=10, xlabel,ylabel, scale=c("identity", "log"), topicmodel=FALSE,color="#4F7942", decimal=0, reinert=FALSE){
+freqPlotly <- function(dfPlot,x,y,n=10, xlabel,ylabel, scale=c("identity", "log"), topicmodel=FALSE,color="#4F7942", decimal=0){
   # function to build and plot plotly horizontal barplot
   dfPlot <- dfPlot %>% dplyr::slice_head(n=n)
   xmax <- max(dfPlot[[x]])
@@ -1113,164 +1113,6 @@ tfidf <- function(dfTag, term="lemma", document="doc_id"){
   dtm <- document_term_matrix(dtm)
   tfidf <- dtm_tfidf(dtm)
   tibble(term=names(tfidf), TFIDF=as.numeric(tfidf)) %>% arrange(desc(tfidf))
-}
-
-### REINERT CLUSTERING ----
-cutree_reinart <- function(res, k = NULL) {
-  if (!is.null(k)){
-    res$uce_groups[[min(c(k-1,length(res$uce_groups)))]]
-  } else{
-    res$uce_groups[[length(res$uce_groups)]]
-  }
-
-}
-
-term_per_cluster <- function(res, cutree=NULL, k=1, negative=TRUE){
-
-  k <- k[!is.na(k)]
-  dtm <- res$dtm
-  groups <- cutree_reinart(res,cutree)
-  terms <- colnames(dtm)
-
-  ## integrate dtm with removed segments (by full-zero rows)
-  label <- row.names(dtm)
-  max_ind <- max(res$corresp_uce_uc_full$uc)
-
-  ind <- setdiff(as.character(1:max_ind),label)
-
-  if (length(ind)>0){
-    m <- matrix(0,length(ind),ncol(dtm))
-    row.names(m) <- ind
-    dtm <- rbind(dtm,m)
-    dtm <- dtm[order(as.numeric(rownames(dtm))), ]
-  }
-
-  terms_list <- list()
-  segments_list <- list()
-  K <- k
-  for (i in 1:length(K)){
-    k <- K[i]
-    ## list of segments following into the cluster k
-    select <- (groups == k & !is.na(groups))
-    segments <- row.names(dtm)[select]
-    segments_df <- tibble(uc=as.numeric(segments)) %>%
-      left_join(res$corresp_uce_uc_full, by="uc") %>%
-      mutate(cluster = k)
-    segments_list[[k]] <-segments_df
-
-    m1 <- colSums(dtm[select,])
-    m0 <- colSums(dtm[!select,])
-
-    totm1 <- sum(m1)
-    totm0 <- sum(m0)
-
-    chi_res <- list()
-
-    for (i in 1:length(m1)){
-      tab <- matrix(c(m1[i],m0[i],totm1,totm0),2,2)
-      chi_res[[i]] <- chi_squared_test(tab)
-      chi_res[[i]]$term <- terms[i]
-
-    }
-
-    signExcluded <- ifelse(isTRUE(negative),c("none"),c("none","negative"))
-
-    chi_res_df <- do.call(rbind, lapply(chi_res, function(x) {
-      data.frame(
-        chi_square = x$chi_square,
-        p_value = x$p_value,
-        sign = x$sign,
-        term = x$term,
-        freq = x$tab[1,1],
-        indep = x$tab[1,2]
-      )
-    })) %>% filter(!sign %in% signExcluded) %>% arrange(desc(chi_square))
-
-    row.names(chi_res_df) <- chi_res_df$term
-    chi_res_df$cluster <- k
-    terms_list[[k]] <- chi_res_df
-  }
-
-  terms_list <- bind_rows(terms_list)
-  segments_list <- bind_rows(segments_list) %>% drop_na("doc_id")
-
-  return(list(terms =  terms_list, segments = segments_list))
-
-  ### DA AGGIUNGERE L'EVIDENZIAZIONE DEI TERMINI DEI SEGMENTI CHE APPARTENGONO AL CLUSTER
-}
-
-
-## Chi Square test between observed and theoretical distribution
-chi_squared_test <- function(tab) {
-  # Controlla che la tabella sia una matrice o un data frame
-  if (!is.matrix(tab) && !is.data.frame(tab)) {
-    stop("La tabella deve essere una matrice o un data frame.")
-  }
-
-  # Esegui il test chi-quadrato
-  suppressWarnings(test_result <-chisq.test(tab))
-
-  # Estrai i valori di interesse
-  chi_square_value <- test_result$statistic
-  p_value <- test_result$p.value
-
-  tab <- prop.table(tab,2)
-
-  if (p_value<0.001){
-    if ((tab[1,1]-tab[1,2])>0){
-      sign <- "positive"
-    }else{
-      sign <- "negative"
-    }
-  }else{
-    sign <- "none"
-  }
-
-  # Return results into a list
-  return(list(chi_square = chi_square_value, p_value = p_value, tab=tab, sign=sign))
-}
-
-
-# plot for terms by cluster
-reinPlot <- function(terms, nPlot=10){
-
-  dfPlot <- terms %>%
-    select(term, chi_square, sign) %>%
-    mutate(y = chi_square,
-           chi_square= format(round(chi_square, 1), nsmall = 1)) %>%
-    group_by(sign) %>%
-    arrange(desc(y), .by_group = TRUE) %>%
-    slice_max(y, n=nPlot, with_ties = FALSE) %>%
-    ungroup() %>%
-    mutate(
-      y = as.integer(y),
-      term = factor(term, levels = unique(term)[order(y, decreasing = FALSE)]))
-
-  color <- colorlist()
-
-  fig1 <- plot_ly(data=dfPlot, x=dfPlot$y, y=~reorder(dfPlot$term, dfPlot$y),
-                  type = "bar",
-                  orientation = 'h',
-                  marker = list(color = ~ifelse(sign == "positive", color[1], color[2])),
-                  hovertemplate = "<b><i>Term: %{y}</i></b> <br> <b><i>Chi2: %{x}</i></b><extra></extra>"
-  )
-
-  fig1 <- fig1 %>% layout(yaxis = list(title ="Terms", showgrid = FALSE, showline = FALSE, showticklabels = TRUE, domain= c(0, 1)),
-                          xaxis = list(title = "Chi2", zeroline = FALSE, showline = FALSE, showticklabels = TRUE, showgrid = FALSE),
-                          plot_bgcolor  = "rgba(0, 0, 0, 0)",
-                          paper_bgcolor = "rgba(0, 0, 0, 0)") %>%
-    config(displaylogo = FALSE,
-           modeBarButtonsToRemove = c(
-             'sendDataToCloud',
-             'pan2d',
-             'select2d',
-             'lasso2d',
-             'toggleSpikelines',
-             'hoverClosestCartesian',
-             'hoverCompareCartesian'
-           ))
-
-  return(fig1)
 }
 
 ### CLUSTERING ----
@@ -3168,7 +3010,6 @@ short2long <- function(df, myC){
 }
 
 
-## Labels sheets Report
 ## Labels sheets Report
 dfLabel <- function(){
   short <- c("Empty Report",

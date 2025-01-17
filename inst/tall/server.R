@@ -2252,7 +2252,8 @@ observeEvent(input$closePlotModalDoc,{
         cc_test = input$w_rein_cc_test, tsj = input$w_rein_tsj
       )
 
-      values$tc <- term_per_cluster(values$reinert, cutree=NULL, k=unique(values$reinert$group))
+      values$tc <- tall::term_per_cluster(values$reinert, cutree=NULL, k=unique(values$reinert$group))
+      values$reinertSummary <- reinSummary(values$tc, 10)
 
       #groups <- tibble(uc=1:length(values$reinert$group), Cluster=values$reinert$group)
       values$tc$segments <- values$tc$segments %>%
@@ -2296,6 +2297,11 @@ observeEvent(input$closePlotModalDoc,{
     # find sentences containing the tokens/lemmas
     DTformat(values$tc$segments, size='100%', button=TRUE)
   })
+  output$w_ReinSummaryTable <- renderDT({
+    dendReinFunction()
+    # find sentences containing the tokens/lemmas
+    DTformat(values$reinertSummary, size='100%', button=FALSE)
+  })
 
   output$w_ReinClusteringTableTerms <- renderDT({
     dendReinFunction()
@@ -2333,7 +2339,8 @@ observeEvent(input$closePlotModalDoc,{
     if(!is.null(values$reinert)){
       popUp(title=NULL, type="waiting")
       sheetname <- "Reinert"
-      list_df <- list(values$tc$terms %>%
+      list_df <- list(values$reinertSummary,
+                      values$tc$terms %>%
                         mutate(freq = round(freq*100,1)) %>%
                         select(term, freq, chi_square, p_value, sign, cluster) %>%
                         rename("Term" = term,
@@ -2800,18 +2807,25 @@ observeEvent(input$closePlotModalDoc,{
                eventExpr={input$click_rein},
                handlerExpr = {
                  if (input$click_rein!="null"){
-                   id <- unlist(input$click_rein)
-                   words_id <- c(id, unlist(values$ReinertDendrogram$x$nodes$neib[values$ReinertDendrogram$x$nodes$id==id]))
-                   words <- unlist(values$ReinertDendrogram$x$nodes$label[values$ReinertDendrogram$x$nodes$id %in% words_id])
-                   word_search <- as.numeric(words[!is.na(words)])
-                   values$word_search_rein <- word_search
+                  id <- unlist(input$click_rein)
+                  words_id <- c(id, unlist(values$ReinertDendrogram$x$nodes$neib[values$ReinertDendrogram$x$nodes$id==id]))
+                  words <- unlist(values$ReinertDendrogram$x$nodes$label[values$ReinertDendrogram$x$nodes$id %in% words_id])
+                  word_search <- as.numeric(words[!is.na(words)])
+                  values$word_search_rein <- word_search
 
                    if (length(word_search)>0){
-                     #values$tc <- term_per_cluster(res, cutree = NULL, k=word_search)
+
                      values$tc_k <- values$tc
-                     values$tc_k$terms <- values$tc_k$terms %>% filter(cluster %in% word_search)
+
+                     # remove duplicated terms when two or more clusters are aggregated
+                     values$tc_k$terms <- values$tc_k$terms %>% 
+                      filter(cluster %in% word_search) %>% 
+                      group_by(term) %>% 
+                      slice_min(order_by = p_value, n=1) %>% 
+                      ungroup()
+                     
                      values$tc_k$segments <- values$tc_k$segments %>% filter(cluster %in% word_search)
-                     segments <- values$tc
+                     #segments <- values$tc
                      values$tc_k <- highlight_segments(values$tc_k, n=10)
 
                      # values$tc_k$segments <- values$tc_k$segments %>%
@@ -2857,7 +2871,7 @@ observeEvent(input$closePlotModalDoc,{
   }, escape=FALSE)
 
   output$plotInContextRein <- renderPlotly({
-    reinPlot(values$tc_k$terms, nPlot=10)
+    tall::reinPlot(values$tc_k$terms, nPlot=10)
   })
 
 

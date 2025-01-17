@@ -1698,6 +1698,10 @@ body <- dashboardBody(
                                      shinycssloaders::withSpinner(visNetworkOutput("w_ReinClusteringPlot", width="auto", height = "75vh"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
                             )
+                            ,tabPanel("Summary",
+                                      shinycssloaders::withSpinner(DT::DTOutput("w_ReinSummaryTable"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                            )
                             ,tabPanel("Terms by Cluster",
                                       shinycssloaders::withSpinner(DT::DTOutput("w_ReinClusteringTableTerms"),
                                                                    color = getOption("spinner.color", default = "#4F7942"))
