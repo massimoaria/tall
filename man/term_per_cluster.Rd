@@ -45,6 +45,3 @@ It computes the terms and their significance for each cluster, as well as the as
 The function integrates document-term matrix rows for missing segments, calculates term statistics for each cluster,
 and filters terms based on their significance. Terms can be excluded based on their significance (\code{signExcluded}).
 }
-\seealso{
-\code{\link{cutree_reinart}}, \code{\link{chi_squared_test}}
-}

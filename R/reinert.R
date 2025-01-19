@@ -1,4 +1,5 @@
-utils::globalVariables(c("doc_id","uc","uce","segment_size","upos","noSingleChar","token","lemma","freq","chi_square"))
+utils::globalVariables(c("doc_id","uc","uce","segment_size","upos","noSingleChar",
+"token","lemma","freq","chi_square", "cluster", "negative", "positive", "term"))
 
 
 #' Segment clustering based on the Reinert method - Simple clustering
@@ -509,8 +510,6 @@ merge_small_segments <- function(idTable, min_length=5) {
 #' @details The function integrates document-term matrix rows for missing segments, calculates term statistics for each cluster, 
 #' and filters terms based on their significance. Terms can be excluded based on their significance (\code{signExcluded}).
 #'
-#' @seealso \code{\link{cutree_reinart}}, \code{\link{chi_squared_test}}
-#' 
 #' @export
 
 term_per_cluster <- function(res, cutree=NULL, k=1, negative=TRUE){

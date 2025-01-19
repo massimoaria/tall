@@ -3224,9 +3224,10 @@ observeEvent(input$closePlotModalDoc,{
       on.exit(setwd(owd))
       values$tmGplotBeta <- topicGplot(values$TMestim_result$beta, nPlot=input$nTopicPlot, type="beta")
       values$tmGplotTheta <- topicGplot(values$TMestim_result$theta, nPlot=input$nTopicPlot, type="theta")
+      ggsave(filename = "TMCorrPlots.png", plot = values$tmHeatmap$HplotStatic, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
       ggsave(filename = "TMTermPlots.png", plot = values$tmGplotBeta, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
       ggsave(filename = "TMDocPlots.png", plot = values$tmGplotTheta, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
-      zip(file,c("TMTermPlots.png","TMDocPlots.png"))
+      zip(file,c("TMTermPlots.png","TMDocPlots.png","TMCorrPlots.png"))
     },
     contentType = "zip"
   )
@@ -3239,7 +3240,7 @@ observeEvent(input$closePlotModalDoc,{
       values$tmGplotBeta <- topicGplot(values$TMestim_result$beta, nPlot=input$nTopicPlot, type="beta")
       values$tmGplotTheta <- topicGplot(values$TMestim_result$theta, nPlot=input$nTopicPlot, type="theta")
       list_df <- list(values$beta, values$theta)
-      list_plot <- list(values$tmGplotBeta,values$tmGplotTheta)
+      list_plot <- list(values$tmGplotBeta,values$tmGplotTheta, values$tmHeatmap$HplotStatic)
       wb <- addSheetToReport(list_df,list_plot,sheetname = "ModelEstim", wb=values$wb)
       values$wb <- wb
       popUp(title="Model Estimation Results", type="success")

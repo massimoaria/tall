@@ -1,6 +1,6 @@
 Package: tall
 Title: Text Analysis for All
-Version: 0.0.9
+Version: 0.1.0
 Authors@R: c(
     person(given = "Massimo", 
            family = "Aria",
@@ -43,6 +43,7 @@ Imports:
     dplyr (>= 1.1.0), 
     tidyr, 
     purrr, 
+    plotly,
     stringr,
     Rcpp (>= 1.0.3),
     RSpectra,

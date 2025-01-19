@@ -2437,8 +2437,20 @@ tmHeatmap <- function(beta){
              'hoverClosestCartesian',
              'hoverCompareCartesian'
            ))
-
-  return(list(Hplot=Hplot))
+# create a ggplot2 graph to be exported
+           HplotStatic <- ggplot(data = df, aes(x = variable, y = y, fill = value)) +
+            geom_tile(color = "white") +  # Heatmap con celle delineate in bianco
+            scale_fill_gradientn(colors = pal, limits = c(-1, 1)) +  # Palette e limiti del gradiente
+            geom_text(aes(label = value), color = "black", size = 3) +  # Annotazioni con i valori
+            theme_minimal() +  # Tema minimal
+            theme(
+              axis.text.x = element_text(angle = 45, hjust = 1),  # Rotazione asse X per leggibilità
+              panel.grid = element_blank(),  # Rimuove la griglia
+              panel.border = element_blank()  # Rimuove il bordo
+            ) +
+            labs(x = NULL, y = NULL, fill = "Value")  # Etichette asse
+  
+  return(list(Hplot=Hplot,HplotStatic=HplotStatic))
 }
 
 tmTopicPlot <- function(beta, topic=1, nPlot=10){
