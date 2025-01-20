@@ -548,14 +548,7 @@ observeEvent(input$reset_confirmation2, {
   })
 
   ### Convert Raw Data in Excel functions ----
-  # output$collection.save <- downloadHandler(
-  #   filename = function() {
-  #     paste("Tall-Export-File-", Sys.Date(), ".xlsx", sep="")
-  #   },
-  #   content <- function(file) {
-  #     suppressWarnings(openxlsx::write.xlsx(values$txt, file=file))
-  #   }, contentType = "xlsx"
-  # )
+ 
   output$collection.save <- downloadHandler(
     filename = function() {
       paste("Tall-Export-File-", Sys.Date(), ".csv", sep="")
@@ -671,6 +664,11 @@ observeEvent(input$reset_confirmation2, {
                                n=as.numeric(round((input$sampleSize/100)*nrow(values$txt)),0))
   })
 
+  output$sampleSizeUI <- renderUI({
+    req(input$sampleSize)
+    HTML(paste0("<br><h5><em>Number of randomly selected texts: </em><b>", as.numeric(round((input$sampleSize/100)*nrow(values$txt)),0),"</b></h5>"))
+  })
+
   output$randomTextData <- DT::renderDT({
     randomTextFunc()
     DTformat(values$txt %>%
@@ -718,19 +716,6 @@ observeEvent(input$reset_confirmation2, {
                                             file=file))
     }, contentType = "xlsx"
   )
-
-  # # Aggiunta del downloadHandler per il file .xlsx
-  # output$extInfoSave <- downloadHandler(
-  #   filename = function() {
-  #     paste("Tall_Export_File_", Sys.Date(), ".xlsx", sep = "")
-  #   },
-  #   content <- function(file) {
-  #     suppressWarnings(openxlsx::write.xlsx(values$txt %>%
-  #                                             filter(doc_selected) %>%
-  #                                           select(-c("text_original","doc_selected")),
-  #                                           file=file))
-  #   }, contentType = "xlsx"
-  # )
 
   output$extInfoSave <- downloadHandler(
     filename = function() {
@@ -862,7 +847,7 @@ output$info_treebank <- renderUI({
       paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
     },
     content <- function(file) {
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$treebank, values$menu, "Custom Term Lists", file)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Custom Term Lists", file)
       # D <- date()
       # save(dfTag,menu,D,where, file=file)
     }, contentType = "tall"
@@ -1113,7 +1098,6 @@ output$multiwordPosSel <- renderUI({
 )
 })
 
-#proxy3 <- dataTableProxy('multiwordList')
 proxy4 <- dataTableProxy('multiwordData')
 
 multiword <- eventReactive({
@@ -1301,8 +1285,6 @@ multiword <- eventReactive({
     },
     content <- function(file) {
       saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Multi-Word by a List", file)
-      # D <- date()
-      # save(dfTag,menu,D,where, file=file)
     }, contentType = "tall"
   )
 
@@ -2226,7 +2208,7 @@ observeEvent(input$closePlotModalDoc,{
     ignoreNULL = TRUE,
     eventExpr = {input$wordsContSearch},
     valueExpr = {
-      word_search <- req(tolower(input$wordsContSearch))
+      word_search <- req(tolower(trimws(input$wordsContSearch)))
       values$wordInContext <- values$dfTag %>%
         filter(docSelected) %>%
         filter(tolower(lemma) %in% word_search | tolower(token) %in% word_search) %>%

@@ -389,25 +389,24 @@ body <- dashboardBody(
                            br(),
                            "Extract a random sample of texts to analyze",
                            hr(),
+                           div(
+                            numericInput("sampleSize",
+                                         "Sample Size (%)",
+                                         value = 30,
+                                         min = 1,
+                                         max = 100,
+                                         step = 1
+                            )
+                            ,style="margin-top:-9px"),
+                            uiOutput("sampleSizeUI"),
                            fluidRow(
-                             column(6,
-                                    div(
-                                      numericInput("sampleSize",
-                                                   "Sample Size (%)",
-                                                   value = 30,
-                                                   min = 1,
-                                                   max = 100,
-                                                   step = 1
-                                      )
-                                      ,style="margin-top:-9px")
-                             ),
-                             column(3,
+                             column(4,
                                     title = t_run,
                                     do.call("actionButton", c(run_bttn, list(
                                       inputId = "randomTextRun")
                                     ))
                              ),
-                             column(3,
+                             column(4,
                                     title = t_back,
                                     do.call("actionButton", c(back_bttn, list(
                                       inputId = "randomTextBack")
