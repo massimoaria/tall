@@ -2253,7 +2253,7 @@ observeEvent(input$closePlotModalDoc,{
       )
 
       values$tc <- tall::term_per_cluster(values$reinert, cutree=NULL, k=unique(values$reinert$group))
-      values$reinertSummary <- reinSummary(values$tc, 10)
+      values$reinertSummary <- tall:reinSummary(values$tc, 10)
 
       #groups <- tibble(uc=1:length(values$reinert$group), Cluster=values$reinert$group)
       values$tc$segments <- values$tc$segments %>%
@@ -2991,6 +2991,31 @@ observeEvent(input$closePlotModalDoc,{
 
   ## Topic Modeling ----
   ## K choice ----
+
+  output$TMmetric <- renderUI({
+    
+    switch(Sys.info()[['sysname']],
+         Darwin = {
+          metrics <- c(
+            "CaoJuan-2009"="CaoJuan2009",
+            "Deveaud-2014"="Deveaud2014",
+            "Arun-2010"="Arun2010"
+          )
+         },
+        {
+            metrics <- c(
+              "CaoJuan-2009"="CaoJuan2009",
+              "Deveaud-2014"="Deveaud2014",
+              "Arun-2010"="Arun2010",
+              "Griffiths-2004"="Griffiths2004"
+            )
+        })
+    
+    selectInput("metric", "Metric for model tuning",
+                                       choices = metrics,
+                                       selected = "CaoJuan2009"
+                           )
+  })
 
   netTMKselect <- eventReactive(
     ignoreNULL = TRUE,

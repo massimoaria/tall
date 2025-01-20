@@ -2175,15 +2175,16 @@ body <- dashboardBody(
                                          "Sentences"="sentence_id"),
                              selected = "doc_id"
                            ),
-                           selectInput("metric", "Metric for model tuning",
-                                       choices = c(
-                                         "CaoJuan-2009"="CaoJuan2009",
-                                         "Deveaud-2014"="Deveaud2014",
-                                         "Arun-2010"="Arun2010",
-                                         "Griffiths-2004"="Griffiths2004"
-                                       ),
-                                       selected = "CaoJuan2009"
-                           ),
+                           uiOutput("TMmetric"),
+                          #  selectInput("metric", "Metric for model tuning",
+                          #              choices = c(
+                          #                "CaoJuan-2009"="CaoJuan2009",
+                          #                "Deveaud-2014"="Deveaud2014",
+                          #                "Arun-2010"="Arun2010",
+                          #                "Griffiths-2004"="Griffiths2004"
+                          #              ),
+                          #              selected = "CaoJuan2009"
+                          #  ),
                            fluidRow(column(6,
                                            selectInput("termTm", "Terms:",
                                                        choices = c(
