@@ -156,13 +156,15 @@ loadSampleCollection <- function(sampleName){
          bibliometrix={
            #check if the file model already exists
            file_lang <- dir(path_language_model,pattern="tall_bibliometrix.tall")[1]
-           url <- paste0("https://www.bibliometrix.org/tall_lexicon/sampleData/tall_bibliometrix.tall")
+           #url <- paste0("https://www.bibliometrix.org/tall_lexicon/sampleData/tall_bibliometrix.tall")
+           url <- paste0("https://raw.githubusercontent.com/massimoaria/tall.language.models/main/sample.data/tall_bibliometrix.tall")
+           
            destfile <- paste0(path_language_model,"/tall_bibliometrix.tall")
            file <- paste0(path_language_model,"/tall_bibliometrix.tall")
          },
          bbc={
            file_lang <- dir(path_language_model,pattern="bbc.zip")[1]
-           url <- paste0("https://www.bibliometrix.org/tall_lexicon/sampleData/bbc.zip")
+           url <- paste0("https://raw.githubusercontent.com/massimoaria/tall.language.models/main/sample.data/bbc.zip")
            destfile <- paste0(path_language_model,"/bbc.zip")
            file <- paste0(path_language_model,"/bbc.zip")
          })
@@ -350,7 +352,7 @@ tall_download_model <- function(file,
 
     filename <- paste0(file,"-ud-",model_repo,".udpipe")
 
-      url <- file.path("https://raw.githubusercontent.com/massimoaria/udpipe.models/main",
+      url <- file.path("https://raw.githubusercontent.com/massimoaria/tall.language.models/main",
       model_repo, filename)
       to <- file.path(model_dir, filename)
       download_failed <- FALSE
@@ -2550,11 +2552,11 @@ loadSentimentLanguage <- function(language){
   if (is.na(file_lang)){
     switch(Sys.info()[['sysname']],
            Windows={
-             download.file(url = paste0("https://www.bibliometrix.org/tall_lexicon/",language,".lexicon"),
+             download.file(url = paste0("https://raw.githubusercontent.com/massimoaria/tall.language.models/main/lexicon.data/",language,".lexicon"),
                            destfile = paste0(path_language_model,"/",language,".lexicon"), mode = "wb")
            },
            {
-             download.file(url = paste0("https://www.bibliometrix.org/tall_lexicon/",language,".lexicon"),
+             download.file(url = paste0("https://raw.githubusercontent.com/massimoaria/tall.language.models/main/lexicon.data/",language,".lexicon"),
                            destfile = paste0(path_language_model,"/",language,".lexicon"))
            }
     )
