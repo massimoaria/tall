@@ -1,4 +1,5 @@
-utils::globalVariables(c("doc_id","uc","uce","segment_size","upos","noSingleChar","token","lemma","freq","chi_square"))
+utils::globalVariables(c("doc_id","uc","uce","segment_size","upos","noSingleChar",
+"token","lemma","freq","chi_square", "cluster", "negative", "positive", "term"))
 
 
 #' Segment clustering based on the Reinert method - Simple clustering
@@ -83,7 +84,10 @@ reinert <- function(
   ## Table with segments
   corresp_uce_uc_full <- corresp_uce_uc_full %>%
     group_by(doc_id, uc) %>%
-    summarize(segment = paste0(term,collapse = " "))
+    summarize(segment = paste0(term,collapse = " ")) %>%
+    as.data.frame()
+
+  row.names(corresp_uce_uc_full) <- corresp_uce_uc_full$uc
 
   dtf <- document_term_frequencies(x, document="uc",term=colTerm)
 
@@ -116,7 +120,6 @@ reinert <- function(
   i <- 1
 
   while(i<k){
-
       ## Split the biggest group
       nrows <- purrr::map(res[[i]]$tabs, nrow)
       names(nrows) <- 1:length(nrows)
@@ -186,10 +189,12 @@ reinert <- function(
   # Compute groups by uce at each k
   uce_groups <- list()
   for (i in 1:(k - 1)) {
-    group <- rep(NA, nrow(corresp_uce_uc))
+    #group <- rep(NA, nrow(corresp_uce_uc))
+    group <- rep(NA, nrow(corresp_uce_uc_full))
     indices <- res[[i]]$groups
     for (group_index in seq_along(indices)) {
-      group[corresp_uce_uc$uc %in% indices[[group_index]]] <- group_index
+      group[corresp_uce_uc_full[indices[[group_index]],"uc"]] <- group_index
+      #group[corresp_uce_uc_full$uc %in% as.numeric(indices[[group_index]])] <- group_index
     }
     uce_groups[[i]] <- group
   }
@@ -471,118 +476,305 @@ merge_small_segments <- function(idTable, min_length=5) {
     select(-segment_size)  # Rimuove la colonna temporanea
 }
 
-# cutree_reinart <- function(res, k = NULL) {
-#   if (!is.null(k)){
-#     res$uce_groups[[min(c(k-1,length(res$uce_groups)))]]
-#   } else{
-#     res$uce_groups[[length(res$uce_groups)]]
-#   }
-#
-# }
-#
-# term_per_cluster <- function(res, cutree=NULL, k=1, negative=FALSE){
-#
-#   dtm <- res$dtm
-#   groups <- cutree_reinart(res,cutree)
-#   terms <- colnames(dtm)
-#
-#   ## integrate dtm with removed segments (by full-zero rows)
-#   label <- row.names(dtm)
-#   max_ind <- max(res$corresp_uce_uc_full$uc)
-#
-#   ind <- setdiff(as.character(1:max_ind),label)
-#
-#   if (length(ind)>0){
-#     m <- matrix(0,length(ind),ncol(dtm))
-#     row.names(m) <- ind
-#     dtm <- rbind(dtm,m)
-#     dtm <- dtm[order(as.numeric(rownames(dtm))), ]
-#   }
-#
-#   terms_list <- list()
-#   segments_list <- list()
-#   K <- k
-#   for (i in 1:length(K)){
-#     k <- K[i]
-#     ## list of segments following into the cluster k
-#     select <- (groups == k & !is.na(groups))
-#     segments <- row.names(dtm)[select]
-#     segments_df <- tibble(uc=as.numeric(segments)) %>%
-#       left_join(res$corresp_uce_uc_full, by="uc") %>%
-#       mutate(cluster = k)
-#     segments_list[[k]] <-segments_df
-#
-#
-#     m1 <- colSums(dtm[select,])
-#     m0 <- colSums(dtm[!select,])
-#
-#     totm1 <- sum(m1)
-#     totm0 <- sum(m0)
-#
-#     chi_res <- list()
-#
-#     for (i in 1:length(m1)){
-#       tab <- matrix(c(m1[i],m0[i],totm1,totm0),2,2)
-#       chi_res[[i]] <- chi_squared_test(tab)
-#       chi_res[[i]]$term <- terms[i]
-#
-#     }
-#
-#     signExcluded <- ifelse(isTRUE(negative),c("none"),c("none","negative"))
-#
-#     chi_res_df <- do.call(rbind, lapply(chi_res, function(x) {
-#       data.frame(
-#         chi_square = x$chi_square,
-#         p_value = x$p_value,
-#         sign = x$sign,
-#         term = x$term,
-#         freq = x$tab[1,1],
-#         indep = x$tab[1,2]
-#       )
-#     })) %>% filter(!sign %in% signExcluded) %>% arrange(desc(chi_square))
-#
-#     row.names(chi_res_df) <- chi_res_df$term
-#     chi_res_df$cluster <- k
-#     terms_list[[k]] <- chi_res_df
-#   }
-#
-#   terms_list <- bind_rows(terms_list)
-#   segments_list <- bind_rows(segments_list) %>% drop_na("doc_id")
-#
-#
-#   return(list(terms =  terms_list, segments = segments_list))
-#
-#   ### DA AGGIUNGERE L'EVIDENZIAZIONE DEI TERMINI DEI SEGMENTI CHE APPARTENGONO AL CLUSTER
-# }
-#
-#
-# ## Chi Square test between observed and theoretical distribution
-# chi_squared_test <- function(tab) {
-#   # Controlla che la tabella sia una matrice o un data frame
-#   if (!is.matrix(tab) && !is.data.frame(tab)) {
-#     stop("La tabella deve essere una matrice o un data frame.")
-#   }
-#
-#   # Esegui il test chi-quadrato
-#    suppressWarnings(test_result <-chisq.test(tab))
-#
-#   # Estrai i valori di interesse
-#   chi_square_value <- test_result$statistic
-#   p_value <- test_result$p.value
-#
-#   tab <- prop.table(tab,2)
-#
-#   if (p_value<0.001){
-#     if ((tab[1,1]-tab[1,2])>0){
-#       sign <- "positive"
-#     }else{
-#       sign <- "negative"
-#     }
-#   }else{
-#     sign <- "none"
-#   }
-#
-#   # Return results into a list
-#   return(list(chi_square = chi_square_value, p_value = p_value, tab=tab, sign=sign))
-# }
-#
+#' Extract Terms and Segments for Document Clusters
+#'
+#' This function processes the results of a document clustering algorithm based on the Reinert method.
+#' It computes the terms and their significance for each cluster, as well as the associated document segments.
+#'
+#' @param res A list containing the results of the Reinert clustering algorithm. Must include at least `dtm` (a document-term matrix) and `corresp_uce_uc_full` (a correspondence between segments and clusters).
+#' @param cutree A custom cutree structure. If `NULL`, the default `cutree_reinart` is used to determine cluster membership.
+#' @param k A vector of integers specifying the clusters to analyze. Default is `1`.
+#' @param negative Logical. If `TRUE`, include negative terms in the results. If `FALSE`, exclude them. Default is `TRUE`.
+#'
+#' @return A list with the following components:
+#' \item{terms}{A data frame of significant terms for each cluster. Columns include:
+#'   \itemize{
+#'     \item \code{chi_square}: Chi-squared statistic for the term.
+#'     \item \code{p_value}: P-value of the chi-squared test.
+#'     \item \code{sign}: Significance of the term (\code{positive}, \code{negative}, or \code{none}).
+#'     \item \code{term}: The term itself.
+#'     \item \code{freq}: Observed frequency of the term in the cluster.
+#'     \item \code{indep}: Expected frequency of the term under independence.
+#'     \item \code{cluster}: The cluster ID.
+#'   }
+#' }
+#' \item{segments}{A data frame of document segments associated with each cluster. Columns include:
+#'   \itemize{
+#'     \item \code{uc}: Unique segment identifier.
+#'     \item \code{doc_id}: Document ID for the segment.
+#'     \item \code{cluster}: Cluster ID.
+#'     \item \code{segment}: The text content of each segment.
+#'   }
+#' }
+#'
+#' @details The function integrates document-term matrix rows for missing segments, calculates term statistics for each cluster, 
+#' and filters terms based on their significance. Terms can be excluded based on their significance (\code{signExcluded}).
+#'
+#' @export
+
+term_per_cluster <- function(res, cutree=NULL, k=1, negative=TRUE){
+
+  k <- k[!is.na(k)]
+  dtm <- res$dtm
+  groups <- cutree_reinart(res,cutree)
+  terms <- colnames(dtm)
+
+  ## integrate dtm with removed segments (by full-zero rows)
+  label <- row.names(dtm)
+  max_ind <- max(res$corresp_uce_uc_full$uc)
+
+  ind <- setdiff(as.character(1:max_ind),label)
+
+  if (length(ind)>0){
+    m <- matrix(0,length(ind),ncol(dtm))
+    row.names(m) <- ind
+    dtm <- rbind(dtm,m)
+    dtm <- dtm[order(as.numeric(rownames(dtm))), ]
+  }
+
+  terms_list <- list()
+  segments_list <- list()
+  K <- k
+  for (i in 1:length(K)){
+    k <- K[i]
+    ## list of segments following into the cluster k
+    select <- (groups == k & !is.na(groups))
+    segments <- row.names(dtm)[select]
+    segments_df <- tibble(uc=as.numeric(segments)) %>%
+      left_join(res$corresp_uce_uc_full, by="uc") %>%
+      mutate(cluster = k)
+    segments_list[[k]] <-segments_df
+
+    m1 <- colSums(dtm[select,])
+    m0 <- colSums(dtm[!select,])
+
+    totm1 <- sum(m1)
+    totm0 <- sum(m0)
+
+    chi_res <- list()
+
+    for (i in 1:length(m1)){
+      tab <- matrix(c(m1[i],m0[i],totm1,totm0),2,2)
+      chi_res[[i]] <- chi_squared_test(tab)
+      chi_res[[i]]$term <- terms[i]
+
+    }
+
+    signExcluded <- ifelse(isTRUE(negative),c("none"),c("none","negative"))
+
+    chi_res_df <- do.call(rbind, lapply(chi_res, function(x) {
+      data.frame(
+        chi_square = x$chi_square,
+        p_value = x$p_value,
+        sign = x$sign,
+        term = x$term,
+        freq = x$tab[1,1],
+        indep = x$tab[1,2]
+      )
+    })) %>% filter(!sign %in% signExcluded) %>% arrange(desc(chi_square))
+
+    row.names(chi_res_df) <- chi_res_df$term
+    chi_res_df$cluster <- k
+    terms_list[[k]] <- chi_res_df
+  }
+
+  terms_list <- bind_rows(terms_list)
+  segments_list <- bind_rows(segments_list) %>% drop_na("doc_id")
+
+  return(list(terms =  terms_list, segments = segments_list))
+
+}
+
+## Chi Square test between observed and theoretical distribution
+chi_squared_test <- function(tab) {
+  # Controlla che la tabella sia una matrice o un data frame
+  if (!is.matrix(tab) && !is.data.frame(tab)) {
+    stop("La tabella deve essere una matrice o un data frame.")
+  }
+
+  # Esegui il test chi-quadrato
+  suppressWarnings(test_result <-chisq.test(tab))
+
+  # Estrai i valori di interesse
+  chi_square_value <- test_result$statistic
+  p_value <- test_result$p.value
+
+  tab <- prop.table(tab,2)
+
+  if (p_value<0.001){
+    if ((tab[1,1]-tab[1,2])>0){
+      sign <- "positive"
+    }else{
+      sign <- "negative"
+    }
+  }else{
+    sign <- "none"
+  }
+
+  # Return results into a list
+  return(list(chi_square = chi_square_value, p_value = p_value, tab=tab, sign=sign))
+}
+
+
+# plot for terms by cluster
+
+#' Plot Terms by Cluster
+#'
+#' This function creates a horizontal bar plot to visualize the most significant terms 
+#' for each cluster, based on their Chi-squared statistics.
+#'
+#' @param terms A data frame containing terms and their associated statistics, such as Chi-squared values, 
+#' generated by the `term_per_cluster` function. The data frame must include the following columns:
+#' \itemize{
+#'   \item \code{term}: The term to plot.
+#'   \item \code{chi_square}: The Chi-squared statistic associated with the term.
+#'   \item \code{sign}: The sign of the term (\code{"positive"} or \code{"negative"}).
+#' }
+#' @param nPlot Integer. The number of top terms to plot for each sign (\code{"positive"} and \code{"negative"}). Default is 10.
+#'
+#' @return An interactive horizontal bar plot (using `plotly`) displaying the top terms for each cluster. The plot includes:
+#' \itemize{
+#'   \item Bars representing the Chi-squared values of terms.
+#'   \item Hover information displaying the term and its Chi-squared value.
+#' }
+#'
+#' @details The function organizes the input data by Chi-squared values and selects the top terms for each sign. 
+#' The plot uses different colors for positive and negative terms, with hover tooltips providing detailed information.
+#'
+#' @seealso \code{\link{term_per_cluster}}
+#' 
+#' @export
+#' 
+reinPlot <- function(terms, nPlot = 10) {
+  # Separate positive and negative terms
+  dfPositive <- terms %>%
+    filter(sign == "positive") %>%
+    ungroup() %>% 
+    arrange(desc(chi_square)) %>%
+    slice_head(n = nPlot)
+
+  dfNegative <- terms %>%
+    filter(sign == "negative") %>%
+    ungroup() %>% 
+    arrange(desc(chi_square)) %>%
+    slice_head(n = nPlot)
+
+  # Combine positive and negative terms
+  dfPlot <- bind_rows(dfPositive, dfNegative) %>%
+    mutate(
+      term = factor(term, levels = rev(c(dfPositive$term, dfNegative$term))) # Invertire l'ordine
+    )
+
+  # Assign colors
+  color <- colorlist()
+
+  # build the plot
+  fig1 <- plot_ly(
+    data = dfPlot,
+    x = ~chi_square,
+    y = ~term,
+    type = "bar",
+    orientation = 'h',
+    marker = list(color = ~ifelse(sign == "positive", color[1], color[2])),
+    hovertemplate = "<b><i>Term: %{y}</i></b> <br> <b><i>Chi2: %{x}</i></b><extra></extra>"
+  )
+
+  # layout
+  fig1 <- fig1 %>% plotly::layout(yaxis = list(title ="Terms", showgrid = FALSE, showline = FALSE, showticklabels = TRUE, domain= c(0, 1)),
+                          xaxis = list(title = "Chi2", zeroline = FALSE, showline = FALSE, showticklabels = TRUE, showgrid = FALSE),
+                          plot_bgcolor  = "rgba(0, 0, 0, 0)",
+                          paper_bgcolor = "rgba(0, 0, 0, 0)") %>%
+    plotly::config(displaylogo = FALSE,
+           modeBarButtonsToRemove = c(
+             'sendDataToCloud',
+             'pan2d',
+             'select2d',
+             'lasso2d',
+             'toggleSpikelines',
+             'hoverClosestCartesian',
+             'hoverCompareCartesian'
+           ))
+
+  return(fig1)
+}
+
+# summarize Reinert Results
+
+#' Summarize Reinert Clustering Results
+#'
+#' This function summarizes the results of the Reinert clustering algorithm, including the most frequent documents and significant terms for each cluster. 
+#' The input is the result returned by the `term_per_cluster` function.
+#'
+#' @param tc A list returned by the \code{term_per_cluster} function. The list includes:
+#' \itemize{
+#'   \item \code{segments}: A data frame with segments information, including \code{cluster} and \code{doc_id}.
+#'   \item \code{terms}: A data frame with terms information, including \code{cluster}, \code{sign}, \code{chi_square}, and \code{term}.
+#' }
+#' @param n Integer. The number of top terms (based on Chi-squared value) to include in the summary for each cluster and sign. Default is 10.
+#'
+#' @return A data frame summarizing the clustering results. The table includes:
+#' \itemize{
+#'   \item \code{cluster}: The cluster ID.
+#'   \item \code{Positive terms}: The top \code{n} positive terms for each cluster, concatenated into a single string.
+#'   \item \code{Negative terms}: The top \code{n} negative terms for each cluster, concatenated into a single string.
+#'   \item \code{Most frequent document}: The document ID that appears most frequently in each cluster.
+#'   \item \code{N. of Documents per Cluster}: The number of documents in each cluster.
+#' }
+#'
+#' @details This function performs the following steps:
+#' \enumerate{
+#'   \item Extracts the most frequent document for each cluster.
+#'   \item Summarizes the number of documents per cluster.
+#'   \item Selects the top \code{n} terms for each cluster, separated by positive and negative signs.
+#'   \item Combines the terms and segment information into a final summary table.
+#' }
+#'
+#'
+#' @seealso \code{\link{term_per_cluster}}, \code{\link{reinPlot}}
+#' 
+#' @export
+#' 
+reinSummary <- function(tc, n=10){
+  segments <- tc$segments %>% 
+    group_by(cluster) %>% 
+    # summarise("Number of Segments" = n()) %>% 
+    # group_by(cluster) %>% 
+    summarize("Most frequent document" = names(which.max(table(doc_id))),
+              "N. of Segments per Cluster" = n()
+    )
+  
+  terms <- tc$terms %>% 
+    group_by(cluster, sign) %>% 
+    slice_max(order_by = chi_square, n=10, with_ties = TRUE) %>% 
+    summarize(terms = paste0(term,collapse="; ")) %>%
+      pivot_wider(
+        names_from = sign, 
+        values_from = terms, 
+        names_prefix = ""
+      ) %>%
+      rename(
+        "Positive terms" = positive, 
+        "Negative terms" = negative
+      )
+  
+  summaryTable <- terms %>% 
+    left_join(segments, by = "cluster")
+  
+  return(summaryTable)
+}
+
+cutree_reinart <- function(res, k = NULL) {
+  if (!is.null(k)){
+    res$uce_groups[[min(c(k-1,length(res$uce_groups)))]]
+  } else{
+    res$uce_groups[[length(res$uce_groups)]]
+  }
+
+}
+
+## Color palette for plots
+colorlist <- function(){
+  c("#4DAF4A", "#E41A1C","#377EB8","#984EA3","#FF7F00","#A65628","#F781BF","#999999","#66C2A5","#FC8D62","#8DA0CB","#E78AC3","#A6D854","#FFD92F"
+    ,"#B3B3B3","#A6CEE3","#1F78B4","#B2DF8A","#33A02C","#FB9A99","#E31A1C","#FDBF6F","#FF7F00","#CAB2D6","#6A3D9A","#B15928","#8DD3C7","#BEBADA"
+    ,"#FB8072","#80B1D3","#FDB462","#B3DE69","#D9D9D9","#BC80BD","#CCEBC5")
+}

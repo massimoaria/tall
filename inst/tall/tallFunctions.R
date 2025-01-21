@@ -156,13 +156,15 @@ loadSampleCollection <- function(sampleName){
          bibliometrix={
            #check if the file model already exists
            file_lang <- dir(path_language_model,pattern="tall_bibliometrix.tall")[1]
-           url <- paste0("https://www.bibliometrix.org/tall_lexicon/sampleData/tall_bibliometrix.tall")
+           #url <- paste0("https://www.bibliometrix.org/tall_lexicon/sampleData/tall_bibliometrix.tall")
+           url <- paste0("https://raw.githubusercontent.com/massimoaria/tall.language.models/main/sample.data/tall_bibliometrix.tall")
+           
            destfile <- paste0(path_language_model,"/tall_bibliometrix.tall")
            file <- paste0(path_language_model,"/tall_bibliometrix.tall")
          },
          bbc={
            file_lang <- dir(path_language_model,pattern="bbc.zip")[1]
-           url <- paste0("https://www.bibliometrix.org/tall_lexicon/sampleData/bbc.zip")
+           url <- paste0("https://raw.githubusercontent.com/massimoaria/tall.language.models/main/sample.data/bbc.zip")
            destfile <- paste0(path_language_model,"/bbc.zip")
            file <- paste0(path_language_model,"/bbc.zip")
          })
@@ -350,7 +352,7 @@ tall_download_model <- function(file,
 
     filename <- paste0(file,"-ud-",model_repo,".udpipe")
 
-      url <- file.path("https://raw.githubusercontent.com/massimoaria/udpipe.models/main",
+      url <- file.path("https://raw.githubusercontent.com/massimoaria/tall.language.models/main",
       model_repo, filename)
       to <- file.path(model_dir, filename)
       download_failed <- FALSE
@@ -863,7 +865,7 @@ freqByPos <- function(df, term="lemma", pos="NOUN"){
 }
 
 # freqPlotly ----
-freqPlotly <- function(dfPlot,x,y,n=10, xlabel,ylabel, scale=c("identity", "log"), topicmodel=FALSE,color="#4F7942", decimal=0, reinert=FALSE){
+freqPlotly <- function(dfPlot,x,y,n=10, xlabel,ylabel, scale=c("identity", "log"), topicmodel=FALSE,color="#4F7942", decimal=0){
   # function to build and plot plotly horizontal barplot
   dfPlot <- dfPlot %>% dplyr::slice_head(n=n)
   xmax <- max(dfPlot[[x]])
@@ -1113,165 +1115,6 @@ tfidf <- function(dfTag, term="lemma", document="doc_id"){
   dtm <- document_term_matrix(dtm)
   tfidf <- dtm_tfidf(dtm)
   tibble(term=names(tfidf), TFIDF=as.numeric(tfidf)) %>% arrange(desc(tfidf))
-}
-
-### REINERT CLUSTERING ----
-cutree_reinart <- function(res, k = NULL) {
-  if (!is.null(k)){
-    res$uce_groups[[min(c(k-1,length(res$uce_groups)))]]
-  } else{
-    res$uce_groups[[length(res$uce_groups)]]
-  }
-
-}
-
-term_per_cluster <- function(res, cutree=NULL, k=1, negative=TRUE){
-
-  k <- k[!is.na(k)]
-  dtm <- res$dtm
-  groups <- cutree_reinart(res,cutree)
-  terms <- colnames(dtm)
-
-  ## integrate dtm with removed segments (by full-zero rows)
-  label <- row.names(dtm)
-  max_ind <- max(res$corresp_uce_uc_full$uc)
-
-  ind <- setdiff(as.character(1:max_ind),label)
-
-  if (length(ind)>0){
-    m <- matrix(0,length(ind),ncol(dtm))
-    row.names(m) <- ind
-    dtm <- rbind(dtm,m)
-    dtm <- dtm[order(as.numeric(rownames(dtm))), ]
-  }
-
-  terms_list <- list()
-  segments_list <- list()
-  K <- k
-  for (i in 1:length(K)){
-    k <- K[i]
-    ## list of segments following into the cluster k
-    select <- (groups == k & !is.na(groups))
-    segments <- row.names(dtm)[select]
-    segments_df <- tibble(uc=as.numeric(segments)) %>%
-      left_join(res$corresp_uce_uc_full, by="uc") %>%
-      mutate(cluster = k)
-    segments_list[[k]] <-segments_df
-
-
-    m1 <- colSums(dtm[select,])
-    m0 <- colSums(dtm[!select,])
-
-    totm1 <- sum(m1)
-    totm0 <- sum(m0)
-
-    chi_res <- list()
-
-    for (i in 1:length(m1)){
-      tab <- matrix(c(m1[i],m0[i],totm1,totm0),2,2)
-      chi_res[[i]] <- chi_squared_test(tab)
-      chi_res[[i]]$term <- terms[i]
-
-    }
-
-    signExcluded <- ifelse(isTRUE(negative),c("none"),c("none","negative"))
-
-    chi_res_df <- do.call(rbind, lapply(chi_res, function(x) {
-      data.frame(
-        chi_square = x$chi_square,
-        p_value = x$p_value,
-        sign = x$sign,
-        term = x$term,
-        freq = x$tab[1,1],
-        indep = x$tab[1,2]
-      )
-    })) %>% filter(!sign %in% signExcluded) %>% arrange(desc(chi_square))
-
-    row.names(chi_res_df) <- chi_res_df$term
-    chi_res_df$cluster <- k
-    terms_list[[k]] <- chi_res_df
-  }
-
-  terms_list <- bind_rows(terms_list)
-  segments_list <- bind_rows(segments_list) %>% drop_na("doc_id")
-
-  return(list(terms =  terms_list, segments = segments_list))
-
-  ### DA AGGIUNGERE L'EVIDENZIAZIONE DEI TERMINI DEI SEGMENTI CHE APPARTENGONO AL CLUSTER
-}
-
-
-## Chi Square test between observed and theoretical distribution
-chi_squared_test <- function(tab) {
-  # Controlla che la tabella sia una matrice o un data frame
-  if (!is.matrix(tab) && !is.data.frame(tab)) {
-    stop("La tabella deve essere una matrice o un data frame.")
-  }
-
-  # Esegui il test chi-quadrato
-  suppressWarnings(test_result <-chisq.test(tab))
-
-  # Estrai i valori di interesse
-  chi_square_value <- test_result$statistic
-  p_value <- test_result$p.value
-
-  tab <- prop.table(tab,2)
-
-  if (p_value<0.001){
-    if ((tab[1,1]-tab[1,2])>0){
-      sign <- "positive"
-    }else{
-      sign <- "negative"
-    }
-  }else{
-    sign <- "none"
-  }
-
-  # Return results into a list
-  return(list(chi_square = chi_square_value, p_value = p_value, tab=tab, sign=sign))
-}
-
-
-# plot for terms by cluster
-reinPlot <- function(terms, nPlot=10){
-
-  dfPlot <- terms %>%
-    select(term, chi_square, sign) %>%
-    mutate(y = chi_square,
-           chi_square= format(round(chi_square, 1), nsmall = 1)) %>%
-    group_by(sign) %>%
-    arrange(desc(y), .by_group = TRUE) %>%
-    slice_max(y, n=nPlot, with_ties = FALSE) %>%
-    ungroup() %>%
-    mutate(
-      y = as.integer(y),
-      term = factor(term, levels = unique(term)[order(y, decreasing = FALSE)]))
-
-  color <- colorlist()
-
-  fig1 <- plot_ly(data=dfPlot, x=dfPlot$y, y=~reorder(dfPlot$term, dfPlot$y),
-                  type = "bar",
-                  orientation = 'h',
-                  marker = list(color = ~ifelse(sign == "positive", color[1], color[2])),
-                  hovertemplate = "<b><i>Term: %{y}</i></b> <br> <b><i>Chi2: %{x}</i></b><extra></extra>"
-  )
-
-  fig1 <- fig1 %>% layout(yaxis = list(title ="Terms", showgrid = FALSE, showline = FALSE, showticklabels = TRUE, domain= c(0, 1)),
-                          xaxis = list(title = "Chi2", zeroline = FALSE, showline = FALSE, showticklabels = TRUE, showgrid = FALSE),
-                          plot_bgcolor  = "rgba(0, 0, 0, 0)",
-                          paper_bgcolor = "rgba(0, 0, 0, 0)") %>%
-    config(displaylogo = FALSE,
-           modeBarButtonsToRemove = c(
-             'sendDataToCloud',
-             'pan2d',
-             'select2d',
-             'lasso2d',
-             'toggleSpikelines',
-             'hoverClosestCartesian',
-             'hoverCompareCartesian'
-           ))
-
-  return(fig1)
 }
 
 ### CLUSTERING ----
@@ -2596,8 +2439,20 @@ tmHeatmap <- function(beta){
              'hoverClosestCartesian',
              'hoverCompareCartesian'
            ))
-
-  return(list(Hplot=Hplot))
+# create a ggplot2 graph to be exported
+           HplotStatic <- ggplot(data = df, aes(x = variable, y = y, fill = value)) +
+            geom_tile(color = "white") +  # Heatmap con celle delineate in bianco
+            scale_fill_gradientn(colors = pal, limits = c(-1, 1)) +  # Palette e limiti del gradiente
+            geom_text(aes(label = value), color = "black", size = 3) +  # Annotazioni con i valori
+            theme_minimal() +  # Tema minimal
+            theme(
+              axis.text.x = element_text(angle = 45, hjust = 1),  # Rotazione asse X per leggibilità
+              panel.grid = element_blank(),  # Rimuove la griglia
+              panel.border = element_blank()  # Rimuove il bordo
+            ) +
+            labs(x = NULL, y = NULL, fill = "Value")  # Etichette asse
+  
+  return(list(Hplot=Hplot,HplotStatic=HplotStatic))
 }
 
 tmTopicPlot <- function(beta, topic=1, nPlot=10){
@@ -2697,11 +2552,11 @@ loadSentimentLanguage <- function(language){
   if (is.na(file_lang)){
     switch(Sys.info()[['sysname']],
            Windows={
-             download.file(url = paste0("https://www.bibliometrix.org/tall_lexicon/",language,".lexicon"),
+             download.file(url = paste0("https://raw.githubusercontent.com/massimoaria/tall.language.models/main/lexicon.data/",language,".lexicon"),
                            destfile = paste0(path_language_model,"/",language,".lexicon"), mode = "wb")
            },
            {
-             download.file(url = paste0("https://www.bibliometrix.org/tall_lexicon/",language,".lexicon"),
+             download.file(url = paste0("https://raw.githubusercontent.com/massimoaria/tall.language.models/main/lexicon.data/",language,".lexicon"),
                            destfile = paste0(path_language_model,"/",language,".lexicon"))
            }
     )
@@ -3010,7 +2865,7 @@ textrankDocument <- function(dfTag, id){
     arrange(desc(textrank))
 
   s <- s %>%
-    left_join(df %>% select(paragraph_id,sentence_id) %>% distinct(), by = c("textrank_id"="sentence_id"))
+    left_join(df %>% select(paragraph_id,sentence_id, sentence) %>% distinct(), by = c("sentence"))
   results <- list(s=s,id=id,sentences=tr$sentences %>% arrange(desc(textrank)))
   return(results)
 }
@@ -3033,6 +2888,7 @@ abstractingDocument <- function(s,n,id){
   abstract <- s %>%
     filter(h==1) %>%
     group_by(paragraph_id) %>%
+    arrange(sentence_id, .by_group = TRUE) %>%
     summarize(paragraph = paste(sentence, collapse=" ")) %>%
     ungroup %>%
     summarize(text=paste(paragraph, collapse="<br><br>&nbsp&nbsp&nbsp&nbsp&nbsp")) %>%
@@ -3168,7 +3024,6 @@ short2long <- function(df, myC){
 }
 
 
-## Labels sheets Report
 ## Labels sheets Report
 dfLabel <- function(){
   short <- c("Empty Report",
@@ -3443,11 +3298,11 @@ highlight <- function(df){
 # }
 
 ## saveTall function ----
-saveTall <- function(dfTag,custom_lists,language,menu,where,file){
+saveTall <- function(dfTag,custom_lists,language,treebank,menu,where,file){
   D <- date()
   D <- strsplit(gsub("\\s+", " ", D)," ")
   D <- paste(unlist(D)[c(1,2,3,5)],collapse=" ")
-  save(dfTag,custom_lists,language,menu,D,where,file=file)
+  save(dfTag,custom_lists,language,treebank,menu,D,where,file=file)
 }
 
 ###Export Tall analysis in .tall file ----

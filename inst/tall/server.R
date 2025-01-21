@@ -548,14 +548,7 @@ observeEvent(input$reset_confirmation2, {
   })
 
   ### Convert Raw Data in Excel functions ----
-  # output$collection.save <- downloadHandler(
-  #   filename = function() {
-  #     paste("Tall-Export-File-", Sys.Date(), ".xlsx", sep="")
-  #   },
-  #   content <- function(file) {
-  #     suppressWarnings(openxlsx::write.xlsx(values$txt, file=file))
-  #   }, contentType = "xlsx"
-  # )
+ 
   output$collection.save <- downloadHandler(
     filename = function() {
       paste("Tall-Export-File-", Sys.Date(), ".csv", sep="")
@@ -671,6 +664,11 @@ observeEvent(input$reset_confirmation2, {
                                n=as.numeric(round((input$sampleSize/100)*nrow(values$txt)),0))
   })
 
+  output$sampleSizeUI <- renderUI({
+    req(input$sampleSize)
+    HTML(paste0("<br><h5><em>Number of randomly selected texts: </em><b>", as.numeric(round((input$sampleSize/100)*nrow(values$txt)),0),"</b></h5>"))
+  })
+
   output$randomTextData <- DT::renderDT({
     randomTextFunc()
     DTformat(values$txt %>%
@@ -719,19 +717,6 @@ observeEvent(input$reset_confirmation2, {
     }, contentType = "xlsx"
   )
 
-  # # Aggiunta del downloadHandler per il file .xlsx
-  # output$extInfoSave <- downloadHandler(
-  #   filename = function() {
-  #     paste("Tall_Export_File_", Sys.Date(), ".xlsx", sep = "")
-  #   },
-  #   content <- function(file) {
-  #     suppressWarnings(openxlsx::write.xlsx(values$txt %>%
-  #                                             filter(doc_selected) %>%
-  #                                           select(-c("text_original","doc_selected")),
-  #                                           file=file))
-  #   }, contentType = "xlsx"
-  # )
-
   output$extInfoSave <- downloadHandler(
     filename = function() {
       paste("Tall-Export-File-", Sys.Date(), ".csv", sep="")
@@ -761,14 +746,6 @@ observeEvent(input$reset_confirmation2, {
   ### PRE-PROCESSING ----
 
   ## Tokenization & PoS Tagging ----
-
-  # output$optionsTokenization <- renderUI({
-  #   selectInput(
-  #     inputId = 'language_model', label="Select language", choices = values$label_lang,
-  #     multiple=FALSE,
-  #     width = "100%"
-  #   )
-  # })
 
   output$flagUI <- renderUI({
     tags$img(src = values$flag, height = "25px", width = "40px", style = "margin-top:-30px;")
@@ -818,6 +795,7 @@ output$info_treebank <- renderUI({
     input$tokPosRun
   },{
     values$language <- input$language_model
+    values$treebank <- input$treebank
     values$language_file <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(file) %>% as.character()
     ## download and load model language
     udmodel_lang <- loadLanguageModel(file = values$language_file)
@@ -869,7 +847,7 @@ output$info_treebank <- renderUI({
       paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
     },
     content <- function(file) {
-      saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "Custom Term Lists", file)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Custom Term Lists", file)
       # D <- date()
       # save(dfTag,menu,D,where, file=file)
     }, contentType = "tall"
@@ -936,7 +914,7 @@ output$info_treebank <- renderUI({
       paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
     },
     content <- function(file) {
-      saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "POS Tag Selection", file)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "POS Tag Selection", file)
       # D <- date()
       # save(dfTag,menu,D,where, file=file)
     }, contentType = "tall"
@@ -1089,7 +1067,7 @@ output$info_treebank <- renderUI({
       paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
     },
     content <- function(file) {
-      saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "Custom Term Lists", file)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Custom Term Lists", file)
       # D <- date()
       # save(dfTag,menu,D,where, file=file)
     }, contentType = "tall"
@@ -1120,7 +1098,6 @@ output$multiwordPosSel <- renderUI({
 )
 })
 
-#proxy3 <- dataTableProxy('multiwordList')
 proxy4 <- dataTableProxy('multiwordData')
 
 multiword <- eventReactive({
@@ -1222,7 +1199,7 @@ multiword <- eventReactive({
       paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
     },
     content <- function(file) {
-      saveTall(values$dfTag, values$stats, values$language, values$menu, "Multi-Word Creation", file)
+      saveTall(values$dfTag, values$stats, values$language, values$treebank, values$menu, "Multi-Word Creation", file)
       # D <- date()
       # save(dfTag,menu,D,where, file=file)
     }, contentType = "tall"
@@ -1307,9 +1284,7 @@ multiword <- eventReactive({
       paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
     },
     content <- function(file) {
-      saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "Multi-Word by a List", file)
-      # D <- date()
-      # save(dfTag,menu,D,where, file=file)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Multi-Word by a List", file)
     }, contentType = "tall"
   )
 
@@ -1374,7 +1349,7 @@ multiword <- eventReactive({
       paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
     },
     content <- function(file) {
-      saveTall(values$dfTag, values$custom_lists, values$language, values$menu, "POS Tag Selection", file)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$treebank, values$menu, "POS Tag Selection", file)
       # D <- date()
       # save(dfTag,menu,D,where, file=file)
     }, contentType = "tall"
@@ -2233,7 +2208,7 @@ observeEvent(input$closePlotModalDoc,{
     ignoreNULL = TRUE,
     eventExpr = {input$wordsContSearch},
     valueExpr = {
-      word_search <- req(tolower(input$wordsContSearch))
+      word_search <- req(tolower(trimws(input$wordsContSearch)))
       values$wordInContext <- values$dfTag %>%
         filter(docSelected) %>%
         filter(tolower(lemma) %in% word_search | tolower(token) %in% word_search) %>%
@@ -2259,7 +2234,8 @@ observeEvent(input$closePlotModalDoc,{
         cc_test = input$w_rein_cc_test, tsj = input$w_rein_tsj
       )
 
-      values$tc <- term_per_cluster(values$reinert, cutree=NULL, k=unique(values$reinert$group))
+      values$tc <- tall::term_per_cluster(values$reinert, cutree=NULL, k=unique(values$reinert$group))
+      values$reinertSummary <- tall:reinSummary(values$tc, 10)
 
       #groups <- tibble(uc=1:length(values$reinert$group), Cluster=values$reinert$group)
       values$tc$segments <- values$tc$segments %>%
@@ -2303,6 +2279,11 @@ observeEvent(input$closePlotModalDoc,{
     # find sentences containing the tokens/lemmas
     DTformat(values$tc$segments, size='100%', button=TRUE)
   })
+  output$w_ReinSummaryTable <- renderDT({
+    dendReinFunction()
+    # find sentences containing the tokens/lemmas
+    DTformat(values$reinertSummary, size='100%', button=FALSE)
+  })
 
   output$w_ReinClusteringTableTerms <- renderDT({
     dendReinFunction()
@@ -2340,7 +2321,8 @@ observeEvent(input$closePlotModalDoc,{
     if(!is.null(values$reinert)){
       popUp(title=NULL, type="waiting")
       sheetname <- "Reinert"
-      list_df <- list(values$tc$terms %>%
+      list_df <- list(values$reinertSummary,
+                      values$tc$terms %>%
                         mutate(freq = round(freq*100,1)) %>%
                         select(term, freq, chi_square, p_value, sign, cluster) %>%
                         rename("Term" = term,
@@ -2807,18 +2789,25 @@ observeEvent(input$closePlotModalDoc,{
                eventExpr={input$click_rein},
                handlerExpr = {
                  if (input$click_rein!="null"){
-                   id <- unlist(input$click_rein)
-                   words_id <- c(id, unlist(values$ReinertDendrogram$x$nodes$neib[values$ReinertDendrogram$x$nodes$id==id]))
-                   words <- unlist(values$ReinertDendrogram$x$nodes$label[values$ReinertDendrogram$x$nodes$id %in% words_id])
-                   word_search <- as.numeric(words[!is.na(words)])
-                   values$word_search_rein <- word_search
+                  id <- unlist(input$click_rein)
+                  words_id <- c(id, unlist(values$ReinertDendrogram$x$nodes$neib[values$ReinertDendrogram$x$nodes$id==id]))
+                  words <- unlist(values$ReinertDendrogram$x$nodes$label[values$ReinertDendrogram$x$nodes$id %in% words_id])
+                  word_search <- as.numeric(words[!is.na(words)])
+                  values$word_search_rein <- word_search
 
                    if (length(word_search)>0){
-                     #values$tc <- term_per_cluster(res, cutree = NULL, k=word_search)
+
                      values$tc_k <- values$tc
-                     values$tc_k$terms <- values$tc_k$terms %>% filter(cluster %in% word_search)
+
+                     # remove duplicated terms when two or more clusters are aggregated
+                     values$tc_k$terms <- values$tc_k$terms %>% 
+                      filter(cluster %in% word_search) %>% 
+                      group_by(term) %>% 
+                      slice_min(order_by = p_value, n=1) %>% 
+                      ungroup()
+                     
                      values$tc_k$segments <- values$tc_k$segments %>% filter(cluster %in% word_search)
-                     segments <- values$tc
+                     #segments <- values$tc
                      values$tc_k <- highlight_segments(values$tc_k, n=10)
 
                      # values$tc_k$segments <- values$tc_k$segments %>%
@@ -2864,7 +2853,7 @@ observeEvent(input$closePlotModalDoc,{
   }, escape=FALSE)
 
   output$plotInContextRein <- renderPlotly({
-    reinPlot(values$tc_k$terms, nPlot=10)
+    tall::reinPlot(values$tc_k$terms, nPlot=10)
   })
 
 
@@ -2984,6 +2973,31 @@ observeEvent(input$closePlotModalDoc,{
 
   ## Topic Modeling ----
   ## K choice ----
+
+  output$TMmetric <- renderUI({
+    
+    switch(Sys.info()[['sysname']],
+         Darwin = {
+          metrics <- c(
+            "CaoJuan-2009"="CaoJuan2009",
+            "Deveaud-2014"="Deveaud2014",
+            "Arun-2010"="Arun2010"
+          )
+         },
+        {
+            metrics <- c(
+              "CaoJuan-2009"="CaoJuan2009",
+              "Deveaud-2014"="Deveaud2014",
+              "Arun-2010"="Arun2010",
+              "Griffiths-2004"="Griffiths2004"
+            )
+        })
+    
+    selectInput("metric", "Metric for model tuning",
+                                       choices = metrics,
+                                       selected = "CaoJuan2009"
+                           )
+  })
 
   netTMKselect <- eventReactive(
     ignoreNULL = TRUE,
@@ -3217,9 +3231,10 @@ observeEvent(input$closePlotModalDoc,{
       on.exit(setwd(owd))
       values$tmGplotBeta <- topicGplot(values$TMestim_result$beta, nPlot=input$nTopicPlot, type="beta")
       values$tmGplotTheta <- topicGplot(values$TMestim_result$theta, nPlot=input$nTopicPlot, type="theta")
+      ggsave(filename = "TMCorrPlots.png", plot = values$tmHeatmap$HplotStatic, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
       ggsave(filename = "TMTermPlots.png", plot = values$tmGplotBeta, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
       ggsave(filename = "TMDocPlots.png", plot = values$tmGplotTheta, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
-      zip(file,c("TMTermPlots.png","TMDocPlots.png"))
+      zip(file,c("TMTermPlots.png","TMDocPlots.png","TMCorrPlots.png"))
     },
     contentType = "zip"
   )
@@ -3232,7 +3247,7 @@ observeEvent(input$closePlotModalDoc,{
       values$tmGplotBeta <- topicGplot(values$TMestim_result$beta, nPlot=input$nTopicPlot, type="beta")
       values$tmGplotTheta <- topicGplot(values$TMestim_result$theta, nPlot=input$nTopicPlot, type="theta")
       list_df <- list(values$beta, values$theta)
-      list_plot <- list(values$tmGplotBeta,values$tmGplotTheta)
+      list_plot <- list(values$tmGplotBeta,values$tmGplotTheta, values$tmHeatmap$HplotStatic)
       wb <- addSheetToReport(list_df,list_plot,sheetname = "ModelEstim", wb=values$wb)
       values$wb <- wb
       popUp(title="Model Estimation Results", type="success")
