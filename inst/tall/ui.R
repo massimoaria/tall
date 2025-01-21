@@ -72,7 +72,7 @@ donation <- 'https://www.bibliometrix.org/home/index.php/donation'
 k_synth <- 'https://www.k-synth.unina.it'
 github_aria <- 'https://github.com/massimoaria/tall'
 
-reinert_references <- helpContent()$reinert
+infoTexts <- helpContent()
 
 header <- shinydashboardPlus::dashboardHeader(title = title_tall,
                                               titleWidth = 250, controlbarIcon = NULL,
@@ -255,48 +255,63 @@ body <- dashboardBody(
     tabItem(tabName = "import_tx",
             fluidPage(
               fluidRow(
-                column(9,
-                       shinycssloaders::withSpinner(DT::DTOutput("dataImported"),color = getOption("spinner.color", default = "#4F7942"))
-                ),
-                column(3,
-                       fluidRow(
-                         box(
-                           width = 12,
-                           div(h3(strong(em("Import texts"))), style="margin-top:-57px"),
-                           hr(),
-                           uiOutput("runButton"),
-                           conditionalPanel(condition="input.runImport > 0",
-                                            tags$hr(),
-                                            div(
-                                              fluidRow(
-                                                column(6,
-                                                       div(align="center",
-                                                           title = "Export raw text(s) in Excel",
-                                                           do.call("downloadButton", c(list(
-                                                             label=NULL,
-                                                             style ="display:block; height: 37px; width: 37px; border-radius: 50%;
+                tabsetPanel(type="tabs",
+                            tabPanel("Corpus",
+                                     column(9,
+                                            shinycssloaders::withSpinner(DT::DTOutput("dataImported"),color = getOption("spinner.color", default = "#4F7942"))
+                                     ),
+                                     column(3,
+                                            fluidRow(
+                                              box(
+                                                width = 12,
+                                                div(h3(strong(em("Import texts"))), style="margin-top:-57px"),
+                                                hr(),
+                                                uiOutput("runButton"),
+                                                conditionalPanel(condition="input.runImport > 0",
+                                                                 tags$hr(),
+                                                                 div(
+                                                                   fluidRow(
+                                                                     column(6,
+                                                                            div(align="center",
+                                                                                title = "Export raw text(s) in Excel",
+                                                                                do.call("downloadButton", c(list(
+                                                                                  label=NULL,
+                                                                                  style ="display:block; height: 37px; width: 37px; border-radius: 50%;
                                       border: 1px; margin-top: 16px;",
-                                                             icon = icon(name ="download-alt", lib="glyphicon"),
-                                                             outputId = "collection.save")
-                                                           )
-                                                           )
-                                                       )
-                                                ),
-                                                column(6,
-                                                       div(align="center",
-                                                           title = "Back to imported text(s) ",
-                                                           do.call("actionButton", c(back_bttn, list(
-                                                             inputId = "importTextBack")
-                                                           )
-                                                           )
-                                                       )
+                                                                                  icon = icon(name ="download-alt", lib="glyphicon"),
+                                                                                  outputId = "collection.save")
+                                                                                )
+                                                                                )
+                                                                            )
+                                                                     ),
+                                                                     column(6,
+                                                                            div(align="center",
+                                                                                title = "Back to imported text(s) ",
+                                                                                do.call("actionButton", c(back_bttn, list(
+                                                                                  inputId = "importTextBack")
+                                                                                )
+                                                                                )
+                                                                            )
+                                                                     )
+                                                                   )
+                                                                   ,style="margin-top: -15px"
+                                                                 )
                                                 )
                                               )
-                                              ,style="margin-top: -15px"
                                             )
-                           )
-                         )
-                       )
+                                     )),
+                            tabPanel("Info & References",
+                                     fluidPage(
+                                       fluidRow(
+                                         column(1),
+                                         column(10,
+                                                br(),
+                                                HTML(infoTexts$importmenu)
+                                         ),
+                                         column(1)
+                                       )
+                                     ))
+
                 )
               )
             )
@@ -774,7 +789,18 @@ body <- dashboardBody(
                                    ,tabPanel("Annotated Text including Multi-Word",
                                             shinycssloaders::withSpinner(DT::DTOutput("multiwordData"),
                                                                          color = getOption("spinner.color", default = "#4F7942"))
-                                   )
+                                   ),
+                                   tabPanel("Info & References",
+                                            fluidPage(
+                                              fluidRow(
+                                                column(1),
+                                                column(10,
+                                                       br(),
+                                                       HTML(infoTexts$multiwordcreation)
+                                                ),
+                                                column(1)
+                                              )
+                                            ))
                        )
                 ),
                 column(5,
@@ -1715,7 +1741,7 @@ body <- dashboardBody(
                                          column(1),
                                          column(10,
                                                 br(),
-                                                HTML(reinert_references)
+                                                HTML(infoTexts$reinert)
                                          ),
                                          column(1)
                                        )
@@ -1870,9 +1896,20 @@ body <- dashboardBody(
                             tabPanel("Cosines Squared",
                                      shinycssloaders::withSpinner(DT::DTOutput("caCosineTable"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                            ),
+                            tabPanel("Info & References",
+                                     fluidPage(
+                                       fluidRow(
+                                         column(1),
+                                         column(10,
+                                                br(),
+                                                HTML(infoTexts$correspondenceanalysis)
+                                         ),
+                                         column(1)
+                                       )
+                                     )
                             )
-
-                )
+                            )
               )
             )
     ),
@@ -2002,9 +2039,20 @@ body <- dashboardBody(
                             tabPanel("Links",
                                      shinycssloaders::withSpinner(DT::DTOutput("w_networkCoocEdgesTable"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                            ),
+                            tabPanel("Info & References",
+                                     fluidPage(
+                                       fluidRow(
+                                         column(1),
+                                         column(10,
+                                                br(),
+                                                HTML(infoTexts$cowordanalysis)
+                                         ),
+                                         column(1)
+                                       )
+                                     )
                             )
-
-                )
+                            )
               )
             )
     ),
@@ -2156,6 +2204,18 @@ body <- dashboardBody(
                                    tabPanel("Table",
                                             shinycssloaders::withSpinner(DT::DTOutput("d_tm_selectTable"),
                                                                          color = getOption("spinner.color", default = "#4F7942"))
+                                   ),
+                                   tabPanel("Info & References",
+                                            fluidPage(
+                                              fluidRow(
+                                                column(1),
+                                                column(10,
+                                                       br(),
+                                                       HTML(infoTexts$tmkchoice)
+                                                ),
+                                                column(1)
+                                              )
+                                            )
                                    )
                        )
                 ),
@@ -2359,14 +2419,18 @@ body <- dashboardBody(
                                    shinycssloaders::withSpinner(plotlyOutput(outputId = "d_tm_networkPlot", height = "75vh",width ="98.9%"),
                                                                 #visNetworkOutput("d_tm_networkPlot", width="auto", height = "75vh"),
                                                                 color = getOption("spinner.color", default = "#4F7942"))
-                                            # fluidRow(
-                                            #   column(6,
-                                            #          )),
-                                            #   column(6,
-                                            #          shinycssloaders::withSpinner(DT::DTOutput("d_tm_networkTable"),
-                                            #                                       color = getOption("spinner.color", default = "#4F7942")))
-                                            # )
-
+                          ),
+                          tabPanel("Info & References",
+                                   fluidPage(
+                                     fluidRow(
+                                       column(1),
+                                       column(10,
+                                              br(),
+                                              HTML(infoTexts$tmmodelestimation)
+                                       ),
+                                       column(1)
+                                     )
+                                   )
                           )
 
               )
@@ -2454,6 +2518,18 @@ body <- dashboardBody(
                             tabPanel("Table",
                                      shinycssloaders::withSpinner(DT::DTOutput("d_polDetTable"),
                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                            ),
+                            tabPanel("Info & References",
+                                     fluidPage(
+                                       fluidRow(
+                                         column(1),
+                                         column(10,
+                                                br(),
+                                                HTML(infoTexts$polaritydetection)
+                                         ),
+                                         column(1)
+                                       )
+                                     )
                             )
                 )
               )
@@ -2497,6 +2573,18 @@ body <- dashboardBody(
                                    tabPanel("Sentence Ranking",
                                             shinycssloaders::withSpinner(DT::DTOutput("RelSentData"),
                                                                          color = getOption("spinner.color", default = "#4F7942"))
+                                   ),
+                                   tabPanel("Info & References",
+                                            fluidPage(
+                                              fluidRow(
+                                                column(1),
+                                                column(10,
+                                                       br(),
+                                                       HTML(infoTexts$summarization)
+                                                ),
+                                                column(1)
+                                              )
+                                            )
                                    )
 
                        )
