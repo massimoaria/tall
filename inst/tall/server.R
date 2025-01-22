@@ -2235,7 +2235,7 @@ observeEvent(input$closePlotModalDoc,{
       )
 
       values$tc <- tall::term_per_cluster(values$reinert, cutree=NULL, k=unique(values$reinert$group))
-      values$reinertSummary <- tall:reinSummary(values$tc, 10)
+      values$reinertSummary <- tall::reinSummary(values$tc, 10)
 
       #groups <- tibble(uc=1:length(values$reinert$group), Cluster=values$reinert$group)
       values$tc$segments <- values$tc$segments %>%
