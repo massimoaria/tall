@@ -9,7 +9,7 @@ helpContent <- function(){
 mso-outline-level:3'><b><span lang=EN-US style='font-size:14.0pt;font-family:
   'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';color:black;
 mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;mso-fareast-language:
-  IT'>Description for import Menu<o:p></o:p></span></b></p>
+  IT'>Import<o:p></o:p></span></b></p>
 
 <p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
 text-align:justify'><span lang=EN-US style='font-family:'Times New Roman',serif;

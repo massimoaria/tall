@@ -4,7 +4,7 @@ Version: 0.1.0
 Authors@R: c(
     person(given = "Massimo", 
            family = "Aria",
-           email = "massimo.aria@gmail.com", 
+           email = "aria@unina.it", 
            role = c("aut", "cre", "cph"),
            comment=(ORCID = "0000-0002-8517-9411")),
     person(given = "Maria", 
@@ -28,9 +28,9 @@ Authors@R: c(
            role = c("ctb"),
            comment= c(ORCID = "0000-0002-8794-966X"))
     )
-Description: An R Shiny app designed for diverse text analysis tasks, offering a wide range of methodologies tailored to NLP needs. 
+Description: An R Shiny app designed for diverse text analysis tasks, offering a wide range of methodologies tailored to Natural Language Processing needs. 
              It is a versatile, general-purpose tool for analyzing textual data. 
-             TALL features a comprehensive workflow, including data cleaning, pre-processing, statistical analysis, and visualization, all integrated for effective text analysis.
+             TALL features a comprehensive workflow, including data cleaning, preprocessing, statistical analysis, and visualization, all integrated for effective text analysis.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
