@@ -1,5 +1,6 @@
 ##  Server ####
 source("tallFunctions.R", local=TRUE)
+source("tallShot.R", local=TRUE)
 
 ## suppress warnings
 options(warn = -1)

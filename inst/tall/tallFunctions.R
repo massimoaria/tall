@@ -3603,7 +3603,7 @@ plot2png <- function(p, filename, zoom = 2, type="vis"){
            htmlwidgets::saveWidget(p, file=html_name)
          })
 
-  webshot2::webshot(html_name, zoom = zoom, file = filename)
+  tallShot(html_name, zoom = zoom, file = filename)
 }
 
 ## freqGgplot ----

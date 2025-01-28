@@ -41,6 +41,9 @@ BugReports: https://github.com/massimoaria/tall/issues
 Imports: 
     graphics,
     dplyr (>= 1.1.0), 
+    chromote,
+    later,
+    promises,
     tidyr, 
     purrr, 
     plotly,

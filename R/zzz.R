@@ -6,6 +6,9 @@
 #' @import stringr
 #' @import udpipe
 #' @import RSpectra
+#' @import chromote
+#' @importFrom later later
+#' @importFrom promises promise_all 
 #' @importFrom rlang sym
 #' @importFrom stats chisq.test
 #' @importFrom plotly add_annotations 
