@@ -33,12 +33,7 @@ reinert(
 \item{tsj}{minimum frequency value for feature selection}
 }
 \value{
-The result is a list of both class \code{hclust} and \code{reinert_tall}. Besides the elements
-of an \code{hclust} object, two more results are available :
-\itemize{
-\item \code{uce_groups} give the group of each document for each k
-\item \code{group} give the group of each document for the maximum value of k available
-}
+The result is a list of both class \code{hclust} and \code{reinert_tall}.
 }
 \description{
 Segment clustering based on the Reinert method - Simple clustering

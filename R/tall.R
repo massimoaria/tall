@@ -15,10 +15,8 @@
 #'
 #' @param maxUploadSize is a integer. The max upload file size argument. Default value is 1000 (megabyte)
 #'
-#' @examples
-#'
-#' #biblioshiny()
-#'
+#' @return
+#' No return value, called for side effects.
 #'
 #' @export
 

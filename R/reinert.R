@@ -20,12 +20,7 @@ utils::globalVariables(c("doc_id","uc","uce","segment_size","upos","noSingleChar
 #'
 #'
 #' @return
-#' The result is a list of both class `hclust` and `reinert_tall`. Besides the elements
-#' of an `hclust` object, two more results are available :
-#'
-#' - `uce_groups` give the group of each document for each k
-#' - `group` give the group of each document for the maximum value of k available
-#'
+#' The result is a list of both class `hclust` and `reinert_tall`. 
 #'
 #' @references
 #'
