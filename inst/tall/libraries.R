@@ -2,36 +2,68 @@
 
 # Libraries ----
 libraries <- function(){
-  if (!suppressPackageStartupMessages(require(shiny))){install.packages("shiny"); suppressPackageStartupMessages(require(shiny))}
-  if (!suppressPackageStartupMessages(require(ldatuning))){install.packages("ldatuning"); suppressPackageStartupMessages(require(ldatuning))}
-  if (!suppressPackageStartupMessages(require(ca))){install.packages("ca"); suppressPackageStartupMessages(require(ca))}
-  if (!suppressPackageStartupMessages(require(shinydashboard))){install.packages("shinydashboard"); suppressPackageStartupMessages(require(shinydashboard))}
-  if (!suppressPackageStartupMessages(require(shinydashboardPlus))){install.packages("shinydashboardPlus"); suppressPackageStartupMessages(require(shinydashboardPlus))}
-  if (!suppressPackageStartupMessages(require(shinyWidgets))){install.packages("shinyWidgets"); suppressPackageStartupMessages(require(shinyWidgets))}
-  if (!suppressPackageStartupMessages(require(shinycssloaders))){install.packages("shinycssloaders"); suppressPackageStartupMessages(require(shinycssloaders))}
-  if (!suppressPackageStartupMessages(require(shinyjs))){install.packages("shinyjs"); suppressPackageStartupMessages(require(shinyjs))}
-  if (!suppressPackageStartupMessages(require(tidyverse))){install.packages("tidyverse"); suppressPackageStartupMessages(require(tidyverse))}
-  if (!suppressPackageStartupMessages(require(DT))){install.packages("DT"); suppressPackageStartupMessages(require(DT))}
-  if (!suppressPackageStartupMessages(require(plotly))){install.packages("plotly"); suppressPackageStartupMessages(require(plotly))}
-  if (!suppressPackageStartupMessages(require(openxlsx))){install.packages("openxlsx"); suppressPackageStartupMessages(require(openxlsx))}
-  if (!suppressPackageStartupMessages(require(readxl))){install.packages("readxl"); suppressPackageStartupMessages(require(readxl))}
-  #if (!suppressPackageStartupMessages(require(wordcloud2))){install.packages("wordcloud2"); suppressPackageStartupMessages(require(wordcloud2))}
-  if (!suppressPackageStartupMessages(require(visNetwork))){install.packages("visNetwork", dependencies = TRUE); suppressPackageStartupMessages(require(visNetwork))}
-  if (!suppressPackageStartupMessages(require(udpipe))){install.packages("udpipe"); suppressPackageStartupMessages(require(udpipe))}
-  if (!suppressPackageStartupMessages(require(topicmodels))){install.packages("topicmodels"); suppressPackageStartupMessages(require(topicmodels))}
-  if (!suppressPackageStartupMessages(require(textrank))){install.packages("textrank"); suppressPackageStartupMessages(require(textrank))}
-  if (!suppressPackageStartupMessages(require(pdftools))){install.packages("pdftools"); suppressPackageStartupMessages(require(pdftools))}
-  if (!suppressPackageStartupMessages(require(igraph))){install.packages("igraph"); suppressPackageStartupMessages(require(igraph))}
-  if (!suppressPackageStartupMessages(require(strucchange))){install.packages("strucchange"); suppressPackageStartupMessages(require(strucchange))}
-  if (!require(fontawesome, quietly=TRUE)){install.packages("fontawesome"); require(fontawesome, quietly=TRUE)}
-  ## visNetwork dependencies
-  if (!suppressPackageStartupMessages(require(tidygraph))){install.packages("tidygraph"); suppressPackageStartupMessages(require(tidygraph))}
-  if (!suppressPackageStartupMessages(require(ggraph))){install.packages("ggraph"); suppressPackageStartupMessages(require(ggraph))}
-  if (!suppressPackageStartupMessages(require(sparkline))){install.packages("sparkline"); suppressPackageStartupMessages(require(sparkline))}
-  if (!suppressPackageStartupMessages(require(glue))){install.packages("glue"); suppressPackageStartupMessages(require(glue))}
-  if (!suppressPackageStartupMessages(require(readtext))){install.packages("readtext"); suppressPackageStartupMessages(require(readtext))}
-  if (!suppressPackageStartupMessages(require(jsonlite))){install.packages("jsonlite"); suppressPackageStartupMessages(require(jsonlite))}
-  if (!suppressPackageStartupMessages(require(chromote))){install.packages("chromote"); suppressPackageStartupMessages(require(chromote))}
+  suppressPackageStartupMessages(require(shiny))
+  suppressPackageStartupMessages(require(ldatuning))
+  suppressPackageStartupMessages(require(ca))
+  suppressPackageStartupMessages(require(shinydashboard))
+  suppressPackageStartupMessages(require(shinydashboardPlus))
+  suppressPackageStartupMessages(require(shinyWidgets))
+  suppressPackageStartupMessages(require(shinycssloaders))
+  suppressPackageStartupMessages(require(shinyjs))
+  suppressPackageStartupMessages(require(dplyr))
+  suppressPackageStartupMessages(require(tidyr))
+  suppressPackageStartupMessages(require(tibble))
+  suppressPackageStartupMessages(require(glue))
+  suppressPackageStartupMessages(require(purrr))
+  suppressPackageStartupMessages(require(DT))
+  suppressPackageStartupMessages(require(plotly))
+  suppressPackageStartupMessages(require(openxlsx))
+  suppressPackageStartupMessages(require(readxl))
+  suppressPackageStartupMessages(require(visNetwork))
+  suppressPackageStartupMessages(require(udpipe))
+  suppressPackageStartupMessages(require(topicmodels))
+  suppressPackageStartupMessages(require(textrank))
+  suppressPackageStartupMessages(require(pdftools))
+  suppressPackageStartupMessages(require(igraph))
+  suppressPackageStartupMessages(require(strucchange))
+  suppressPackageStartupMessages(require(fontawesome))
+  suppressPackageStartupMessages(require(tidygraph))
+  suppressPackageStartupMessages(require(sparkline))
+  suppressPackageStartupMessages(require(glue))
+  suppressPackageStartupMessages(require(readtext))
+  suppressPackageStartupMessages(require(jsonlite))
+  suppressPackageStartupMessages(require(chromote))
+}
+#   if (!suppressPackageStartupMessages(require(shiny))){install.packages("shiny"); suppressPackageStartupMessages(require(shiny))}
+#   if (!suppressPackageStartupMessages(require(ldatuning))){install.packages("ldatuning"); suppressPackageStartupMessages(require(ldatuning))}
+#   if (!suppressPackageStartupMessages(require(ca))){install.packages("ca"); suppressPackageStartupMessages(require(ca))}
+#   if (!suppressPackageStartupMessages(require(shinydashboard))){install.packages("shinydashboard"); suppressPackageStartupMessages(require(shinydashboard))}
+#   if (!suppressPackageStartupMessages(require(shinydashboardPlus))){install.packages("shinydashboardPlus"); suppressPackageStartupMessages(require(shinydashboardPlus))}
+#   if (!suppressPackageStartupMessages(require(shinyWidgets))){install.packages("shinyWidgets"); suppressPackageStartupMessages(require(shinyWidgets))}
+#   if (!suppressPackageStartupMessages(require(shinycssloaders))){install.packages("shinycssloaders"); suppressPackageStartupMessages(require(shinycssloaders))}
+#   if (!suppressPackageStartupMessages(require(shinyjs))){install.packages("shinyjs"); suppressPackageStartupMessages(require(shinyjs))}
+#   if (!suppressPackageStartupMessages(require(tidyverse))){install.packages("tidyverse"); suppressPackageStartupMessages(require(tidyverse))}
+#   if (!suppressPackageStartupMessages(require(DT))){install.packages("DT"); suppressPackageStartupMessages(require(DT))}
+#   if (!suppressPackageStartupMessages(require(plotly))){install.packages("plotly"); suppressPackageStartupMessages(require(plotly))}
+#   if (!suppressPackageStartupMessages(require(openxlsx))){install.packages("openxlsx"); suppressPackageStartupMessages(require(openxlsx))}
+#   if (!suppressPackageStartupMessages(require(readxl))){install.packages("readxl"); suppressPackageStartupMessages(require(readxl))}
+#   #if (!suppressPackageStartupMessages(require(wordcloud2))){install.packages("wordcloud2"); suppressPackageStartupMessages(require(wordcloud2))}
+#   if (!suppressPackageStartupMessages(require(visNetwork))){install.packages("visNetwork", dependencies = TRUE); suppressPackageStartupMessages(require(visNetwork))}
+#   if (!suppressPackageStartupMessages(require(udpipe))){install.packages("udpipe"); suppressPackageStartupMessages(require(udpipe))}
+#   if (!suppressPackageStartupMessages(require(topicmodels))){install.packages("topicmodels"); suppressPackageStartupMessages(require(topicmodels))}
+#   if (!suppressPackageStartupMessages(require(textrank))){install.packages("textrank"); suppressPackageStartupMessages(require(textrank))}
+#   if (!suppressPackageStartupMessages(require(pdftools))){install.packages("pdftools"); suppressPackageStartupMessages(require(pdftools))}
+#   if (!suppressPackageStartupMessages(require(igraph))){install.packages("igraph"); suppressPackageStartupMessages(require(igraph))}
+#   if (!suppressPackageStartupMessages(require(strucchange))){install.packages("strucchange"); suppressPackageStartupMessages(require(strucchange))}
+#   if (!require(fontawesome, quietly=TRUE)){install.packages("fontawesome"); require(fontawesome, quietly=TRUE)}
+#   ## visNetwork dependencies
+#   if (!suppressPackageStartupMessages(require(tidygraph))){install.packages("tidygraph"); suppressPackageStartupMessages(require(tidygraph))}
+#  # if (!suppressPackageStartupMessages(require(ggraph))){install.packages("ggraph"); suppressPackageStartupMessages(require(ggraph))}
+#   if (!suppressPackageStartupMessages(require(sparkline))){install.packages("sparkline"); suppressPackageStartupMessages(require(sparkline))}
+#   if (!suppressPackageStartupMessages(require(glue))){install.packages("glue"); suppressPackageStartupMessages(require(glue))}
+#   if (!suppressPackageStartupMessages(require(readtext))){install.packages("readtext"); suppressPackageStartupMessages(require(readtext))}
+#   if (!suppressPackageStartupMessages(require(jsonlite))){install.packages("jsonlite"); suppressPackageStartupMessages(require(jsonlite))}
+#   if (!suppressPackageStartupMessages(require(chromote))){install.packages("chromote"); suppressPackageStartupMessages(require(chromote))}
 
   ## Currently "webshot2" 0.1.1 generates empty screenshots on windows 10 for graphics created with visnetwork.
   ## This workaround installs the previous version 0.1.0 to temporarily fix the problem.
@@ -47,13 +79,13 @@ libraries <- function(){
   # }
 
   ### workaround for webshot2 on shinyapps.io
-  if (!suppressPackageStartupMessages(require(curl))){install.packages("curl"); suppressPackageStartupMessages(require(curl))}
-  if (!suppressPackageStartupMessages(require(pagedown))){install.packages("pagedown"); suppressPackageStartupMessages(require(pagedown))}
+  # if (!suppressPackageStartupMessages(require(curl))){install.packages("curl"); suppressPackageStartupMessages(require(curl))}
+  # if (!suppressPackageStartupMessages(require(pagedown))){install.packages("pagedown"); suppressPackageStartupMessages(require(pagedown))}
 
-  if (Sys.info()[["sysname"]]=="Windows") {
-  if (!suppressPackageStartupMessages(require(doParallel))){install.packages("doParallel"); suppressPackageStartupMessages(require(doParallel))}}
+  # if (Sys.info()[["sysname"]]=="Windows") {
+  # if (!suppressPackageStartupMessages(require(doParallel))){install.packages("doParallel"); suppressPackageStartupMessages(require(doParallel))}}
 
-}
+# }
 
 messageItem2 <- function (from, message, icon = shiny::icon("user"), time = NULL,
                           href = NULL, inputId = NULL){

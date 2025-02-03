@@ -1,16 +1,42 @@
-#' @import graphics
+# Pacchetti in Depends (caricati automaticamente all'avvio)
 #' @import shiny
+#' @import shinydashboardPlus
+
+# Pacchetti in Imports (funzioni disponibili solo se esplicitamente chiamate)
 #' @import dplyr
 #' @import tidyr
 #' @import purrr
 #' @import stringr
-#' @import udpipe
+#' @import Rcpp
 #' @import RSpectra
-#' @import chromote
+#' @import openxlsx
+#' @import visNetwork
+#' @import udpipe
+#' @import topicmodels
+#' @import pdftools
+#' @import textrank
+#' @import sparkline
+#' @import tidygraph
+#' @import readxl
+#' @import readtext
+#' @import fontawesome
+#' @import ca
+#' @import ldatuning
+#' @import shinycssloaders
+#' @import curl
+#' @import pagedown
+#' @import doParallel
+#' @importFrom strucchange breakpoints
+#' @importFrom shinyjs useShinyjs
+#' @importFrom shinyWidgets alert updatePrettyCheckboxGroup prettyCheckboxGroup
+#' @importFrom DT datatable formatStyle formatRound renderDT DTOutput
+#' @importFrom jsonlite fromJSON 
+#' @importFrom chromote Chromote default_chromote_object 
+#' @importFrom graphics plot lines text legend
 #' @importFrom later later
 #' @importFrom promises promise_all 
 #' @importFrom rlang sym
-#' @importFrom stats chisq.test
+#' @importFrom igraph cluster_walktrap graph_from_data_frame membership centr_betw
 #' @importFrom plotly add_annotations 
 #' @importFrom plotly api_create as.widget as_widget attrs_selected colorbar
 #' @importFrom plotly config embed_notebook event_data event_register event_unregister

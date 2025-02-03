@@ -2289,15 +2289,18 @@ observeEvent(input$closePlotModalDoc,{
   output$w_ReinClusteringTableTerms <- renderDT({
     dendReinFunction()
     DTformat(values$tc$terms %>%
-               mutate(freq = round(freq*100,1)) %>%
-               select(term, freq, chi_square, p_value, sign, cluster) %>%
-               rename("Term" = term,
-                      "% in Cluster" = freq,
-                      "Chi^2" = chi_square,
-                      "P-Value" = p_value,
-                      "Sign" = sign,
-                      "Cluster" = cluster),
-             size='85%', button=FALSE, numeric=c(3,4), round=3)
+      mutate(freq = round(freq*100,1),
+             chi_square = round(chi_square,1),
+             p_value = round(p_value, 4)) %>%
+      select(term, freq_true, freq, chi_square, p_value, sign, cluster) %>%
+      rename("Term" = term,
+             "Freq. in Cluster" = freq_true, 
+             "% in Cluster" = freq,
+             "Chi^2" = chi_square,
+             "P-Value" = p_value,
+             "Sign" = sign,
+             "Cluster" = cluster),
+             size='85%', button=FALSE, numeric=c(5), round=3)
   })
 
 
@@ -2444,12 +2447,12 @@ observeEvent(input$closePlotModalDoc,{
 
       #contribData
       values$CA$contribData <- values$CA$contrib %>%
-        rownames_to_column() %>%
+        tibble::rownames_to_column() %>%
         rename(Label = rowname)
 
       #cosineData
       values$CA$cosineData <- values$CA$cosine %>%
-        rownames_to_column() %>%
+        tibble::rownames_to_column() %>%
         rename(Label = rowname)
 
       #dfCA

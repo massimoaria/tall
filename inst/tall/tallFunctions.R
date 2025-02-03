@@ -3502,23 +3502,40 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
     caption = htmltools::tags$caption( style = 'caption-side: top; text-align: center; color:black;  font-size:140% ;',"")
   }
 
-  if (isTRUE(button)){
-      df <- df %>%
-        mutate(Document = glue::glue('<button id="custom_btn" onclick="Shiny.onInputChange(\'button_id\', \'{doc_id}\')">View</button>')) %>%
-        select(Document, everything())
+  # if (isTRUE(button)){
+  #     df <- df %>%
+  #       mutate(Document = glue::glue('<button id="custom_btn" onclick="Shiny.onInputChange(\'button_id\', \'{doc_id}\')">View</button>')) %>%
+  #       select(Document, everything())
+  # }
+  if (isTRUE(button)) {
+    df <- df %>%
+      mutate(Document = paste0('<button id="custom_btn" onclick="Shiny.onInputChange(\'button_id\', \'', doc_id, '\')">View</button>')) %>%
+      select(Document, everything())
   }
 
-  if (isTRUE(specialtags)){
+  # if (isTRUE(specialtags)){
+  #   df <- df %>%
+  #     mutate(Table = glue::glue('<button id2="custom_btn" onclick="Shiny.onInputChange(\'button_id2\', \'{UPOS}\')">View</button>')) %>%
+  #     select(Table, everything())
+  # }
+  if (isTRUE(specialtags)) {
     df <- df %>%
-      mutate(Table = glue::glue('<button id2="custom_btn" onclick="Shiny.onInputChange(\'button_id2\', \'{UPOS}\')">View</button>')) %>%
+      mutate(Table = paste0('<button id2="custom_btn" onclick="Shiny.onInputChange(\'button_id2\', \'', UPOS, '\')">View</button>')) %>%
       select(Table, everything())
   }
+  
 
-  if (isTRUE(delete)){
+  # if (isTRUE(delete)){
+  #   df <- df %>%
+  #     mutate(Remove = glue::glue('<button id="custom_btn_del" onclick="Shiny.onInputChange(\'button_id_del\', \'{doc_id}\')">Remove</button>')) %>%
+  #     select(Document, Remove, everything())
+  # }
+  if (isTRUE(delete)) {
     df <- df %>%
-      mutate(Remove = glue::glue('<button id="custom_btn_del" onclick="Shiny.onInputChange(\'button_id_del\', \'{doc_id}\')">Remove</button>')) %>%
+      mutate(Remove = paste0('<button id="custom_btn_del" onclick="Shiny.onInputChange(\'button_id_del\', \'', doc_id, '\')">Remove</button>')) %>%
       select(Document, Remove, everything())
   }
+  
 
   if (isTRUE(selection)){
     extensions = c("Buttons", "Select", "ColReorder", "FixedHeader")

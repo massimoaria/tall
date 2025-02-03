@@ -1,5 +1,5 @@
 utils::globalVariables(c("doc_id","uc","uce","segment_size","upos","noSingleChar",
-"token","lemma","freq","chi_square", "cluster", "negative", "positive", "term"))
+"token","lemma","freq","chi_square", "cluster", "negative", "positive", "term", "freq_true", "indep", "p_value"))
 
 
 #' Segment clustering based on the Reinert method - Simple clustering
@@ -97,10 +97,11 @@ reinert <- function(
     mutate(freq=freq^0)
 
   ## create DTM
-  dtm <- document_term_matrix(dtf, weight="freq")
+  dtmOriginal <- document_term_matrix(dtf, weight="freq")
 
+  dtmOriginal <- dtm_remove_lowfreq(dtmOriginal, minfreq = 3)
   ## Remove low frequency terms
-  dtm <- as.matrix(dtm_remove_lowfreq(dtm, minfreq = 3))
+  dtm <- as.matrix(dtmOriginal)
 
   ## Remove empty strings to avoid subcript out of bounds errors
   ind <- rowSums(dtm)>0
@@ -112,11 +113,7 @@ reinert <- function(
   res <- list(list(tabs = list(dtm)))
 
   exclusion_list <- NULL
-  ## Display progress bar
-  # progressr::with_progress({
-  #   p <- progressr::progressor(along = seq_len(k - 1))
 
-    #for (i in 1:(k - 1)) {
   i <- 1
 
   while(i<k){
@@ -217,7 +214,8 @@ reinert <- function(
     uce_groups = uce_groups,
     corresp_uce_uc = corresp_uce_uc,
     corresp_uce_uc_full = corresp_uce_uc_full,
-    dtm=dtm
+    dtm=dtm,
+    dtmOriginal=dtmOriginal
   )
 
   class(hres) <- c("reinert_tall", "hclust")
@@ -515,7 +513,7 @@ merge_small_segments <- function(idTable, min_length=5) {
 term_per_cluster <- function(res, cutree=NULL, k=1, negative=TRUE){
 
   k <- k[!is.na(k)]
-  dtm <- res$dtm
+  dtm <- res$dtmOriginal
   groups <- cutree_reinart(res,cutree)
   terms <- colnames(dtm)
 
@@ -545,76 +543,37 @@ term_per_cluster <- function(res, cutree=NULL, k=1, negative=TRUE){
       mutate(cluster = k)
     segments_list[[k]] <-segments_df
 
-    m1 <- colSums(dtm[select,])
-    m0 <- colSums(dtm[!select,])
+    chi_res_df <- dtm_chisq(dtm, groups = select) %>% 
+      mutate(indep = sum(freq_true)/sum(freq)) %>%  # expected proportion for independence
+      mutate(cluster = k) %>% 
+      rename("chi_square" = "chisq",
+        "p_value" = "p.value") 
 
-    totm1 <- sum(m1)
-    totm0 <- sum(m0)
-
-    chi_res <- list()
-
-    for (i in 1:length(m1)){
-      tab <- matrix(c(m1[i],m0[i],totm1,totm0),2,2)
-      chi_res[[i]] <- chi_squared_test(tab)
-      chi_res[[i]]$term <- terms[i]
-
-    }
-
-    signExcluded <- ifelse(isTRUE(negative),c("none"),c("none","negative"))
-
-    chi_res_df <- do.call(rbind, lapply(chi_res, function(x) {
-      data.frame(
-        chi_square = x$chi_square,
-        p_value = x$p_value,
-        sign = x$sign,
-        term = x$term,
-        freq = x$tab[1,1],
-        indep = x$tab[1,2]
-      )
-    })) %>% filter(!sign %in% signExcluded) %>% arrange(desc(chi_square))
-
-    row.names(chi_res_df) <- chi_res_df$term
-    chi_res_df$cluster <- k
     terms_list[[k]] <- chi_res_df
   }
 
-  terms_list <- bind_rows(terms_list)
+
+  if (isTRUE(negative)){
+    signExcluded <- c("none")
+
+  } else {
+    signExcluded <- c("none","negative")
+  }
+
+  terms_list <- bind_rows(terms_list) %>% 
+    group_by(term) %>% 
+    mutate(freq = sum(freq_true)) %>% 
+    ungroup() %>% 
+    filter(p_value<=0.001) %>% 
+    mutate(freq = freq_true/freq,
+           sign = ifelse(freq>indep,"positive","negative")) %>% 
+      filter(!sign %in% signExcluded)
+
   segments_list <- bind_rows(segments_list) %>% drop_na("doc_id")
 
   return(list(terms =  terms_list, segments = segments_list))
 
 }
-
-## Chi Square test between observed and theoretical distribution
-chi_squared_test <- function(tab) {
-  # Controlla che la tabella sia una matrice o un data frame
-  if (!is.matrix(tab) && !is.data.frame(tab)) {
-    stop("La tabella deve essere una matrice o un data frame.")
-  }
-
-  # Esegui il test chi-quadrato
-  suppressWarnings(test_result <-chisq.test(tab))
-
-  # Estrai i valori di interesse
-  chi_square_value <- test_result$statistic
-  p_value <- test_result$p.value
-
-  tab <- prop.table(tab,2)
-
-  if (p_value<0.001){
-    if ((tab[1,1]-tab[1,2])>0){
-      sign <- "positive"
-    }else{
-      sign <- "negative"
-    }
-  }else{
-    sign <- "none"
-  }
-
-  # Return results into a list
-  return(list(chi_square = chi_square_value, p_value = p_value, tab=tab, sign=sign))
-}
-
 
 # plot for terms by cluster
 
@@ -753,8 +712,8 @@ reinSummary <- function(tc, n=10){
         names_prefix = ""
       ) %>%
       rename(
-        "Positive terms" = positive, 
-        "Negative terms" = negative
+        "Positively Associated Terms" = positive, 
+        "Negatively Associated Terms" = negative
       )
   
   summaryTable <- terms %>% 

@@ -1,3 +1,17 @@
+# Acknowledgment
+# This function is based on the source code of the webshot2 package. 
+# We would like to acknowledge and express our gratitude to the authors 
+# and contributors of webshot2 for their valuable work in developing tools 
+# for web content capture. 
+#
+# In this implementation, we have adapted and modified parts of the original 
+# webshot2 code to address an issue where PNG files were being generated as 
+# empty images when used on Windows systems. Our modifications aim to improve 
+# compatibility and ensure reliable output across different platforms.
+#
+# Reference:
+# webshot2 package: https://github.com/rstudio/webshot2
+
 tallShot <- function(
   url = NULL,
   file = "tallShot.png",
