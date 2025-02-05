@@ -28,7 +28,7 @@ Authors@R: c(
            role = c("ctb"),
            comment= c(ORCID = "0000-0002-8794-966X"))
     )
-Description: An R 'shiny' app designed for diverse text analysis tasks, offering a wide range of methodologies tailored to Natural Language Processing needs. 
+Description: An R 'shiny' app designed for diverse text analysis tasks, offering a wide range of methodologies tailored to Natural Language Processing (NLP) needs. 
              It is a versatile, general-purpose tool for analyzing textual data. 
              'tall' features a comprehensive workflow, including data cleaning, preprocessing, statistical analysis, and visualization, all integrated for effective text analysis.
 License: MIT + file LICENSE
@@ -75,6 +75,8 @@ Imports:
     ldatuning,
     shinycssloaders,
     shinyjs,
+    shinyFiles,
+    readr,
     curl,
     pagedown,
     doParallel

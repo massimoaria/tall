@@ -26,6 +26,8 @@
 #' @import curl
 #' @import pagedown
 #' @import doParallel
+#' @import shinyFiles
+#' @importFrom readr write_csv
 #' @importFrom strucchange breakpoints
 #' @importFrom shinyjs useShinyjs
 #' @importFrom shinyWidgets alert updatePrettyCheckboxGroup prettyCheckboxGroup

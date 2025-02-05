@@ -134,12 +134,8 @@ removeHTMLTags <- function(text){
 
 ### download sample data
 loadSampleCollection <- function(sampleName){
-  switch(Sys.info()[['sysname']],
-         Windows= {
-           home <- Sys.getenv('R_USER')},
-         Linux  = {
-           home <- Sys.getenv('HOME')},
-         Darwin = {home <- Sys.getenv('HOME')})
+  
+  home <- homeFolder()
 
   # setting up the main directory
   path_tall <- file.path(home,"tall")
@@ -316,10 +312,8 @@ restoreText <- function(x){
 
 ### 1. TOKENIZATION ----
 loadLanguageModel <- function(file, model_repo = "2.15"){
-  switch(Sys.info()[['sysname']],
-         Windows= {home <- Sys.getenv('R_USER')},
-         Linux  = {home <- Sys.getenv('HOME')},
-         Darwin = {home <- Sys.getenv('HOME')})
+  
+  home <- homeFolder()
 
   # setting up the main directory
   path_tall <- file.path(home,"tall")
@@ -2530,10 +2524,8 @@ tmDocPlot <- function(theta, topic=1, nPlot=10){
 
 # download sentiment lexicons
 loadSentimentLanguage <- function(language){
-  switch(Sys.info()[['sysname']],
-         Windows= {home <- Sys.getenv('R_USER')},
-         Linux  = {home <- Sys.getenv('HOME')},
-         Darwin = {home <- Sys.getenv('HOME')})
+  
+  home <- homeFolder()
 
   # setting up the main directory
   path_tall <- file.path(home,"tall")
@@ -3060,46 +3052,53 @@ dfLabel <- function(){
 ## Add to Report PopUp
 popUp <- function(title=NULL, type="success", btn_labels="OK"){
   switch(type,
-         success={
-           title <- paste(title,"\n added to report",sep="")
-           subtitle <- ""
-           btn_colors = "#1d8fe1"
-           showButton = TRUE
-           timer = 3000
-         },
-         error={
-           title <- "No results to add to the report "
-           subtitle <- "Please Run the analysis and then Add it to the report"
-           btn_colors = "#913333"
-           showButton = TRUE
-           timer = 3000
-         },
-         waiting={
-           title <- "Please wait... "
-           subtitle <- "Adding results to report"
-           btn_colors = "#FFA800"
-           showButton = FALSE
-           btn_labels = NA
-           timer = NA
-         })
-
-  show_alert(
-    title = title,
-    text = subtitle,
-    type = type,
-    size = "s",
-    closeOnEsc = TRUE,
-    closeOnClickOutside = TRUE,
-    html = FALSE,
-    showConfirmButton = showButton,
-    showCancelButton = FALSE,
-    btn_labels = btn_labels,
-    btn_colors = btn_colors,
-    timer = timer,
-    imageUrl = "",
-    animation = TRUE
-  )
-}
+    saved={
+      title <- title
+      subtitle <- ""
+      btn_colors = "#1d8fe1"
+      showButton = TRUE
+      timer = 3000
+    },
+    success={
+      title <- paste(title,"\n added to report",sep="")
+      subtitle <- ""
+      btn_colors = "#1d8fe1"
+      showButton = TRUE
+      timer = 3000
+    },
+    error={
+      title <- "No results to add to the report "
+      subtitle <- "Please Run the analysis and then Add it to the report"
+      btn_colors = "#913333"
+      showButton = TRUE
+      timer = 3000
+    },
+    waiting={
+      title <- "Please wait... "
+      subtitle <- "Adding results to report"
+      btn_colors = "#FFA800"
+      showButton = FALSE
+      btn_labels = NA
+      timer = NA
+    })
+    if (type=="saved") type = "success"
+    show_alert(
+      title = title,
+      text = subtitle,
+      type = type,
+      size = "s",
+      closeOnEsc = TRUE,
+      closeOnClickOutside = TRUE,
+      html = FALSE,
+      showConfirmButton = showButton,
+      showCancelButton = FALSE,
+      btn_labels = btn_labels,
+      btn_colors = btn_colors,
+      timer = timer,
+      imageUrl = "",
+      animation = TRUE
+    )
+  }
 
 ## generic popup ###
 
@@ -3128,6 +3127,39 @@ popUpGeneric <- function(title=NULL, type="success", color=c("#1d8fe1","#913333"
 
 
 ### UTILITY FUNCTIONS ----
+# find home folder
+homeFolder <- function(){
+  switch(Sys.info()[['sysname']],
+         Windows= {home <- Sys.getenv('R_USER')},
+         Linux  = {home <- Sys.getenv('HOME')},
+         Darwin = {home <- Sys.getenv('HOME')})
+  return(home)
+} 
+## check working folder
+wdFolder <- function(){
+  home <- paste0(homeFolder(),"/tall")
+  wdFile <- paste0(home,"/tallWD.tall")
+  wdTall <- NULL
+  
+  if (file.exists(wdFile)){
+    wdTall <- readLines(wdFile)
+    if (!file.exists(wdTall)){
+      file.remove(wdFile)
+      wdTall <- NULL
+    }
+  }
+  return(wdTall)
+}
+
+# add working folder path to a file name
+destFolder <- function(file, folder){
+  paste0(folder,"/",file)
+}
+
+sys.time <- function(){
+  format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
+}
+
 ## Reset reactive values
 resetValues <- function(){
 
@@ -3137,7 +3169,6 @@ resetValues <- function(){
   values$resetNeed <- FALSE
   values$normButton <- FALSE
   values$path <- NULL
-  values$menu <- -1
   values$custom_lists <- NULL
   values$txt <- data.frame()
   values$corpusElements <- data.frame()
@@ -3163,6 +3194,12 @@ resetValues <- function(){
   values$tmTopSentences <- FALSE
   values$selectedGroups <- NULL
   values$selectedFilter <- ""
+  values$wdTall <- wdFolder()
+  if (is.null(wdFolder())){
+    values$menu <- -2
+  } else {
+    values$menu <- -1
+  }
 
   return(values)
 }
@@ -3313,6 +3350,11 @@ saveTall <- function(dfTag,custom_lists,language,treebank,menu,where,file){
 menuList <- function(menu){
 
   switch(as.character(menu),
+         "-2" = {
+          list(
+            menuItem("Settings",tabName = "settings", icon = icon("tasks"))
+          )
+         },
          "0"={
            list(
              menuItem("Import", tabName = "import_tx", icon = icon("open-file", lib="glyphicon")),
@@ -3472,7 +3514,7 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
     buttons = list(
       list(extend = 'pageLength'),
       list(extend = 'excel',
-           filename = paste0(filename,"_tall_",Sys.Date()),
+           filename = paste0(filename,"_tall_",sys.time()),
            title = " ",
            header = TRUE,
            exportOptions = list(
@@ -3482,7 +3524,7 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
   } else{
     buttons = list(
       list(extend = 'excel',
-           filename = paste0(filename,"_tall_",Sys.Date()),
+           filename = paste0(filename,"_tall_",sys.time()),
            title = " ",
            header = TRUE,
            exportOptions = list(
@@ -3502,11 +3544,6 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
     caption = htmltools::tags$caption( style = 'caption-side: top; text-align: center; color:black;  font-size:140% ;',"")
   }
 
-  # if (isTRUE(button)){
-  #     df <- df %>%
-  #       mutate(Document = glue::glue('<button id="custom_btn" onclick="Shiny.onInputChange(\'button_id\', \'{doc_id}\')">View</button>')) %>%
-  #       select(Document, everything())
-  # }
   if (isTRUE(button)) {
     df <- df %>%
       mutate(Document = paste0('<button id="custom_btn" onclick="Shiny.onInputChange(\'button_id\', \'', doc_id, '\')">View</button>')) %>%
@@ -3673,10 +3710,8 @@ topicGplot <- function(x, nPlot=10, type="beta"){
 
 ### deleteCache ------
 deleteCache <- function(){
-  switch(Sys.info()[['sysname']],
-         Windows= {home <- Sys.getenv('R_USER')},
-         Linux  = {home <- Sys.getenv('HOME')},
-         Darwin = {home <- Sys.getenv('HOME')})
+  
+  home <- homeFolder()
 
   # setting up the main directory
   path_tall <- file.path(home,"tall")

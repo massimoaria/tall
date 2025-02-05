@@ -3,10 +3,10 @@ source("tallFunctions.R", local=TRUE)
 source("tallShot.R", local=TRUE)
 
 ## suppress warnings
-options(warn = -1)
+#options(warn = -1)
 
 ## file upload max size
-maxUploadSize <- 200 # default value
+maxUploadSize <- 1000 # default value
 maxUploadSize <- getShinyOption("maxUploadSize", maxUploadSize)
 options(shiny.maxRequestSize=maxUploadSize*1024^2)
 
@@ -117,7 +117,7 @@ To ensure the functionality of TALL,
   set.seed(5)
   #load("data/regex_list.tall")
 
-
+  saved_message <- "Done!"
 
   ### SIDEBARMENU ----
   output$rest_of_sidebar <- renderMenu({
@@ -127,6 +127,10 @@ To ensure the functionality of TALL,
       }
     }
     sidebarMenu(.list=menuList(values$menu))
+  })
+
+  observeEvent(input$workingfolder, {
+    updateTabItems(session, "sidebarmenu", "settings")
   })
 
   observeEvent(input$runImport, {
@@ -164,6 +168,51 @@ To ensure the functionality of TALL,
   observeEvent(input$multiwordListBack, {
     updateTabItems(session, "sidebarmenu", "multiwordByList")
   })
+
+  ## Choose Working folder in Setting Menu
+  roots <- c(home = homeFolder())
+
+  observe({
+    shinyDirChoose(input,"workingfolder", roots = roots, filetypes = c(""))
+  })
+
+  observeEvent(eventExpr = input$workingfolder,
+    handlerExpr = {
+      wdTall <- parseDirPath(roots = roots, input$workingfolder)
+
+      if (length(wdTall) == 0 || is.null(wdTall)) {
+
+        if (is.null(wdFolder())){
+          values$menu <-  -2
+          # output$wdFolder <- renderText({
+          #   "No folder selected."
+          # })
+        } 
+        
+      } else {
+        writeLines(wdTall, con = paste0(homeFolder(),"/tall/tallWD.tall"))
+        values$menu <-  -1
+        values$wdTall <- wdTall
+        # output$wdFolder <- renderText({
+        #     values$wdTall
+        # })
+      }
+
+      # if (nc>0){
+      #   writeLines(values$wdTall, con = paste0(homeFolder(),"/tall/tallWD.tall"))
+      #   values$menu <-  -1
+      #   output$wdFolder <- renderText({
+      #       values$wdTall
+      #   })
+      # }
+      
+      
+  }, ignoreNULL = TRUE)
+
+  output$wdFolder <- renderText({
+    values$wdTall
+  })
+
 
   output$runButton <- renderUI({
 
@@ -550,14 +599,12 @@ observeEvent(input$reset_confirmation2, {
 
   ### Convert Raw Data in Excel functions ----
  
-  output$collection.save <- downloadHandler(
-    filename = function() {
-      paste("Tall-Export-File-", Sys.Date(), ".csv", sep="")
-    },
-    content <- function(file) {
+  observeEvent(eventExpr = {input$collection.save},
+    handlerExpr = {
+      file_path <- destFolder(paste("Tall-Export-File-", sys.time(), ".csv", sep=""),values$wdTall)
       write_csv(
         x=values$txt,
-        file=file,
+        file=file_path,
         na = "NA",
         append = FALSE,
         col_names = TRUE
@@ -565,8 +612,8 @@ observeEvent(input$reset_confirmation2, {
         # escape = c("backslash"),
         # eol = "\n"
       )
-    }, contentType = "csv"
-  )
+      popUp(title="Saved in your working folder", type="saved")
+    })
 
   # Back to the original import text ----
   observeEvent(input$importTextBack, {
@@ -624,16 +671,14 @@ observeEvent(input$reset_confirmation2, {
              left=2, nrow=5, filter="none", button=TRUE, delete=TRUE)
   })
 
-  output$splitTextSave <- downloadHandler(
-    filename = function() {
-      paste("Tall-Export-File-", Sys.Date(), ".csv", sep="")
-    },
-    content <- function(file) {
+  observeEvent(eventExpr = {input$splitTextSave},
+    handlerExpr = {
+      file_path <- destFolder(paste("Tall-Export-File-", sys.time(), ".csv", sep=""),values$wdTall)
       write_csv(
         x=values$txt %>%
           filter(doc_selected) %>%
           select(-c("text_original", "doc_selected", ends_with("id_old"))),
-        file=file,
+        file=file_path,
         na = "NA",
         append = FALSE,
         col_names = TRUE
@@ -641,8 +686,8 @@ observeEvent(input$reset_confirmation2, {
         # escape = c("backslash"),
         # eol = "\n"
       )
-    }, contentType = "csv"
-  )
+      popUp(title="Saved in your working folder", type="saved")
+    })
 
   # Back to the original import text ----
   observeEvent(input$extInfoTextBack, {
@@ -705,29 +750,25 @@ observeEvent(input$reset_confirmation2, {
              left=4, nrow=3, filter="top", button=TRUE, delete=TRUE)
   })
 
-
-  output$doc_idExport <- downloadHandler(
-    filename = function() {
-      paste("Tall-Export-File-", Sys.Date(), ".xlsx", sep="")
-    },
-    content <- function(file) {
+  observeEvent(eventExpr = {input$doc_idExport},
+    handlerExpr = {
+      file <- paste("DocID_List-", sys.time(), ".xlsx", sep="")
+      file <- destFolder(file,values$wdTall)
       suppressWarnings(openxlsx::write.xlsx(values$txt %>%
-                                              filter(doc_selected) %>%
-                                              select(doc_id),
-                                            file=file))
-    }, contentType = "xlsx"
-  )
+        filter(doc_selected) %>%
+        select(doc_id),
+      file=file))
+      popUp(title="Saved in your working folder", type="saved")
+    })
 
-  output$extInfoSave <- downloadHandler(
-    filename = function() {
-      paste("Tall-Export-File-", Sys.Date(), ".csv", sep="")
-    },
-    content <- function(file) {
+  observeEvent(eventExpr = {input$extInfoSave},
+    handlerExpr = {
+      file_path <- destFolder(paste("Tall-Export-File-", sys.time(), ".csv", sep=""),values$wdTall)
       write_csv(
         x=values$txt %>%
           filter(doc_selected) %>%
           select(-c("text_original","doc_selected")),
-        file=file,
+        file=file_path,
         na = "NA",
         append = FALSE,
         col_names = TRUE
@@ -735,8 +776,8 @@ observeEvent(input$reset_confirmation2, {
         # escape = c("backslash"),
         # eol = "\n"
       )
-    }, contentType = "csv"
-  )
+      popUp(title="Saved in your working folder", type="saved")
+    })
 
   # Back to the original import text ----
   observeEvent(input$extInfoTextBack, {
@@ -843,16 +884,13 @@ output$info_treebank <- renderUI({
     }
   })
 
-  output$tokPosSave <- downloadHandler(
-    filename = function() {
-      paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
-    },
-    content <- function(file) {
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Custom Term Lists", file)
-      # D <- date()
-      # save(dfTag,menu,D,where, file=file)
-    }, contentType = "tall"
-  )
+  observeEvent(eventExpr = {input$tokPosSave},
+    handlerExpr = {
+      file <- paste("Tall-Export-File-", sys.time(), ".tall", sep="")
+      file_path <- destFolder(file,values$wdTall)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Custom Term Lists", file_path)
+      popUp(title="Saved in your working folder", type="saved")
+    })
 
   ## Tagging Special Entities ----
   posSpecialTagging <- eventReactive({
@@ -910,16 +948,13 @@ output$info_treebank <- renderUI({
 
   })
 
-  output$posSpecialSave <- downloadHandler(
-    filename = function() {
-      paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
-    },
-    content <- function(file) {
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "POS Tag Selection", file)
-      # D <- date()
-      # save(dfTag,menu,D,where, file=file)
-    }, contentType = "tall"
-  )
+  observeEvent(eventExpr = {input$posSpecialSave},
+    handlerExpr = {
+      file <- paste("Tall-Export-File-", sys.time(), ".tall", sep="")
+      file_path <- destFolder(file,values$wdTall)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "POS Tag Selection", file_path)
+      popUp(title="Saved in your working folder", type="saved")
+    })
 
   ## Click on Tagging Special Entities ----
   observeEvent(ignoreNULL = TRUE,
@@ -1063,17 +1098,13 @@ output$info_treebank <- renderUI({
     DTdf
   })
 
-  output$custTermSave <- downloadHandler(
-    filename = function() {
-      paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
-    },
-    content <- function(file) {
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Custom Term Lists", file)
-      # D <- date()
-      # save(dfTag,menu,D,where, file=file)
-    }, contentType = "tall"
-  )
-
+  observeEvent(eventExpr = {input$custTermSave},
+    handlerExpr = {
+      file <- paste("Tall-Export-File-", sys.time(), ".tall", sep="")
+      file_path <- destFolder(file,values$wdTall)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Custom Term Lists", file_path)
+      popUp(title="Saved in your working folder", type="saved")
+    })
 
     ## back to the original txt
   observeEvent(input$custTermListBack, {
@@ -1195,16 +1226,13 @@ multiword <- eventReactive({
 
   })
 
-  output$multiwordCreatSave <- downloadHandler(
-    filename = function() {
-      paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
-    },
-    content <- function(file) {
-      saveTall(values$dfTag, values$stats, values$language, values$treebank, values$menu, "Multi-Word Creation", file)
-      # D <- date()
-      # save(dfTag,menu,D,where, file=file)
-    }, contentType = "tall"
-  )
+  observeEvent(eventExpr = {input$multiwordCreatSave},
+    handlerExpr = {
+      file <- paste("Tall-Export-File-", sys.time(), ".tall", sep="")
+      file_path <- destFolder(file,values$wdTall)
+      saveTall(values$dfTag, values$stats, values$language, values$treebank, values$menu, "Multi-Word Creation", file_path)
+      popUp(title="Saved in your working folder", type="saved")
+    })
 
   ## back to the original txt
   observeEvent(input$multiwordCreatBack, {
@@ -1280,14 +1308,13 @@ multiword <- eventReactive({
                arrange(desc(Freq), .by_group = FALSE))
   })
 
-  output$multiwordListSave <- downloadHandler(
-    filename = function() {
-      paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
-    },
-    content <- function(file) {
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Multi-Word by a List", file)
-    }, contentType = "tall"
-  )
+  observeEvent(eventExpr = {input$multiwordCreatSave},
+    handlerExpr = {
+      file <- paste("Tall-Export-File-", sys.time(), ".tall", sep="")
+      file_path <- destFolder(file,values$wdTall)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Multi-Word by a List", file_path)
+      popUp(title="Saved in your working folder", type="saved")
+    })
 
   ## back to the original txt
   observeEvent(input$multiwordListBack, {
@@ -1345,16 +1372,13 @@ multiword <- eventReactive({
     )
   })
 
-  output$posTagSelectSave <- downloadHandler(
-    filename = function() {
-      paste("Tall_Export_File_", Sys.Date(),".tall", sep="")
-    },
-    content <- function(file) {
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$treebank, values$menu, "POS Tag Selection", file)
-      # D <- date()
-      # save(dfTag,menu,D,where, file=file)
-    }, contentType = "tall"
-  )
+  observeEvent(eventExpr = {input$posTagSelectSave},
+    handlerExpr = {
+      file <- paste("Tall-Export-File-", sys.time(), ".tall", sep="")
+      file_path <- destFolder(file,values$wdTall)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "POS Tag Selection", file_path)
+      popUp(title="Saved in your working folder", type="saved")
+    })
 
   ## FILTER ----
   output$filterListUI <- renderUI({
@@ -1814,32 +1838,14 @@ multiword <- eventReactive({
   #   DTformat(values$wcDfPlot,n=15, left=1, right=2, numeric=2, pagelength=TRUE, dom=TRUE, size='110%', filename="WordCloudData")
   # })
 
-  ## export WordClud button
-  output$wcSave <- downloadHandler(
-    filename = function() {
-      paste("Wordcloud-", Sys.Date(), ".png", sep="")
-    },
-    content <- function(file) {
-      plot2png(values$WC2VIS, filename=file, zoom = values$zoom)
-    },
-    contentType = "png"
-  )
-
-  # ## export PNG button
-  # observeEvent(input$wcSave,{
-  #   # remove old file
-  #   switch(Sys.info()[['sysname']],
-  #          Windows= {home <- Sys.getenv('R_USER')},
-  #          Linux  = {home <- Sys.getenv('HOME')},
-  #          Darwin = {home <- Sys.getenv('HOME')})
-  #   filename <- paste(home,"/Downloads/WordCloud-", paste0(Sys.Date(),"_",format(Sys.time(),'%H:%M:%S')), ".png", sep="")
-  #   file_old <- dir(paste0(home,"/Downloads"), pattern=paste("WordCloud-", Sys.Date(), ".png", sep=""))[1]
-  #   if(!is.na(file_old)){
-  #     file.remove(filename)
-  #   }
-  #   plot2png(values$wcPlot, filename=filename, zoom = values$zoom, type="plotly")
-  # })
-
+  ## export WordCloud button
+  observeEvent(eventExpr = {input$wcSave},
+    handlerExpr = {
+      file <- paste("Wordcloud-", sys.time(), ".png", sep="")
+      file_path <- destFolder(file,values$wdTall)
+      plot2png(values$WC2VIS, filename=file_path, zoom = values$zoom)
+      popUp(title="Saved in your working folder", type="saved")
+    })
 
   ## VOCABULARY ----
   dictionary <- eventReactive({
@@ -2109,21 +2115,17 @@ observeEvent(input$closePlotModalDoc,{
     DTformat(values$wFreqData, left=1, right=2, round=0, numeric=2, filename="WordsFreqList", dom=FALSE, size="110%")
   })
 
-  output$wFreqExport <- downloadHandler(
-    filename = function() {
-
-      paste("WordsFrequency-", Sys.Date(), ".png", sep="")
-    },
-    content <- function(file) {
+  observeEvent(eventExpr = {input$wFreqExport},
+    handlerExpr = {
+      file <- paste("WordsFrequency-",input$posSelectionFreq,"-",sys.time(), ".png", sep="")
+      file_path <- destFolder(file,values$wdTall)
       values$wFreqGgplot <- freqGgplot(values$wFreq,x=2, y=1,n=input$wFreqN,
-                                       title = paste0("Words Frequency by ", input$posSelectionFreq))
-      ggsave(filename = file, plot = values$wFreqGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
-    },
-    contentType = "png"
-  )
+        title = paste0("Words Frequency by ", input$posSelectionFreq))
+      ggsave(filename = file_path, plot = values$wFreqGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
+      popUp(title="Saved in your working folder", type="saved")
+    })
 
   ## Report
-
   observeEvent(input$wFreqReport,{
     if(!is.null(values$wFreq)){
       values$wFreqGgplot <- freqGgplot(values$wFreq,x=2, y=1,n=input$wFreqN,
@@ -2173,18 +2175,15 @@ observeEvent(input$closePlotModalDoc,{
     DTformat(values$freqPOSData, left=1, right=2, round=0, numeric=2, filename="POSFreqList", dom=FALSE, size="110%")
   })
 
-  output$posExport <- downloadHandler(
-    filename = function() {
-
-      paste("PoSFrequency-", Sys.Date(), ".png", sep="")
-    },
-    content <- function(file) {
+  observeEvent(eventExpr = {input$posExport},
+    handlerExpr = {
+      file <- paste("PoSFrequency-", sys.time(), ".png", sep="")
+      file <- destFolder(file,values$wdTall)
       values$posGgplot <- freqGgplot(data.frame(values$freqPOS),x=2, y=1,n=length(values$freqPOS$PoS),
                                      title = "PoS Frequency")
       ggsave(filename = file, plot = values$posGgplot, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
-    },
-    contentType = "png"
-  )
+      popUp(title="Saved in your working folder", type="saved")
+    })
 
   ## Report
 
@@ -2303,21 +2302,14 @@ observeEvent(input$closePlotModalDoc,{
              size='85%', button=FALSE, numeric=c(5), round=3)
   })
 
-
-
   ## export CLustering button
-  output$w_reinclusteringExport <- downloadHandler(
-    filename = function() {
-      paste("ReinertDendrogram-", Sys.Date(), ".png", sep="")
-    },
-    content <- function(file) {
-      #go to a temp dir to avoid permission issues
-      owd <- setwd(tempdir())
-      on.exit(setwd(owd))
+  observeEvent(eventExpr = {input$w_reinclusteringExport},
+    handlerExpr = {
+      file <- paste("ReinertDendrogram-", sys.time(), ".png", sep="")
+      file <- destFolder(file,values$wdTall)
       plot2png(values$ReinertDendrogram, filename=file, type="vis")
-    },
-    contentType = "png"
-  )
+      popUp(title="Saved in your working folder", type="saved")
+    })
 
   ## Report
 
@@ -2385,15 +2377,13 @@ observeEvent(input$closePlotModalDoc,{
   })
 
   ## export CLustering button
-  output$w_clusteringExport <- downloadHandler(
-    filename = function() {
-      paste("Dendrogram-", Sys.Date(), ".png", sep="")
-    },
-    content <- function(file) {
+  observeEvent(eventExpr = {input$w_clusteringExport},
+    handlerExpr = {
+      file <- paste("Dendrogram-", sys.time(), ".png", sep="")
+      file <- destFolder(file,values$wdTall)
       plot2png(values$WordDendrogram, filename=file, zoom = values$zoom)
-    },
-    contentType = "png"
-  )
+      popUp(title="Saved in your working folder", type="saved")
+    })
 
   ## Report
 
@@ -2507,21 +2497,16 @@ observeEvent(input$closePlotModalDoc,{
              numeric=2:3, dom=TRUE, filter="top", round=2)
   })
 
-
-  output$caExport <- downloadHandler(
-    filename = function() {
-      paste("CAPlots-", Sys.Date(), ".zip", sep="")
-    },
-    content <- function(file) {
-      #go to a temp dir to avoid permission issues
-      owd <- setwd(tempdir())
-      on.exit(setwd(owd))
-      plot2png(values$plotCA, filename="CAMap.png", type="plotly")
-      plot2png(values$CADendrogram, filename="CADendrogram.png", type="vis")
-      zip(file,c("CAMap.png","CADendrogram.png"))
-    },
-    contentType = "zip"
-  )
+  observeEvent(eventExpr = {input$caExport},
+    handlerExpr = {
+      file1 <- paste("CAMap-", sys.time(), ".png", sep="")
+      file1 <- destFolder(file1,values$wdTall)
+      file2 <- paste("CADendrogram-", sys.time(), ".png", sep="")
+      file2 <- destFolder(file2,values$wdTall)
+      plot2png(values$plotCA, filename=file1, type="plotly")
+      plot2png(values$CADendrogram, filename=file2, type="vis")
+      popUp(title="Saved in your working folder", type="saved")
+    })
 
   ## Report
 
@@ -2637,16 +2622,13 @@ observeEvent(input$closePlotModalDoc,{
   })
 
   ## export Network button
-  output$w_networkCoocExport <- downloadHandler(
-    filename = function() {
-      paste("Network-Docs-", Sys.Date(), ".png", sep="")
-    },
-    content <- function(file) {
+  observeEvent(eventExpr = {input$w_networkCoocExport},
+    handlerExpr = {
+      file <- paste("Network-Docs-", sys.time(), ".png", sep="")
+      file <- destFolder(file,values$wdTall)
       plot2png(values$netVis, filename=file, zoom = values$zoom)
-    },
-    contentType = "png"
-  )
-
+      popUp(title="Saved in your working folder", type="saved")
+    })
 
   ## Click on visNetwork: WORDS IN CONTEXT ----
   observeEvent(ignoreNULL = TRUE,
@@ -2940,15 +2922,13 @@ observeEvent(input$closePlotModalDoc,{
   })
 
   ## export Network button
-  output$w_networkGrakoExport <- downloadHandler(
-    filename = function() {
-      paste("Grako-", Sys.Date(), ".png", sep="")
-    },
-    content <- function(file) {
+  observeEvent(eventExpr = {input$w_networkGrakoExport},
+    handlerExpr = {
+      file <- paste("Grako-", sys.time(), ".png", sep="")
+      file <- destFolder(file,values$wdTall)
       plot2png(values$grakoVis, filename=file, zoom = values$zoom)
-    },
-    contentType = "png"
-  )
+      popUp(title="Saved in your working folder", type="saved")
+    })
 
   ## Report
 
@@ -3044,15 +3024,13 @@ observeEvent(input$closePlotModalDoc,{
     DTformat(values$df, numeric=c(2,3), round=2, nrow=nrow(df), size="110%")
   })
 
-  output$d_tm_selectExport <- downloadHandler(
-    filename = function() {
-      paste("TMTopicSelection-", Sys.Date(), ".png", sep="")
-    },
-    content <- function(file) {
+  observeEvent(eventExpr = {input$d_tm_selectExport},
+    handlerExpr = {
+      file <- paste("TMTopicSelection-", sys.time(), ".png", sep="")
+      file <- destFolder(file,values$wdTall)
       plot2png(values$TMKplot, filename=file, zoom = values$zoom)
-    },
-    contentType = "png"
-  )
+      popUp(title="Saved in your working folder", type="saved")
+    })
 
   ## Report
 
@@ -3224,24 +3202,21 @@ observeEvent(input$closePlotModalDoc,{
     DTformat(values$theta, left=1,numeric=c(2:ncol(values$TMestim_result$theta)), round=4, nrow=10, size="85%", filename = "TopicModel_ThetaTable")
   })
 
-  output$d_tm_estimExport <- downloadHandler(
-    filename = function() {
-
-      paste("TopicModeling-", Sys.Date(), ".zip", sep="")
-    },
-    content <- function(file) {
-      #go to a temp dir to avoid permission issues
-      owd <- setwd(tempdir())
-      on.exit(setwd(owd))
+  observeEvent(eventExpr = {input$d_tm_estimExport},
+    handlerExpr = {
+      file1 <- paste("TMCorrPlots-", sys.time(), ".png", sep="")
+      file1 <- destFolder(file1,values$wdTall)
+      file2 <- paste("TMTermPlots-", sys.time(), ".png", sep="")
+      file2 <- destFolder(file2,values$wdTall)
+      file3 <- paste("TMDocPlots-", sys.time(), ".png", sep="")
+      file3 <- destFolder(file3,values$wdTall)
       values$tmGplotBeta <- topicGplot(values$TMestim_result$beta, nPlot=input$nTopicPlot, type="beta")
       values$tmGplotTheta <- topicGplot(values$TMestim_result$theta, nPlot=input$nTopicPlot, type="theta")
-      ggsave(filename = "TMCorrPlots.png", plot = values$tmHeatmap$HplotStatic, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
-      ggsave(filename = "TMTermPlots.png", plot = values$tmGplotBeta, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
-      ggsave(filename = "TMDocPlots.png", plot = values$tmGplotTheta, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
-      zip(file,c("TMTermPlots.png","TMDocPlots.png","TMCorrPlots.png"))
-    },
-    contentType = "zip"
-  )
+      ggsave(filename = file1, plot = values$tmHeatmap$HplotStatic, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
+      ggsave(filename = file2, plot = values$tmGplotBeta, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
+      ggsave(filename = file3, plot = values$tmGplotTheta, dpi = dpi, height = values$h, width = values$h*2, bg="transparent")
+      popUp(title="Saved in your working folder", type="saved")
+    })
 
  ## Report
 
@@ -3348,25 +3323,27 @@ observeEvent(input$closePlotModalDoc,{
     DTformat(values$docPolarityOverallData, filename = "DocPolarity", left=c(2,4,5,6), numeric = 3, round=4, button=TRUE)
   })
 
-    output$d_polDetExport <- downloadHandler(
-      filename = function() {
-        paste("PolarityPlots-", Sys.Date(), ".zip", sep="")
-      },
-      content <- function(file) {
-        #go to a temp dir to avoid permission issues
-        owd <- setwd(tempdir())
-        on.exit(setwd(owd))
-        files <- c("PieChart.png", "DensDensity.png","BoxPlot.png", "Positive.png", "Negative.png")
-        plot2png(values$sentimentPieChart, filename=files[1], zoom = values$zoom)
-        plot2png(values$sentimentDensityPlot, filename=files[2], zoom = values$zoom)
-        plot2png(values$sentimentBoxPlot, filename=files[3], zoom = values$zoom)
-        plot2png(values$docPolPlots$positive, filename=files[4], zoom = values$zoom)
-        plot2png(values$docPolPlots$negative, filename=files[5], zoom = values$zoom)
-        zip(file,files)
-      },
-      contentType = "zip"
-    )
+  observeEvent(eventExpr = {input$d_polDetExport},
+    handlerExpr = {
+      file1 <- paste("PieChart-", sys.time(), ".png", sep="")
+      file1 <- destFolder(file1,values$wdTall)
+      file2 <- paste("DensDensity-", sys.time(), ".png", sep="")
+      file2 <- destFolder(file2,values$wdTall)
+      file3 <- paste("BoxPlot-", sys.time(), ".png", sep="")
+      file3 <- destFolder(file3,values$wdTall)
+      file4 <- paste("Positive-", sys.time(), ".png", sep="")
+      file4 <- destFolder(file4,values$wdTall)
+      file5 <- paste("Negative-", sys.time(), ".png", sep="")
+      file5 <- destFolder(file5,values$wdTall)
 
+      plot2png(values$sentimentPieChart, filename=file1, zoom = values$zoom)
+      plot2png(values$sentimentDensityPlot, filename=file2, zoom = values$zoom)
+      plot2png(values$sentimentBoxPlot, filename=file3, zoom = values$zoom)
+      plot2png(values$docPolPlots$positive, filename=file4, zoom = values$zoom)
+      plot2png(values$docPolPlots$negative, filename=file5, zoom = values$zoom)
+
+      popUp(title="Saved in your working folder", type="saved")
+    })
 
 ## Report
 
@@ -3500,11 +3477,11 @@ output$optionsSummarization <- renderUI({
 
   ## REPORT ----
   ### Report Save xlsx ----
-  output$report.save <- downloadHandler(
-    filename = function() {
-      paste("TallReport-", Sys.Date(), ".xlsx", sep="")
-    },
-    content <- function(file) {
+  observeEvent(eventExpr = {input$report.save},
+    handlerExpr = {
+      file <- paste("TallReport-", sys.time(), ".xlsx", sep="")
+      file <- destFolder(file,values$wdTall)
+
       wb_export <- copyWorkbook(values$wb)
       if (nrow(values$list_file)>0){
         wb_export <- addScreenWb(df=values$list_file, wb=wb_export)#, width=10, height=7, dpi=300)
@@ -3514,9 +3491,9 @@ output$optionsSummarization <- renderUI({
       sheetToAdd <- sheets(wb_export)
       for (i in sheetToAdd) setColWidths(wb_export,sheet=i,cols=1,widths = 30, hidden = FALSE)
       openxlsx::saveWorkbook(wb_export, file = file)
-    },
-    contentType = "xlsx"
-  )
+      popUp(title="Saved in your working folder", type="saved")
+    })
+
 
   ### Report UI elements
   observe({
