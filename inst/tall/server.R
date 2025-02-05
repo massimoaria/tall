@@ -602,7 +602,7 @@ observeEvent(input$reset_confirmation2, {
   observeEvent(eventExpr = {input$collection.save},
     handlerExpr = {
       file_path <- destFolder(paste("Tall-Export-File-", sys.time(), ".csv", sep=""),values$wdTall)
-      write_csv(
+      readr::write_csv(
         x=values$txt,
         file=file_path,
         na = "NA",
@@ -674,7 +674,7 @@ observeEvent(input$reset_confirmation2, {
   observeEvent(eventExpr = {input$splitTextSave},
     handlerExpr = {
       file_path <- destFolder(paste("Tall-Export-File-", sys.time(), ".csv", sep=""),values$wdTall)
-      write_csv(
+      readr::write_csv(
         x=values$txt %>%
           filter(doc_selected) %>%
           select(-c("text_original", "doc_selected", ends_with("id_old"))),
@@ -764,7 +764,7 @@ observeEvent(input$reset_confirmation2, {
   observeEvent(eventExpr = {input$extInfoSave},
     handlerExpr = {
       file_path <- destFolder(paste("Tall-Export-File-", sys.time(), ".csv", sep=""),values$wdTall)
-      write_csv(
+      readr::write_csv(
         x=values$txt %>%
           filter(doc_selected) %>%
           select(-c("text_original","doc_selected")),

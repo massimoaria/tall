@@ -1,5 +1,5 @@
 utils::globalVariables(c("doc_id","uc","uce","segment_size","upos","noSingleChar",
-"token","lemma","freq","chi_square", "cluster", "negative", "positive", "term", "freq_true", "indep", "p_value"))
+"token","lemma","freq","chi_square", "cluster", "negative", "positive", "term", "freq_true", "indep", "p_value","."))
 
 
 #' Segment clustering based on the Reinert method - Simple clustering
@@ -28,6 +28,19 @@ utils::globalVariables(c("doc_id","uc","uce","segment_size","upos","noSingleChar
 #' - Reinert M., Alceste une méthodologie d'analyse des données textuelles et une application: Aurelia De Gerard De Nerval, Bulletin de Méthodologie Sociologique, Volume 26, Numéro 1, 1990. \doi{10.1177/075910639002600103}
 #' - Barnier J., Privé F., rainette: The Reinert Method for Textual Data Clustering, 2023, \doi{10.32614/CRAN.package.rainette}
 #'
+#' @examples
+#' data(mobydick)
+#' res <- reinert(
+#'   x=mobydick,
+#'   k = 10,
+#'   term = "token",
+#'   segment_size = 40,
+#'   min_segment_size = 5,
+#'   min_split_members = 10,
+#'   cc_test = 0.3,
+#'   tsj = 3
+#' )
+#' 
 #' @export
 #'
 
@@ -503,6 +516,25 @@ merge_small_segments <- function(idTable, min_length=5) {
 #' @details The function integrates document-term matrix rows for missing segments, calculates term statistics for each cluster, 
 #' and filters terms based on their significance. Terms can be excluded based on their significance (\code{signExcluded}).
 #'
+#' @examples
+#' data(mobydick)
+#' res <- reinert(
+#'   x=mobydick,
+#'   k = 10,
+#'   term = "token",
+#'   segment_size = 40,
+#'   min_segment_size = 5,
+#'   min_split_members = 10,
+#'   cc_test = 0.3,
+#'   tsj = 3
+#' )
+#' 
+#' tc <- term_per_cluster(res, cutree = NULL, k=1:10, negative=FALSE)
+#' 
+#' head(tc$segments,10)
+#' 
+#' head(tc$terms,10)
+#' 
 #' @export
 
 term_per_cluster <- function(res, cutree=NULL, k=1, negative=TRUE){
@@ -597,6 +629,25 @@ term_per_cluster <- function(res, cutree=NULL, k=1, negative=TRUE){
 #'
 #' @seealso \code{\link{term_per_cluster}}
 #' 
+#' @examples
+#' \dontrun{
+#' data(mobydick)
+#' res <- reinert(
+#'   x=mobydick,
+#'   k = 10,
+#'   term = "token",
+#'   segment_size = 40,
+#'   min_segment_size = 5,
+#'   min_split_members = 10,
+#'   cc_test = 0.3,
+#'   tsj = 3
+#' )
+#' 
+#' tc <- term_per_cluster(res, cutree = NULL, k=1, negative=FALSE)
+#' 
+#' fig <- reinPlot(tc$terms, nPlot = 10)
+#' }
+#' 
 #' @export
 #' 
 reinPlot <- function(terms, nPlot = 10) {
@@ -686,6 +737,25 @@ reinPlot <- function(terms, nPlot = 10) {
 #'
 #' @seealso \code{\link{term_per_cluster}}, \code{\link{reinPlot}}
 #' 
+#' @examples
+#' data(mobydick)
+#' res <- reinert(
+#'   x=mobydick,
+#'   k = 10,
+#'   term = "token",
+#'   segment_size = 40,
+#'   min_segment_size = 5,
+#'   min_split_members = 10,
+#'   cc_test = 0.3,
+#'   tsj = 3
+#' )
+#' 
+#' tc <- term_per_cluster(res, cutree = NULL, k=1:10, negative=FALSE)
+#' 
+#' S <- reinSummary(tc, n=10)
+#' 
+#' head(S, 10)
+#' 
 #' @export
 #' 
 reinSummary <- function(tc, n=10){
@@ -697,14 +767,20 @@ reinSummary <- function(tc, n=10){
               "N. of Segments per Cluster" = n()
     )
   
-  terms <- tc$terms %>% 
-    group_by(cluster, sign) %>% 
-    slice_max(order_by = chi_square, n=10, with_ties = TRUE) %>% 
-    summarize(terms = paste0(term,collapse="; ")) %>%
+    terms <- tc$terms %>% 
+      group_by(cluster, sign) %>% 
+      slice_max(order_by = chi_square, n = 10, with_ties = TRUE) %>% 
+      summarize(terms = paste0(term, collapse = "; "), .groups = "drop") %>%
       pivot_wider(
         names_from = sign, 
         values_from = terms, 
-        names_prefix = ""
+        names_prefix = "",
+        values_fill = list(terms = NA) # Riempie con NA se mancano valori
+      ) %>%
+      # Aggiunta esplicita delle colonne mancanti
+      mutate(
+        positive = ifelse("positive" %in% names(.), positive, ""), 
+        negative = ifelse("negative" %in% names(.), negative, "")
       ) %>%
       rename(
         "Positively Associated Terms" = positive, 

@@ -43,6 +43,20 @@ See the references for original articles on the method.
 Special thanks to the authors of the rainette package (https://github.com/juba/rainette)
 for inspiring the coding approach used in this function.
 }
+\examples{
+data(mobydick)
+res <- reinert(
+  x=mobydick,
+  k = 10,
+  term = "token",
+  segment_size = 40,
+  min_segment_size = 5,
+  min_split_members = 10,
+  cc_test = 0.3,
+  tsj = 3
+)
+
+}
 \references{
 \itemize{
 \item Reinert M, Une méthode de classification descendante hiérarchique : application à l'analyse lexicale par contexte, Cahiers de l'analyse des données, Volume 8, Numéro 2, 1983. \url{http://www.numdam.org/item/?id=CAD_1983__8_2_187_0}

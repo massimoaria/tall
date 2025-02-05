@@ -38,6 +38,26 @@ This function performs the following steps:
 \item Combines the terms and segment information into a final summary table.
 }
 }
+\examples{
+data(mobydick)
+res <- reinert(
+  x=mobydick,
+  k = 10,
+  term = "token",
+  segment_size = 40,
+  min_segment_size = 5,
+  min_split_members = 10,
+  cc_test = 0.3,
+  tsj = 3
+)
+
+tc <- term_per_cluster(res, cutree = NULL, k=1:10, negative=FALSE)
+
+S <- reinSummary(tc, n=10)
+
+head(S, 10)
+
+}
 \seealso{
 \code{\link{term_per_cluster}}, \code{\link{reinPlot}}
 }

@@ -340,7 +340,7 @@ loadLanguageModel <- function(file, model_repo = "2.15"){
 }
 
 tall_download_model <- function(file,
-  model_dir = getwd(),
+  model_dir = NULL,
   model_repo = "2.15",
   overwrite = TRUE){
 
