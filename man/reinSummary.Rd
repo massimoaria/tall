@@ -39,6 +39,8 @@ This function performs the following steps:
 }
 }
 \examples{
+
+\donttest{
 data(mobydick)
 res <- reinert(
   x=mobydick,
@@ -56,6 +58,7 @@ tc <- term_per_cluster(res, cutree = NULL, k=1:10, negative=FALSE)
 S <- reinSummary(tc, n=10)
 
 head(S, 10)
+}
 
 }
 \seealso{

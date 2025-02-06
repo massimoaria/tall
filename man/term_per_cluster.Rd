@@ -46,6 +46,8 @@ The function integrates document-term matrix rows for missing segments, calculat
 and filters terms based on their significance. Terms can be excluded based on their significance (\code{signExcluded}).
 }
 \examples{
+
+\donttest{
 data(mobydick)
 res <- reinert(
   x=mobydick,
@@ -63,5 +65,7 @@ tc <- term_per_cluster(res, cutree = NULL, k=1:10, negative=FALSE)
 head(tc$segments,10)
 
 head(tc$terms,10)
+
+}
 
 }
