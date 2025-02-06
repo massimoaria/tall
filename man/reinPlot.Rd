@@ -32,6 +32,26 @@ for each cluster, based on their Chi-squared statistics.
 The function organizes the input data by Chi-squared values and selects the top terms for each sign.
 The plot uses different colors for positive and negative terms, with hover tooltips providing detailed information.
 }
+\examples{
+\dontrun{
+data(mobydick)
+res <- reinert(
+  x=mobydick,
+  k = 10,
+  term = "token",
+  segment_size = 40,
+  min_segment_size = 5,
+  min_split_members = 10,
+  cc_test = 0.3,
+  tsj = 3
+)
+
+tc <- term_per_cluster(res, cutree = NULL, k=1, negative=FALSE)
+
+fig <- reinPlot(tc$terms, nPlot = 10)
+}
+
+}
 \seealso{
 \code{\link{term_per_cluster}}
 }

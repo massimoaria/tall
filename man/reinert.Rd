@@ -33,12 +33,7 @@ reinert(
 \item{tsj}{minimum frequency value for feature selection}
 }
 \value{
-The result is a list of both class \code{hclust} and \code{reinert_tall}. Besides the elements
-of an \code{hclust} object, two more results are available :
-\itemize{
-\item \code{uce_groups} give the group of each document for each k
-\item \code{group} give the group of each document for the maximum value of k available
-}
+The result is a list of both class \code{hclust} and \code{reinert_tall}.
 }
 \description{
 Segment clustering based on the Reinert method - Simple clustering
@@ -47,6 +42,23 @@ Segment clustering based on the Reinert method - Simple clustering
 See the references for original articles on the method.
 Special thanks to the authors of the rainette package (https://github.com/juba/rainette)
 for inspiring the coding approach used in this function.
+}
+\examples{
+
+\donttest{
+data(mobydick)
+res <- reinert(
+  x=mobydick,
+  k = 10,
+  term = "token",
+  segment_size = 40,
+  min_segment_size = 5,
+  min_split_members = 10,
+  cc_test = 0.3,
+  tsj = 3
+)
+}
+
 }
 \references{
 \itemize{

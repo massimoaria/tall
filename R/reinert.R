@@ -1,5 +1,5 @@
 utils::globalVariables(c("doc_id","uc","uce","segment_size","upos","noSingleChar",
-"token","lemma","freq","chi_square", "cluster", "negative", "positive", "term"))
+"token","lemma","freq","chi_square", "cluster", "negative", "positive", "term", "freq_true", "indep", "p_value","."))
 
 
 #' Segment clustering based on the Reinert method - Simple clustering
@@ -20,19 +20,30 @@ utils::globalVariables(c("doc_id","uc","uce","segment_size","upos","noSingleChar
 #'
 #'
 #' @return
-#' The result is a list of both class `hclust` and `reinert_tall`. Besides the elements
-#' of an `hclust` object, two more results are available :
-#'
-#' - `uce_groups` give the group of each document for each k
-#' - `group` give the group of each document for the maximum value of k available
-#'
+#' The result is a list of both class `hclust` and `reinert_tall`. 
 #'
 #' @references
 #'
-#' - Reinert M, Une méthode de classification descendante hiérarchique : application à l'analyse lexicale par contexte, Cahiers de l'analyse des données, Volume 8, Numéro 2, 1983. <http://www.numdam.org/item/?id=CAD_1983__8_2_187_0>
+#' - Reinert M, Une méthode de classification descendante hiérarchique: application à l'analyse lexicale par contexte, Cahiers de l'analyse des données, Volume 8, Numéro 2, 1983. <http://www.numdam.org/item/?id=CAD_1983__8_2_187_0>
 #' - Reinert M., Alceste une méthodologie d'analyse des données textuelles et une application: Aurelia De Gerard De Nerval, Bulletin de Méthodologie Sociologique, Volume 26, Numéro 1, 1990. \doi{10.1177/075910639002600103}
 #' - Barnier J., Privé F., rainette: The Reinert Method for Textual Data Clustering, 2023, \doi{10.32614/CRAN.package.rainette}
 #'
+#' @examples
+#' 
+#' \donttest{
+#' data(mobydick)
+#' res <- reinert(
+#'   x=mobydick,
+#'   k = 10,
+#'   term = "token",
+#'   segment_size = 40,
+#'   min_segment_size = 5,
+#'   min_split_members = 10,
+#'   cc_test = 0.3,
+#'   tsj = 3
+#' )
+#' }
+#' 
 #' @export
 #'
 
@@ -97,10 +108,11 @@ reinert <- function(
     mutate(freq=freq^0)
 
   ## create DTM
-  dtm <- document_term_matrix(dtf, weight="freq")
+  dtmOriginal <- document_term_matrix(dtf, weight="freq")
 
+  dtmOriginal <- dtm_remove_lowfreq(dtmOriginal, minfreq = 3)
   ## Remove low frequency terms
-  dtm <- as.matrix(dtm_remove_lowfreq(dtm, minfreq = 3))
+  dtm <- as.matrix(dtmOriginal)
 
   ## Remove empty strings to avoid subcript out of bounds errors
   ind <- rowSums(dtm)>0
@@ -112,11 +124,7 @@ reinert <- function(
   res <- list(list(tabs = list(dtm)))
 
   exclusion_list <- NULL
-  ## Display progress bar
-  # progressr::with_progress({
-  #   p <- progressr::progressor(along = seq_len(k - 1))
 
-    #for (i in 1:(k - 1)) {
   i <- 1
 
   while(i<k){
@@ -217,22 +225,14 @@ reinert <- function(
     uce_groups = uce_groups,
     corresp_uce_uc = corresp_uce_uc,
     corresp_uce_uc_full = corresp_uce_uc_full,
-    dtm=dtm
+    dtm=dtm,
+    dtmOriginal=dtmOriginal
   )
 
   class(hres) <- c("reinert_tall", "hclust")
   hres
 }
 
-
-#' return documents indices ordered by CA first axis coordinates
-#'
-#' @param m is the dtm on which to compute the CA and order documents, converted to an integer matrix.
-#'
-#' @details
-#' Internal function, not to be used directly
-#'
-#' @return ordered list of document indices
 
 order_docs <- function(m) {
 
@@ -252,20 +252,6 @@ order_docs <- function(m) {
   return(indices)
 }
 
-
-#' Switch documents between two groups to maximize chi-square value
-#'
-#' @param m the original dtm created from x
-#' @param indices documents indices orderes by first CA axis coordinates
-#' @param max_index document index where the split is maximum
-#' @param max_chisq maximum chi-square value
-#'
-#' @details
-#' Internal function, not to be used directly
-#'
-#' @return a list of two vectors `indices1` and `indices2`, which contain
-#' the documents indices of each group after documents switching, and a `chisq` value,
-#' the new corresponding chi-square value after switching
 
 switch_docs <- function(m, indices, max_index, max_chisq) {
 
@@ -306,21 +292,6 @@ switch_docs <- function(m, indices, max_index, max_chisq) {
   ))
 }
 
-
-#' Remove features from the dtm of each group base don cc_test and tsj
-#'
-#' @param m is the original dtm obtained from x
-#' @param indices1 indices of documents of group 1
-#' @param indices2 indices of documents of group 2
-#' @param cc_test maximum contingency coefficient value for the
-#' feature to be kept in both groups.
-#' @param tsj minimum feature frequency in the dtm
-#'
-#' @details
-#' Internal function, not to be used directly
-#'
-#' @return a list of two character vectors : `cols1` is the name of features to
-#' keep in group 1, `cols2` the name of features to keep in group 2
 
 select_features <- function(m, indices1, indices2, cc_test = 0.3, tsj = 3) {
 
@@ -373,19 +344,6 @@ select_features <- function(m, indices1, indices2, cc_test = 0.3, tsj = 3) {
 }
 
 
-#' Split a dtm into two clusters with reinert algorithm
-#'
-#' @param m id the dtm to be split, passed by `reinart`
-#' @param cc_test maximum contingency coefficient value for the
-#' feature to be kept in both groups.
-#' @param tsj minimum feature frequency in the dtm
-#'
-#' @details
-#' Internal function, not to be used directly
-#'
-#' @return
-#' A list with the two dtms returned from splitting algorithm
-
 cluster_tab <- function(m, cc_test = 0.3, tsj = 3) {
 
   uc <- row.names(m)
@@ -426,16 +384,6 @@ cluster_tab <- function(m, cc_test = 0.3, tsj = 3) {
 }
 
 
-#' split documents into segments
-#'
-#' @param doc_id is the  vector of doc_id labels extracted from x
-#' @param segment_size number of forms by document. Default value is segment_size = 40
-#'
-#' @details
-#' Internal function, not to be used directly
-#'
-#' @return ordered list of document indices
-
 ## Split segments
 split_segments <- function(doc_id, segment_size) {
   segment_id <- integer(length(doc_id))
@@ -456,15 +404,6 @@ split_segments <- function(doc_id, segment_size) {
   return(data.frame(doc_id=doc_id,uce=segment_id))
 }
 
-#' merge small segments with the previous ones
-#'
-#' @param idTable is a data frame obtained by split_segments
-#' @param min_length min number of forms by segment. Default value is segment_size = 5
-#'
-#' @details
-#' Internal function, not to be used directly
-#'
-#' @return ordered list of document indices
 merge_small_segments <- function(idTable, min_length=5) {
   idTable %>%
     group_by(uce) %>%
@@ -510,12 +449,35 @@ merge_small_segments <- function(idTable, min_length=5) {
 #' @details The function integrates document-term matrix rows for missing segments, calculates term statistics for each cluster, 
 #' and filters terms based on their significance. Terms can be excluded based on their significance (\code{signExcluded}).
 #'
+#' @examples
+#' 
+#' \donttest{
+#' data(mobydick)
+#' res <- reinert(
+#'   x=mobydick,
+#'   k = 10,
+#'   term = "token",
+#'   segment_size = 40,
+#'   min_segment_size = 5,
+#'   min_split_members = 10,
+#'   cc_test = 0.3,
+#'   tsj = 3
+#' )
+#' 
+#' tc <- term_per_cluster(res, cutree = NULL, k=1:10, negative=FALSE)
+#' 
+#' head(tc$segments,10)
+#' 
+#' head(tc$terms,10)
+#' 
+#' }
+#' 
 #' @export
 
 term_per_cluster <- function(res, cutree=NULL, k=1, negative=TRUE){
 
   k <- k[!is.na(k)]
-  dtm <- res$dtm
+  dtm <- res$dtmOriginal
   groups <- cutree_reinart(res,cutree)
   terms <- colnames(dtm)
 
@@ -545,76 +507,37 @@ term_per_cluster <- function(res, cutree=NULL, k=1, negative=TRUE){
       mutate(cluster = k)
     segments_list[[k]] <-segments_df
 
-    m1 <- colSums(dtm[select,])
-    m0 <- colSums(dtm[!select,])
+    chi_res_df <- dtm_chisq(dtm, groups = select) %>% 
+      mutate(indep = sum(freq_true)/sum(freq)) %>%  # expected proportion for independence
+      mutate(cluster = k) %>% 
+      rename("chi_square" = "chisq",
+        "p_value" = "p.value") 
 
-    totm1 <- sum(m1)
-    totm0 <- sum(m0)
-
-    chi_res <- list()
-
-    for (i in 1:length(m1)){
-      tab <- matrix(c(m1[i],m0[i],totm1,totm0),2,2)
-      chi_res[[i]] <- chi_squared_test(tab)
-      chi_res[[i]]$term <- terms[i]
-
-    }
-
-    signExcluded <- ifelse(isTRUE(negative),c("none"),c("none","negative"))
-
-    chi_res_df <- do.call(rbind, lapply(chi_res, function(x) {
-      data.frame(
-        chi_square = x$chi_square,
-        p_value = x$p_value,
-        sign = x$sign,
-        term = x$term,
-        freq = x$tab[1,1],
-        indep = x$tab[1,2]
-      )
-    })) %>% filter(!sign %in% signExcluded) %>% arrange(desc(chi_square))
-
-    row.names(chi_res_df) <- chi_res_df$term
-    chi_res_df$cluster <- k
     terms_list[[k]] <- chi_res_df
   }
 
-  terms_list <- bind_rows(terms_list)
+
+  if (isTRUE(negative)){
+    signExcluded <- c("none")
+
+  } else {
+    signExcluded <- c("none","negative")
+  }
+
+  terms_list <- bind_rows(terms_list) %>% 
+    group_by(term) %>% 
+    mutate(freq = sum(freq_true)) %>% 
+    ungroup() %>% 
+    filter(p_value<=0.001) %>% 
+    mutate(freq = freq_true/freq,
+           sign = ifelse(freq>indep,"positive","negative")) %>% 
+      filter(!sign %in% signExcluded)
+
   segments_list <- bind_rows(segments_list) %>% drop_na("doc_id")
 
   return(list(terms =  terms_list, segments = segments_list))
 
 }
-
-## Chi Square test between observed and theoretical distribution
-chi_squared_test <- function(tab) {
-  # Controlla che la tabella sia una matrice o un data frame
-  if (!is.matrix(tab) && !is.data.frame(tab)) {
-    stop("La tabella deve essere una matrice o un data frame.")
-  }
-
-  # Esegui il test chi-quadrato
-  suppressWarnings(test_result <-chisq.test(tab))
-
-  # Estrai i valori di interesse
-  chi_square_value <- test_result$statistic
-  p_value <- test_result$p.value
-
-  tab <- prop.table(tab,2)
-
-  if (p_value<0.001){
-    if ((tab[1,1]-tab[1,2])>0){
-      sign <- "positive"
-    }else{
-      sign <- "negative"
-    }
-  }else{
-    sign <- "none"
-  }
-
-  # Return results into a list
-  return(list(chi_square = chi_square_value, p_value = p_value, tab=tab, sign=sign))
-}
-
 
 # plot for terms by cluster
 
@@ -642,6 +565,25 @@ chi_squared_test <- function(tab) {
 #' The plot uses different colors for positive and negative terms, with hover tooltips providing detailed information.
 #'
 #' @seealso \code{\link{term_per_cluster}}
+#' 
+#' @examples
+#' \dontrun{
+#' data(mobydick)
+#' res <- reinert(
+#'   x=mobydick,
+#'   k = 10,
+#'   term = "token",
+#'   segment_size = 40,
+#'   min_segment_size = 5,
+#'   min_split_members = 10,
+#'   cc_test = 0.3,
+#'   tsj = 3
+#' )
+#' 
+#' tc <- term_per_cluster(res, cutree = NULL, k=1, negative=FALSE)
+#' 
+#' fig <- reinPlot(tc$terms, nPlot = 10)
+#' }
 #' 
 #' @export
 #' 
@@ -732,6 +674,28 @@ reinPlot <- function(terms, nPlot = 10) {
 #'
 #' @seealso \code{\link{term_per_cluster}}, \code{\link{reinPlot}}
 #' 
+#' @examples
+#' 
+#' \donttest{
+#' data(mobydick)
+#' res <- reinert(
+#'   x=mobydick,
+#'   k = 10,
+#'   term = "token",
+#'   segment_size = 40,
+#'   min_segment_size = 5,
+#'   min_split_members = 10,
+#'   cc_test = 0.3,
+#'   tsj = 3
+#' )
+#' 
+#' tc <- term_per_cluster(res, cutree = NULL, k=1:10, negative=FALSE)
+#' 
+#' S <- reinSummary(tc, n=10)
+#' 
+#' head(S, 10)
+#' }
+#' 
 #' @export
 #' 
 reinSummary <- function(tc, n=10){
@@ -743,18 +707,24 @@ reinSummary <- function(tc, n=10){
               "N. of Segments per Cluster" = n()
     )
   
-  terms <- tc$terms %>% 
-    group_by(cluster, sign) %>% 
-    slice_max(order_by = chi_square, n=10, with_ties = TRUE) %>% 
-    summarize(terms = paste0(term,collapse="; ")) %>%
+    terms <- tc$terms %>% 
+      group_by(cluster, sign) %>% 
+      slice_max(order_by = chi_square, n = 10, with_ties = TRUE) %>% 
+      summarize(terms = paste0(term, collapse = "; "), .groups = "drop") %>%
       pivot_wider(
         names_from = sign, 
         values_from = terms, 
-        names_prefix = ""
+        names_prefix = "",
+        values_fill = list(terms = NA) # Riempie con NA se mancano valori
+      ) %>%
+      # Aggiunta esplicita delle colonne mancanti
+      mutate(
+        positive = ifelse("positive" %in% names(.), positive, ""), 
+        negative = ifelse("negative" %in% names(.), negative, "")
       ) %>%
       rename(
-        "Positive terms" = positive, 
-        "Negative terms" = negative
+        "Positively Associated Terms" = positive, 
+        "Negatively Associated Terms" = negative
       )
   
   summaryTable <- terms %>% 

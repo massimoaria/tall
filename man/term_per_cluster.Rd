@@ -45,3 +45,27 @@ It computes the terms and their significance for each cluster, as well as the as
 The function integrates document-term matrix rows for missing segments, calculates term statistics for each cluster,
 and filters terms based on their significance. Terms can be excluded based on their significance (\code{signExcluded}).
 }
+\examples{
+
+\donttest{
+data(mobydick)
+res <- reinert(
+  x=mobydick,
+  k = 10,
+  term = "token",
+  segment_size = 40,
+  min_segment_size = 5,
+  min_split_members = 10,
+  cc_test = 0.3,
+  tsj = 3
+)
+
+tc <- term_per_cluster(res, cutree = NULL, k=1:10, negative=FALSE)
+
+head(tc$segments,10)
+
+head(tc$terms,10)
+
+}
+
+}

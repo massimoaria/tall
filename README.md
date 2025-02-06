@@ -6,6 +6,7 @@
 <img src="images/tall_logo.jpg" width="685" />
 
 <!-- badges: start -->
+
 <!-- badges: end -->
 
 TALL - Text Analysis for ALL, an R Shiny app that includes a wide set of

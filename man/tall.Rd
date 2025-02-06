@@ -25,12 +25,9 @@ this parameter can also be a function to call with the application's URL.}
 
 \item{maxUploadSize}{is a integer. The max upload file size argument. Default value is 1000 (megabyte)}
 }
+\value{
+No return value, called for side effects.
+}
 \description{
 \code{tall} performs text analysis for all.
-}
-\examples{
-
-#biblioshiny()
-
-
 }

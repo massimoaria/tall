@@ -1,6 +1,6 @@
 Package: tall
 Title: Text Analysis for All
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(
     person(given = "Massimo", 
            family = "Aria",
@@ -28,9 +28,9 @@ Authors@R: c(
            role = c("ctb"),
            comment= c(ORCID = "0000-0002-8794-966X"))
     )
-Description: An R Shiny app designed for diverse text analysis tasks, offering a wide range of methodologies tailored to Natural Language Processing needs. 
+Description: An R 'shiny' app designed for diverse text analysis tasks, offering a wide range of methodologies tailored to Natural Language Processing (NLP) needs. 
              It is a versatile, general-purpose tool for analyzing textual data. 
-             TALL features a comprehensive workflow, including data cleaning, preprocessing, statistical analysis, and visualization, all integrated for effective text analysis.
+             'tall' features a comprehensive workflow, including data cleaning, preprocessing, statistical analysis, and visualization, all integrated for effective text analysis.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -38,9 +38,17 @@ RoxygenNote: 7.3.2
 URL: https://github.com/massimoaria/tall,
      https://www.k-synth.com/tall/
 BugReports: https://github.com/massimoaria/tall/issues
+Depends: 
+    R (>= 3.5.0),
+    shiny
 Imports: 
     graphics,
     dplyr (>= 1.1.0), 
+    shinyWidgets,
+    shinydashboardPlus,
+    chromote,
+    later,
+    promises,
     tidyr, 
     purrr, 
     plotly,
@@ -48,10 +56,29 @@ Imports:
     Rcpp (>= 1.0.3),
     RSpectra,
     rlang,
-    shiny,
-    stats,
-    udpipe
-Depends: 
-    R (>= 3.5.0)
+    DT,
+    openxlsx,
+    visNetwork,
+    igraph,
+    udpipe,
+    topicmodels,
+    pdftools,
+    textrank,
+    strucchange,
+    sparkline,
+    tidygraph,
+    readxl,
+    readtext,
+    jsonlite,
+    fontawesome,
+    ca,
+    ldatuning,
+    shinycssloaders,
+    shinyjs,
+    shinyFiles,
+    readr,
+    curl,
+    pagedown,
+    doParallel
 LazyData: true
 LinkingTo: Rcpp

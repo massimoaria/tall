@@ -274,12 +274,12 @@ body <- dashboardBody(
                                                                      column(6,
                                                                             div(align="center",
                                                                                 title = "Export raw text(s) in Excel",
-                                                                                do.call("downloadButton", c(list(
+                                                                                do.call("actionButton", c(list(
                                                                                   label=NULL,
                                                                                   style ="display:block; height: 37px; width: 37px; border-radius: 50%;
                                       border: 1px; margin-top: 16px;",
                                                                                   icon = icon(name ="download-alt", lib="glyphicon"),
-                                                                                  outputId = "collection.save")
+                                                                                  inputId = "collection.save")
                                                                                 )
                                                                                 )
                                                                             )
@@ -366,12 +366,12 @@ body <- dashboardBody(
                              column(4,
                                     div(align="center",
                                         title = t_save,
-                                        do.call("downloadButton", c(list(
+                                        do.call("actionButton", c(list(
                                           label=NULL,
                                           style ="display:block; height: 37px; width: 37px; border-radius: 50%;
                                       border: 1px; margin-top: 16px;",
                                           icon = icon(name ="floppy-save", lib="glyphicon"),
-                                          outputId = "splitTextSave")
+                                          inputId = "splitTextSave")
                                         )
                                         )
                                     )
@@ -456,7 +456,7 @@ body <- dashboardBody(
                            fluidRow(
                              column(12,
                                     div(align="center",
-                                        downloadButton(outputId="doc_idExport",
+                                        actionButton(inputId="doc_idExport",
                                                        label = strong("Export doc_id list"),
                                                        icon = NULL,
                                                        style ="border-radius: 15px; border-width: 1px; font-size: 15px;
@@ -498,13 +498,13 @@ body <- dashboardBody(
                              column(4,
                                     div(
                                       title = t_save,
-                                      do.call("downloadButton", c(list(
+                                      do.call("actionButton", c(list(
                                         label=NULL,
                                         style ="display:block; height: 37px; width: 37px; border-radius: 50%;
                                       border: 1px; margin-top: 16px;",
                                         icon = icon(name ="floppy-save", lib="glyphicon")
                                       ), list(
-                                        outputId = "extInfoSave")
+                                        inputId = "extInfoSave")
                                       )),align="center"
                                     )
                              )
@@ -589,13 +589,13 @@ body <- dashboardBody(
                                       align = "center",style="margin-top:-15px",
                                       width=12,
                                          title = t_save,
-                                         do.call("downloadButton", c(list(
+                                         do.call("actionButton", c(list(
                                            label=NULL,
                                            style ="display:block; height: 37px; width: 37px; border-radius: 50%;
                                       border: 1px; margin-top: 15px;",
                                            icon = icon(name ="floppy-save", lib="glyphicon")
                                          ), list(
-                                           outputId = "tokPosSave")
+                                           inputId = "tokPosSave")
                                          ))
                          ))), style="margin-top:-5px"),
                                   tags$hr(),
@@ -671,8 +671,8 @@ body <- dashboardBody(
                                     div(
                                       title = t_save,
                                       div(align="center",
-                                          do.call("downloadButton", c(save_bttn, list(
-                                            outputId = "posSpecialSave")
+                                          do.call("actionButton", c(save_bttn, list(
+                                            inputId = "posSpecialSave")
 
                                           ))
                                       )
@@ -749,8 +749,8 @@ body <- dashboardBody(
                                   div(
                                     title = t_save,
                                     div(align="center",
-                                        do.call("downloadButton", c(save_bttn, list(
-                                          outputId = "custTermSave")
+                                        do.call("actionButton", c(save_bttn, list(
+                                          inputId = "custTermSave")
 
                                         ))
                                     )
@@ -879,8 +879,8 @@ body <- dashboardBody(
                                     div(
                                       title = t_save,
                                       div(align="center",
-                                          do.call("downloadButton", c(save_bttn, list(
-                                            outputId = "multiwordCreatSave")
+                                          do.call("actionButton", c(save_bttn, list(
+                                            inputId = "multiwordCreatSave")
 
                                           ))
                                       )
@@ -963,8 +963,8 @@ body <- dashboardBody(
                                       div(
                                         title = t_save,
                                         div(align="center",
-                                            do.call("downloadButton", c(save_bttn, list(
-                                              outputId = "multiwordListSave")
+                                            do.call("actionButton", c(save_bttn, list(
+                                              inputId = "multiwordListSave")
 
                                             ))
                                         )
@@ -1038,8 +1038,8 @@ body <- dashboardBody(
                                       div(
                                         title = t_save,
                                         div(align="center",
-                                            do.call("downloadButton", c(save_bttn, list(
-                                              outputId = "posTagSelectSave")
+                                            do.call("actionButton", c(save_bttn, list(
+                                              inputId = "posTagSelectSave")
 
                                             ))
                                         )
@@ -1260,8 +1260,8 @@ body <- dashboardBody(
                                                            # do.call("actionButton", c(export_bttn, list(
                                                            #   inputId = "wcSave")
                                                            # ))
-                                                           do.call("downloadButton", c(export_bttn, list(
-                                                             outputId = "wcSave")
+                                                           do.call("actionButton", c(export_bttn, list(
+                                                             inputId = "wcSave")
                                                            ))
                                                          )
                                                   )
@@ -1365,8 +1365,8 @@ body <- dashboardBody(
                 div(
                   title = t_export,
                   column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "wFreqExport")
+                         do.call("actionButton", c(export_bttn, list(
+                           inputId = "wFreqExport")
                          )),
                   )),
                 div(
@@ -1431,8 +1431,8 @@ body <- dashboardBody(
                 div(
                   title = t_export,
                   column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "posExport")
+                         do.call("actionButton", c(export_bttn, list(
+                           inputId = "posExport")
                          ))
                   )),
                 div(
@@ -1532,8 +1532,8 @@ body <- dashboardBody(
                 div(
                   title = t_export,
                   column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "w_clusteringExport")
+                         do.call("actionButton", c(export_bttn, list(
+                           inputId = "w_clusteringExport")
                          ))
                   )),
                 div(
@@ -1630,8 +1630,8 @@ body <- dashboardBody(
                 div(
                   title = t_export,
                   column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "w_reinclusteringExport")
+                         do.call("actionButton", c(export_bttn, list(
+                           inputId = "w_reinclusteringExport")
                          ))
                   )),
                 div(
@@ -1769,8 +1769,8 @@ body <- dashboardBody(
                 div(
                   title = t_export,
                   column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "caExport")
+                         do.call("actionButton", c(export_bttn, list(
+                           inputId = "caExport")
                          ))
                   )),
                 div(
@@ -1934,8 +1934,8 @@ body <- dashboardBody(
                 div(
                   title = t_export,
                   column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "w_networkCoocExport")
+                         do.call("actionButton", c(export_bttn, list(
+                           inputId = "w_networkCoocExport")
                          ))
                   )),
                 div(
@@ -2005,18 +2005,6 @@ body <- dashboardBody(
                                                      min = 0,
                                                      step = 0.1)
                                )),
-                             # fluidRow(
-                             #   column(6,
-                             #          sliderTextInput(inputId = "community.repulsion",
-                             #                          label = "Cluster Repulsion",
-                             #                          choices = choices,
-                             #                          selected = choices[1],
-                             #                          grid = FALSE,
-                             #                          hide_min_max = FALSE,
-                             #                          animate = TRUE
-                             #          )
-                             #   ),column(6
-                             #   )),
                              tooltip = tooltipOptions(title = "Options"),
                              width = "300px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
@@ -2074,8 +2062,8 @@ body <- dashboardBody(
                 div(
                   title = t_export,
                   column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "w_networkGrakoExport")
+                         do.call("actionButton", c(export_bttn, list(
+                           inputId = "w_networkGrakoExport")
                          ))
                   )),
                 div(
@@ -2182,8 +2170,8 @@ body <- dashboardBody(
                 div(
                   title = t_export,
                   column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "d_tm_selectExport")
+                         do.call("actionButton", c(export_bttn, list(
+                           inputId = "d_tm_selectExport")
                          ))
                   )),
                 div(
@@ -2301,8 +2289,8 @@ body <- dashboardBody(
                 div(
                   title = t_export,
                   column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "d_tm_estimExport")
+                         do.call("actionButton", c(export_bttn, list(
+                           inputId = "d_tm_estimExport")
                          ))
                   )),
                 div(
@@ -2454,8 +2442,8 @@ body <- dashboardBody(
                 div(#style=style_bttn,
                   title = t_export,
                   column(1,
-                         do.call("downloadButton", c(export_bttn, list(
-                           outputId = "d_polDetExport")
+                         do.call("actionButton", c(export_bttn, list(
+                           inputId = "d_polDetExport")
                          ))
                   )),
 
@@ -2674,8 +2662,8 @@ body <- dashboardBody(
                            ),
                            br(),
                            hr(),
-                           downloadBttn(
-                             outputId="report.save",
+                           actionBttn(
+                             inputId="report.save",
                              label = strong("Export Report"),
                              style = "pill", color = "success",
                              size = "md",
@@ -2711,6 +2699,9 @@ body <- dashboardBody(
               fluidRow(column(6,
                               h3("Settings:"),
                               br(),
+                              shinyDirButton("workingfolder", "Select a Working Folder", "Select"),
+                              textOutput("wdFolder"),
+                              hr(),
                               actionButton(inputId="cache",
                                            label="Clean temporary folder")
                               # sliderTextInput(
