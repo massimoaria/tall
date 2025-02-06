@@ -1,6 +1,6 @@
 #' Lemmatized Text of Moby-Dick (Chapters 1-10)
 #'
-#' This dataset contains the lemmatized version of the first 10 chapters of the novel *Moby-Dick* by Herman Melville.
+#' This dataset contains the lemmatized version of the first 10 chapters of the novel Moby-Dick by Herman Melville.
 #' The data is structured as a dataframe with multiple linguistic annotations.
 #'
 #' @format A dataframe with multiple rows and 26 columns:
@@ -35,8 +35,7 @@
 #' }
 #'
 #' @usage data(mobydick)
-#' @keywords datasets, text analysis, NLP
-#' @source Extracted and processed from the text of *Moby-Dick* by Herman Melville.
+#' @source Extracted and processed from the text of Moby-Dick by Herman Melville.
 #' @examples
 #' data(mobydick)
 #' head(mobydick)

@@ -37,20 +37,17 @@ A dataframe with multiple rows and 26 columns:
 }
 }
 \source{
-Extracted and processed from the text of \emph{Moby-Dick} by Herman Melville.
+Extracted and processed from the text of Moby-Dick by Herman Melville.
 }
 \usage{
 data(mobydick)
 }
 \description{
-This dataset contains the lemmatized version of the first 10 chapters of the novel \emph{Moby-Dick} by Herman Melville.
+This dataset contains the lemmatized version of the first 10 chapters of the novel Moby-Dick by Herman Melville.
 The data is structured as a dataframe with multiple linguistic annotations.
 }
 \examples{
 data(mobydick)
 head(mobydick)
 }
-\keyword{NLP}
-\keyword{analysis,}
-\keyword{datasets,}
-\keyword{text}
+\keyword{datasets}

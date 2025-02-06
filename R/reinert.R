@@ -231,15 +231,6 @@ reinert <- function(
 }
 
 
-#' return documents indices ordered by CA first axis coordinates
-#'
-#' @param m is the dtm on which to compute the CA and order documents, converted to an integer matrix.
-#'
-#' @details
-#' Internal function, not to be used directly
-#'
-#' @return ordered list of document indices
-
 order_docs <- function(m) {
 
   ## Compute first factor of CA on DTM
@@ -258,20 +249,6 @@ order_docs <- function(m) {
   return(indices)
 }
 
-
-#' Switch documents between two groups to maximize chi-square value
-#'
-#' @param m the original dtm created from x
-#' @param indices documents indices orderes by first CA axis coordinates
-#' @param max_index document index where the split is maximum
-#' @param max_chisq maximum chi-square value
-#'
-#' @details
-#' Internal function, not to be used directly
-#'
-#' @return a list of two vectors `indices1` and `indices2`, which contain
-#' the documents indices of each group after documents switching, and a `chisq` value,
-#' the new corresponding chi-square value after switching
 
 switch_docs <- function(m, indices, max_index, max_chisq) {
 
@@ -312,21 +289,6 @@ switch_docs <- function(m, indices, max_index, max_chisq) {
   ))
 }
 
-
-#' Remove features from the dtm of each group base don cc_test and tsj
-#'
-#' @param m is the original dtm obtained from x
-#' @param indices1 indices of documents of group 1
-#' @param indices2 indices of documents of group 2
-#' @param cc_test maximum contingency coefficient value for the
-#' feature to be kept in both groups.
-#' @param tsj minimum feature frequency in the dtm
-#'
-#' @details
-#' Internal function, not to be used directly
-#'
-#' @return a list of two character vectors : `cols1` is the name of features to
-#' keep in group 1, `cols2` the name of features to keep in group 2
 
 select_features <- function(m, indices1, indices2, cc_test = 0.3, tsj = 3) {
 
@@ -379,19 +341,6 @@ select_features <- function(m, indices1, indices2, cc_test = 0.3, tsj = 3) {
 }
 
 
-#' Split a dtm into two clusters with reinert algorithm
-#'
-#' @param m id the dtm to be split, passed by `reinart`
-#' @param cc_test maximum contingency coefficient value for the
-#' feature to be kept in both groups.
-#' @param tsj minimum feature frequency in the dtm
-#'
-#' @details
-#' Internal function, not to be used directly
-#'
-#' @return
-#' A list with the two dtms returned from splitting algorithm
-
 cluster_tab <- function(m, cc_test = 0.3, tsj = 3) {
 
   uc <- row.names(m)
@@ -432,16 +381,6 @@ cluster_tab <- function(m, cc_test = 0.3, tsj = 3) {
 }
 
 
-#' split documents into segments
-#'
-#' @param doc_id is the  vector of doc_id labels extracted from x
-#' @param segment_size number of forms by document. Default value is segment_size = 40
-#'
-#' @details
-#' Internal function, not to be used directly
-#'
-#' @return ordered list of document indices
-
 ## Split segments
 split_segments <- function(doc_id, segment_size) {
   segment_id <- integer(length(doc_id))
@@ -462,15 +401,6 @@ split_segments <- function(doc_id, segment_size) {
   return(data.frame(doc_id=doc_id,uce=segment_id))
 }
 
-#' merge small segments with the previous ones
-#'
-#' @param idTable is a data frame obtained by split_segments
-#' @param min_length min number of forms by segment. Default value is segment_size = 5
-#'
-#' @details
-#' Internal function, not to be used directly
-#'
-#' @return ordered list of document indices
 merge_small_segments <- function(idTable, min_length=5) {
   idTable %>%
     group_by(uce) %>%
