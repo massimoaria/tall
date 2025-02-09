@@ -816,7 +816,7 @@ body <- dashboardBody(
                                            selectInput("term",
                                                        "Terms:",
                                                        choices = c("Tokens" = "token",
-                                                                   "Lemmas" = "lemma"),
+                                                                   "Lemma" = "lemma"),
                                                        selected = "lemma")),
                                     column(6,
                                            numericInput(inputId = "ngram_max",
@@ -927,7 +927,7 @@ body <- dashboardBody(
                            selectInput("termMWL",
                                        "Terms:",
                                        choices = c("Tokens" = "token",
-                                                   "Lemmas" = "lemma"),
+                                                   "Lemma" = "lemma"),
                                        selected = "lemma"),
                            helpText(h5("Please ensure that the Multi-Word List is formatted as an Excel/CSV file with one column.
                                        Each cell of that column include a multi-word. Each term have to be separated by a single whitespace.")),
@@ -1196,7 +1196,7 @@ body <- dashboardBody(
                                        column(3,
                                               div(id='clickbox7',title="Number of Types", valueBoxOutput("nDictionary", width = "33vh")),
                                               div(id='clickbox8',title="Number of Tokens", valueBoxOutput("nTokens", width = "33vh")),
-                                              div(id='clickbox9',title="Number of Lemmas", valueBoxOutput("nLemmas", width = "33vh"))),
+                                              div(id='clickbox9',title="Number of Lemma", valueBoxOutput("nLemmas", width = "33vh"))),
                                        column(3,
                                               div(id='clickbox10',title="Types/Tokens Ratio", valueBoxOutput("TTR", width = "33vh")),
                                               div(id='clickbox11',title="Percentage of Hapax", valueBoxOutput("hapax", width = "33vh")),
@@ -1226,7 +1226,7 @@ body <- dashboardBody(
                                                            selectInput("termWC",
                                                                        label = "WordCloud by:",
                                                                        choices = c("Tokens"="token",
-                                                                                   "Lemmas"="lemma"),
+                                                                                   "Lemma"="lemma"),
                                                                        selected = "token"),
                                                            numericInput("nWC",
                                                                         label = "Words",
@@ -1285,7 +1285,7 @@ body <- dashboardBody(
                                                            selectInput("termDict",
                                                                        label = "Vocabulary by:",
                                                                        choices = c("Tokens"="token",
-                                                                                   "Lemmas"="lemma"),
+                                                                                   "Lemma"="lemma"),
                                                                        selected = "token"), style="margin-top:-3px"
                                                          )
                                                   ),
@@ -1319,7 +1319,7 @@ body <- dashboardBody(
                                                            selectInput("termTfidf",
                                                                        label = "TF-IDF by:",
                                                                        choices = c("Tokens"="token",
-                                                                                   "Lemmas"="lemma"),
+                                                                                   "Lemma"="lemma"),
                                                                        selected = "lemma"), style="margin-top:-3px"
                                                          )
                                                   ),
@@ -1387,7 +1387,7 @@ body <- dashboardBody(
                              selectInput("wFreqTerm",
                                          "Terms:",
                                          choices = c("Tokens" = "token",
-                                                     "Lemmas" = "lemma"),
+                                                     "Lemma" = "lemma"),
                                          selected = "lemma"),
                              width = "220px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
@@ -1550,7 +1550,7 @@ body <- dashboardBody(
                              selectInput("termClustering",
                                          "By:",
                                          choices = c("Tokens" = "token",
-                                                     "Lemmas" = "lemma"),
+                                                     "Lemma" = "lemma"),
                                          selected = "lemma"),
                              selectInput("w_clusteringSimilarity",
                                          label = "Words Similarity by:",
@@ -1648,7 +1648,7 @@ body <- dashboardBody(
                              selectInput("termReinClustering",
                                          "By:",
                                          choices = c("Tokens" = "token",
-                                                     "Lemmas" = "lemma"),
+                                                     "Lemma" = "lemma"),
                                          selected = "token"),
                              fluidRow(
                                column(6,
@@ -1802,7 +1802,7 @@ body <- dashboardBody(
                                       selectInput("termCA",
                                                   "By:",
                                                   choices = c("Tokens" = "token",
-                                                              "Lemmas" = "lemma"),
+                                                              "Lemma" = "lemma"),
                                                   selected = "lemma")
                                )),
                              fluidRow(
@@ -1953,7 +1953,7 @@ body <- dashboardBody(
                                          label = "Terms:",
                                          choices = c(
                                            "Tokens"="token",
-                                           "Lemmas"="lemma"),
+                                           "Lemma"="lemma"),
                                          selected = "lemma"
                              ),
                              selectInput(
@@ -2081,7 +2081,7 @@ body <- dashboardBody(
                                          label = "By:",
                                          choices = c(
                                            "Tokens"="token",
-                                           "Lemmas"="lemma"),
+                                           "Lemma"="lemma"),
                                          selected = "lemma"
                              ),
                              selectInput("grakoNormalization",
@@ -2227,7 +2227,7 @@ body <- dashboardBody(
                                            selectInput("termTm", "Terms:",
                                                        choices = c(
                                                          "Tokens"="token",
-                                                         "Lemmas"="lemma"),
+                                                         "Lemma"="lemma"),
                                                        selected = "lemma"
                                            )),
                                     column(6,
@@ -2329,7 +2329,7 @@ body <- dashboardBody(
                                       selectInput("termTmEstim", "By:",
                                                   choices = c(
                                                     "Tokens"="token",
-                                                    "Lemmas"="lemma"),
+                                                    "Lemma"="lemma"),
                                                   selected = "lemma"
                                       )),
                                column(6,
