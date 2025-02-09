@@ -998,7 +998,7 @@ output$info_treebank <- renderUI({
         '</a>'
       )
     }
-    # find sentences containing the tokens/lemmas
+    # find sentences containing the tokens/lemma
     DTformat(summarySpecialEntity, size='100%', button = FALSE)
   }, escape=FALSE)
 
@@ -1570,7 +1570,7 @@ multiword <- eventReactive({
   output$nDoc <- renderValueBox({
     values$vb <- valueBoxesIndices(values$dfTag %>% filter(docSelected))
 
-    values$VbData <- data.frame(Description=c("Documents", "Tokens", "Types", "Lemmas", "Sentences",
+    values$VbData <- data.frame(Description=c("Documents", "Tokens", "Types", "Lemma", "Sentences",
                                               "Docs Avg Length in Chars", "Doc Avg Length in Tokens",
                                               "Sent Avg Length in Tokens", "Sent Avg Length in Chars",
                                               "TTR", "Hapax (%)", "Guiraud Index"),
@@ -1692,7 +1692,7 @@ multiword <- eventReactive({
 
   #### box9 ---------------
   output$nLemmas <- renderValueBox({
-    valueBox(value = p("Lemmas", style = 'font-size:16px;color:white;'),
+    valueBox(value = p("Lemma", style = 'font-size:16px;color:white;'),
              subtitle = p(strong(values$vb$nLemmas), style = 'font-size:36px;color:white;', align="center"),
              icon = icon(name="font", lib="glyphicon"), color = "olive",
              width = NULL)
@@ -1700,7 +1700,7 @@ multiword <- eventReactive({
 
   onclick('clickbox9', showModal(modalDialog(
     title = "Lemmas",
-    h3("Number of Lemmas"),
+    h3("Number of Lemma"),
     hr(),
     p(HTML("<p><span style='text-align: start; color: rgb(32, 33, 34); background-color: rgb(255, 255, 255); font-size: 16px; font-family: Calibri;'>&nbsp;</span><span style='text-align: start; color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); font-size: 16px;'>A <em>lemma&nbsp;</em>is the <strong>canonical form</strong>, or <strong>d</strong><strong>ictionary form</strong> of a set of words forms.</span></p>")),
     easyClose = TRUE
@@ -1800,7 +1800,7 @@ multiword <- eventReactive({
   },
   {
 
-    N <- input$nWC #showing the first 100 lemmas
+    N <- input$nWC #showing the first 100 lemma
     pos <- LemmaSelection(values$dfTag) %>%
       dplyr::filter(docSelected) %>%
       select(upos)
@@ -1930,7 +1930,7 @@ multiword <- eventReactive({
         showModal(plotModalTerm(session))
       }
     }
-  })
+    })
 
   plotModalTerm <- function(session) {
     ns <- session$ns
@@ -1989,7 +1989,7 @@ multiword <- eventReactive({
         filter(token %in% word_search) %>%
         ungroup() %>% select(doc_id, lemma, token, sentence_hl)
     }
-    # find sentences containing the tokens/lemmas
+    # find sentences containing the tokens/lemma
     DTformat(sentences, size='100%', button = TRUE)
   }, escape=FALSE)
 
@@ -2276,12 +2276,12 @@ observeEvent(input$closePlotModalDoc,{
 
   output$w_ReinClusteringTableSegments <- renderDT({
     dendReinFunction()
-    # find sentences containing the tokens/lemmas
+    # find sentences containing the tokens/lemma
     DTformat(values$tc$segments, size='100%', button=TRUE)
   })
   output$w_ReinSummaryTable <- renderDT({
     dendReinFunction()
-    # find sentences containing the tokens/lemmas
+    # find sentences containing the tokens/lemma
     DTformat(values$reinertSummary, size='100%', button=FALSE)
   })
 
@@ -2689,7 +2689,7 @@ observeEvent(input$closePlotModalDoc,{
                ungroup() %>% select(doc_id, lemma, token, sentence_hl)
            })
 
-    # find sentences containing the tokens/lemmas
+    # find sentences containing the tokens/lemma
     DTformat(sentences, size='100%', button = TRUE)
   }, escape=FALSE)
 
@@ -2743,7 +2743,7 @@ observeEvent(input$closePlotModalDoc,{
       filter(lemma %in% word_search) %>%
       ungroup() %>% select(doc_id, lemma, token, sentence_hl)
 
-    # find sentences containing the tokens/lemmas
+    # find sentences containing the tokens/lemma
     DTformat(sentences, size='100%', button=TRUE)
   }, escape=FALSE)
 
@@ -2834,7 +2834,7 @@ observeEvent(input$closePlotModalDoc,{
   })
 
   output$wordInContextRein <- renderDT(server=FALSE,{
-    # find sentences containing the tokens/lemmas
+    # find sentences containing the tokens/lemma
     DTformat(values$tc_k$segments, nrow=5, size='80%', button=TRUE)
   }, escape=FALSE)
 
