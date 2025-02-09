@@ -23,7 +23,8 @@ tallShot <- function(
   delay = 0.2,
   zoom = 1,
   useragent = NULL,
-  max_concurrent = getOption("tallShot.concurrent", default = 6)
+  max_concurrent = getOption("tallShot.concurrent", default = 6),
+  verbose = FALSE
 ) {
 
   if (length(url) == 0) {
@@ -66,7 +67,8 @@ tallShot <- function(
     expand    = expand,
     delay     = delay,
     zoom      = zoom,
-    useragent = useragent
+    useragent = useragent,
+    verbose = verbose
   )
 
   n_urls <- length(url)
@@ -94,7 +96,8 @@ tallShot <- function(
     function(args) {
       new_session_screenshot(cm,
         args$url, args$file, args$vwidth, args$vheight, args$selector,
-        args$cliprect, args$expand, args$delay, args$zoom, args$useragent
+        args$cliprect, args$expand, args$delay, args$zoom, args$useragent,
+        verbose
       )
     }
   )
@@ -117,7 +120,8 @@ new_session_screenshot <- function(
   expand,
   delay,
   zoom,
-  useragent
+  useragent,
+  verbose = FALSE
 ) {
 
   filetype <- tolower(tools::file_ext(file))
@@ -159,7 +163,7 @@ new_session_screenshot <- function(
     })$
     then(function(value) {
       if (delay > 0) {
-        promise(function(resolve, reject) {
+        promises::promise(function(resolve, reject) {
           later::later(
             function() {
               resolve(value)
@@ -184,7 +188,7 @@ new_session_screenshot <- function(
       }
     })$
     then(function(value) {
-      message(url, " screenshot completed")
+      if (verbose) message(url, " screenshot completed")
       normalizePath(value)
     })$
     finally(function() {
