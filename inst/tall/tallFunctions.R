@@ -134,7 +134,7 @@ removeHTMLTags <- function(text){
 
 ### download sample data
 loadSampleCollection <- function(sampleName){
-  
+
   home <- homeFolder()
 
   # setting up the main directory
@@ -312,7 +312,7 @@ restoreText <- function(x){
 
 ### 1. TOKENIZATION ----
 loadLanguageModel <- function(file, model_repo = "2.15"){
-  
+
   home <- homeFolder()
 
   # setting up the main directory
@@ -2524,7 +2524,7 @@ tmDocPlot <- function(theta, topic=1, nPlot=10){
 
 # download sentiment lexicons
 loadSentimentLanguage <- function(language){
-  
+
   home <- homeFolder()
 
   # setting up the main directory
@@ -3134,13 +3134,13 @@ homeFolder <- function(){
          Linux  = {home <- Sys.getenv('HOME')},
          Darwin = {home <- Sys.getenv('HOME')})
   return(home)
-} 
+}
 ## check working folder
 wdFolder <- function(){
   home <- paste0(homeFolder(),"/tall")
   wdFile <- paste0(home,"/tallWD.tall")
   wdTall <- NULL
-  
+
   if (file.exists(wdFile)){
     wdTall <- readLines(wdFile)
     if (!file.exists(wdTall)){
@@ -3223,7 +3223,7 @@ colorlist <- function(){
 posSel <- function(dfTag, pos){
 
   dfTag <- dfTag %>% mutate(POSSelected = ifelse(upos %in% pos, TRUE, FALSE))
-  dfTag <- highlight(dfTag)
+  #dfTag <- highlight(dfTag)
 }
 
 # remove Hapax and lowwer and higher lemmas
@@ -3291,21 +3291,48 @@ highlight_segments <- function(tc,n){
 }
 
 # Define the function
-highlight_word <- function(input_string, target_word, upos) {
-  # Check if the target word is valid
+# highlight_word <- function(input_string, target_word, upos) {
+#   # Check if the target word is valid
+#
+#   if (is.na(target_word) || target_word == "" | upos %in% c("DET","PART","PUNCT","X","SYM","INTJ", "NUM", "NGRAM_MERGED")) {
+#     return(input_string)
+#   }
+#
+#   # Escape special characters in the target word for regex
+#   target_word_escaped <- gsub("([\\.\\^\\$\\*\\+\\?\\(\\)\\[\\]\\{\\}\\|\\\\])", "\\\\\\1", target_word)
+#
+#   # Replace occurrences of the target word with highlighted HTML markup
+#   highlighted_string <- gsub(
+#     paste0("\\b", target_word_escaped, "\\b"), # Match whole words
+#     paste0("<mark><strong>", target_word, "</strong></mark>"),
+#     input_string
+#   )
+#
+#   return(highlighted_string)
+# }
 
-  if (is.na(target_word) || target_word == "" | upos %in% c("DET","PART","PUNCT","X","SYM","INTJ", "NUM", "NGRAM_MERGED")) {
+highlight_word <- function(input_string, target_word, upos) {
+  # Controllo della validità della parola target
+  if (is.na(target_word) || target_word == "" || upos %in% c("DET", "PART", "PUNCT", "X", "SYM", "INTJ", "NUM", "NGRAM_MERGED")) {
     return(input_string)
   }
 
-  # Escape special characters in the target word for regex
-  target_word_escaped <- gsub("([\\.\\^\\$\\*\\+\\?\\(\\)\\[\\]\\{\\}\\|\\\\])", "\\\\\\1", target_word)
+  # Escape dei caratteri speciali
+  target_word_escaped <- gsub("([.\\^$*+?()\\[\\]|\\\\])", "\\\\\\1", target_word, perl=TRUE)
 
-  # Replace occurrences of the target word with highlighted HTML markup
+  # Controllo se la parola contiene caratteri non alfanumerici
+  if (grepl("\\W", target_word, perl=TRUE)) {
+    word_boundary <- ""  # Nessun confine di parola se contiene caratteri speciali
+  } else {
+    word_boundary <- "\\b"
+  }
+
+  # Sostituzione con evidenziazione HTML
   highlighted_string <- gsub(
-    paste0("\\b", target_word_escaped, "\\b"), # Match whole words
+    paste0(word_boundary, target_word_escaped, word_boundary),
     paste0("<mark><strong>", target_word, "</strong></mark>"),
-    input_string
+    input_string,
+    perl = TRUE
   )
 
   return(highlighted_string)
@@ -3560,7 +3587,7 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
       mutate(Table = paste0('<button id2="custom_btn" onclick="Shiny.onInputChange(\'button_id2\', \'', UPOS, '\')">View</button>')) %>%
       select(Table, everything())
   }
-  
+
 
   # if (isTRUE(delete)){
   #   df <- df %>%
@@ -3572,7 +3599,7 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
       mutate(Remove = paste0('<button id="custom_btn_del" onclick="Shiny.onInputChange(\'button_id_del\', \'', doc_id, '\')">Remove</button>')) %>%
       select(Document, Remove, everything())
   }
-  
+
 
   if (isTRUE(selection)){
     extensions = c("Buttons", "Select", "ColReorder", "FixedHeader")
@@ -3710,7 +3737,7 @@ topicGplot <- function(x, nPlot=10, type="beta"){
 
 ### deleteCache ------
 deleteCache <- function(){
-  
+
   home <- homeFolder()
 
   # setting up the main directory
