@@ -187,8 +187,8 @@ To ensure the functionality of TALL,
           # output$wdFolder <- renderText({
           #   "No folder selected."
           # })
-        } 
-        
+        }
+
       } else {
         writeLines(wdTall, con = paste0(homeFolder(),"/tall/tallWD.tall"))
         values$menu <-  -1
@@ -205,8 +205,8 @@ To ensure the functionality of TALL,
       #       values$wdTall
       #   })
       # }
-      
-      
+
+
   }, ignoreNULL = TRUE)
 
   output$wdFolder <- renderText({
@@ -598,7 +598,7 @@ observeEvent(input$reset_confirmation2, {
   })
 
   ### Convert Raw Data in Excel functions ----
- 
+
   observeEvent(eventExpr = {input$collection.save},
     handlerExpr = {
       file_path <- destFolder(paste("Tall-Export-File-", sys.time(), ".csv", sep=""),values$wdTall)
@@ -2293,7 +2293,7 @@ observeEvent(input$closePlotModalDoc,{
              p_value = round(p_value, 4)) %>%
       select(term, freq_true, freq, chi_square, p_value, sign, cluster) %>%
       rename("Term" = term,
-             "Freq. in Cluster" = freq_true, 
+             "Freq. in Cluster" = freq_true,
              "% in Cluster" = freq,
              "Chi^2" = chi_square,
              "P-Value" = p_value,
@@ -2786,12 +2786,12 @@ observeEvent(input$closePlotModalDoc,{
                      values$tc_k <- values$tc
 
                      # remove duplicated terms when two or more clusters are aggregated
-                     values$tc_k$terms <- values$tc_k$terms %>% 
-                      filter(cluster %in% word_search) %>% 
-                      group_by(term) %>% 
-                      slice_min(order_by = p_value, n=1) %>% 
+                     values$tc_k$terms <- values$tc_k$terms %>%
+                      filter(cluster %in% word_search) %>%
+                      group_by(term) %>%
+                      slice_min(order_by = p_value, n=1) %>%
                       ungroup()
-                     
+
                      values$tc_k$segments <- values$tc_k$segments %>% filter(cluster %in% word_search)
                      #segments <- values$tc
                      values$tc_k <- highlight_segments(values$tc_k, n=10)
@@ -2959,7 +2959,7 @@ observeEvent(input$closePlotModalDoc,{
   ## K choice ----
 
   output$TMmetric <- renderUI({
-    
+
     switch(Sys.info()[['sysname']],
          Darwin = {
           metrics <- c(
@@ -2976,7 +2976,7 @@ observeEvent(input$closePlotModalDoc,{
               "Griffiths-2004"="Griffiths2004"
             )
         })
-    
+
     selectInput("metric", "Metric for model tuning",
                                        choices = metrics,
                                        selected = "CaoJuan2009"
