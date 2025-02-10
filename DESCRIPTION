@@ -79,6 +79,7 @@ Imports:
     readr,
     curl,
     pagedown,
+    parallel,
     doParallel
 LazyData: true
 LinkingTo: Rcpp

@@ -847,8 +847,8 @@ output$info_treebank <- renderUI({
 
     ## set cores for windows machines
     if (Sys.info()[["sysname"]]=="Windows") {
-      cl <- makeCluster(ncores)
-      registerDoParallel(cl)
+      cl <- parallel::makeCluster(ncores)
+      doParallel::registerDoParallel(cl)
     }
 
     #Lemmatization and POS Tagging

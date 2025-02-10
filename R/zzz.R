@@ -26,6 +26,7 @@
 #' @import curl
 #' @import pagedown
 #' @import doParallel
+#' @import parallel
 #' @import shinyFiles
 #' @importFrom readr write_csv
 #' @importFrom strucchange breakpoints
