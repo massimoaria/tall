@@ -537,114 +537,104 @@ rakeReset <- function(x){
   return(x)
 }
 
-rake <- function(x, group = "doc_id", ngram_max=5, ngram_min=2,relevant = c("PROPN", "NOUN", "ADJ", "VERB"), rake.min=2, freq.min=10, term="lemma", type="automatic", keywordList=NULL){
-
+rake <- function(x, group = "doc_id", ngram_max=5, ngram_min=2,relevant = c("PROPN", "NOUN", "ADJ", "VERB"), freq.min=10, term="lemma", type="automatic", keywordList=NULL, method="rake"){
+  
   # if ("ngram" %in% names(x)){
   #   x <- x %>%
   #     select(-"ngram")
   # }
   switch(type,
-         automatic={
-           # rake multi-word creation
-           stats <- keywords_rake(x = x, term = term, group = group, ngram_max = ngram_max,
-                                  relevant = x$upos %in% relevant)
-
-           # identify ngrams>1 with reka index>reka.min
-           stats <- stats %>%
-             dplyr::filter(rake>=rake.min & ngram>=ngram_min)
-         },
-         {
-           stats <- keywordList %>%
-             mutate(keyword = trimws(keyword),
-                    ngram = lengths(strsplit(keyword," ")))
-         })
-
-
-  # filter original token df removing POS excluded in rake
-  x2 <- x %>% filter(upos %in% relevant)
-
-  # combine lemmas or tokens into multi-words
-
-  switch(term,
-         lemma={
-           x2$multiword <- txt_recode_ngram(x2$lemma, compound=stats$keyword, ngram=stats$ngram, sep = " ")
-
-           # assign new POS tags "MULTIWORD" for combined lemmas and "NGRAM_MERGED" for lemmas to be removed because combined
-           x2 <- x2 %>%
-             mutate(upos_multiword = ifelse(lemma==multiword,upos,"MULTIWORD"),
-                    upos_multiword =ifelse(is.na(multiword), "NGRAM_MERGED",upos_multiword)) %>%
-             left_join(stats %>% select(keyword, ngram), by = c("multiword" = "keyword")) %>%
-             select(doc_id,term_id,multiword,upos_multiword, ngram)
-
-           # # rebuild the original tokenized df
-           # x <- x %>%
-           #   left_join(x2 %>% select(doc_id,term_id,multiword,upos_multiword, ngram), by = c("doc_id","term_id")) %>%
-           #   mutate(multiword = ifelse(is.na(multiword),lemma,multiword),
-           #          upos_multiword = ifelse(is.na(upos_multiword),upos,upos_multiword),
-           #          POSSelected = ifelse(upos_multiword == "MULTIWORD", TRUE, POSSelected),
-           #          POSSelected = ifelse(upos_multiword == "NGRAM_MERGED", FALSE, POSSelected))
-           #
-           # if (!"upos_original" %in% names(x)) names(x)[names(x) == "upos"] <- "upos_original"
-           # x <- x %>% select(-ends_with("upos")) %>%
-           #   rename(upos = upos_multiword)
-           #
-           # if (!"lemma_original_nomultiwords" %in% names(x)) names(x)[names(x) == "lemma"] <- "lemma_original_nomultiwords"
-           #
-           # x <- x %>%
-           #   select(-ends_with("lemma")) %>%
-           #   rename(lemma = multiword)
-
-
-
-         },
-         token={
-           x2$multiword <- txt_recode_ngram(x2$token, compound=stats$keyword, ngram=stats$ngram, sep = " ")
-
-           # assign new POS tags "MULTIWORD" for combined lemmas and "NGRAM_MERGED" for lemmas to be removed because combined
-           x2 <- x2 %>%
-             mutate(upos_multiword = ifelse(token==multiword,upos,"MULTIWORD"),
-                    upos_multiword =ifelse(is.na(multiword), "NGRAM_MERGED",upos_multiword)) %>%
-             left_join(stats %>% select(keyword, ngram), by = c("multiword" = "keyword")) %>%
-             select(doc_id,term_id,multiword,upos_multiword, ngram)
-
-           # # rebuild the original tokenized df
-           # x <- x %>%
-           #   left_join(x2 %>% select(doc_id,term_id,multiword,upos_multiword, ngram), by = c("doc_id","term_id")) %>%
-           #   mutate(multiword = ifelse(is.na(multiword),token,multiword),
-           #          upos_multiword = ifelse(is.na(upos_multiword),upos,upos_multiword),
-           #          POSSelected = ifelse(upos_multiword == "MULTIWORD", TRUE, POSSelected),
-           #          POSSelected = ifelse(upos_multiword == "NGRAM_MERGED", FALSE, POSSelected))
-           #
-           # if (!"upos_original" %in% names(x)) names(x)[names(x) == "upos"] <- "upos_original"
-           # x <- x %>% select(-ends_with("upos")) %>%
-           #   rename(upos = upos_multiword)
-           #
-           # if (!"token_original_nomultiwords" %in% names(x)) names(x)[names(x) == "token"] <- "token_original_nomultiwords"
-           #
-           # x <- x %>%
-           #   select(-ends_with("token")) %>%
-           #   rename(token = multiword)
-
-
-         })
-
-  stats<- x2 %>%
-    filter(upos_multiword == "MULTIWORD", multiword %in% stats$keyword) %>%
-    group_by(multiword) %>%
-    select(multiword) %>%
-    count() %>%
-    ungroup() %>%
-    rename(keyword = multiword,
-           freq = n) %>%
-    right_join(stats %>%
-                 select(-starts_with("freq")),
-               by="keyword") %>%
-    filter(freq>=freq.min) %>%
-    arrange(desc(freq))
-
-  return(list(stats=stats,dfMW=x2))
-
-}
+    automatic={
+      switch(method,
+        rake={
+          # rake multi-word creation
+          stats <- keywords_rake(x = x, term = term, group = group, ngram_max = ngram_max, n_min = freq.min,
+            relevant = x$upos %in% relevant)
+            
+            # identify ngrams>1 
+            stats <- stats %>%
+            dplyr::filter(ngram>=ngram_min)
+          },
+        pmi={
+            stats <- keywords_collocation(x %>% filter(upos %in% relevant), 
+            term=term, group = group, ngram_max = ngram_max, n_min = freq.min, sep = " ") %>% 
+            select("keyword", "ngram", "freq", "pmi")
+            
+            # identify ngrams>1 
+            stats <- stats %>%
+            dplyr::filter(ngram>=ngram_min)
+          },
+        md={
+            stats <- keywords_collocation(x %>% filter(upos %in% relevant), 
+            term=term, group = group, ngram_max = ngram_max, n_min = freq.min, sep = " ") %>% 
+            select("keyword", "ngram", "freq", "md")
+            
+            # identify ngrams>1 
+            stats <- stats %>%
+            dplyr::filter(ngram>=ngram_min)
+          },
+        lfmd={
+            stats <- keywords_collocation(x %>% filter(upos %in% relevant), 
+            term=term, group = group, ngram_max = ngram_max, n_min = freq.min, sep = " ") %>% 
+            select("keyword", "ngram", "freq", "lfmd")
+            
+            # identify ngrams>1 with reka index>reka.min
+            stats <- stats %>%
+            dplyr::filter(ngram>=ngram_min)
+          }
+        )
+      },
+      {
+        stats <- keywordList %>%
+        mutate(keyword = trimws(keyword),
+        ngram = lengths(strsplit(keyword," ")))
+      })
+      
+      
+      # filter original token df removing POS excluded in rake
+      x2 <- x %>% filter(upos %in% relevant)
+      
+      # combine lemmas or tokens into multi-words
+      
+      switch(term,
+        lemma={
+          x2$multiword <- txt_recode_ngram(x2$lemma, compound=stats$keyword, ngram=stats$ngram, sep = " ")
+          
+          # assign new POS tags "MULTIWORD" for combined lemmas and "NGRAM_MERGED" for lemmas to be removed because combined
+          x2 <- x2 %>%
+          mutate(upos_multiword = ifelse(lemma==multiword,upos,"MULTIWORD"),
+          upos_multiword =ifelse(is.na(multiword), "NGRAM_MERGED",upos_multiword)) %>%
+          left_join(stats %>% select(keyword, ngram), by = c("multiword" = "keyword")) %>%
+          select(doc_id,term_id,multiword,upos_multiword, ngram)
+        },
+        token={
+          x2$multiword <- txt_recode_ngram(x2$token, compound=stats$keyword, ngram=stats$ngram, sep = " ")
+          
+          # assign new POS tags "MULTIWORD" for combined lemmas and "NGRAM_MERGED" for lemmas to be removed because combined
+          x2 <- x2 %>%
+          mutate(upos_multiword = ifelse(token==multiword,upos,"MULTIWORD"),
+          upos_multiword =ifelse(is.na(multiword), "NGRAM_MERGED",upos_multiword)) %>%
+          left_join(stats %>% select(keyword, ngram), by = c("multiword" = "keyword")) %>%
+          select(doc_id,term_id,multiword,upos_multiword, ngram)
+        })
+        
+        stats<- x2 %>%
+        filter(upos_multiword == "MULTIWORD", multiword %in% stats$keyword) %>%
+        group_by(multiword) %>%
+        select(multiword) %>%
+        count() %>%
+        ungroup() %>%
+        rename(keyword = multiword,
+          freq = n) %>%
+          right_join(stats %>%
+            select(-starts_with("freq")),
+            by="keyword") %>%
+            filter(freq>=freq.min) %>%
+            arrange(desc(freq))
+            
+            return(list(stats=stats,dfMW=x2))
+            
+          }
 
 applyRake <- function(x, rakeResults, row_sel=NULL, term="lemma"){
 

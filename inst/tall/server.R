@@ -1142,9 +1142,12 @@ multiword <- eventReactive({
 
   values$posMwSel <- gsub(":","",gsub(":.*","",input$multiwordPosSelGroup))
 
-  values$rakeResults <- rake(values$dfTag, group = "doc_id", ngram_max=input$ngram_max, relevant = values$posMwSel, rake.min=input$rake.min, freq.min=input$freq_minMW, term=input$term)
+  values$rakeResults <- rake(values$dfTag, group = "doc_id", ngram_max=input$ngram_max, relevant = values$posMwSel, freq.min=input$freq_minMW, term=input$term, method=input$MWmethod)
 
   values$stats <- values$rakeResults$stats
+
+  names(values$stats) <- c("Multi-Words", "Freq", "Length", toupper(input$MWmethod))
+
 })
 
   observeEvent(ignoreNULL = FALSE,
@@ -1173,10 +1176,7 @@ multiword <- eventReactive({
                })
   output$multiwordList <- renderDT(server=FALSE,{
     multiword()
-    DTformat(values$stats %>%  rename("Multi-Words" = keyword,
-                                           "Lenght" = ngram,
-                                           "Freq"=freq,
-                                           "Rake value" = rake) %>%
+    DTformat(values$stats %>%
                arrange(desc(Freq), .by_group = FALSE),
              numeric=4,
              selection=TRUE, nrow=20)
