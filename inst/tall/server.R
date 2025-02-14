@@ -2205,17 +2205,46 @@ observeEvent(input$closePlotModalDoc,{
     eventExpr = {input$wordsContSearch},
     valueExpr = {
       word_search <- req(tolower(trimws(input$wordsContSearch)))
-      values$wordInContext <- values$dfTag %>%
-        filter(docSelected) %>%
-        filter(tolower(lemma) %in% word_search | tolower(token) %in% word_search) %>%
-        ungroup() %>% select(doc_id, lemma, token, sentence_hl) %>%
-        rename(Lemma=lemma, Token=token, Sentence=sentence_hl)
+      values$wordInContext <- get_context_window(values$dfTag, target_token=word_search, n_left = 5, n_right = 5)
     })
 
-  output$wordsContData <- renderDT(server=FALSE,{
+  output$wordsContHtml <- renderUI({
     wordsInContextMenu()
-    DTformat(values$wordInContext, size='100%', button=TRUE)
-  }, escape=FALSE)
+
+    if (nrow(values$wordInContext) == 0) {
+      return(HTML("<p>No results found.</p>"))
+    }
+
+    content <- lapply(1:nrow(values$wordInContext), function(i) {
+      row <- values$wordInContext[i, ]
+      div(
+        style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;",
+        #style = "display: flex; justify-content: center; align-items: center; margin-bottom: 10px;",
+        span(style = "color: darkblue; text-align: left; width: 150px; font-weight: bold;", row$doc_id),  # Nome del documento
+        span(style = "color: gray; text-align: right; flex: 1;", row$context_left),
+        span(style = "color: #4F7942; font-weight: bold; padding: 0 10px;", row$token),
+        span(style = "color: gray; text-align: left; flex: 1;", row$context_right)
+      )
+    })
+
+    do.call(tagList, content)
+  }) #
+  # wordsInContextMenu <- eventReactive(
+  #   ignoreNULL = TRUE,
+  #   eventExpr = {input$wordsContSearch},
+  #   valueExpr = {
+  #     word_search <- req(tolower(trimws(input$wordsContSearch)))
+  #     values$wordInContext <- values$dfTag %>%
+  #       filter(docSelected) %>%
+  #       filter(tolower(lemma) %in% word_search | tolower(token) %in% word_search) %>%
+  #       ungroup() %>% select(doc_id, lemma, token, sentence_hl) %>%
+  #       rename(Lemma=lemma, Token=token, Sentence=sentence_hl)
+  #   })
+
+  # output$wordsContData <- renderDT(server=FALSE,{
+  #   wordsInContextMenu()
+  #   DTformat(values$wordInContext, size='100%', button=TRUE)
+  # }, escape=FALSE)
 
 
   ## Reinert Clustering ----

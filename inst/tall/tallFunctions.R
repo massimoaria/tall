@@ -1101,6 +1101,56 @@ tfidf <- function(dfTag, term="lemma", document="doc_id"){
   tibble(term=names(tfidf), TFIDF=as.numeric(tfidf)) %>% arrange(desc(tfidf))
 }
 
+### WORD IN CONTEXT ----
+get_context_window <- function(df, target_token, n_left = 5, n_right = 5) {
+  # Seleziona tutte le righe in cui il token corrisponde al target
+  no_upos <- c("NGRAM_MERGED", "X", "PUNCT")
+
+  df <- df %>% filter(!upos %in% no_upos) %>%
+    group_by(doc_id) %>% mutate(term_id=row_number()) %>%
+    ungroup() %>% select(doc_id,term_id, token) %>%
+    mutate(token = tolower(token))
+
+  target_rows <- df %>% filter(token == target_token)
+
+  # Lista per salvare le finestre di contesto
+  context_list <- list()
+
+  for (i in seq_len(nrow(target_rows))) {
+    row <- target_rows[i, ]  # Occorrenza specifica del token
+    doc_subset <- df %>% filter(doc_id == row$doc_id)
+
+    middle <- row$term_id
+    # Definisce i limiti della finestra
+    start <- max(1, row$term_id - n_left)  # Non andare sotto 1
+    end <- min(max(doc_subset$term_id), row$term_id + n_right)  # Non superare la fine
+
+    # Estrae i token nell'intervallo
+
+    context_tokens_right <- doc_subset %>%
+      filter(term_id >= start & term_id < middle) %>%
+      pull(token)
+
+    context_tokens_left <- doc_subset %>%
+      filter(term_id > middle & term_id <= end) %>%
+      pull(token)
+
+    # Salva il risultato in una lista
+    context_list[[i]] <- tibble(
+      doc_id = row$doc_id,
+      term_id = row$term_id,
+      token = row$token,
+      context_right =paste(context_tokens_right, collapse = " "),
+      context_left =paste(context_tokens_left, collapse = " ")
+    )
+  }
+
+  # Unisce la lista in un dataframe finale
+  context_df <- bind_rows(context_list)
+
+  return(context_df)
+}
+
 ### CLUSTERING ----
 clustering <- function(dfTag, n=50, group="doc_id", term="lemma",minEdges=25, normalization="association"){
 

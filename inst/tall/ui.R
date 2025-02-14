@@ -1492,9 +1492,16 @@ body <- dashboardBody(
             fluidRow(
               column(9,
                      tabsetPanel(type = "tabs",
-                                 tabPanel("Annotated Text by Words",
-                                          shinycssloaders::withSpinner(DT::DTOutput("wordsContData"),
-                                                                       color = getOption("spinner.color", default = "#4F7942"))
+                                 # tabPanel("Annotated Text by Words",
+                                 #          shinycssloaders::withSpinner(DT::DTOutput("wordsContData"),
+                                 #                                       color = getOption("spinner.color", default = "#4F7942"))
+                                 # ),
+                                 div(
+                                   style = "height: 600px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;",
+                                   tabPanel("Words in Context",
+                                            shinycssloaders::withSpinner(uiOutput("wordsContHtml"),
+                                                                         color = getOption("spinner.color", default = "#4F7942"))
+                                 )
                                  )
                      )
               ),
