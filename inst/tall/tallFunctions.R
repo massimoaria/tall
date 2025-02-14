@@ -538,7 +538,7 @@ rakeReset <- function(x){
 }
 
 rake <- function(x, group = "doc_id", ngram_max=5, ngram_min=2,relevant = c("PROPN", "NOUN", "ADJ", "VERB"), freq.min=10, term="lemma", type="automatic", keywordList=NULL, method="rake"){
-  
+
   # if ("ngram" %in% names(x)){
   #   x <- x %>%
   #     select(-"ngram")
@@ -550,34 +550,34 @@ rake <- function(x, group = "doc_id", ngram_max=5, ngram_min=2,relevant = c("PRO
           # rake multi-word creation
           stats <- keywords_rake(x = x, term = term, group = group, ngram_max = ngram_max, n_min = freq.min,
             relevant = x$upos %in% relevant)
-            
-            # identify ngrams>1 
+
+            # identify ngrams>1
             stats <- stats %>%
             dplyr::filter(ngram>=ngram_min)
           },
         pmi={
-            stats <- keywords_collocation(x %>% filter(upos %in% relevant), 
-            term=term, group = group, ngram_max = ngram_max, n_min = freq.min, sep = " ") %>% 
+            stats <- keywords_collocation(x %>% filter(upos %in% relevant),
+            term=term, group = group, ngram_max = ngram_max, n_min = freq.min, sep = " ") %>%
             select("keyword", "ngram", "freq", "pmi")
-            
-            # identify ngrams>1 
+
+            # identify ngrams>1
             stats <- stats %>%
             dplyr::filter(ngram>=ngram_min)
           },
         md={
-            stats <- keywords_collocation(x %>% filter(upos %in% relevant), 
-            term=term, group = group, ngram_max = ngram_max, n_min = freq.min, sep = " ") %>% 
+            stats <- keywords_collocation(x %>% filter(upos %in% relevant),
+            term=term, group = group, ngram_max = ngram_max, n_min = freq.min, sep = " ") %>%
             select("keyword", "ngram", "freq", "md")
-            
-            # identify ngrams>1 
+
+            # identify ngrams>1
             stats <- stats %>%
             dplyr::filter(ngram>=ngram_min)
           },
         lfmd={
-            stats <- keywords_collocation(x %>% filter(upos %in% relevant), 
-            term=term, group = group, ngram_max = ngram_max, n_min = freq.min, sep = " ") %>% 
+            stats <- keywords_collocation(x %>% filter(upos %in% relevant),
+            term=term, group = group, ngram_max = ngram_max, n_min = freq.min, sep = " ") %>%
             select("keyword", "ngram", "freq", "lfmd")
-            
+
             # identify ngrams>1 with reka index>reka.min
             stats <- stats %>%
             dplyr::filter(ngram>=ngram_min)
@@ -589,17 +589,17 @@ rake <- function(x, group = "doc_id", ngram_max=5, ngram_min=2,relevant = c("PRO
         mutate(keyword = trimws(keyword),
         ngram = lengths(strsplit(keyword," ")))
       })
-      
-      
+
+
       # filter original token df removing POS excluded in rake
       x2 <- x %>% filter(upos %in% relevant)
-      
+
       # combine lemmas or tokens into multi-words
-      
+
       switch(term,
         lemma={
           x2$multiword <- txt_recode_ngram(x2$lemma, compound=stats$keyword, ngram=stats$ngram, sep = " ")
-          
+
           # assign new POS tags "MULTIWORD" for combined lemmas and "NGRAM_MERGED" for lemmas to be removed because combined
           x2 <- x2 %>%
           mutate(upos_multiword = ifelse(lemma==multiword,upos,"MULTIWORD"),
@@ -609,7 +609,7 @@ rake <- function(x, group = "doc_id", ngram_max=5, ngram_min=2,relevant = c("PRO
         },
         token={
           x2$multiword <- txt_recode_ngram(x2$token, compound=stats$keyword, ngram=stats$ngram, sep = " ")
-          
+
           # assign new POS tags "MULTIWORD" for combined lemmas and "NGRAM_MERGED" for lemmas to be removed because combined
           x2 <- x2 %>%
           mutate(upos_multiword = ifelse(token==multiword,upos,"MULTIWORD"),
@@ -617,7 +617,7 @@ rake <- function(x, group = "doc_id", ngram_max=5, ngram_min=2,relevant = c("PRO
           left_join(stats %>% select(keyword, ngram), by = c("multiword" = "keyword")) %>%
           select(doc_id,term_id,multiword,upos_multiword, ngram)
         })
-        
+
         stats<- x2 %>%
         filter(upos_multiword == "MULTIWORD", multiword %in% stats$keyword) %>%
         group_by(multiword) %>%
@@ -631,9 +631,9 @@ rake <- function(x, group = "doc_id", ngram_max=5, ngram_min=2,relevant = c("PRO
             by="keyword") %>%
             filter(freq>=freq.min) %>%
             arrange(desc(freq))
-            
+
             return(list(stats=stats,dfMW=x2))
-            
+
           }
 
 applyRake <- function(x, rakeResults, row_sel=NULL, term="lemma"){
@@ -3328,28 +3328,41 @@ highlight_word <- function(input_string, target_word, upos) {
   return(highlighted_string)
 }
 
-highlight <- function(df){
-  df <- df %>%
-    mutate(sentence_hl = mapply(highlight_word, sentence, token, upos))
+# highlight <- function(df){
+#   df <- df %>%
+#     mutate(sentence_hl = mapply(highlight_word, sentence, token, upos))
+# }
+
+highlight <- function(df, term="lemma", upos=NULL) {
+
+  # Ensure term is valid
+  if (!term %in% c("lemma", "token")) {
+    stop("Invalid term. Use 'lemma' or 'token'.")
+  }
+
+  # Dynamically select the column based on term argument
+  term_col <- sym(term)
+
+  if (is.null(upos)) {
+    df <- df %>%
+      mutate(sentence_hl = mapply(highlight_word, sentence, !!term_col, upos))
+  } else {
+    dfUpos <- df %>%
+      mutate(id = row_number()) %>%
+      filter(upos %in% upos) %>%
+      mutate(sentence_hl = mapply(highlight_word, sentence, !!term_col, upos)) %>%
+      select("id", "sentence_hl")
+
+    df <- df %>%
+      mutate(id = row_number()) %>%
+      left_join(dfUpos, by = "id") %>%
+      mutate(sentence_hl = coalesce(sentence_hl.y, sentence_hl.x)) %>%
+      select(-sentence_hl.x, -sentence_hl.y, -id)  # Remove the extra columns
+  }
+
+  return(df)
 }
 
-# highlight <- function(df){
-#   ## create highlighted tokens
-#   posUnsel <- c("PUNCT","X","SYM","NUM", "NGRAM_MERGED")
-
-#   df <- df %>%
-#     group_by(token) %>%
-#     mutate(token_hl = ifelse(!upos %in% posUnsel,
-#                              paste0("<mark><strong>", token, "</strong></mark>"), token),
-#            token_hl = ifelse(upos=="MULTIWORD", paste0("<mark><strong>", lemma, "</strong></mark>"), token_hl)
-#     ) %>%
-#     group_by(doc_id,sentence_id) %>%
-#     mutate(start_hl = start-(first(start)-1),
-#            end_hl = start_hl+(end-start)) %>%
-#     mutate(sentence_hl = ifelse(!upos %in% posUnsel,
-#                                 paste0(substr(sentence,0,start_hl-1),token_hl,substr(sentence,end_hl+1,nchar(sentence))),
-#                                 sentence)) %>% ungroup()
-# }
 
 ## saveTall function ----
 saveTall <- function(dfTag,custom_lists,language,treebank,menu,where,file){

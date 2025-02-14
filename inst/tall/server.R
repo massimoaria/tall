@@ -1199,10 +1199,9 @@ multiword <- eventReactive({
     if (length(row_sel)>0){
       values$dfTag <- applyRake(values$dfTag, rakeResults=values$rakeResults, row_sel=row_sel, term=input$term)
 
-      dfTagMW <- highlight(values$dfTag  %>% filter(upos=="MULTIWORD")) %>%
-        select("doc_id","token_id","sentence_hl")
+      ## Highlight multiword
+      values$dfTag <- highlight(values$dfTag, term=input$term, upos="MULTIWORD")
 
-      values$dfTag$sentence_hl[match(paste(dfTagMW$doc_id, dfTagMW$token_id), paste(values$dfTag$doc_id, values$dfTag$token_id))] <- dfTagMW$sentence_hl
 
       replaceData(proxy4, values$dfTag, resetPaging = FALSE)
 
@@ -1277,12 +1276,9 @@ multiword <- eventReactive({
 
     row_sel <- 1:nrow(values$rakeResults$stats)
 
-    values$dfTag  <- applyRake(values$dfTag, rakeResults=values$rakeResults, row_sel=row_sel, term=input$term)
+    values$dfTag  <- applyRake(values$dfTag, rakeResults=values$rakeResults, row_sel=row_sel, term=term)
 
-    dfTagMW <- highlight(values$dfTag %>% filter(upos=="MULTIWORD")) %>%
-      select("doc_id","token_id","sentence_hl")
-
-    values$dfTag$sentence_hl[match(paste(dfTagMW$doc_id, dfTagMW$token_id), paste(values$dfTag$doc_id, values$dfTag$token_id))] <- dfTagMW$sentence_hl
+    values$dfTag <- highlight(values$dfTag, term=term, upos="MULTIWORD")
 
   })
 
