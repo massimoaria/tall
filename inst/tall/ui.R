@@ -193,6 +193,7 @@ body <- dashboardBody(
   tags$style(".fa-magnifying-glass {color:#ffffff; font-size: 15px; align: center;}"),
   tags$style(".glyphicon-download-alt {color:#ffffff; font-size: 18px; align: center; margin-left: -3.5px}"),
   tags$style(".glyphicon-play {color:#ffffff; font-size: 18px; align: center;margin-left: -0.5px}"),
+  tags$style(".glyphicon-remove {color:#ffffff; font-size: 18px; align: center;margin-left: -0.5px}"),
   tags$style(".glyphicon-search {color:#ffffff; font-size: 18px; align: center;margin-left: -0.5px}"),
   tags$style(".glyphicon-repeat {color:#ffffff; font-size: 18px; align: center;margin-left: -3px; padding-left: -15px}"),
   tags$style(".glyphicon-plus {color:#ffffff; font-size: 18px;align: center; margin-left: -2px}"),
@@ -1492,13 +1493,10 @@ body <- dashboardBody(
             fluidRow(
               column(9,
                      tabsetPanel(type = "tabs",
-                                 # tabPanel("Annotated Text by Words",
-                                 #          shinycssloaders::withSpinner(DT::DTOutput("wordsContData"),
-                                 #                                       color = getOption("spinner.color", default = "#4F7942"))
-                                 # ),
+                                 tabPanel("Words in Context",
                                  div(
-                                   style = "height: 600px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;",
-                                   tabPanel("Words in Context",
+                                   style = "height: 550px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;",
+
                                             shinycssloaders::withSpinner(uiOutput("wordsContHtml"),
                                                                          color = getOption("spinner.color", default = "#4F7942"))
                                  )
@@ -1512,15 +1510,71 @@ body <- dashboardBody(
                          div(h3(strong(em("Words in Context"))), style="margin-top:-57px"),
                          tags$hr(),
                          style="text-align: left; text-color: #989898",
-                         searchInput(
-                           inputId = "wordsContSearch",
-                           label = "Search word(s) in text",
-                           placeholder = "",
-                           btnSearch = icon("search"),
-                           btnReset = icon("remove"),
-                           resetValue = "",
-                           width = "100%"
-                         )
+                         selectizeInput(inputId = "wordsContSearch",
+                           label = "Search word(s) in text", choices = NULL),
+
+                         # searchInput(
+                         #   inputId = "wordsContSearch",
+                         #   label = "Search word(s) in text",
+                         #   placeholder = "",
+                         #   btnSearch = icon("search"),
+                         #   btnReset = icon("remove"),
+                         #   resetValue = "",
+                         #   width = "100%"
+                         # ),
+                         h4("Window Length:"),
+                         fluidRow(
+                           column(6,
+                                  numericInput(inputId = "wordsContBefore",
+                                               label = "Before",
+                                               value = 5,
+                                               min = 1,
+                                               max = 20)
+                                  ),
+                           column(6,
+                                  numericInput(inputId = "wordsContAfter",
+                                               label = "After",
+                                               value = 5,
+                                               min = 1,
+                                               max = 20)
+                                  )
+                         ),
+                         fluidRow(
+                           column(4,
+                                  div(align="center",
+                                      title = "Apply",
+                                      do.call("actionButton", c(list(
+                                        label=NULL,
+                                        style ="display:block; height: 37px; width: 37px; border-radius: 50%;
+                                      border: 1px; margin-top: 16px;",
+                                        icon = icon(name ="play", lib="glyphicon"),
+                                        inputId = "wordsContApply")
+                                      )))
+                           ),
+                           column(4,
+                                  div(align="center",
+                                      title = "Reset",
+                                      do.call("actionButton", c(list(
+                                        label=NULL,
+                                        style ="display:block; height: 37px; width: 37px; border-radius: 50%;
+                                      border: 1px; margin-top: 16px;",
+                                        icon = icon(name ="remove", lib="glyphicon"),
+                                        inputId = "wordsContReset")
+                                      )))
+                           ),
+                           column(4,
+                                  div(align="center",
+                                      title = "Export raw text(s) in Excel",
+                                      do.call("actionButton", c(list(
+                                        label=NULL,
+                                        style ="display:block; height: 37px; width: 37px; border-radius: 50%;
+                                      border: 1px; margin-top: 16px;",
+                                        icon = icon(name ="download-alt", lib="glyphicon"),
+                                        inputId = "wordsContSave")
+                                      )
+                                      )
+                                  )
+                                  ))
                        ),style="margin-top:40px"
                      )
               )

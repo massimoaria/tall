@@ -1127,21 +1127,22 @@ get_context_window <- function(df, target_token, n_left = 5, n_right = 5) {
 
     # Estrae i token nell'intervallo
 
-    context_tokens_right <- doc_subset %>%
+    context_tokens_left <- doc_subset %>%
       filter(term_id >= start & term_id < middle) %>%
       pull(token)
 
-    context_tokens_left <- doc_subset %>%
+    context_tokens_right <- doc_subset %>%
       filter(term_id > middle & term_id <= end) %>%
       pull(token)
 
     # Salva il risultato in una lista
     context_list[[i]] <- tibble(
       doc_id = row$doc_id,
-      term_id = row$term_id,
+      #term_id = row$term_id,
+      context_before =paste(context_tokens_left, collapse = " "),
       token = row$token,
-      context_right =paste(context_tokens_right, collapse = " "),
-      context_left =paste(context_tokens_left, collapse = " ")
+      context_after =paste(context_tokens_right, collapse = " ")
+
     )
   }
 

@@ -2200,17 +2200,61 @@ observeEvent(input$closePlotModalDoc,{
 
   ## Words in Context ----
 
+  observe({
+    req(values$dfTag)
+    updateSelectizeInput(session, 'wordsContSearch',
+                         choices = c("",tolower(sort(unique(LemmaSelection(values$dfTag) %>%
+                                                         select(token) %>%
+                                                         pull())))),
+                         selected = "",
+                         server = TRUE)
+  })
+
+  observeEvent(
+    ignoreNULL = TRUE,
+    eventExpr = {input$wordsContReset},
+   handlerExpr = {
+    req(values$dfTag)
+    values$wordInContest <- data.frame()
+    updateSelectizeInput(session, 'wordsContSearch',
+                         choices = c("",tolower(sort(unique(LemmaSelection(values$dfTag) %>%
+                                                              select(token) %>%
+                                                              pull())))),
+                         selected = "",
+                         server = TRUE)
+  })
+
+  observeEvent(
+    ignoreNULL = TRUE,
+    eventExpr = {input$wordsContSave},
+    handlerExpr = {
+      req(values$wordInContext)
+      file_path <- destFolder(paste("Tall-WordsInContext-", sys.time(), ".xlsx", sep=""),values$wdTall)
+      openxlsx::write.xlsx(
+        x=values$wordInContext,
+        file=file_path,
+        colNames = TRUE
+      )
+      popUp(title="Saved in your working folder", type="saved")
+    })
+
   wordsInContextMenu <- eventReactive(
     ignoreNULL = TRUE,
-    eventExpr = {input$wordsContSearch},
+    eventExpr = {input$wordsContApply},
     valueExpr = {
-      word_search <- req(tolower(trimws(input$wordsContSearch)))
-      values$wordInContext <- get_context_window(values$dfTag, target_token=word_search, n_left = 5, n_right = 5)
+      if (input$wordsContSearch!=""){
+        word_search <- req(tolower(trimws(input$wordsContSearch)))
+        values$wordInContext <- get_context_window(values$dfTag, target_token=word_search,
+                                                   n_left = input$wordsContBefore,
+                                                   n_right = input$wordsContAfter)
+      } else {
+        values$wordInContest <- NULL
+      }
     })
 
   output$wordsContHtml <- renderUI({
     wordsInContextMenu()
-
+    req(values$wordInContext)
     if (nrow(values$wordInContext) == 0) {
       return(HTML("<p>No results found.</p>"))
     }
@@ -2221,30 +2265,14 @@ observeEvent(input$closePlotModalDoc,{
         style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;",
         #style = "display: flex; justify-content: center; align-items: center; margin-bottom: 10px;",
         span(style = "color: darkblue; text-align: left; width: 150px; font-weight: bold;", row$doc_id),  # Nome del documento
-        span(style = "color: gray; text-align: right; flex: 1;", row$context_left),
+        span(style = "color: gray; text-align: right; flex: 1;", row$context_before),
         span(style = "color: #4F7942; font-weight: bold; padding: 0 10px;", row$token),
-        span(style = "color: gray; text-align: left; flex: 1;", row$context_right)
+        span(style = "color: gray; text-align: left; flex: 1;", row$context_after)
       )
     })
 
     do.call(tagList, content)
-  }) #
-  # wordsInContextMenu <- eventReactive(
-  #   ignoreNULL = TRUE,
-  #   eventExpr = {input$wordsContSearch},
-  #   valueExpr = {
-  #     word_search <- req(tolower(trimws(input$wordsContSearch)))
-  #     values$wordInContext <- values$dfTag %>%
-  #       filter(docSelected) %>%
-  #       filter(tolower(lemma) %in% word_search | tolower(token) %in% word_search) %>%
-  #       ungroup() %>% select(doc_id, lemma, token, sentence_hl) %>%
-  #       rename(Lemma=lemma, Token=token, Sentence=sentence_hl)
-  #   })
-
-  # output$wordsContData <- renderDT(server=FALSE,{
-  #   wordsInContextMenu()
-  #   DTformat(values$wordInContext, size='100%', button=TRUE)
-  # }, escape=FALSE)
+  })
 
 
   ## Reinert Clustering ----
