@@ -1104,7 +1104,7 @@ tfidf <- function(dfTag, term="lemma", document="doc_id"){
 ### WORD IN CONTEXT ----
 get_context_window <- function(df, target_token, n_left = 5, n_right = 5) {
   # Seleziona tutte le righe in cui il token corrisponde al target
-  no_upos <- c("NGRAM_MERGED", "X", "PUNCT")
+  no_upos <- c("NGRAM_MERGED", "X", "PUNCT", "SYM", "URL", "IP_ADDRESS","EMAIL","DET","CCONJ")
 
   df <- df %>% filter(!upos %in% no_upos) %>%
     group_by(doc_id) %>% mutate(term_id=row_number()) %>%
@@ -1157,7 +1157,7 @@ get_context_window <- function(df, target_token, n_left = 5, n_right = 5) {
 }
 
 ## Context network
-contextNetwork <- function(df, n=50){
+contextNetwork <- function(df, dfTag, n=50){
   df <- df %>%
     mutate(segment = paste(context_before,token,context_after,sep=" "),
            segment_id = row_number()) %>%
@@ -1178,7 +1178,7 @@ contextNetwork <- function(df, n=50){
   uposSelected <- unique(LemmaSelection(dfTag) %>% select(upos) %>% pull())
   net <- network(x %>% filter(upos %in% uposSelected),
                  term="token", group=c("segment_id"), n=50, minEdges=100, labelsize=4, opacity=0.6,
-                 interLinks=FALSE, normalization="none", remove.isolated=FALSE, community.repulsion=0)
+                 interLinks=FALSE, normalization="association", remove.isolated=FALSE, community.repulsion=0)
 
   vis <- net2vis(net$nodes,net$edges)
   return(vis)
@@ -1205,7 +1205,7 @@ clustering <- function(dfTag, n=50, group="doc_id", term="lemma",minEdges=25, no
          cosine={edges$value <- edges$sC},
          jaccard={edges$value <- edges$sJ})
 
-  tailEdges <- quantile(edges$value,1-(minEdges/100))
+  tailEdges <- quantile(edges$value,1-(minEdges/100),na.rm=T)
 
   edges <- edges %>%
     dplyr::filter(value >= tailEdges) %>%
@@ -1797,6 +1797,14 @@ network <- function(x, term="lemma", group=c("doc_id", "sentence_id"), n, minEdg
     nodes$font.vadjust <-0
   }
 
+  Normalize <- function(y){
+    if (diff(range(y)>0)){
+      y <- (y-min(y,na.rm=T))/(diff(range(y,na.rm=T)))
+    } else{
+      y <- rep(0.2,length(y))
+    }
+    return(y)
+  }
 
   ### EDGES
   edges <- cooc %>%
@@ -1810,10 +1818,14 @@ network <- function(x, term="lemma", group=c("doc_id", "sentence_id"), n, minEdg
     mutate(sA = s/(s_from*s_to),
            sC = s/(sqrt(s_from*s_to)),
            sJ = s/(s_from+s_to-s),
-           sNorm = ((s-min(s))/diff(range(s)))*14+1,
-           sANorm = ((sA-min(sA))/diff(range(sA)))*14+1,
-           sCNorm = ((sC-min(sC))/diff(range(sC)))*14+1,
-           sJNorm = ((sJ-min(sJ))/diff(range(sJ)))*14+1,
+           sNorm = Normalize(s)*14+1,
+           sANorm = Normalize(sA)*14+1,
+           sCNorm = Normalize(sC)*14+1,
+           sJNorm = Normalize(sJ)*14+1
+           # sNorm = ((s-min(s))/diff(range(s)))*14+1,
+           # sANorm = ((sA-min(sA))/diff(range(sA)))*14+1,
+           # sCNorm = ((sC-min(sC))/diff(range(sC)))*14+1,
+           # sJNorm = ((sJ-min(sJ))/diff(range(sJ)))*14+1,
     )
 
   switch(normalization,
@@ -1824,14 +1836,14 @@ network <- function(x, term="lemma", group=c("doc_id", "sentence_id"), n, minEdg
 
 
   if (minEdges == "Auto"){
-    y <- quantile(edges$value,seq(1,0,-0.01))
+    y <- quantile(edges$value,seq(1,0,-0.01), na.rm=T)
     x=1:length(y)
     res <- strucchange::breakpoints(y~x)
     tailEdges <- y[res$breakpoints[1]]
     #minEdges <- 10*which.min(diff((quantile(edges$value,1-(seq(0,100,10)/100)))))
   } else{
     minEdges <- as.numeric(gsub("%","",minEdges))
-    tailEdges <- quantile(edges$value,1-(minEdges/100))
+    tailEdges <- quantile(edges$value,1-(minEdges/100), na.rm=T)
   }
 
   #tailEdges <- quantile(edges$value,1-(minEdges/100))

@@ -2246,7 +2246,11 @@ observeEvent(input$closePlotModalDoc,{
         values$wordInContext <- get_context_window(values$dfTag, target_token=word_search,
                                                    n_left = input$wordsContBefore,
                                                    n_right = input$wordsContAfter)
-        values$contextNetwork <- contextNetwork(values$wordInContext, n=50)
+        if (nrow(values$wordInContext)>1) {
+          values$contextNetwork <- contextNetwork(values$wordInContext, values$dfTag, n=50)
+        } else {
+            values$contextNetwork <- NULL
+          }
       } else {
         values$wordInContest <- NULL
       }
