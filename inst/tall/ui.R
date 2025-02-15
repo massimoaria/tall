@@ -1500,6 +1500,10 @@ body <- dashboardBody(
                                             shinycssloaders::withSpinner(uiOutput("wordsContHtml"),
                                                                          color = getOption("spinner.color", default = "#4F7942"))
                                  )
+                                 ),
+                                 tabPanel("Network",
+                                          shinycssloaders::withSpinner(visNetworkOutput("wordsContNetwork", width="auto", height = "75vh"),
+                                                                       color = getOption("spinner.color", default = "#4F7942"))
                                  )
                      )
               ),

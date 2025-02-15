@@ -1108,7 +1108,7 @@ get_context_window <- function(df, target_token, n_left = 5, n_right = 5) {
 
   df <- df %>% filter(!upos %in% no_upos) %>%
     group_by(doc_id) %>% mutate(term_id=row_number()) %>%
-    ungroup() %>% select(doc_id,term_id, token) %>%
+    ungroup() %>% select(doc_id,term_id, token, upos) %>%
     mutate(token = tolower(token))
 
   target_rows <- df %>% filter(token == target_token)
@@ -1125,8 +1125,7 @@ get_context_window <- function(df, target_token, n_left = 5, n_right = 5) {
     start <- max(1, row$term_id - n_left)  # Non andare sotto 1
     end <- min(max(doc_subset$term_id), row$term_id + n_right)  # Non superare la fine
 
-    # Estrae i token nell'intervallo
-
+    # Extract tokens in the interval
     context_tokens_left <- doc_subset %>%
       filter(term_id >= start & term_id < middle) %>%
       pull(token)
@@ -1135,14 +1134,19 @@ get_context_window <- function(df, target_token, n_left = 5, n_right = 5) {
       filter(term_id > middle & term_id <= end) %>%
       pull(token)
 
+    # Extract upos
+    context_upos <- doc_subset %>%
+      filter(term_id >= start & term_id <= end) %>%
+      pull(upos)
+
     # Salva il risultato in una lista
     context_list[[i]] <- tibble(
       doc_id = row$doc_id,
       #term_id = row$term_id,
-      context_before =paste(context_tokens_left, collapse = " "),
+      context_before = paste(context_tokens_left, collapse = " "),
       token = row$token,
-      context_after =paste(context_tokens_right, collapse = " ")
-
+      context_after = paste(context_tokens_right, collapse = " "),
+      upos = paste(context_upos, collapse = " ")
     )
   }
 
@@ -1150,6 +1154,34 @@ get_context_window <- function(df, target_token, n_left = 5, n_right = 5) {
   context_df <- bind_rows(context_list)
 
   return(context_df)
+}
+
+## Context network
+contextNetwork <- function(df, n=50){
+  df <- df %>%
+    mutate(segment = paste(context_before,token,context_after,sep=" "),
+           segment_id = row_number()) %>%
+    select("segment_id","segment", "upos")
+
+  # Tokenizzazione usando strsplit()
+  split_words <- lapply(strsplit(df$segment, "\\s+"), function(l) l[nchar(l)>0])
+  split_upos <- strsplit(df$upos, "\\s+")
+
+  # Creiamo un nuovo data frame con segment_id e parole
+  x <- data.frame(
+    segment_id = rep(df$segment_id, sapply(split_words, length)),  # Ripete segment_id per ogni parola
+    token = unlist(split_words),  # Appiattisce la lista in un vettore di paroleù
+    upos = unlist(split_upos),
+    stringsAsFactors = FALSE
+  )
+
+  uposSelected <- unique(LemmaSelection(dfTag) %>% select(upos) %>% pull())
+  net <- network(x %>% filter(upos %in% uposSelected),
+                 term="token", group=c("segment_id"), n=50, minEdges=100, labelsize=4, opacity=0.6,
+                 interLinks=FALSE, normalization="none", remove.isolated=FALSE, community.repulsion=0)
+
+  vis <- net2vis(net$nodes,net$edges)
+  return(vis)
 }
 
 ### CLUSTERING ----

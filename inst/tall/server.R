@@ -2199,7 +2199,6 @@ observeEvent(input$closePlotModalDoc,{
   })
 
   ## Words in Context ----
-
   observe({
     req(values$dfTag)
     updateSelectizeInput(session, 'wordsContSearch',
@@ -2247,6 +2246,7 @@ observeEvent(input$closePlotModalDoc,{
         values$wordInContext <- get_context_window(values$dfTag, target_token=word_search,
                                                    n_left = input$wordsContBefore,
                                                    n_right = input$wordsContAfter)
+        values$contextNetwork <- contextNetwork(values$wordInContext, n=50)
       } else {
         values$wordInContest <- NULL
       }
@@ -2272,6 +2272,12 @@ observeEvent(input$closePlotModalDoc,{
     })
 
     do.call(tagList, content)
+  })
+
+  output$wordsContNetwork <- renderVisNetwork({
+    wordsInContextMenu()
+    req(values$contextNetwork)
+    values$contextNetwork
   })
 
 
