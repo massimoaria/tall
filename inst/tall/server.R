@@ -191,7 +191,7 @@ To ensure the functionality of TALL,
 
       } else {
         writeLines(wdTall, con = paste0(homeFolder(),"/tall/tallWD.tall"))
-        values$menu <-  -1
+        if (values$menu == -2) values$menu <-  -1
         values$wdTall <- wdTall
         # output$wdFolder <- renderText({
         #     values$wdTall
@@ -431,8 +431,6 @@ observeEvent(input$reset_confirmation2, {
                    text_original = text) %>%
                  arrange(doc_id)
                values$resetNeed <- TRUE
-               #showModal(corpusModal(session))
-               #values$metadata <- setdiff(names(values$txt), c("text", "doc_id","original_doc_id"))
              }
            },
            load_tall={
@@ -3635,13 +3633,16 @@ output$optionsSummarization <- renderUI({
   showDocumentSummarizationModal <- function(session) {
     ns <- session$ns
     modalDialog(
-      h3(strong(("Document corpus"))),
-      br(),
-      uiOutput("showDocumentSummarization"),
-      size = "l",
-      easyClose = TRUE,
-      footer = tagList(
-        modalButton("Close")),
+      div(
+        style = "height: 550px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;",
+        h3(strong(("Document corpus"))),
+        br(),
+        uiOutput("showDocumentSummarization"),
+        size = "l",
+        easyClose = TRUE,
+        footer = tagList(
+          modalButton("Close"))
+      )
     )
   }
 
@@ -3672,15 +3673,18 @@ output$optionsSummarization <- renderUI({
   showDocumentModal <- function(session) {
     ns <- session$ns
     modalDialog(
-      h3(strong(("Document corpus"))),
-      br(),
-      uiOutput("showDocument"),
-      size = "l",
-      easyClose = FALSE,
-      footer = tagList(
-        actionButton(label="Close", inputId = "closeShowDocument", style="color: #ffff;",
-                     icon = icon("remove", lib = "glyphicon"))
-      ),
+      div(
+        style = "height: 550px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;",
+        h3(strong(("Document corpus"))),
+        br(),
+        uiOutput("showDocument"),
+        size = "l",
+        easyClose = FALSE,
+        footer = tagList(
+          actionButton(label="Close", inputId = "closeShowDocument", style="color: #ffff;",
+                       icon = icon("remove", lib = "glyphicon"))
+        )
+      )
     )
   }
 
