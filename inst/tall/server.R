@@ -191,7 +191,7 @@ To ensure the functionality of TALL,
 
       } else {
         writeLines(wdTall, con = paste0(homeFolder(),"/tall/tallWD.tall"))
-        values$menu <-  -1
+        if (values$menu == -2) values$menu <-  -1
         values$wdTall <- wdTall
         # output$wdFolder <- renderText({
         #     values$wdTall
@@ -431,8 +431,6 @@ observeEvent(input$reset_confirmation2, {
                    text_original = text) %>%
                  arrange(doc_id)
                values$resetNeed <- TRUE
-               #showModal(corpusModal(session))
-               #values$metadata <- setdiff(names(values$txt), c("text", "doc_id","original_doc_id"))
              }
            },
            load_tall={
@@ -1142,9 +1140,12 @@ multiword <- eventReactive({
 
   values$posMwSel <- gsub(":","",gsub(":.*","",input$multiwordPosSelGroup))
 
-  values$rakeResults <- rake(values$dfTag, group = "doc_id", ngram_max=input$ngram_max, relevant = values$posMwSel, rake.min=input$rake.min, freq.min=input$freq_minMW, term=input$term)
+  values$rakeResults <- rake(values$dfTag, group = "doc_id", ngram_max=input$ngram_max, relevant = values$posMwSel, freq.min=input$freq_minMW, term=input$term, method=input$MWmethod)
 
   values$stats <- values$rakeResults$stats
+
+  names(values$stats) <- c("Multi-Words", "Freq", "Length", toupper(input$MWmethod))
+
 })
 
   observeEvent(ignoreNULL = FALSE,
@@ -1173,10 +1174,7 @@ multiword <- eventReactive({
                })
   output$multiwordList <- renderDT(server=FALSE,{
     multiword()
-    DTformat(values$stats %>%  rename("Multi-Words" = keyword,
-                                           "Lenght" = ngram,
-                                           "Freq"=freq,
-                                           "Rake value" = rake) %>%
+    DTformat(values$stats %>%
                arrange(desc(Freq), .by_group = FALSE),
              numeric=4,
              selection=TRUE, nrow=20)
@@ -1199,10 +1197,9 @@ multiword <- eventReactive({
     if (length(row_sel)>0){
       values$dfTag <- applyRake(values$dfTag, rakeResults=values$rakeResults, row_sel=row_sel, term=input$term)
 
-      dfTagMW <- highlight(values$dfTag  %>% filter(upos=="MULTIWORD")) %>%
-        select("doc_id","token_id","sentence_hl")
+      ## Highlight multiword
+      values$dfTag <- highlight(values$dfTag, term=input$term, upos="MULTIWORD")
 
-      values$dfTag$sentence_hl[match(paste(dfTagMW$doc_id, dfTagMW$token_id), paste(values$dfTag$doc_id, values$dfTag$token_id))] <- dfTagMW$sentence_hl
 
       replaceData(proxy4, values$dfTag, resetPaging = FALSE)
 
@@ -1277,12 +1274,9 @@ multiword <- eventReactive({
 
     row_sel <- 1:nrow(values$rakeResults$stats)
 
-    values$dfTag  <- applyRake(values$dfTag, rakeResults=values$rakeResults, row_sel=row_sel, term=input$term)
+    values$dfTag  <- applyRake(values$dfTag, rakeResults=values$rakeResults, row_sel=row_sel, term=term)
 
-    dfTagMW <- highlight(values$dfTag %>% filter(upos=="MULTIWORD")) %>%
-      select("doc_id","token_id","sentence_hl")
-
-    values$dfTag$sentence_hl[match(paste(dfTagMW$doc_id, dfTagMW$token_id), paste(values$dfTag$doc_id, values$dfTag$token_id))] <- dfTagMW$sentence_hl
+    values$dfTag <- highlight(values$dfTag, term=term, upos="MULTIWORD")
 
   })
 
@@ -2203,23 +2197,90 @@ observeEvent(input$closePlotModalDoc,{
   })
 
   ## Words in Context ----
+  observe({
+    req(values$dfTag)
+    updateSelectizeInput(session, 'wordsContSearch',
+                         choices = c("",tolower(sort(unique(LemmaSelection(values$dfTag) %>%
+                                                         select(token) %>%
+                                                         pull())))),
+                         selected = "",
+                         server = TRUE)
+  })
+
+  observeEvent(
+    ignoreNULL = TRUE,
+    eventExpr = {input$wordsContReset},
+   handlerExpr = {
+    req(values$dfTag)
+    values$wordInContest <- data.frame()
+    updateSelectizeInput(session, 'wordsContSearch',
+                         choices = c("",tolower(sort(unique(LemmaSelection(values$dfTag) %>%
+                                                              select(token) %>%
+                                                              pull())))),
+                         selected = "",
+                         server = TRUE)
+  })
+
+  observeEvent(
+    ignoreNULL = TRUE,
+    eventExpr = {input$wordsContSave},
+    handlerExpr = {
+      req(values$wordInContext)
+      file_path <- destFolder(paste("Tall-WordsInContext-", sys.time(), ".xlsx", sep=""),values$wdTall)
+      openxlsx::write.xlsx(
+        x=values$wordInContext,
+        file=file_path,
+        colNames = TRUE
+      )
+      popUp(title="Saved in your working folder", type="saved")
+    })
 
   wordsInContextMenu <- eventReactive(
     ignoreNULL = TRUE,
-    eventExpr = {input$wordsContSearch},
+    eventExpr = {input$wordsContApply},
     valueExpr = {
-      word_search <- req(tolower(trimws(input$wordsContSearch)))
-      values$wordInContext <- values$dfTag %>%
-        filter(docSelected) %>%
-        filter(tolower(lemma) %in% word_search | tolower(token) %in% word_search) %>%
-        ungroup() %>% select(doc_id, lemma, token, sentence_hl) %>%
-        rename(Lemma=lemma, Token=token, Sentence=sentence_hl)
+      if (input$wordsContSearch!=""){
+        word_search <- req(tolower(trimws(input$wordsContSearch)))
+        values$wordInContext <- get_context_window(values$dfTag, target_token=word_search,
+                                                   n_left = input$wordsContBefore,
+                                                   n_right = input$wordsContAfter)
+        if (nrow(values$wordInContext)>1) {
+          values$contextNetwork <- contextNetwork(values$wordInContext, values$dfTag, n=50)
+        } else {
+            values$contextNetwork <- NULL
+          }
+      } else {
+        values$wordInContest <- NULL
+      }
     })
 
-  output$wordsContData <- renderDT(server=FALSE,{
+  output$wordsContHtml <- renderUI({
     wordsInContextMenu()
-    DTformat(values$wordInContext, size='100%', button=TRUE)
-  }, escape=FALSE)
+    req(values$wordInContext)
+    if (nrow(values$wordInContext) == 0) {
+      return(HTML("<p>No results found.</p>"))
+    }
+
+    content <- lapply(1:nrow(values$wordInContext), function(i) {
+      row <- values$wordInContext[i, ]
+      div(
+        style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;",
+        #style = "display: flex; justify-content: center; align-items: center; margin-bottom: 10px;",
+        span(style = "color: darkblue; text-align: left; width: 150px; font-weight: bold;", row$doc_id),  # Nome del documento
+        span(style = "color: gray; text-align: right; flex: 1;", row$context_before),
+        span(style = "color: #4F7942; font-weight: bold; padding: 0 10px;", row$token),
+        span(style = "color: gray; text-align: left; flex: 1;", row$context_after)
+      )
+    })
+
+    do.call(tagList, content)
+  })
+
+  output$wordsContNetwork <- renderVisNetwork({
+    wordsInContextMenu()
+    req(values$contextNetwork)
+    values$contextNetwork
+  })
 
 
   ## Reinert Clustering ----
@@ -3572,13 +3633,16 @@ output$optionsSummarization <- renderUI({
   showDocumentSummarizationModal <- function(session) {
     ns <- session$ns
     modalDialog(
-      h3(strong(("Document corpus"))),
-      br(),
-      uiOutput("showDocumentSummarization"),
-      size = "l",
-      easyClose = TRUE,
-      footer = tagList(
-        modalButton("Close")),
+      div(
+        style = "height: 550px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;",
+        h3(strong(("Document corpus"))),
+        br(),
+        uiOutput("showDocumentSummarization"),
+        size = "l",
+        easyClose = TRUE,
+        footer = tagList(
+          modalButton("Close"))
+      )
     )
   }
 
@@ -3609,15 +3673,18 @@ output$optionsSummarization <- renderUI({
   showDocumentModal <- function(session) {
     ns <- session$ns
     modalDialog(
-      h3(strong(("Document corpus"))),
-      br(),
-      uiOutput("showDocument"),
-      size = "l",
-      easyClose = FALSE,
-      footer = tagList(
-        actionButton(label="Close", inputId = "closeShowDocument", style="color: #ffff;",
-                     icon = icon("remove", lib = "glyphicon"))
-      ),
+      div(
+        style = "height: 550px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;",
+        h3(strong(("Document corpus"))),
+        br(),
+        uiOutput("showDocument"),
+        size = "l",
+        easyClose = FALSE,
+        footer = tagList(
+          actionButton(label="Close", inputId = "closeShowDocument", style="color: #ffff;",
+                       icon = icon("remove", lib = "glyphicon"))
+        )
+      )
     )
   }
 
