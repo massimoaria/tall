@@ -1,715 +1,914 @@
 helpContent <- function(){
-  importmenu <- "
-<body lang=IT link=blue vlink='#96607D' style='tab-interval:35.4pt;word-wrap:
-  break-word'>
+  importmenu <- "<body>
 
-<div class=WordSection1>
+    <div class='container'>
+      <h3><strong>Importing Data in TALL</strong></strong></h3>
 
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-mso-outline-level:3'><b><span lang=EN-US style='font-size:14.0pt;font-family:
-  'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';color:black;
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;mso-fareast-language:
-  IT'>Import<o:p></o:p></span></b></p>
+      <p>TALL provides a versatile and user-friendly interface for importing textual data from various sources, ensuring flexibility in data handling for diverse analytical needs. The platform supports multiple file formats and structures, allowing users to seamlessly prepare their datasets for analysis.</p>
+      <hr>
+      <h4><strong>Supported File Formats</strong></strong></h4>
 
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-text-align:justify'><span lang=EN-US style='font-family:'Times New Roman',serif;
-mso-fareast-font-family:'Times New Roman';color:black;mso-font-kerning:0pt;
-mso-ligatures:none;mso-ansi-language:EN-US;mso-fareast-language:IT'>TALL allows
-importing one or multiple text files in various formats for immediate and
-flexible analysis. <o:p></o:p></span></p>
+      <h4>1. Plain Text Files (.txt)</h4>
+      <p>Plain text files can be imported in three different ways, depending on the structure of the data:</p>
+      <ul>
+      <li><strong>Single file containing a single document:</strong> Ideal for analyzing an individual document, such as a speech transcript, literary work, or report.</li>
+      <li><strong>Single file with multiple documents separated by alphanumeric codes</strong> (e.g., 'Chapter', '0001', '****'):
+      <ul>
+      <li>TALL automatically detects these separators, enabling structured document segmentation.</li>
+      <li>Users can further refine the segmentation using the <strong>Edit → Split</strong> menu.</li>
+      </ul>
+      </li>
+      <li><strong>Multiple .txt files, where each file represents a separate document:</strong>
+      <ul>
+      <li>Users can either select individual files manually or import a compressed (.zip) folder containing multiple text files.</li>
+      <li>Each document will be automatically assigned an ID based on its file name, ensuring clear organization.</li>
+      </ul>
+      </li>
+      </ul>
 
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-text-align:justify'><span lang=EN-US style='font-family:'Times New Roman',serif;
-mso-fareast-font-family:'Times New Roman';color:black;mso-font-kerning:0pt;
-mso-ligatures:none;mso-ansi-language:EN-US;mso-fareast-language:IT'>Follow
-these steps:<o:p></o:p></span></p>
+      <h4>2. Tabular Data (.csv, .xlsx)</h4>
+      <p>Tabular formats are useful for structured datasets, such as online reviews, survey responses, or social media posts.</p>
+      <ul>
+      <li>The text to be analyzed must be stored in a dedicated column named <strong>'text'</strong> to ensure proper identification.</li>
+      <li>Each row in the dataset is treated as an individual document.</li>
+      <li>Additional metadata (e.g., timestamps, user IDs, categories) can be retained for contextual analysis.</li>
+      </ul>
 
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-mso-outline-level:3'><b><span lang=EN-US style='font-size:14.0pt;font-family:
-  'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';color:black;
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;mso-fareast-language:
-  IT'>Supported Formats<o:p></o:p></span></b></p>
+      <h4>3. PDF Documents (.pdf)</h4>
+      <p>TALL supports the import of PDF files, facilitating the analysis of academic papers, reports, books, and other document types.</p>
+      <ul>
+      <li>Text extraction occurs automatically, converting the content into a format suitable for processing.</li>
+      <li><strong>Limitation:</strong> At the moment, TALL can only import and process PDFs that follow a single-column formatting. PDFs with multi-column layouts, footnotes, or complex page structures may not be correctly parsed, and additional preprocessing may be required.</li>
+      </ul>
+      <hr>
+      <h4><strong>TALL Structured Files (.tall)</strong></strong></h4>
+      <p>TALL allows users to save their analysis progress in a structured format, ensuring continuity across sessions.</p>
+      <ul>
+      <li><strong>Save Progress:</strong> Users can export their current session as a <strong>.tall</strong> file, preserving all imported data, configurations, and analytical steps.</li>
+      <li><strong>Load Saved Sessions:</strong> Previously saved <strong>.tall</strong> files can be reloaded, allowing users to resume their work seamlessly without the need to re-import or preprocess data.</li>
+      </ul>
 
-<ol start=1 type=1>
- <li class=MsoNormal style='color:black;mso-margin-top-alt:auto;mso-margin-bottom-alt:
-  auto;mso-list:l0 level1 lfo1;tab-stops:list 36.0pt'><b><span lang=EN-US
-     style='font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>Plain Text</span></b><span lang=EN-US
-     style='font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>&nbsp;(</span><span lang=EN-US style='font-size:
-  10.0pt;font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>.txt</span><span lang=EN-US style='font-family:
-  'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>): Text files can be imported in different
-     scenarios:<o:p></o:p></span></li>
- <ul type=circle>
-  <li class=MsoNormal style='color:black;mso-margin-top-alt:auto;mso-margin-bottom-alt:
-  auto;mso-list:l0 level2 lfo1;tab-stops:list 72.0pt'><b><span lang=EN-US
-      style='font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>A single file containing a single document</span></b><span
-      lang=EN-US style='font-family:'Times New Roman',serif;mso-fareast-font-family:
-  'Times New Roman';mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:
-  EN-US;mso-fareast-language:IT'>: Suitable for straightforward analysis of
-      one text.<o:p></o:p></span></li>
-  <li class=MsoNormal style='color:black;mso-margin-top-alt:auto;mso-margin-bottom-alt:
-  auto;mso-list:l0 level2 lfo1;tab-stops:list 72.0pt'><b><span lang=EN-US
-      style='font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>Single file with multiple documents divided by
-      alphanumeric codes</span></b><span lang=EN-US style='font-family:'Times New Roman',serif;
-mso-fareast-font-family:'Times New Roman';mso-font-kerning:0pt;
-mso-ligatures:none;mso-ansi-language:EN-US;mso-fareast-language:IT'>&nbsp;(e.g.,&nbsp;</span><span
-      lang=EN-US style='font-size:10.0pt;font-family:'Times New Roman',serif;
-mso-fareast-font-family:'Times New Roman';mso-font-kerning:0pt;
-mso-ligatures:none;mso-ansi-language:EN-US;mso-fareast-language:IT'>Chapter</span><span
-      lang=EN-US style='font-family:'Times New Roman',serif;mso-fareast-font-family:
-  'Times New Roman';mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:
-  EN-US;mso-fareast-language:IT'>,&nbsp;</span><span lang=EN-US
-      style='font-size:10.0pt;font-family:'Times New Roman',serif;mso-fareast-font-family:
-  'Times New Roman';mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:
-  EN-US;mso-fareast-language:IT'>0001</span><span lang=EN-US
-      style='font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>,&nbsp;</span><span lang=EN-US style='font-size:
-  10.0pt;font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>****</span><span lang=EN-US style='font-family:
-  'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>):<o:p></o:p></span></li>
-  <ul type=square>
-   <li class=MsoNormal style='color:black;mso-margin-top-alt:auto;mso-margin-bottom-alt:
-  auto;mso-list:l0 level3 lfo1;tab-stops:list 108.0pt'><span lang=EN-US
-       style='font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>TALL recognizes these separators and allows
-       further splitting using the&nbsp;<b>Edit -&gt; Split</b>&nbsp;menu.<o:p></o:p></span></li>
-  </ul>
-  <li class=MsoNormal style='color:black;mso-margin-top-alt:auto;mso-margin-bottom-alt:
-  auto;mso-list:l0 level2 lfo1;tab-stops:list 72.0pt'><b><span lang=EN-US
-      style='font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>Multiple&nbsp;</span></b><b><span lang=EN-US
-      style='font-size:10.0pt;font-family:'Times New Roman',serif;mso-fareast-font-family:
-  'Times New Roman';mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:
-  EN-US;mso-fareast-language:IT'>.txt</span></b><b><span lang=EN-US
-      style='font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>&nbsp;files where each file is a single document</span></b><span
-      lang=EN-US style='font-family:'Times New Roman',serif;mso-fareast-font-family:
-  'Times New Roman';mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:
-  EN-US;mso-fareast-language:IT'>:<o:p></o:p></span></li>
-  <ul type=square>
-   <li class=MsoNormal style='color:black;mso-margin-top-alt:auto;mso-margin-bottom-alt:
-  auto;mso-list:l0 level3 lfo1;tab-stops:list 108.0pt'><span lang=EN-US
-       style='font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>Users can either select all files from a folder
-       or import a zipped folder.<o:p></o:p></span></li>
-   <li class=MsoNormal style='color:black;mso-margin-top-alt:auto;mso-margin-bottom-alt:
-  auto;mso-list:l0 level3 lfo1;tab-stops:list 108.0pt'><span lang=EN-US
-       style='font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>Each document will be assigned an ID
-       corresponding to the file name.<o:p></o:p></span></li>
-  </ul>
- </ul>
- <li class=MsoNormal style='color:black;mso-margin-top-alt:auto;mso-margin-bottom-alt:
-  auto;mso-list:l0 level1 lfo1;tab-stops:list 36.0pt'><b><span lang=EN-US
-     style='font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>Tabular Data</span></b><span lang=EN-US
-     style='font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>&nbsp;(</span><span lang=EN-US style='font-size:
-  10.0pt;font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>.csv</span><span lang=EN-US style='font-family:
-  'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>,&nbsp;</span><span lang=EN-US style='font-size:
-  10.0pt;font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>.xlsx</span><span lang=EN-US style='font-family:
-  'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>) - Suitable for structured datasets, such as reviews,
-     tweets, or survey responses.<o:p></o:p></span></li>
- <ul type=circle>
-  <li class=MsoNormal style='color:black;mso-margin-top-alt:auto;mso-margin-bottom-alt:
-  auto;mso-list:l0 level2 lfo1;tab-stops:list 72.0pt'><span lang=EN-US
-      style='font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>Text to analyze should be in a dedicated column named
-      “text”.<o:p></o:p></span></li>
-  <li class=MsoNormal style='color:black;mso-margin-top-alt:auto;mso-margin-bottom-alt:
-  auto;mso-list:l0 level2 lfo1;tab-stops:list 72.0pt'><span lang=EN-US
-      style='font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>Each row is treated as an individual document.<o:p></o:p></span></li>
- </ul>
- <li class=MsoNormal style='color:black;mso-margin-top-alt:auto;mso-margin-bottom-alt:
-  auto;mso-list:l0 level1 lfo1;tab-stops:list 36.0pt'><b><span lang=EN-US
-     style='font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>Documents</span></b><span lang=EN-US
-     style='font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>&nbsp;(</span><span lang=EN-US style='font-size:
-  10.0pt;font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>.pdf</span><span lang=EN-US style='font-family:
-  'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>) - Ideal for importing reports, articles or
-     books.<o:p></o:p></span></li>
- <ul type=circle>
-  <li class=MsoNormal style='color:black;mso-margin-top-alt:auto;mso-margin-bottom-alt:
-  auto;mso-list:l0 level2 lfo1;tab-stops:list 72.0pt'><span lang=EN-US
-      style='font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>TALL extracts text automatically but may require
-      pre-processing for image-only or complex-layout PDFs.<o:p></o:p></span></li>
- </ul>
-</ol>
-
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-mso-outline-level:3'><b><span lang=EN-US style='font-size:14.0pt;font-family:
-  'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';color:black;
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;mso-fareast-language:
-  IT'>TALL Structured Files<o:p></o:p></span></b></p>
-
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto'><span
-lang=EN-US style='font-family:'Times New Roman',serif;mso-fareast-font-family:
-  'Times New Roman';color:black;mso-font-kerning:0pt;mso-ligatures:none;
-mso-ansi-language:EN-US;mso-fareast-language:IT'>TALL allows you to save your
-progress and continue later by using <span class=GramE>“.tall</span>”&nbsp;structured
-files:<o:p></o:p></span></p>
-
-<ul type=disc>
- <li class=MsoNormal style='color:black;mso-margin-top-alt:auto;mso-margin-bottom-alt:
-  auto;mso-list:l1 level1 lfo2;tab-stops:list 36.0pt'><b><span lang=EN-US
-     style='font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>Save Progress:</span></b><span lang=EN-US
-     style='font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>&nbsp;Export your session as a&nbsp;</span><span
-     lang=EN-US style='font-size:10.0pt;font-family:'Times New Roman',serif;
-mso-fareast-font-family:'Times New Roman';mso-font-kerning:0pt;mso-ligatures:
-  none;mso-ansi-language:EN-US;mso-fareast-language:IT'>.tall</span><span
-     lang=EN-US style='font-family:'Times New Roman',serif;mso-fareast-font-family:
-  'Times New Roman';mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:
-  EN-US;mso-fareast-language:IT'>&nbsp;file to preserve imported data,
-     configurations, and analysis steps.<o:p></o:p></span></li>
- <li class=MsoNormal style='color:black;mso-margin-top-alt:auto;mso-margin-bottom-alt:
-  auto;mso-list:l1 level1 lfo2;tab-stops:list 36.0pt'><b><span lang=EN-US
-     style='font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>Load Files:</span></b><span lang=EN-US
-     style='font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>&nbsp;Reimport a&nbsp;</span><span lang=EN-US
-     style='font-size:10.0pt;font-family:'Times New Roman',serif;mso-fareast-font-family:
-  'Times New Roman';mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:
-  EN-US;mso-fareast-language:IT'>.tall</span><span lang=EN-US
-     style='font-family:'Times New Roman',serif;mso-fareast-font-family:'Times New Roman';
-mso-font-kerning:0pt;mso-ligatures:none;mso-ansi-language:EN-US;
-mso-fareast-language:IT'>&nbsp;file to resume your work anytime.<o:p></o:p></span></li>
-</ul>
-
-<p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'><o:p>&nbsp;</o:p></span></p>
-
+      <p>By offering flexible and structured data import capabilities, TALL streamlines the initial steps of text analysis, enabling users to focus on extracting insights efficiently.</p>
+      <hr>
+      <div class='references'>
+        <h4><strong>References</strong></strong></h4>
+        <p><strong>Aria, M., Cuccurullo, C., D’Aniello, L., Misuraca, M., & Spano, M. (2024, June).</strong> <i>TALL: A New Shiny App for Text Analysis</i>. In <i>Scientific Meeting of the Italian Statistical Society</i> (pp. 64-70). Cham: Springer Nature Switzerland.</p>
+        <p><strong>Aria, M., Cuccurullo, C., D'Aniello, L., Misuraca, M., & Spano, M. (2023).</strong> <i>TALL: A New Shiny App of Text Analysis for All</i>. In <i>CLiC-it</i>.</p>
+    </div>
 </div>
 
 </body>
 "
 
+  split <-  "<body>
+
+  <div class='container'>
+    <h3><strong>Splitting the Corpus in TALL</strong></strong></h3>
+
+    <p>TALL allows users to split textual data into smaller segments based on a specified sequence of characters. This feature is particularly useful when dealing with large documents containing multiple sections or structured content that needs to be analyzed separately.</p>
+    <hr>
+    <h4><strong>How It Works</strong></h4>
+    <ul>
+    <li>Users can define a <strong>delimiter</strong>, which is a sequence of characters used to segment the text.</li>
+    <li>The delimiter must contain at least <strong>three characters</strong> to ensure accurate text splitting.</li>
+    <li>The splitting process is <strong>case-sensitive</strong>, meaning that uppercase and lowercase variations are treated as distinct (e.g., <code>'CHAPTER'</code> is different from <code>'chapter'</code>).</li>
+    </ul>
+    <hr>
+    <h4><strong>Example Use Cases</strong></h4>
+    <ul>
+    <li><strong>Books or Reports:</strong> Splitting a novel into chapters using <code>'CHAPTER '</code> as a delimiter.</li>
+    <li><strong>Survey Responses:</strong> Separating responses when they are structured using a marker like <code>'###'</code> between answers.</li>
+    <li><strong>Transcriptions:</strong> Dividing interview transcripts based on speaker labels (e.g., <code>'Speaker 1:'</code>).</li>
+    </ul>
+
+    <p>By offering a flexible splitting mechanism, TALL ensures that text segmentation aligns with the user's analytical needs, preserving the original structure for meaningful interpretation.</p>
+</div>
+
+</body>"
+
+  random <- "<body>
+
+  <div class='container'>
+    <h3><strong>Random Text Selection in TALL</strong></strong></h3>
+
+    <p>TALL allows users to extract a random subset of imported texts for focused analysis. This feature is particularly useful when working with large corpora, enabling users to explore representative samples without processing the entire dataset.</p>
+    <hr>
+    <h4><strong>How It Works</strong></strong></h4>
+    <ul>
+    <li>The total number of imported texts is displayed, providing an overview of the dataset size.</li>
+    <li>Users can define the <strong>sample size</strong> as a percentage (%) of the total corpus.</li>
+    <li>The selection process is <strong>random</strong>, ensuring an unbiased representation of the dataset.</li>
+    </ul>
+    <hr>
+    <h4><strong>Example Use Cases</strong></strong></h4>
+    <ul>
+    <li><strong>Analyzing Social Media Data:</strong> Selecting 10% of tweets from a large dataset to perform sentiment analysis.</li>
+    <li><strong>Survey Research:</strong> Extracting a random subset of open-ended responses for qualitative coding.</li>
+    <li><strong>Document Sampling:</strong> Reviewing a sample of reports or articles instead of analyzing the full collection.</li>
+    </ul>
+
+    <p>By enabling controlled sampling, TALL helps users balance efficiency and analytical depth, making text exploration more manageable and meaningful.</p>
+    </div>
+
+    </body>"
+
+  externalinfo <- "<body>
+
+  <div class='container'>
+    <h3><strong>Importing External Information in TALL</strong></strong></h3>
+
+    <p>TALL allows users to integrate additional information into their analysis by importing external datasets. This feature is particularly useful for enriching text data with metadata, annotations, or categorical variables, enabling a more comprehensive exploration of textual patterns.</p>
+    <hr>
+    <h4><strong>How to Import External Data</strong></strong></h4>
+    <ul>
+    <li>The external file must be in <strong>Excel format</strong> (<code>.xlsx</code>).</li>
+    <li>The dataset must include a column labeled <strong>'doc_id'</strong>, which is used to match external information with the previously imported text data.</li>
+    <li>The <strong>'doc_id'</strong> values must correspond exactly to the document identifiers assigned during text import to ensure proper alignment.</li>
+    </ul>
+    <hr>
+    <h4><strong>Using External Information</strong></strong></h4>
+    <ul>
+    <li>Imported external data can be used to <strong>filter</strong> or <strong>group documents</strong> based on specific attributes (e.g., author, category, sentiment).</li>
+    <li>This allows users to segment text collections efficiently, focusing on subsets relevant to their research questions.</li>
+    </ul>
+    <hr>
+    <h4><strong>Download Document Identifiers</strong></strong></h4>
+    <p>To facilitate the integration process, users can download a list of <strong>'doc_id'</strong> values associated with the imported text files below. This ensures that external data is formatted correctly before uploading.</p>
+
+    <p>By supporting the import of structured external data, TALL enhances text analysis capabilities, allowing users to incorporate contextual information for richer insights.</p>
+    </div>
+
+    </body>"
+
+  tokenization <- "<body>
+
+  <div class='container'>
+    <h3><strong>Tokenization, Lemmatization, and PoS Tagging in TALL</strong></strong></h3>
+
+    <p>TALL provides robust Natural Language Processing (NLP) capabilities for preprocessing textual data, including <strong>tokenization, lemmatization, and Part-of-Speech (PoS) tagging</strong>. These steps are essential for transforming raw text into a structured format suitable for further analysis.</p>
+    <hr>
+    <h4><strong>Powered by UDPipe for NLP Preprocessing</strong></strong></h4>
+    <p>TALL leverages the <strong>UDPipe</strong> library to perform tokenization, tagging, lemmatization, and dependency parsing. The <a href='https://cran.r-project.org/web/packages/udpipe/index.html' target='_blank'>udpipe R package</a> offers seamless access to pre-trained annotation models, supporting multiple languages.</p>
+
+      <ul>
+      <li><strong>Tokenization:</strong> Splits raw text into individual words or tokens.</li>
+      <li><strong>Lemmatization:</strong> Converts words into their base or dictionary form (e.g., 'running' → 'run').</li>
+      <li><strong>PoS Tagging:</strong> Assigns grammatical categories (e.g., noun, verb, adjective) to each word.</li>
+      <li><strong>Dependency Parsing:</strong> Identifies syntactic relationships between words in a sentence.</li>
+      </ul>
+      <hr>
+      <h4><strong>Updated Pre-trained Language Models</strong></strong></h4>
+      <p>By default, UDPipe includes models based on <a href='https://universaldependencies.org/' target='_blank'>Universal Dependencies (UD)</a> version 2.5, but these had not been updated in some time. To enhance accuracy and ensure better linguistic processing, TALL now integrates updated <strong>pre-trained NLP language models</strong> from <strong>Universal Dependencies (UD) version 2.15</strong>.</p>
+
+        <p>These models were trained using <strong>gold standard annotated corpora</strong> from the UD project, significantly improving the quality of text analysis in TALL. The updated pre-trained models used in TALL can be accessed through our <a href='https://github.com/massimoaria/tall.language.models' target='_blank'>GitHub repository</a>.</p>
+      <hr>
+          <h4><strong>Applications in NLP and Text Analysis</strong></strong></h4>
+          <ul>
+          <li><strong>Sentiment Analysis:</strong> Better understanding of word usage and context.</li>
+          <li><strong>Topic Modeling:</strong> Improved preprocessing for cleaner topic extraction.</li>
+          <li><strong>Corpus Exploration:</strong> Advanced filtering and segmentation of texts based on linguistic attributes.</li>
+          </ul>
+
+          <p>By integrating updated NLP models and leveraging powerful preprocessing techniques, TALL ensures high-quality text analysis, making it a valuable tool for researchers and practitioners in computational linguistics.</p>
+         <hr>
+          <div class='references'>
+            <h4><strong>References</strong></strong></h4>
+            <p><strong>TALL Pre-trained Models Repository:</strong> <a href='https://github.com/massimoaria/tall.language.models' target='_blank'>GitHub repository for pre-trained models</a></p>
+              <p><strong>UDPipe R Package:</strong> <a href='https://cran.r-project.org/web/packages/udpipe/index.html' target='_blank'>CRAN link to UDPipe</a></p>
+                <p><strong>Universal Dependencies Repository:</strong> <a href='https://universaldependencies.org/' target='_blank'>Universal Dependencies project</a></p>
+                  </div>
+                  </div>
+
+                  </body>"
+
+  specialentities <- "<body>
+
+  <div class='container'>
+    <h3><strong>Tagging Special Entities in TALL</strong></strong></h3>
+
+    <p>TALL automatically detects and tags <strong>special entities</strong> within texts, ensuring that key non-linguistic elements <br>are properly identified and can be leveraged in further analysis.
+    <br>Recognizing these entities helps improve text preprocessing, pattern recognition, and contextual analysis.</p>
+    <hr>
+    <h4><strong>Detected Special Entities</strong></strong></h4>
+    <p>When processing textual data, TALL assigns specific tags to the following entities:</p>
+    <ul>
+    <li><strong>Email Addresses:</strong> Recognizes and tags email formats (e.g., <code>example@domain.com</code>).</li>
+    <li><strong>URLs:</strong> Detects web links, ensuring they can be excluded or analyzed separately (e.g., <code>https://www.example.com/path</code>).</li>
+    <li><strong>Emojis:</strong> Identifies and classifies emojis used in digital communication (e.g., 😊, 🚀, ❤️).</li>
+    <li><strong>Hashtags:</strong> Extracts hashtags commonly used in social media and categorization (e.g., <code>#ExampleTag</code>).</li>
+    <li><strong>IP Addresses:</strong> Detects standard IP address formats (e.g., <code>192.168.1.1</code>), which may be useful in network-related text analysis.</li>
+    <li><strong>Mentions:</strong> Identifies references to usernames, particularly in social media or chat applications (e.g., <code>@username</code>).</li>
+    </ul>
+    <hr>
+    <h4><strong>Why Special Entity Tagging Matters?</strong></strong></h4>
+    <ul>
+    <li><strong>Enhanced Text Cleaning:</strong> Filtering out or isolating elements that may not contribute to linguistic analysis.</li>
+    <li><strong>Social Media and Web Analysis:</strong> Extracting meaningful patterns from hashtags, mentions, and URLs.</li>
+    <li><strong>Sentiment and Emotion Studies:</strong> Analyzing the role of emojis in sentiment-based communication.</li>
+    <li><strong>Cybersecurity and Digital Forensics:</strong> Identifying sensitive data points such as email addresses and IP addresses.</li>
+    </ul>
+
+    <p>By integrating special entity recognition, TALL enhances the preprocessing phase, ensuring that these elements are <br>structured for more effective text analysis.</p>
+    </div>
+
+    </body>"
+
   multiwordcreation <- "
   <body>
-  
-      <h3>Algorithms for Automatic Multi-Word Extraction</h3>
-  
+
+      <h3><strong>Algorithms for Automatic Multi-Word Extraction</strong></strong></h3>
+
       <p>The software <strong>TALL - Text Analysis for All</strong> employs four key algorithms to automatically generate multi-word sequences from a corpus of documents. These methods, widely recognized in computational linguistics and text mining, include <strong>Rapid Automatic Keyword Extraction (RAKE)</strong>, <strong>Pointwise Mutual Information (PMI)</strong>, <strong>Mutual Dependency (MD)</strong>, and <strong>Log-Frequency Biased Mutual Dependency (LF-MD)</strong>.</p>
-  
+
       <br><h4><strong>- Rapid Automatic Keyword Extraction (RAKE)</strong></h4>
       <p>RAKE is a domain-independent keyword extraction algorithm that identifies key phrases by analyzing word co-occurrences within a document. It segments text into candidate keyword phrases based on stopword delimiters and then assigns scores based on word co-occurrence and frequency. Higher-scoring phrases are considered more relevant as multi-word expressions.</p>
       <p><strong>Reference:</strong><br>
       Rose, S., Engel, D., Cramer, N., &amp; Cowley, W. (2010). <em>Automatic keyword extraction from individual documents</em>. Text Mining: Applications and Theory, 1(1), 1-20.</p>
-  
+
       <br><h4><strong>- Pointwise Mutual Information (PMI)</strong></h4>
       <p>PMI is a statistical measure used to assess the association strength between two words. It is defined as:</p>
-      
+
       <p style='text-align: center;'>
           <em>PMI(w<sub>1</sub>, w<sub>2</sub>) = log ( P(w<sub>1</sub>, w<sub>2</sub>) / (P(w<sub>1</sub>) P(w<sub>2</sub>)) )</em>
       </p>
-  
+
       <p>where P(w<sub>1</sub>, w<sub>2</sub>) is the probability of words w<sub>1</sub> and w<sub>2</sub> appearing together, and P(w<sub>1</sub>) and P(w<sub>2</sub>) are their individual probabilities. High PMI values indicate strong word associations, making the phrase a good multi-word candidate.</p>
-  
+
       <p><strong>Reference:</strong><br>
       Church, K. W., &amp; Hanks, P. (1990). <em>Word association norms, mutual information, and lexicography</em>. Computational Linguistics, 16(1), 22-29.</p>
-  
+
      <br><h4><strong>- Mutual Dependency (MD)</strong></h4>
       <p>Mutual Dependency extends PMI by considering the full context of a multi-word expression rather than just pairwise co-occurrence. It incorporates statistical dependency measures, ensuring that all words in a multi-word sequence contribute significantly to its overall meaning. This approach is particularly useful for identifying multi-word units beyond simple bigrams.</p>
-  
+
       <p><strong>Reference:</strong><br>
       Thanopoulos, A., Fakotakis, N., &amp; Kokkinakis, G. (2002, May). <em>Comparative Evaluation of Collocation Extraction Metrics.</em> In LREC (Vol. 2, pp. 620-625).</p>
-  
+
      <br><h4><strong>- Log-Frequency Biased Mutual Dependency (LF-MD)</strong></h4>
       <p>LF-MD refines the MD approach by incorporating word frequency into the dependency calculation. This method biases the selection of multi-word expressions toward frequent collocations while maintaining a balance between statistical significance and linguistic relevance. It is particularly useful in extracting meaningful multi-word expressions in large corpora where rare but statistically significant collocations might otherwise dominate.</p>
-  
+
       <p><strong>Reference:</strong><br>
         Thanopoulos, A., Fakotakis, N., &amp; Kokkinakis, G. (2002, May). <em>Comparative Evaluation of Collocation Extraction Metrics.</em> In LREC (Vol. 2, pp. 620-625).</p>
   </body>
   "
 
-  reinert <- "
-  <body lang=IT link='#467886' vlink='#96607D' style='tab-interval:35.4pt;
-word-wrap:break-word'>
+  multiwordlist <- "<body>
 
-  <div class=WordSection1>
+  <div class='container'>
+    <h3><strong>Multi-Word Creation by a List in TALL</strong></strong></h3>
 
-    <p class=MsoNormal><span class=SpellE><b><span style='font-size:14.0pt;
-font-family:'Times New Roman',serif'>References</span></b></span><b><span
-    style='font-size:14.0pt;font-family:'Times New Roman',serif'><o:p></o:p></span></b></p>
+    <p>TALL allows users to define <strong>multi-word expressions (MWEs)</strong> by importing a predefined list of multi-word terms. <br>This feature is particularly useful for ensuring that specific phrases or domain-specific expressions are <br>treated as single units during text processing, improving linguistic analysis.</p>
+    <hr>
+    <h4><strong>How to Import a Multi-Word List</strong></strong></h4>
+    <p>To integrate multi-word expressions into the analysis, users must provide a properly formatted list:</p>
+    <ul>
+    <li>The list must be in <strong>Excel (<code>.xlsx</code>) or CSV (<code>.csv</code>) format</strong>.</li>
+    <li>The file should contain a <strong>single column</strong> where each row represents one multi-word expression.</li>
+    <li><strong>Each term within a multi-word expression must be separated by a single whitespace<br></strong> (e.g., <code>machine learning</code>, <code>natural language processing</code>).</li>
+    </ul>
+    <hr>
+    <h4><strong>Why Use Multi-Word Expressions?</strong></strong></h4>
+    <ul>
+    <li><strong>Preserving Meaningful Phrases:</strong> Ensuring that key terms (e.g., <code>artificial intelligence</code>) are not split into separate words.</li>
+    <li><strong>Improving Text Preprocessing:</strong> Enhancing tokenization and lemmatization by treating phrases as cohesive units.</li>
+    <li><strong>Enhancing Domain-Specific Analysis:</strong> Beneficial in specialized fields such as legal, medical, or technical texts, <br>where multi-word terms have precise meanings.</li>
+    </ul>
 
-      <p class=MsoNormal><span class=SpellE><span style='font-family:'Times New Roman',serif'>Reinert</span></span><span
-    style='font-family:'Times New Roman',serif'> M, <i>Une <span class=SpellE>méthode</span>
-      de <span class=SpellE>classification</span> <span class=SpellE>descendante</span>
-      <span class=SpellE><span class=GramE>hiérarchique</span></span><span
-    class=GramE> :</span> <span class=SpellE>application</span> à l'<span
-class=SpellE>analyse</span> <span class=SpellE>lexicale</span> par <span
-class=SpellE>contexte</span></i>, <b>Cahiers de l'<span class=SpellE>analyse</span>
-      <span class=SpellE>des</span> <span class=SpellE>données</span></b>, Volume 8, <span
-    class=SpellE>Numéro</span> 2, 1983. <o:p></o:p></span></p>
+    <p>By supporting multi-word recognition, TALL provides users with greater flexibility in structuring their text analysis and ensures that <br>critical expressions are accurately identified and processed.</p>
+    </div>
 
+    </body>"
 
-      <p class=MsoNormal><span class=SpellE><span style='font-family:'Times New Roman',serif'>Reinert</span></span><span
-    style='font-family:'Times New Roman',serif'> M., <i>Alceste une <span
-    class=SpellE>méthodologie</span> d'<span class=SpellE>analyse</span> <span
-class=SpellE>des</span> <span class=SpellE>données</span> <span class=SpellE>textuelles</span>
-et une <span class=SpellE>application</span>: Aurelia De Gerard De Nerval</i>, <span
-class=SpellE><b>Bulletin</b></span><b> de <span class=SpellE>Méthodologie</span>
-<span class=SpellE>Sociologique</span></b>, Volume 26, <span class=SpellE>Numéro</span>
-1, 1990. </span><span lang=EN-US style='font-family:'Times New Roman',serif;
-    mso-ansi-language:EN-US'>DOI: <a
-href='https://doi.org/10.1177/075910639002600103' target='_blank'>10.1177/075910639002600103</a>.<o:p></o:p></span></p>
+  customterm <- "<body>
 
+  <div class='container'>
+    <h3><strong>Custom Term List in TALL</strong></strong></h3>
 
+    <p>TALL allows users to define a <strong>Custom Term List</strong>, enabling more precise control over text processing and linguistic analysis. <br>This feature allows users to manually assign custom tags to specific terms, <br>overriding their default categorization by the language model.</p>
+    <hr>
+    <h4><strong>Why Use a Custom Term List?</strong></strong></h4>
+    <ul>
+    <li><strong>Highlighting Specific Concepts:</strong> Identifying key terms related to methodologies, specialized vocabulary, or domain-specific jargon.</li>
+    <li><strong>Filtering Unwanted Words:</strong> Removing terms that are irrelevant to the analysis, ensuring a cleaner dataset.</li>
+    <li><strong>Enhancing Named Entity Recognition (NER):</strong> Manually tagging specific words that the language model may misclassify.</li>
+    <li><strong>Overriding Default PoS Assignments:</strong> Ensuring consistency in tagging across texts by defining a fixed categorization for certain terms.</li>
+    </ul>
+    <hr>
+    <h4><strong>How to Import a Custom Term List</strong></strong></h4>
+    <p>To integrate a custom list of terms, users must provide a properly formatted file:</p>
+    <ul>
+    <li>The list must be in <strong>Excel format (<code>.xlsx</code>)</strong>.</li>
+    <li>The file should contain <strong>two columns</strong>:</li>
+    <ul>
+    <li><strong>First column:</strong> The list of terms to be tagged.</li>
+    <li><strong>Second column:</strong> The corresponding Part-of-Speech (PoS) or user-defined category assigned to each term.</li>
+    </ul>
+    <li>The specified tags should align with standard linguistic categories (e.g., noun, verb, adjective) or custom categories for specific analysis needs.</li>
+    </ul>
+    <hr>
+  <h4><strong>Example of Custom Term List Format</strong></h4>
 
-<p class=MsoNormal><span lang=EN-US style='font-family:'Times New Roman',serif;
-    mso-ansi-language:EN-US'>Barnier J., P<span class=SpellE>rivé</span> F., <i>rainette:
-The Reinert Method for Textual Data Clustering</i>, 2023, <b>R CRAN Repository,</b>
-DOI: <a href='https://doi.org/10.32614/CRAN.package.rainette' target='_blank'>10.32614/<span
-class=SpellE>CRAN.package.rainette</span></a>.<o:p></o:p></span></p>
+  <table border='1' cellspacing='0' cellpadding='5'>
+  <tr>
+  <th> ---- Term ------------- </th>
+  <th> ---- Custom Tag ------- </th>
+  </tr>
+  <tr>
+  <td>artificial intelligence</td>
+  <td>methodology</td>
+  </tr>
+  <tr>
+  <td>deep learning</td>
+  <td>methodology</td>
+  </tr>
+  <tr>
+  <td>preprocess</td>
+  <td>data_handling</td>
+  </tr>
+  <tr>
+  <td>dataset</td>
+  <td>data_handling</td>
+  </tr>
+  <tr>
+  <td>remove</td>
+  <td>Ignore</td>
+  </tr>
+  </table>
+<br>
+    <p>By allowing users to define and control term tagging, TALL provides enhanced flexibility for text analysis, <br>making it a powerful tool for domain-specific research and refined linguistic processing.</p>
+    </div>
 
+    </body>"
+
+  posselection <- "<body>
+
+  <div class='container'>
+    <h3><strong>PoS Tagging Selection in TALL</strong></strong></h3>
+
+    <p>TALL provides users with the flexibility to <strong>select specific Part-of-Speech (PoS) tags</strong> to be used in subsequent analyses.
+    <br>This feature allows for greater control over the linguistic elements included in text processing,
+    <br>ensuring that only relevant grammatical categories are considered.</p>
+    <hr>
+    <h4><strong>Why Select PoS Tags?</strong></strong></h4>
+    <ul>
+    <li><strong>Filtering Out Unnecessary Elements:</strong> Excluding determiners, conjunctions, or punctuation that may not contribute to the analysis.</li>
+    <li><strong>Focusing on Key Linguistic Features:</strong> Selecting only nouns and verbs for topic modeling, or adjectives and adverbs for sentiment analysis.</li>
+    <li><strong>Improving Computational Efficiency:</strong> Reducing data size and processing time by analyzing only the most relevant word categories.</li>
+    </ul>
+    <hr>
+    <h4><strong>How It Works in TALL</strong></strong></h4>
+    <ul>
+    <li>Users can manually <strong>select or deselect</strong> PoS categories from a predefined list.</li>
+    <li>The available PoS tags follow the <strong>Universal Dependencies (UD) annotation scheme</strong>, ensuring consistency across different languages.</li>
+    </ul>
+    <hr>
+    <h4><strong>Default Selected PoS Tags</strong></strong></h4>
+    <p>By default, TALL selects the following PoS categories:</p>
+    <ul>
+    <li><strong>ADJ:</strong> Adjective – Descriptive words (e.g., 'beautiful', 'quick').</li>
+    <li><strong>NOUN:</strong> Noun – Common nouns representing entities (e.g., 'dog', 'city').</li>
+    <li><strong>PROPN:</strong> Proper Noun – Specific names of places, people, or organizations (e.g., 'London', 'NASA').</li>
+    <li><strong>VERB:</strong> Verb – Action words representing processes (e.g., 'run', 'speak').</li>
+    <li><strong>HAPAX:</strong> Words appearing only once in the text, useful for lexical richness analysis.</li>
+    </ul>
+    <hr>
+    <h4><strong>Available PoS Categories in TALL</strong></strong></h4>
+    <table border='1' cellspacing='0' cellpadding='5'>
+    <tr>
+    <th>PoS Tag</th>
+    <th>Description</th>
+    </tr>
+    <tr><td>ADJ</td><td>Adjective</td></tr>
+    <tr><td>ADP</td><td>Adposition</td></tr>
+    <tr><td>ADV</td><td>Adverb</td></tr>
+    <tr><td>AUX</td><td>Auxiliary</td></tr>
+    <tr><td>CCONJ</td><td>Coordinating Conjunction</td></tr>
+    <tr><td>DET</td><td>Determiner</td></tr>
+    <tr><td>INTJ</td><td>Interjection</td></tr>
+    <tr><td>NOUN</td><td>Noun</td></tr>
+    <tr><td>NUM</td><td>Numeral</td></tr>
+    <tr><td>PART</td><td>Particle</td></tr>
+    <tr><td>PRON</td><td>Pronoun</td></tr>
+    <tr><td>PROPN</td><td>Proper Noun</td></tr>
+    <tr><td>PUNCT</td><td>Punctuation</td></tr>
+    <tr><td>SCONJ</td><td>Subordinating Conjunction</td></tr>
+    <tr><td>SYM</td><td>Symbol</td></tr>
+    <tr><td>VERB</td><td>Verb</td></tr>
+    <tr><td>X</td><td>Other</td></tr>
+    <tr><td>Hapax</td><td>Words appearing only once in the corpus</td></tr>
+    <tr><td>Single Character</td><td>Individual symbols or characters</td></tr>
+    </table>
+    <hr>
+    <h4><strong>Custom Categories</strong></strong></h4>
+    <p>In addition to predefined PoS categories, users may have also <strong>generated custom categories</strong> through the <strong>Custom List</strong> and <strong>Multi-Word</strong> menus.
+    <br>These user-defined tags allow for specialized analysis by grouping specific terms under a unique classification system.</p>
+    <hr>
+    <h4><strong>Enhancing Analysis with PoS Selection</strong></strong></h4>
+    <p>By allowing users to choose specific PoS categories, TALL ensures that the analysis is tailored to the user's research goals.
+    <br>Whether performing <strong>keyword extraction, syntactic analysis, topic modeling, or sentiment analysis</strong>,
+    <br>the ability to refine PoS selection enhances the precision and interpretability of results.</p>
 </div>
 
-</body>
-   "
+</body>"
 
-  correspondenceanalysis <- "
-<body lang=IT style='tab-interval:35.4pt;word-wrap:break-word'>
 
-<div class=WordSection1>
 
-<p class=MsoNormal><b><span style='font-size:14.0pt;font-family:'Times New Roman',serif'>Correspondence
-Analysis </span></b><span style='font-size:14.0pt;font-family:'Times New Roman',serif'><o:p></o:p></span></p>
+  reinert <- "<body>
 
-<p style='text-align:justify'><b><span lang=EN-US style='mso-fareast-font-family:
-Aptos;mso-fareast-theme-font:minor-latin;mso-ansi-language:EN-US;mso-fareast-language:
-EN-US'>Correspondence Analysis (CA)</span></b><span lang=EN-US
-style='mso-fareast-font-family:Aptos;mso-fareast-theme-font:minor-latin;
-mso-ansi-language:EN-US;mso-fareast-language:EN-US'>&nbsp;</span><span
-lang=EN-US style='mso-ansi-language:EN-US'>(</span><span lang=EN-US
-style='mso-fareast-font-family:'Times New Roman';mso-fareast-theme-font:major-fareast;
-mso-ansi-language:EN-US'>Benzécri, 1982</span><span lang=EN-US
-style='mso-ansi-language:EN-US'>; Lebart et al., 1997) </span><span lang=EN-US
-style='mso-fareast-font-family:Aptos;mso-fareast-theme-font:minor-latin;
-mso-ansi-language:EN-US;mso-fareast-language:EN-US'>is a foundational technique
-to explore semantic relationships among words within a text collection. By
-reducing dimensionality, CA represents the most relevant information in a
-low-rank vector space, capturing latent structures in the data. These
-structures are visualized on factorial maps, allowing users to identify
-patterns and associations between terms or documents. However, one limitation
-of CA is that the new features generated through dimensionality reduction may
-lack clear interpretability, making the results harder to analyze directly.<o:p></o:p></span></p>
+  <div class='container'>
+    <h3><strong>Reinert Clustering in TALL</strong></h3>
 
-<p style='text-align:justify'><span lang=EN-US style='mso-fareast-font-family:
-Aptos;mso-fareast-theme-font:minor-latin;mso-ansi-language:EN-US;mso-fareast-language:
-EN-US'>TALL integrates a&nbsp;<b>tandem approach to enhance interpretability</b>,
-which combines CA with clustering techniques. This sequential method first
-applies CA to transform the original data into orthogonal and ordered features.
-Hierarchical clustering is then performed, as it allows for exploring multiple
-levels of aggregation simultaneously, providing non-overlapping clusters that
-are easier to interpret (Misuraca and Spano, 2020).<o:p></o:p></span></p>
+    <p>Reinert clustering is a <strong>hierarchical descending classification method</strong> used for <strong>textual data clustering</strong>. It identifies <strong>lexically homogeneous word clusters</strong> based on the <strong>co-occurrence of terms within textual contexts</strong>. Originally developed by <strong>Max Reinert (1983, 1990)</strong>, this approach has become a core method in <strong>corpus linguistics, sociolinguistics, and content analysis</strong>.</p>
 
-<p class=References><span style='font-family:'Times New Roman',serif;
-mso-ansi-language:IT'><o:p>&nbsp;</o:p></span></p>
+    <p>Reinert’s method is particularly effective in <strong>structuring large textual datasets</strong>, making it a powerful tool for <strong>thematic segmentation, discourse analysis, and socio-linguistic research</strong>.</p>
+    <hr>
+    <h4><strong>How Reinert Clustering Works in TALL</strong></h4>
 
-<p class=References style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto'><b
-style='mso-bidi-font-weight:normal'><span lang=EN-US style='font-size:14.0pt;
-font-family:'Times New Roman',serif'>References<o:p></o:p></span></b></p>
+    <h4>1. Text Segmentation into Context Units</h4>
+    <ul>
+    <li>The text is divided into <strong>small context units (CUs)</strong>, typically <strong>paragraphs or fixed-length segments</strong>, to capture local lexical co-occurrence patterns.</li>
+    <li>Each CU is treated as a <strong>vector</strong> of word frequencies.</li>
+    </ul>
 
-<p class=References style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto'><span
-style='font-family:'Times New Roman',serif;mso-ansi-language:
-IT'>Misuraca M. and Spano M. (2020). </span><i><span lang=EN-US
-style='font-family:'Times New Roman',serif'>Unsupervised
-Analytic Strategies to Explore Large Document Collections. </span></i><span
-lang=EN-US style='font-family:'Times New Roman',serif'>Heidelberg:
-SPRINGER, 06, 17-28.<o:p></o:p></span></p>
+    <h4>2. Iterative Splitting of Clusters</h4>
+    <ul>
+    <li>The method starts with <strong>all CUs grouped together</strong>.</li>
+    <li>A <strong>first split</strong> is performed, <strong>maximizing intra-cluster homogeneity</strong> while ensuring that <strong>word distributions</strong> differ between groups.</li>
+    <li>This <strong>recursive process</strong> continues until no further meaningful lexical differentiation can be achieved.</li>
+    </ul>
 
-<p class=References style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-margin-left:0cm;text-indent:0cm'><span lang=EN-US style='
-font-family:'Times New Roman',serif'>Benzécri J.P. (1982). <i>Histoire et préhistoire
-de l’analyse des données</i>. Dunod, Paris. <o:p></o:p></span></p>
+    <h4>3. Statistical Association of Words to Clusters</h4>
+    <ul>
+    <li>Words are <strong>assigned probabilistic weights</strong> based on their <strong>distribution within each cluster</strong>.</li>
+    <li>The <strong>most characteristic words</strong> of each cluster are identified, forming the <strong>lexical profile</strong> of the topic.</li>
+    </ul>
 
-<p class=References style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-margin-left:0cm;text-indent:0cm'><span lang=EN-US style='
-font-family:'Times New Roman',serif'>Lebart L., Salem A. and Berry L. (1997). <i>Exploring
-textual data</i>, volume 4. Springer Science &amp; Business Media. <o:p></o:p></span></p>
+    <h4>4. Interpretation and Thematic Analysis</h4>
+    <ul>
+    <li>The final clusters represent <strong>coherent thematic units</strong>.</li>
+    <li>Thematic interpretation is facilitated by <strong>analyzing the most significant words in each cluster</strong>.</li>
+    </ul>
+    <hr>
+    <h4><strong>Reinert Clustering vs. Traditional Topic Modeling</strong></h4>
+    <table border='1' cellspacing='0' cellpadding='5'>
+      <tr>
+      <th>Feature</th>
+      <th>Reinert Clustering</th>
+      <th>LDA Topic Modeling</th>
+      </tr>
+      <tr>
+      <td><strong>Method</strong></td>
+      <td>Hierarchical word clustering</td>
+      <td>Probabilistic word-topic assignment</td>
+      </tr>
+      <tr>
+      <td><strong>Output</strong></td>
+      <td>Discrete word clusters with distinct themes</td>
+      <td>Soft assignment of words to topics</td>
+      </tr>
+      <tr>
+      <td><strong>Context Sensitivity</strong></td>
+      <td>High – Uses local lexical co-occurrence</td>
+      <td>Medium – Uses global probability distributions</td>
+      </tr>
+      <tr>
+      <td><strong>Interpretability</strong></td>
+      <td>Direct thematic segmentation</td>
+      <td>Requires manual topic interpretation</td>
+      </tr>
+      <tr>
+      <td><strong>Application</strong></td>
+      <td>Text segmentation, discourse analysis</td>
+      <td>Thematic classification, topic inference</td>
+      </tr>
+      </table>
+    <hr>
+      <h4><strong>Implementation of Reinert Clustering in TALL</strong></h4>
 
-<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+      <p>The implementation of <strong>Reinert clustering in TALL</strong> was <strong>inspired by the 'rainette' package</strong> (<strong>Barnier & Privé, 2023</strong>). The original routines have been <strong>adapted to work with the TALL data structure</strong>, which includes <strong>tokenized, lemmatized, and PoS-tagged corpora</strong>.</p>
 
+      <p>This adaptation allows:</p>
+      <ul>
+      <li><strong>Customization of context unit size</strong> to fit different corpus structures.</li>
+      <li><strong>Compatibility with pre-processed linguistic data</strong>, ensuring greater accuracy in lexical clustering.</li>
+      <li><strong>Optimized performance</strong> for large-scale text analysis, leveraging <strong>TALL’s text processing pipeline</strong>.</li>
+      <li><strong>Graphical visualization</strong> of thematic structures to facilitate <strong>interpretation and reporting</strong>.</li>
+      </ul>
+
+      <p>By adapting <strong>Reinert’s methodology to TALL’s specialized NLP framework</strong>, researchers can <strong>conduct advanced text clustering analyses</strong> while maintaining compatibility with <strong>state-of-the-art linguistic preprocessing techniques</strong>.</p>
+    <hr>
+      <div class='references'>
+        <h4><strong>References</strong></h4>
+
+        <p><strong>Reinert, M.</strong></p>
+        <p><i>Une méthode de classification descendante hiérarchique : application à l'analyse lexicale par contexte.</i> <strong>Cahiers de l'analyse des données</strong>, 8(2), 1983.</p>
+
+        <p><strong>Reinert, M.</strong></p>
+        <p><i>Alceste: Une méthodologie d'analyse des données textuelles et une application: Aurelia De Gerard De Nerval.</i> <strong>Bulletin de Méthodologie Sociologique</strong>, 26(1), 1990. DOI: <a href='https://doi.org/10.1177/075910639002600103' target='_blank'>10.1177/075910639002600103</a></p>
+
+        <p><strong>Barnier, J., & Privé, F.</strong></p>
+        <p><i>rainette: The Reinert Method for Textual Data Clustering.</i> <strong>R CRAN Repository</strong>, 2023. DOI: <a href='https://doi.org/10.32614/CRAN.package.rainette' target='_blank'>10.32614/CRAN.package.rainette</a></p>
+    </div>
 </div>
 
-</body>
-"
+</body>"
 
-  cowordanalysis <- "
-<body lang=IT style='tab-interval:35.4pt;word-wrap:break-word'>
+  correspondenceanalysis <- "<body>
 
-<div class=WordSection1>
+  <div class='container'>
+    <h3><strong>Correspondence Analysis in TALL</strong></strong></h3>
 
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-text-align:justify'><b><span lang=EN-US style='font-size:14.0pt;font-family:
-'Times New Roman',serif;mso-ansi-language:EN-US'>Co-word analysis <o:p></o:p></span></b></p>
+    <p>Correspondence Analysis (<strong>CA</strong>) is a fundamental technique for exploring <strong>semantic relationships</strong> among words within a text collection (<strong>Benzécri, 1982; Lebart et al., 1997</strong>). By applying <strong>dimensionality reduction</strong>, CA represents the most relevant information in a low-rank vector space, uncovering <strong>latent structures</strong> within the data. These structures are then <strong>visualized on factorial maps</strong>, allowing users to detect associations between terms and documents effectively.</p>
+    <hr>
+    <h4><strong>Why Use Correspondence Analysis?</strong></h4>
+    <ul>
+    <li><strong>Revealing Hidden Patterns:</strong> CA captures relationships between words and documents that might not be immediately apparent.</li>
+    <li><strong>Dimensionality Reduction:</strong> By projecting the data into a lower-dimensional space, CA simplifies complex text corpora while retaining key semantic information.</li>
+    <li><strong>Visualization on Factorial Maps:</strong> The results are displayed on a <strong>graphical representation</strong>, enabling easy interpretation of term clusters and document similarities.</li>
+    </ul>
+    <hr>
+    <h4><strong>Limitations of Correspondence Analysis</strong></h4>
+    <p>One of the primary challenges of CA is that the <strong>new features</strong> generated through dimensionality reduction often lack <strong>direct interpretability</strong>. Since the transformation is data-driven, the factors extracted do not always correspond to clear linguistic or thematic constructs, making it more difficult to derive <strong>explicit meaning</strong> from the analysis.</p>
+    <hr>
+    <h4><strong>Enhancing Interpretability: The Tandem Approach</strong></h4>
+    <p>To address this limitation, <strong>TALL integrates a tandem approach</strong>, which combines CA with <strong>clustering techniques</strong> to improve the interpretability of results (<strong>Misuraca & Spano, 2020</strong>). This approach follows a <strong>two-step process</strong>:</p>
+    <ul>
+    <li><strong>Dimensionality Reduction with CA:</strong> The text data is transformed into <strong>orthogonal and ordered features</strong>, preserving essential relationships while reducing complexity.</li>
+    <li><strong>Hierarchical Clustering:</strong> Clustering is applied to the transformed data, allowing for <strong>multi-level aggregation</strong> of terms and documents. Unlike simple factor analysis, this method provides <strong>non-overlapping clusters</strong>, making the results easier to interpret.</li>
+    </ul>
+    <hr>
+    <h4><strong>Applications of Correspondence Analysis in Text Mining</strong></h4>
+    <ul>
+    <li><strong>Exploring Co-occurrence Patterns:</strong> Identifying how frequently certain words appear together in a corpus.</li>
+    <li><strong>Thematic Segmentation:</strong> Grouping documents based on their shared linguistic characteristics.</li>
+    <li><strong>Semantic Mapping:</strong> Revealing <strong>latent structures</strong> within unstructured text data.</li>
+    <li><strong>Lexical Field Analysis:</strong> Understanding how words are distributed and related within a text collection.</li>
+    </ul>
 
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-text-align:justify'><i><span lang=EN-US style='font-family:'Times New Roman',serif;
-mso-ansi-language:EN-US'>Network</span></i><span lang=EN-US style='font-family:
-'Times New Roman',serif;mso-ansi-language:EN-US'> (Co-word analysis) (<span
-style='mso-bidi-font-weight:bold'>Callon <i>et al.</i>, 1983</span>) analyzes
-co-occurrence patterns of words within texts, highlighting subsets of words
-strictly related through community detection algorithms (<span
-style='mso-bidi-font-weight:bold'>Fortunato and <span class=SpellE>Hric</span>,
-2016</span>). <o:p></o:p></span></p>
+    <p>By integrating <strong>Correspondence Analysis</strong> with <strong>clustering methods</strong>, TALL enhances the <strong>interpretability and usability</strong> of text mining workflows, offering a <strong>powerful framework</strong> for <strong>unsupervised exploration</strong> of large document collections.</p>
+    <hr>
+    <div class='references'>
+      <h4><strong>References</strong></strong></h4>
+      <p><strong>Benzécri, J. P.</strong> (1982). <i>Histoire et préhistoire de l’analyse des données.</i> Paris: Dunod.</p>
+      <p><strong>Lebart, L., Salem, A., & Berry, L.</strong> (1997). <i>Exploring textual data.</i> Volume 4. Springer Science & Business Media.</p>
+      <p><strong>Misuraca, M., & Spano, M.</strong> (2020). <i>Unsupervised Analytic Strategies to Explore Large Document Collections.</i> Heidelberg: Springer, 06, 17-28.</p>
+      </div>
+      </div>
 
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-text-align:justify'><span lang=EN-US style='font-family:'Times New Roman',serif;
-mso-ansi-language:EN-US'>Among the different alternatives, TALL applies a <span
-class=SpellE>walktrap</span> algorithm for community detection (Pons and <span
-class=SpellE>Latapy</span>, 2006)<o:p></o:p></span></p>
+      </body>"
 
-<p class=References><span lang=EN-US style='font-size:12.0pt;font-family:'Times New Roman',serif'><o:p>&nbsp;</o:p></span></p>
+  cowordanalysis <- "<body>
 
-<p class=References style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto'><b
-style='mso-bidi-font-weight:normal'><span lang=EN-US style='font-size:14.0pt;
-font-family:'Times New Roman',serif'>References<o:p></o:p></span></b></p>
+  <div class='container'>
+    <h3><strong>Co-Word Analysis in TALL</strong></strong></h3>
 
-<p class=References style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto'><span
-lang=EN-US style='font-family:'Times New Roman',serif'>Callon
-M., <span class=SpellE>Courtial</span> J.-P., Turner W.A. and <span
-class=SpellE>Bauin</span> S. (1983). From translations to problematic networks:
-An introduction to co-word analysis. <i>Social science information</i>,
-22(2):191-235. <o:p></o:p></span></p>
+    <p>Co-word analysis is a <strong>network-based text mining technique</strong> that examines <strong>co-occurrence patterns</strong> of words within a corpus, identifying <strong>semantic structures</strong> based on term relationships (<strong>Callon et al., 1983</strong>). This method is particularly valuable in <strong>detecting thematic clusters</strong> within large textual datasets, as it helps uncover <strong>conceptual linkages</strong> and <strong>emerging research topics</strong> in various fields.</p>
+    <hr>
+    <h4><strong>How Co-Word Analysis Works</strong></h4>
+    <ul>
+    <li><strong>Nodes represent words</strong> (terms extracted from the corpus).</li>
+    <li><strong>Edges represent co-occurrence relationships</strong> (connections between words appearing together in the same context).</li>
+    <li><strong>Edge weights reflect frequency</strong>, meaning stronger relationships are represented by thicker connections.</li>
+    </ul>
+    <hr>
+    <h4><strong>Normalization Measures in Co-Word Analysis</strong></h4>
+    <p>Raw co-occurrence frequencies can be <strong>biased by term frequency</strong> in the corpus, making normalization essential to provide meaningful co-word relationships. TALL allows users to apply different normalization measures to refine co-occurrence networks (<strong>Eck & Waltman, 2009</strong>):</p>
 
-<p class=References style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto'><span
-lang=EN-US style='font-family:'Times New Roman',serif'>Fortunato
-S. and <span class=SpellE>Hric</span> D. (2016). Community detection in
-networks: A user guide. <i>Physics Reports</i>, 659:1-44, <span class=SpellE>nov.</span><o:p></o:p></span></p>
+    <h4><em>Association Index</em></h4>
+    <p>The <strong>Association Index (AI)</strong> normalizes co-occurrence counts relative to the <strong>expected frequency of terms</strong> in the corpus:</p>
+    <p><code>AI<sub>ij</sub> = C<sub>ij</sub> / (C<sub>i</sub> × C<sub>j</sub>)</code></p>
 
-<p class=References style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto'><span
-lang=EN-US style='font-family:'Times New Roman',serif'>Pons P. and <span
-class=SpellE>Latapy</span> M. (2006) Computing communities in large networks
-using random walks, https://arxiv.org/abs/physics/0512106.</span><span
-lang=EN-US style='font-family:'Times New Roman',serif;mso-ansi-language:EN-US'><o:p></o:p></span></p>
+      <h4><em>Cosine Similarity</em></h4>
+      <p><strong>Cosine Similarity</strong> measures how similar two terms are based on their co-occurrence across different documents:</p>
+      <p><code>cos(θ) = C<sub>ij</sub> / sqrt(C<sub>i</sub> × C<sub>j</sub>)</code></p>
 
+        <h4><em>Jaccard Similarity</em></h4>
+        <p>The <strong>Jaccard Similarity</strong> measures the co-occurrence strength relative to the total occurrences of both words:</p>
+        <p><code>J<sub>ij</sub> = C<sub>ij</sub> / (C<sub>i</sub> + C<sub>j</sub> - C<sub>ij</sub>)</code></p>
+    <hr>
+          <h4><strong>Community Detection for Semantic Clustering</strong></h4>
+          <p>To extract thematic clusters, TALL applies the <strong>Walktrap algorithm</strong> for community detection (<strong>Pons & Latapy, 2006</strong>):</p>
+          <ul>
+          <li>Uses <strong>random walks</strong> on the co-occurrence network to detect <strong>structurally cohesive word communities</strong>.</li>
+          <li>Efficiently discovers <strong>hierarchical relationships</strong> among terms.</li>
+          <li>Groups words into <strong>non-overlapping clusters</strong>, representing <strong>latent topics</strong> or <strong>conceptual domains</strong> within the corpus.</li>
+          </ul>
+    <hr>
+          <h4><strong>Applications of Co-Word Analysis</strong></h4>
+          <ul>
+          <li><strong>Bibliometric and Scientometric Studies:</strong> Identifying research trends and thematic structures in academic literature.</li>
+          <li><strong>Topic Detection in Large Text Collections:</strong> Extracting underlying themes from newspapers, reports, or social media content.</li>
+          <li><strong>Keyword Network Exploration:</strong> Understanding <strong>how keywords interconnect</strong> and contribute to discourse formation.</li>
+          <li><strong>Patent and Innovation Analysis:</strong> Revealing technological trends by examining term co-occurrence in patent databases.</li>
+          <li><strong>Social Media and Sentiment Analysis:</strong> Discovering key discussion topics within online platforms.</li>
+          </ul>
+    <hr>
+          <h4><strong>Advantages of Co-Word Analysis in TALL</strong></h4>
+          <ul>
+          <li><strong>Unsupervised Approach:</strong> Extracts thematic clusters <strong>without requiring predefined categories</strong>.</li>
+          <li><strong>Graph-Based Representation:</strong> Provides an <strong>intuitive visualization</strong> of textual structures.</li>
+          <li><strong>Scalable to Large Text Corpora:</strong> Efficiently handles extensive document collections.</li>
+          <li><strong>Integration with Other Analytical Techniques:</strong> Can be combined with <strong>Correspondence Analysis</strong>, <strong>Topic Modeling</strong>, and <strong>Sentiment Analysis</strong> for richer insights.</li>
+          </ul>
+    <hr>
+          <div class='references'>
+            <h4><strong>References</strong></h4>
+            <p><strong>Callon, M., Courtial, J.-P., Turner, W.A., & Bauin, S.</strong></p>
+            <p><i>From translations to problematic networks: An introduction to co-word analysis.</i> <strong>Social Science Information</strong>, 22(2), 191-235.</p>
+
+            <p><strong>Eck, N. J. V., & Waltman, L.</strong></p>
+            <p><i>How to normalize co-occurrence data? An analysis of some well‐known similarity measures.</i> <strong>Journal of the American Society for Information Science and Technology</strong>, 60(8), 1635-1651.</p>
+
+            <p><strong>Fortunato, S., & Hric, D.</strong></p>
+            <p><i>Community detection in networks: A user guide.</i> <strong>Physics Reports</strong>, 659, 1-44.</p>
+
+            <p><strong>Pons, P., & Latapy, M.</strong></p>
+            <p><i>Computing communities in large networks using random walks.</i> Retrieved from <a href='https://arxiv.org/abs/physics/0512106' target='_blank'>arXiv:physics/0512106</a>.</p>
+              </div>
+              </div>
+
+              </body>"
+
+  tmkchoice <- "<body>
+
+  <div class='container'>
+    <h3><strong>Topic Modeling in TALL: K Selection</strong></strong></h3>
+
+    <p>Topic modeling is a fundamental technique in <strong>unsupervised text mining</strong>, allowing users to uncover <strong>latent themes</strong> <br>within large collections of documents. <br>One of the key challenges in <strong>Latent Dirichlet Allocation (LDA)</strong> and other topic modeling techniques is determining the <strong>optimal number of topics (K)</strong>.</p>
+
+    <p>TALL estimates <strong>K automatically</strong> using four well-established statistical measures (<strong>Griffiths & Steyvers, 2004; Deveaud et al., 2014; <br>Cao et al., 2009; Arun et al., 2010</strong>).
+    <br>However, users can also <strong>manually adjust K</strong> and explore different solutions in the <strong>Model Estimation Menu</strong>, <br>enabling greater flexibility based on the dataset and research objectives.</p>
+    <hr>
+    <h4><strong>Why is K Selection Important?</strong></h4>
+    <ul>
+    <li>A <strong>too small K</strong> may <strong>merge distinct topics</strong>, reducing the model's ability to separate different thematic structures.</li>
+        <li>A <strong>too large K</strong> may <strong>fragment coherent topics</strong>, introducing unnecessary complexity and reducing interpretability.</li>
+        <li>The <strong>correct K</strong> ensures that topics are <strong>coherent, interpretable, and representative</strong> of the dataset.</li>
+    </ul>
+    <hr>
+    <h4><strong>Automatic K Estimation in TALL</strong></h4>
+    <p>TALL integrates <strong>four standard measures</strong> for determining the optimal number of topics in LDA:</p>
+
+    <h4><em>Griffiths & Steyvers (2004) – Log-Likelihood Maximization</em></h4>
+    <p>- Based on <strong>Bayesian model selection</strong>, this method computes the <strong>log-likelihood</strong> of the dataset given the topic model.</p>
+    <p>- The <strong>optimal K</strong> is the one that maximizes the likelihood function, meaning it best explains the data without overfitting.</p>
+
+    <h4><em>Cao et al. (2009) – Topic Coherence Measure</em></h4>
+    <p>- Computes the <strong>average pairwise similarity</strong> between topics based on word distributions.</p>
+    <p>- The <strong>optimal K</strong> is found when inter-topic similarity is minimized, ensuring that topics are well-separated.</p>
+
+    <h4><em>Arun et al. (2010) – KL Divergence-Based Measure</em></h4>
+    <p>- Compares the <strong>word-topic distribution</strong> and <strong>document-topic distribution</strong> using <strong>Kullback-Leibler (KL) divergence</strong>.</p>
+    <p>- The <strong>optimal K</strong> is identified as the point where KL divergence stabilizes, meaning topics balance between coherence and specificity.</p>
+
+    <h4><em>Deveaud et al. (2014) – A Hybrid Approach</em></h4>
+    <p>- A refinement of previous approaches that balances topic coherence and diversity.</p>
+    <p>- The <strong>optimal K</strong> is chosen where <strong>topic distinctiveness</strong> is maximized while preserving thematic coverage.</p>
+    <hr>
+    <h4><strong>Manual K Adjustment for Customization</strong></h4>
+    <p>While <strong>automatic estimation</strong> provides a strong baseline, users may need to adjust <strong>K manually</strong> based on <strong>domain knowledge and interpretability</strong>:</p>
+    <ul>
+        <li><strong>For exploratory research:</strong> Start with <strong>low K</strong> values (e.g., <strong>5-20 topics</strong>) to gain an <strong>overview of broad themes</strong>.</li>
+        <li><strong>For fine-grained analysis:</strong> Use <strong>higher K values</strong> (e.g., <strong>30-100 topics</strong>) to capture <strong>more nuanced subtopics</strong>.</li>
+        <li><strong>For benchmarking:</strong> Compare different <strong>K values</strong> using topic coherence scores and human interpretability.</li>
+    </ul>
+    <hr>
+    <div class='references'>
+        <h4><strong>References</strong></h4>
+
+        <p><strong>Griffiths, T.L., & Steyvers, M.</strong></p>
+        <p><i>Finding scientific topics.</i> <strong>Proceedings of the National Academy of Sciences</strong>, 101(suppl 1), 5228-5235.</p>
+
+        <p><strong>Deveaud, R., Sanjuan, E., & Bellot, P.</strong></p>
+        <p><i>Accurate and effective latent concept modeling for ad hoc information retrieval.</i> <strong>Document Numérique</strong>, 17, 61-84.</p>
+
+        <p><strong>Cao, J., Xia, T., Li, J., Zhang, Y., & Tang, S.</strong></p>
+        <p><i>A density-based method for adaptive LDA model selection.</i> <strong>Neurocomputing</strong>, 72(7), 1775-1781.</p>
+
+        <p><strong>Arun, R., Suresh, V., Veni Madhavan, C.E., & Narasimha Murthy, M.N.</strong></p>
+        <p><i>On finding the natural number of topics with latent Dirichlet allocation: Some observations.</i> In Zaki, M.J., Yu, J.X., Ravindran, B., & Pudi, V. (Eds.),
+        <br><strong>Advances in Knowledge Discovery and Data Mining</strong> (pp. 391-402). Berlin, Heidelberg: Springer.</p>
+    </div>
 </div>
 
-</body>
-"
+</body>"
 
-  tmkchoice <- "
-<body lang=IT style='tab-interval:35.4pt;word-wrap:break-word'>
+  tmmodelestimation <- "<body>
 
-<div class=WordSection1>
+  <div class='container'>
+    <h3><strong>Topic Modeling in TALL: Model Estimation</strong></strong></h3>
 
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-tab-stops:134.7pt'><b><span lang=EN-US style='font-size:14.0pt;font-family:
-'Times New Roman',serif;mso-ansi-language:EN-US'>Topic Modeling: K Choice<o:p></o:p></span></b></p>
+    <p>Topic modeling is a <strong>family of generative statistical models</strong> designed to uncover <strong>semantic structures</strong> within large document collections. These models aim to <strong>identify latent topics</strong> that explain the observed word distributions in text corpora, allowing for a <strong>low-dimensional representation</strong> of textual data.</p>
 
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-text-align:justify;tab-stops:134.7pt'><span lang=EN-US style='font-family:'Times New Roman',serif;
-mso-ansi-language:EN-US'>TALL estimates the number of topics automatically
-through the four measures proposed by <span style='mso-bidi-font-weight:bold'>Griffiths
-and <span class=SpellE>Steyvers</span>, <span class=GramE>2004<span
-style='mso-bidi-font-weight:normal'>;<span style='mso-spacerun:yes'>  </span></span><span
-class=SpellE>Deveaud</span></span> <i>et al</i>.</span>, <span
-style='mso-bidi-font-weight:bold'>2014;</span> <span style='mso-bidi-font-weight:
-bold'>Cao <i>et al</i>.</span>, 2009; <span style='mso-bidi-font-weight:bold'>Arun<i>
-et al</i>.</span>, <span style='mso-bidi-font-weight:bold'>2010</span>, but
-users can also explore different solutions by setting the number of the desired
-topics in the Model Estimation Menu.<o:p></o:p></span></p>
+    <p>Through <strong>probabilistic modeling</strong>, topic modeling enables:</p>
+    <ul>
+    <li><strong>Discovery of underlying themes</strong> within a collection of documents.</li>
+    <li><strong>Assignment of probabilistic membership scores</strong> to documents, indicating their association with different topics.</li>
+    <li><strong>Dimensionality reduction</strong>, making it easier to analyze large text datasets by structuring them into meaningful clusters.</li>
+    <li><strong>Human interpretability</strong>, as each topic is characterized by a set of <strong>highly associated terms</strong>, making it easier for users to extract insights.</li>
+    </ul>
+    <hr>
+    <h4><strong>Latent Dirichlet Allocation (LDA) in TALL</strong></h4>
+    <p>TALL implements the <strong>Latent Dirichlet Allocation (LDA) algorithm</strong> (<strong>Blei et al., 2003</strong>), one of the most widely used topic modeling techniques. LDA is a <strong>Bayesian probabilistic model</strong> that assumes:</p>
+    <ul>
+    <li><strong>Each document is a mixture of multiple topics</strong>, with different proportions.</li>
+    <li><strong>Each topic is defined by a probability distribution over words</strong>, meaning that some words are more strongly associated with a given topic.</li>
+    <li><strong>The goal of LDA is to infer these hidden topic distributions</strong>, making it possible to automatically organize, summarize, and analyze large textual datasets.</li>
+    </ul>
 
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-text-align:justify;tab-stops:134.7pt'><span lang=EN-US style='font-family:'Times New Roman',serif;
-mso-ansi-language:EN-US'><o:p>&nbsp;</o:p></span></p>
+    <p>LDA operates by:</p>
+    <ul>
+    <li>Assigning each word in a document to a <strong>latent topic</strong>, estimating topic-word distributions.</li>
+    <li>Iteratively adjusting <strong>topic probabilities</strong> to maximize likelihood, ensuring that words are grouped into <strong>meaningful semantic structures</strong>.</li>
+    <li>Producing a <strong>document-topic matrix</strong>, where each document is represented as a probability distribution over the identified topics.</li>
+    </ul>
+    <hr>
+    <h4><strong>Advantages of Topic Modeling in TALL</strong></h4>
+    <ul>
+    <li><strong>Unsupervised Learning</strong> – No prior labeling is required; topics emerge naturally from the dataset.</li>
+    <li><strong>Scalability</strong> – LDA efficiently handles <strong>large text corpora</strong>, making it useful for applications ranging from <strong>scientific literature</strong> to <strong>customer reviews</strong>.</li>
+    <li><strong>Flexibility</strong> – Users can define <strong>K (number of topics)</strong> manually or use <strong>automatic estimation techniques</strong> (see the <strong>K Selection Menu</strong>).</li>
+    <li><strong>Enhanced Text Understanding</strong> – Topics provide a <strong>thematic summary</strong> of a collection, improving text exploration and classification.</li>
+    </ul>
 
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-text-align:justify;tab-stops:134.7pt'><b><span lang=EN-US style='font-size:
-14.0pt;font-family:'Times New Roman',serif;mso-ansi-language:EN-US'>References<o:p></o:p></span></b></p>
+    <p>By integrating <strong>state-of-the-art topic modeling techniques</strong>, TALL enables researchers and analysts to <strong>discover hidden structures in textual data</strong>, making it an essential tool for <strong>content analysis, knowledge extraction, and thematic clustering</strong>.</p>
+    <hr>
+    <div class='references'>
+      <h4><strong>References</strong></h4>
 
-<p class=References style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-tab-stops:134.7pt'><span lang=EN-US style='font-family:'Times New Roman',serif'>Griffiths
-T.L. and <span class=SpellE>Steyvers</span> M. (2004). Finding scientific
-topics. <i>Proceedings of the National academy of <span class=GramE>Sciences</span></i>,
-101(suppl 1):5228-5235. <o:p></o:p></span></p>
+      <p><strong>Blei, D.M., Ng, A.Y., & Jordan, M.I.</strong> <i>Latent Dirichlet Allocation.</i> <strong>Journal of Machine Learning Research</strong>, 3(Jan), 993-1022.</p>
+      </div>
+      </div>
 
-<p class=References style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-tab-stops:134.7pt'><span class=SpellE><span lang=EN-US style='
-font-family:'Times New Roman',serif'>Deveaud</span></span><span lang=EN-US
-style='font-family:'Times New Roman',serif'> R., <span
-class=SpellE>Sanjuan</span> E. and <span class=SpellE>Bellot</span> P. (2014).
-Accurate and effective latent concept modeling for ad hoc information
-retrieval. <i>Document numérique</i>, 17:61-84, 06. <o:p></o:p></span></p>
+      </body>"
 
-<p class=References style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-tab-stops:134.7pt'><span lang=EN-US style='font-family:'Times New Roman',serif'>Cao
-J., Xia T., Li J., Zhang Y. and Tang S. (2009). A density-based method for
-adaptive <span class=SpellE>lda</span> model selection. Advances in Machine
-Learning and Computational Intelligence. <i>Neurocomputing</i>,
-72(7):1775-1781. <o:p></o:p></span></p>
 
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-tab-stops:134.7pt'><span lang=EN-US style='font-family:'Times New Roman',serif;
-mso-ansi-language:EN-US'>Arun R., Suresh V., Veni Madhavan C.E. and Narasimha
-Murthy M.N. (2010). On finding the natural number of topics with latent <span
-class=SpellE>dirichlet</span> allocation: Some observations. In Mohammed J.
-Zaki, Jeffrey Xu Yu, B. Ravindran, and Vikram Pudi, editors, <i>Advances in
-Knowledge Discovery and Data Mining</i>, pages 391-402, Berlin, Heidelberg. </span><span
-style='font-family:'Times New Roman',serif'>Springer <span class=SpellE>Berlin</span>
-Heidelberg</span></p>
+  polaritydetection <- "<body>
 
-</div>
+  <div class='container'>
+    <h3><strong>Polarity Detection in TALL</strong></strong></h3>
 
-</body>
-"
+    <p>Polarity detection is a fundamental <strong>sentiment analysis technique</strong> used to determine whether a document expresses a <strong>positive, negative, or neutral</strong> sentiment. This process is essential in analyzing <strong>consumer feedback, financial reports, product reviews, and social media discussions</strong>, where understanding sentiment trends can provide valuable insights into public opinion and decision-making processes.</p>
+    <hr>
+    <h4><strong>How Polarity Detection Works in TALL</strong></h4>
+    <p>TALL calculates <strong>document polarity</strong> using a <strong>lexicon-based approach</strong>, incorporating <strong>contextual adjustments</strong> to refine sentiment scoring. The methodology follows three key steps:</p>
 
-  tmmodelestimation <- "
-<body lang=IT style='tab-interval:35.4pt;word-wrap:break-word'>
+    <h4>1. Lexicon-Based Sentiment Scoring</h4>
+    <ul>
+    <li>Each word in the text is assigned a <strong>polarity score</strong> based on its presence in <strong>sentiment lexicons</strong>.</li>
+    <li><strong>Positive words</strong> (e.g., 'excellent,' 'happy') are assigned <strong>+1</strong>, while <strong>negative words</strong> (e.g., 'bad,' 'fail') receive <strong>-1</strong>.</li>
+    <li>Words <strong>not found in sentiment lexicons</strong> are considered neutral and assigned a score of <strong>0</strong>.</li>
+    </ul>
 
-<div class=WordSection1>
+    <h4>2. Contextual Modifications Using Valence Shifters</h4>
+    <ul>
+    <li><strong>Negators:</strong> Words like “not,” “never,” or “no” <strong>invert the polarity</strong> of a nearby sentiment word (e.g., 'not happy' changes from <strong>+1 to -1</strong>).</li>
+    <li><strong>Amplifiers:</strong> Words such as 'very,' 'extremely,' and 'highly' <strong>increase the intensity</strong> of a sentiment (e.g., 'very good' is weighted more than 'good').</li>
+    <li><strong>De-amplifiers (Diminishers):</strong> Terms like 'slightly' or 'somewhat' <strong>reduce sentiment intensity</strong> (e.g., 'slightly disappointing' has a weaker negative score than 'disappointing').</li>
+    </ul>
 
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-tab-stops:134.7pt'><b><span lang=EN-US style='font-size:14.0pt;font-family:
-'Times New Roman',serif;mso-ansi-language:EN-US'>Topic Modeling: Model
-Estimation<o:p></o:p></span></b></p>
+    <h4>3. Aggregation and Normalization</h4>
+    <ul>
+    <li>Sentiment scores are <strong>summed across the document</strong> to obtain an <strong>overall polarity score</strong>.</li>
+    <li>An <strong>optional normalization step</strong> scales the final score within the <strong>[-1, 1] range</strong>, ensuring comparability across different text lengths.</li>
+    <li>Documents with scores near <strong>0</strong> are classified as <strong>neutral</strong>, indicating a balanced mix of sentiment or the absence of strong emotions.</li>
+    </ul>
+    <hr>
+    <h4><strong>Sentiment Lexicons Used in TALL</strong></h4>
 
-<p style='text-align:justify'><i><span lang=EN-US style='mso-ansi-language:
-EN-US'>Topic Modeling</span></i><span lang=EN-US style='mso-ansi-language:EN-US'>
-includes a family of generative statistical models used to discover semantic
-patterns reflecting the underlying (not observable) topics of a document
-collection. <o:p></o:p></span></p>
+    <h4>1. Hu and Liu (2004) - Opinion Lexicon</h4>
+    <ul>
+    <li>Designed for analyzing <strong>consumer reviews</strong>, categorizing words into <strong>positive and negative</strong> classes.</li>
+    <li>Particularly useful for <strong>e-commerce platforms, review aggregation sites, and user-generated feedback</strong>.</li>
+    <li><strong>Language:</strong> English</li>
+    </ul>
 
-<p style='text-align:justify'><span lang=EN-US style='mso-ansi-language:EN-US'>With
-these models, it is possible to discover the topics of a document collection
-and assign a probabilistic membership of documents to the latent topic space,
-allowing one to consider a lower-dimensional space. Moreover, the topics
-extracted with topic models are easily human-interpretable because each topic
-is characterized by the terms most strongly associated with it. <o:p></o:p></span></p>
+    <h4>2. Loughran and McDonald (2016) - Financial Sentiment Dictionary</h4>
+    <ul>
+    <li>Developed for <strong>financial and accounting texts</strong>, including categories such as <strong>“positive,” “negative,” “uncertainty,” “litigious,” and “constraining”</strong>.</li>
+    <li>Widely used in <strong>financial risk assessment, investor sentiment analysis, and stock market forecasting</strong>.</li>
+    <li><strong>Language:</strong> English</li>
+    </ul>
 
-<p class=MsoNormal style='margin-top:6.0pt;text-align:justify'><span
-lang=EN-US style='font-family:'Times New Roman',serif;mso-ansi-language:EN-US'>To
-identify both prominent topics and their distribution within documents, TALL
-performs the well-known Latent Dirichlet Allocation (LDA) algorithm (<span
-class=SpellE><span style='mso-bidi-font-weight:bold'>Blei</span></span><span
-style='mso-bidi-font-weight:bold'> <i>et al.</i>, 2003)</span>.<span
-style='mso-spacerun:yes'>  </span><o:p></o:p></span></p>
+    <h4>3. NRC Emotion Lexicon (Mohammad & Turney, 2010)</h4>
+    <ul>
+    <li>Captures emotions beyond basic polarity, categorizing words into <strong>eight primary emotions</strong>: Joy, Sadness, Anger, Fear, Surprise, Disgust, Trust, and Anticipation.</li>
+    <li>Useful for <strong>social media mining, psychological studies, and literary analysis</strong>.</li>
+    <li><strong>Language:</strong> Multilingual</li>
+    </ul>
+    <hr>
+    <div class='references'>
+      <h4><strong>References</strong></h4>
 
-<p class=MsoNormal style='margin-top:6.0pt;text-align:justify'><span
-lang=EN-US style='font-family:'Times New Roman',serif;mso-ansi-language:EN-US'><o:p>&nbsp;</o:p></span></p>
+      <p><strong>Hu, M., & Liu, B.</strong></p>
+      <p><i>Mining and summarizing customer reviews.</i> <strong>Proceedings of the Tenth ACM SIGKDD International Conference on Knowledge Discovery and Data Mining</strong>, KDD ’04, 168-177. New York, NY, USA: Association for Computing Machinery.</p>
 
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-text-align:justify;tab-stops:134.7pt'><span lang=EN-US style='font-family:'Times New Roman',serif;
-mso-ansi-language:EN-US'><o:p>&nbsp;</o:p></span></p>
+      <p><strong>Loughran, T., & McDonald, B.</strong></p>
+      <p><i>Textual analysis in accounting and finance: A survey.</i> <strong>Journal of Accounting Research</strong>, 54(4), 1187-1230.</p>
 
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-text-align:justify;tab-stops:134.7pt'><b><span lang=EN-US style='font-size:
-14.0pt;font-family:'Times New Roman',serif;mso-ansi-language:EN-US'>References<o:p></o:p></span></b></p>
+      <p><strong>Mohammad, S., & Turney, P.</strong></p>
+      <p><i>Emotions evoked by common words and phrases: Using Mechanical Turk to create an emotion lexicon.</i> In <strong>Proceedings of the NAACL HLT 2010 Workshop on Computational Approaches to Analysis and Generation of Emotion in Text</strong>, 26-34. Los Angeles, CA: Association for Computational Linguistics.</p>
+      </div>
+      </div>
 
-<p class=References><span class=SpellE><span lang=EN-US style='
-font-family:'Times New Roman',serif'>Blei</span></span><span lang=EN-US
-style='font-family:'Times New Roman',serif'> D.M., Ng A.Y. and
-Jordan M.I. (2003). Latent <span class=SpellE>dirichlet</span> allocation. <i>Journal
-of machine Learning research</i>, 3(Jan):993-1022. <o:p></o:p></span></p>
+      </body>"
 
-<p class=References style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-tab-stops:134.7pt'><span lang=EN-US><o:p>&nbsp;</o:p></span></p>
+  summarization <- "<body>
 
-</div>
+  <div class='container'>
+    <h3><strong>Summarization in TALL</strong></h3>
 
-</body>
-"
+    <p>Summarization is a <strong>key technique in text analysis</strong> that allows users to extract the <strong>most relevant information</strong> from a document
+    <br>while maintaining its core meaning.
+    <br><strong>TALL implements extractive summarization</strong>, a method that selects and reorders the most important sentences <strong>directly from the original text</strong>
+    <br>to generate a <strong>coherent, condensed version</strong> of the content.</p>
 
-  polaritydetection <- "
-<body lang=IT style='tab-interval:35.4pt;word-wrap:break-word'>
+    <p>Unlike <strong>abstractive summarization</strong>, which rephrases content using deep learning models, <strong>extractive summarization</strong> ensures that
+    <br>the summary remains <strong>factually consistent</strong> with the input document, making it a <strong>reliable method for automated text compression</strong>.</p>
+    <hr>
+    <h4><strong>How Summarization Works in TALL</strong></h4>
 
-<div class=WordSection1>
+    <h4>1. Sentence Tokenization and Preprocessing</h4>
+    <ul>
+    <li>The text is split into <strong>individual sentences</strong> to form the basis of the summarization process.</li>
+    <li>Sentences are <strong>preprocessed</strong>, removing unnecessary punctuation and stopwords to enhance <strong>semantic clarity</strong>.</li>
+    </ul>
 
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-tab-stops:134.7pt'><b><span lang=EN-US style='font-size:14.0pt;font-family:
-'Times New Roman',serif;mso-ansi-language:EN-US'>Polarity detection<o:p></o:p></span></b></p>
+    <h4>2. Graph Construction Using Sentence Similarity</h4>
+    <ul>
+    <li>A <strong>graph-based representation</strong> of the document is created, where:</li>
+    <ul>
+    <li><strong>Nodes</strong> represent sentences.</li>
+    <li><strong>Edges</strong> connect sentences based on their <strong>semantic similarity</strong> (measured using cosine similarity or word overlap).</li>
+    </ul>
+    <li>Sentences that share a <strong>high degree of lexical similarity</strong> are considered <strong>strongly connected</strong> in the graph.</li>
+    </ul>
 
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-text-align:justify'><i><span lang=EN-US style='font-family:'Times New Roman',serif;
-mso-ansi-language:EN-US'>Polarity Detection</span></i><span lang=EN-US
-style='font-family:'Times New Roman',serif;mso-ansi-language:EN-US'> allows us to
-determine the polarity (positive, negative, neutral) of documents.<o:p></o:p></span></p>
+    <h4>3. Application of TextRank Algorithm</h4>
+    <ul>
+    <li>The <strong>TextRank algorithm</strong> assigns an <strong>importance score</strong> to each sentence based on its <strong>connectivity</strong> within the graph.</li>
+    <li>Sentences with the <strong>highest PageRank scores</strong> are deemed <strong>the most representative</strong> of the overall document.</li>
+    </ul>
 
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-text-align:justify'><span lang=EN-US style='font-family:'Times New Roman',serif;
-color:black;mso-ansi-language:EN-US'>TALL calculates document polarity by
-leveraging sentiment lexicons and contextual adjustments through valence
-shifters. Words are assigned polarity scores based on their presence in a
-lexicon (e.g., positive words are assigned +1, and negative words -1). These
-scores are dynamically modified using valence shifters, such as negators,
-amplifiers, and de-amplifiers, which adjust the intensity or direction of the
-sentiment. The polarity scores are then aggregated across the document, with an
-optional normalization step to constrain the final score within a range [-1,1].<span
-class=apple-converted-space>&nbsp;</span></span><span lang=EN-US
-style='font-family:'Times New Roman',serif;mso-ansi-language:EN-US'><o:p></o:p></span></p>
+    <h4>4. Sentence Selection and Ordering</h4>
+    <ul>
+    <li>The <strong>top-ranked sentences</strong> are selected for the summary.</li>
+    <li>A <strong>reordering step</strong> ensures that sentences are presented in a <strong>logical and coherent structure</strong>, preserving the original document’s flow.</li>
+    </ul>
+    <hr>
+    <h4><strong>Advantages of Summarization in TALL</strong></h4>
+    <ul>
+    <li><strong>Extractive and Factually Consistent</strong> – Ensures that summaries are directly sourced from the original text,
+    <br>reducing the risk of hallucinations or misinterpretations.</li>
+    <li><strong>Graph-Based Ranking for Objective Selection</strong> – Uses <strong>TextRank</strong>, an unsupervised method that
+    <br><strong>ranks sentences purely based on semantic importance</strong>, eliminating bias.</li>
+    <li><strong>Efficient and Scalable</strong> – Processes <strong>large documents quickly</strong>, making it ideal for summarizing
+    <br><strong>research papers, news articles, legal documents, and reviews</strong>.</li>
+    <li><strong>No Need for Pre-Trained Models</strong> – Unlike abstractive methods that require deep learning models,
+    <br><strong>extractive summarization works effectively on any text without additional training</strong>.</li>
+    <li><strong>Customizable Summary Length</strong> – Users can <strong>adjust the number of extracted sentences</strong> to control the
+    <br><strong>level of detail</strong> in the summary.</li>
+    </ul>
+    <hr>
+    <h4><strong>Implementation of Summarization in TALL</strong></h4>
 
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-text-align:justify'><b><span lang=EN-US style='font-family:'Times New Roman',serif;
-mso-ansi-language:EN-US'>Polarized lexicons in TALL</span></b><span lang=EN-US
-style='font-family:'Times New Roman',serif;mso-ansi-language:EN-US'><o:p></o:p></span></p>
+    <p>TALL’s <strong>summarization routines</strong> are built upon the <strong>TextRank algorithm</strong>, with optimizations for handling
+    <br><strong>preprocessed and structured corpora</strong>:</p>
 
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-text-align:justify'><b><span lang=EN-US style='font-family:'Times New Roman',serif;
-mso-ansi-language:EN-US'>Hu and Liu (2004) - Opinion Lexicon - </span></b><span
-lang=EN-US style='font-family:'Times New Roman',serif;mso-ansi-language:EN-US'>One
-of the foundational resources for sentiment analysis in consumer reviews. It
-categorizes words into positive and negative sentiment classes, focusing on
-terms commonly found in product reviews. Widely used in analyzing consumer
-sentiment, especially in e-commerce and review platforms, due to its
-comprehensive list of opinion words. (N.B. English texts)<o:p></o:p></span></p>
+    <ul>
+    <li><strong>Customized Text Preprocessing</strong> – The system operates on <strong>tokenized, lemmatized, and PoS-tagged corpora</strong>,
+    <br>ensuring better sentence representation.</li>
+    <li><strong>Sentence Similarity Based on Multiple Metrics</strong> – Supports <strong>TF-IDF, cosine similarity, and word embeddings</strong> for improved ranking.</li>
+    <li><strong>Multi-Document Summarization (Future Work)</strong> – The framework is being expanded to support <strong>multi-document summarization</strong>,
+    <br>allowing users to extract summaries from <strong>multiple related texts</strong>.</li>
+    </ul>
 
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-text-align:justify'><b><span lang=EN-US style='font-family:'Times New Roman',serif;
-mso-ansi-language:EN-US'>Loughran and McDonald (2016) - Financial Sentiment
-Dictionary - </span></b><span lang=EN-US style='font-family:'Times New Roman',serif;
-mso-ansi-language:EN-US'>Created specifically for financial texts, it addresses
-the limitations of general-purpose sentiment dictionaries in financial
-contexts. It includes categories such as “positive,” “negative,” “uncertainty,”
-“litigious,” and “constraining,” tailored for finance-related sentiment
-analysis. (N.B. English texts)<o:p></o:p></span></p>
+    <p>By integrating <strong>unsupervised graph-based techniques</strong>, TALL provides users with a <strong>robust and efficient summarization tool</strong>,
+    <br>ideal for <strong>academic, business, and legal applications</strong>.</p>
+    <hr>
+    <div class='references'>
+      <h4><strong>References</strong></h4>
 
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-text-align:justify'><b><span lang=EN-US style='font-family:'Times New Roman',serif;
-mso-ansi-language:EN-US'>NRC Emotion Lexicon (Mohammad and Turney, 2010) - </span></b><span
-lang=EN-US style='font-family:'Times New Roman',serif;mso-ansi-language:EN-US'>Developed
-by the National Research Council (NRC) of Canada, this lexicon goes beyond
-simple polarity, capturing a wider range of emotions. Suitable for detecting
-nuanced emotional tones in diverse text types, ranging from social media posts
-to literature, due to its detailed emotion categories. <o:p></o:p></span></p>
+      <p><strong>Mihalcea, R., & Tarau, P.</strong></p>
+      <p><i>TextRank: Bringing order into text.</i> <strong>Proceedings of the 2004 Conference on Empirical Methods in Natural Language Processing</strong>,
+      <br>404-411, Barcelona, Spain, July. Association for Computational Linguistics.</p>
 
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-text-align:justify'><span lang=EN-US style='font-family:'Times New Roman',serif;
-mso-ansi-language:EN-US'><o:p>&nbsp;</o:p></span></p>
+      <p><strong>Page, L., Brin, S., Motwani, R., & Winograd, T.</strong></p>
+      <p><i>The PageRank Citation Ranking: Bringing Order to the Web.</i> <strong>Technical report, Stanford Digital Library Technologies Project</strong>, 1998.</p>
+      </div>
+      </div>
 
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-text-align:justify;tab-stops:134.7pt'><b><span lang=EN-US style='font-size:
-14.0pt;font-family:'Times New Roman',serif;mso-ansi-language:EN-US'>References<o:p></o:p></span></b></p>
-
-<p class=References style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto'><span
-lang=EN-US style='font-family:'Times New Roman',serif'>Hu M.
-and Liu B. (2004). Mining and summarizing customer reviews. In <i>Proceedings
-of the Tenth ACM SIGKDD International Conference on Knowledge Discovery and
-Data Mining</i>, KDD ’04, 168-177, New York, NY, USA. Association for Computing
-Machinery. <o:p></o:p></span></p>
-
-<p class=References style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto'><span
-lang=EN-US style='font-family:'Times New Roman',serif'>Loughran
-T. and McDonald B. (2016). Textual analysis in accounting and finance: A
-survey. <i>Journal of Accounting Research</i>, 54(4):1187-1230. <o:p></o:p></span></p>
-
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-text-align:justify'><span lang=EN-US style='font-family:'Times New Roman',serif;
-mso-ansi-language:EN-US'>Mohammad S. and Turney P. (2010). Emotions evoked by
-common words and phrases: Using Mechanical Turk to create an emotion lexicon.
-In <i>Proceedings of the NAACL HLT 2010 Workshop on Computational Approaches to
-Analysis and Generation of Emotion in Text, 26</i>-<i>34, Los Angeles, CA,
-June. </i></span><i><span style='font-family:'Times New Roman',serif'>Association
-for <span class=SpellE>Computational</span> <span class=SpellE>Linguistics</span>.</span></i><span
-lang=EN-US style='font-family:'Times New Roman',serif;mso-ansi-language:EN-US'><o:p></o:p></span></p>
-
-</div>
-
-</body>
-"
-
-  summarization <- "
-<body lang=IT style='tab-interval:35.4pt;word-wrap:break-word'>
-
-<div class=WordSection1>
-
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-tab-stops:134.7pt'><b><span lang=EN-US style='font-size:14.0pt;font-family:
-'Times New Roman',serif;mso-ansi-language:EN-US'>Summarization<o:p></o:p></span></b></p>
-
-<p class=MsoNormal><span lang=EN-US style='font-family:'Times New Roman',serif;
-mso-ansi-language:EN-US'>TALL employs an extractive summarization technique,
-which involves selecting the most relevant sentences from the document and
-organizing them systematically. Sentences in the summary are directly sourced
-from the original text. <o:p></o:p></span></p>
-
-<p class=MsoNormal style='margin-top:6.0pt;text-align:justify'><span
-lang=EN-US style='font-family:'Times New Roman',serif;mso-ansi-language:EN-US'>TALL
-performs the <span class=SpellE><i>TextRank</i></span><i> </i>algorithm (<span
-class=SpellE><span style='mso-bidi-font-weight:bold'>Mihalcea</span></span><span
-style='mso-bidi-font-weight:bold'> and T<span class=SpellE>arau, 20</span>04</span>),
-based on applying Google’s PageRank (Page <i><span style='mso-bidi-font-weight:
-bold'>et al</span></i><span style='mso-bidi-font-weight:bold'>.</span>, <span
-style='mso-bidi-font-weight:bold'>1998</span>) to the network of sentences to
-extract the most relevant ones.<span style='mso-spacerun:yes'>  </span><o:p></o:p></span></p>
-
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-text-align:justify;tab-stops:134.7pt'><span lang=EN-US style='font-family:'Times New Roman',serif;
-mso-ansi-language:EN-US'><o:p>&nbsp;</o:p></span></p>
-
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-text-align:justify;tab-stops:134.7pt'><b><span lang=EN-US style='font-size:
-14.0pt;font-family:'Times New Roman',serif;mso-ansi-language:EN-US'>References<o:p></o:p></span></b></p>
-
-<p class=References><span class=SpellE><span lang=EN-US style='
-font-family:'Times New Roman',serif'>Mihalcea</span></span><span lang=EN-US
-style='font-family:'Times New Roman',serif'> R. and <span
-class=SpellE>Tarau</span> P. (2004). <span class=SpellE>TextRank</span>:
-Bringing order into text. In <i>Proceedings of the 2004 Conference on Empirical
-Methods in Natural Language Processing</i>, 404-411, Barcelona, Spain, July.
-Association for Computational Linguistics. <o:p></o:p></span></p>
-
-<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-text-align:justify'><span lang=EN-US style='font-family:'Times New Roman',serif;
-mso-ansi-language:EN-US'>Page L., Brin S., Motwani R. and Winograd T. (1998).
-The PageRank Citation Ranking: Bringing Order to the Web. </span><span
-style='font-family:'Times New Roman',serif'>Technical report, Stanford Digital
-Library Technologies Project.</span><span lang=EN-US style='font-family:'Times New Roman',serif;
-mso-ansi-language:EN-US'><o:p></o:p></span></p>
-
-</div>
-
-</body>
-"
+      </body>"
 
   return(list(importmenu = importmenu,
+              split = split,
+              random = random,
+              externalinfo = externalinfo,
+              tokenization = tokenization,
+              specialentities = specialentities,
               multiwordcreation = multiwordcreation,
+              multiwordlist =  multiwordlist,
+              customterm = customterm,
+              posselection = posselection,
               reinert = reinert,
               correspondenceanalysis = correspondenceanalysis,
               cowordanalysis = cowordanalysis,
@@ -717,7 +916,7 @@ mso-ansi-language:EN-US'><o:p></o:p></span></p>
               tmmodelestimation = tmmodelestimation,
               polaritydetection = polaritydetection,
               summarization = summarization
-              ))
+  ))
 }
 
 

@@ -1798,8 +1798,8 @@ network <- function(x, term="lemma", group=c("doc_id", "sentence_id"), n, minEdg
   }
 
   Normalize <- function(y){
-    if (diff(range(y)>0)){
-      y <- (y-min(y,na.rm=T))/(diff(range(y,na.rm=T)))
+    if ((max(y)-min(y))>0){
+      y <- (y-min(y))/(max(y)-min(y))
     } else{
       y <- rep(0.2,length(y))
     }
@@ -1817,16 +1817,17 @@ network <- function(x, term="lemma", group=c("doc_id", "sentence_id"), n, minEdg
            s = cooc) %>%
     mutate(sA = s/(s_from*s_to),
            sC = s/(sqrt(s_from*s_to)),
-           sJ = s/(s_from+s_to-s),
-           sNorm = Normalize(s)*14+1,
-           sANorm = Normalize(sA)*14+1,
-           sCNorm = Normalize(sC)*14+1,
-           sJNorm = Normalize(sJ)*14+1
+           sJ = s/(s_from+s_to-s))
+
+  edges$sNorm = Normalize(edges$s)*14+1
+  edges$sANorm = Normalize(edges$sA)*14+1
+  edges$sCNorm = Normalize(edges$sC)*14+1
+  edges$sJNorm = Normalize(edges$sJ)*14+1
            # sNorm = ((s-min(s))/diff(range(s)))*14+1,
            # sANorm = ((sA-min(sA))/diff(range(sA)))*14+1,
            # sCNorm = ((sC-min(sC))/diff(range(sC)))*14+1,
            # sJNorm = ((sJ-min(sJ))/diff(range(sJ)))*14+1,
-    )
+
 
   switch(normalization,
          none={edges$value <- edges$sNorm},
