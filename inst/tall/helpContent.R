@@ -1,7 +1,6 @@
 helpContent <- function(){
   importmenu <- "<body>
 
-    <div class='container'>
       <h3><strong>Importing Data in TALL</strong></strong></h3>
 
       <p>TALL provides a versatile and user-friendly interface for importing textual data from various sources, ensuring flexibility in data handling for diverse analytical needs. The platform supports multiple file formats and structures, allowing users to seamlessly prepare their datasets for analysis.</p>
@@ -55,14 +54,12 @@ helpContent <- function(){
         <p><strong>Aria, M., Cuccurullo, C., D’Aniello, L., Misuraca, M., & Spano, M. (2024, June).</strong> <i>TALL: A New Shiny App for Text Analysis</i>. In <i>Scientific Meeting of the Italian Statistical Society</i> (pp. 64-70). Cham: Springer Nature Switzerland.</p>
         <p><strong>Aria, M., Cuccurullo, C., D'Aniello, L., Misuraca, M., & Spano, M. (2023).</strong> <i>TALL: A New Shiny App of Text Analysis for All</i>. In <i>CLiC-it</i>.</p>
     </div>
-</div>
 
 </body>
 "
 
   split <-  "<body>
 
-  <div class='container'>
     <h3><strong>Splitting the Corpus in TALL</strong></strong></h3>
 
     <p>TALL allows users to split textual data into smaller segments based on a specified sequence of characters. This feature is particularly useful when dealing with large documents containing multiple sections or structured content that needs to be analyzed separately.</p>
@@ -82,13 +79,11 @@ helpContent <- function(){
     </ul>
 
     <p>By offering a flexible splitting mechanism, TALL ensures that text segmentation aligns with the user's analytical needs, preserving the original structure for meaningful interpretation.</p>
-</div>
 
 </body>"
 
   random <- "<body>
 
-  <div class='container'>
     <h3><strong>Random Text Selection in TALL</strong></strong></h3>
 
     <p>TALL allows users to extract a random subset of imported texts for focused analysis. This feature is particularly useful when working with large corpora, enabling users to explore representative samples without processing the entire dataset.</p>
@@ -108,13 +103,10 @@ helpContent <- function(){
     </ul>
 
     <p>By enabling controlled sampling, TALL helps users balance efficiency and analytical depth, making text exploration more manageable and meaningful.</p>
-    </div>
-
     </body>"
 
   externalinfo <- "<body>
 
-  <div class='container'>
     <h3><strong>Importing External Information in TALL</strong></strong></h3>
 
     <p>TALL allows users to integrate additional information into their analysis by importing external datasets. This feature is particularly useful for enriching text data with metadata, annotations, or categorical variables, enabling a more comprehensive exploration of textual patterns.</p>
@@ -136,13 +128,11 @@ helpContent <- function(){
     <p>To facilitate the integration process, users can download a list of <strong>'doc_id'</strong> values associated with the imported text files below. This ensures that external data is formatted correctly before uploading.</p>
 
     <p>By supporting the import of structured external data, TALL enhances text analysis capabilities, allowing users to incorporate contextual information for richer insights.</p>
-    </div>
 
     </body>"
 
   tokenization <- "<body>
 
-  <div class='container'>
     <h3><strong>Tokenization, Lemmatization, and PoS Tagging in TALL</strong></strong></h3>
 
     <p>TALL provides robust Natural Language Processing (NLP) capabilities for preprocessing textual data, including <strong>tokenization, lemmatization, and Part-of-Speech (PoS) tagging</strong>. These steps are essential for transforming raw text into a structured format suitable for further analysis.</p>
@@ -177,16 +167,14 @@ helpContent <- function(){
               <p><strong>UDPipe R Package:</strong> <a href='https://cran.r-project.org/web/packages/udpipe/index.html' target='_blank'>CRAN link to UDPipe</a></p>
                 <p><strong>Universal Dependencies Repository:</strong> <a href='https://universaldependencies.org/' target='_blank'>Universal Dependencies project</a></p>
                   </div>
-                  </div>
 
                   </body>"
 
   specialentities <- "<body>
 
-  <div class='container'>
     <h3><strong>Tagging Special Entities in TALL</strong></strong></h3>
 
-    <p>TALL automatically detects and tags <strong>special entities</strong> within texts, ensuring that key non-linguistic elements <br>are properly identified and can be leveraged in further analysis.
+    <p>TALL automatically detects and tags <strong>special entities</strong> within texts, ensuring that key non-linguistic elements are properly identified and can be leveraged in further analysis.
     <br>Recognizing these entities helps improve text preprocessing, pattern recognition, and contextual analysis.</p>
     <hr>
     <h4><strong>Detected Special Entities</strong></strong></h4>
@@ -208,8 +196,7 @@ helpContent <- function(){
     <li><strong>Cybersecurity and Digital Forensics:</strong> Identifying sensitive data points such as email addresses and IP addresses.</li>
     </ul>
 
-    <p>By integrating special entity recognition, TALL enhances the preprocessing phase, ensuring that these elements are <br>structured for more effective text analysis.</p>
-    </div>
+    <p>By integrating special entity recognition, TALL enhances the preprocessing phase, ensuring that these elements are structured for more effective text analysis.</p>
 
     </body>"
 
@@ -253,10 +240,9 @@ helpContent <- function(){
 
   multiwordlist <- "<body>
 
-  <div class='container'>
     <h3><strong>Multi-Word Creation by a List in TALL</strong></strong></h3>
 
-    <p>TALL allows users to define <strong>multi-word expressions (MWEs)</strong> by importing a predefined list of multi-word terms. <br>This feature is particularly useful for ensuring that specific phrases or domain-specific expressions are <br>treated as single units during text processing, improving linguistic analysis.</p>
+    <p>TALL allows users to define <strong>multi-word expressions (MWEs)</strong> by importing a predefined list of multi-word terms. This feature is particularly useful for ensuring that specific phrases or domain-specific expressions are treated as single units during text processing, improving linguistic analysis.</p>
     <hr>
     <h4><strong>How to Import a Multi-Word List</strong></strong></h4>
     <p>To integrate multi-word expressions into the analysis, users must provide a properly formatted list:</p>
@@ -270,20 +256,18 @@ helpContent <- function(){
     <ul>
     <li><strong>Preserving Meaningful Phrases:</strong> Ensuring that key terms (e.g., <code>artificial intelligence</code>) are not split into separate words.</li>
     <li><strong>Improving Text Preprocessing:</strong> Enhancing tokenization and lemmatization by treating phrases as cohesive units.</li>
-    <li><strong>Enhancing Domain-Specific Analysis:</strong> Beneficial in specialized fields such as legal, medical, or technical texts, <br>where multi-word terms have precise meanings.</li>
+    <li><strong>Enhancing Domain-Specific Analysis:</strong> Beneficial in specialized fields such as legal, medical, or technical texts, where multi-word terms have precise meanings.</li>
     </ul>
 
-    <p>By supporting multi-word recognition, TALL provides users with greater flexibility in structuring their text analysis and ensures that <br>critical expressions are accurately identified and processed.</p>
-    </div>
+    <p>By supporting multi-word recognition, TALL provides users with greater flexibility in structuring their text analysis and ensures that critical expressions are accurately identified and processed.</p>
 
     </body>"
 
   customterm <- "<body>
 
-  <div class='container'>
     <h3><strong>Custom Term List in TALL</strong></strong></h3>
 
-    <p>TALL allows users to define a <strong>Custom Term List</strong>, enabling more precise control over text processing and linguistic analysis. <br>This feature allows users to manually assign custom tags to specific terms, <br>overriding their default categorization by the language model.</p>
+    <p>TALL allows users to define a <strong>Custom Term List</strong>, enabling more precise control over text processing and linguistic analysis. This feature allows users to manually assign custom tags to specific terms, overriding their default categorization by the language model.</p>
     <hr>
     <h4><strong>Why Use a Custom Term List?</strong></strong></h4>
     <ul>
@@ -334,19 +318,17 @@ helpContent <- function(){
   </tr>
   </table>
 <br>
-    <p>By allowing users to define and control term tagging, TALL provides enhanced flexibility for text analysis, <br>making it a powerful tool for domain-specific research and refined linguistic processing.</p>
-    </div>
+    <p>By allowing users to define and control term tagging, TALL provides enhanced flexibility for text analysis, making it a powerful tool for domain-specific research and refined linguistic processing.</p>
 
     </body>"
 
   posselection <- "<body>
 
-  <div class='container'>
     <h3><strong>PoS Tagging Selection in TALL</strong></strong></h3>
 
     <p>TALL provides users with the flexibility to <strong>select specific Part-of-Speech (PoS) tags</strong> to be used in subsequent analyses.
-    <br>This feature allows for greater control over the linguistic elements included in text processing,
-    <br>ensuring that only relevant grammatical categories are considered.</p>
+    This feature allows for greater control over the linguistic elements included in text processing,
+    ensuring that only relevant grammatical categories are considered.</p>
     <hr>
     <h4><strong>Why Select PoS Tags?</strong></strong></h4>
     <ul>
@@ -405,16 +387,68 @@ helpContent <- function(){
     <h4><strong>Enhancing Analysis with PoS Selection</strong></strong></h4>
     <p>By allowing users to choose specific PoS categories, TALL ensures that the analysis is tailored to the user's research goals.
     <br>Whether performing <strong>keyword extraction, syntactic analysis, topic modeling, or sentiment analysis</strong>,
-    <br>the ability to refine PoS selection enhances the precision and interpretability of results.</p>
-</div>
+    the ability to refine PoS selection enhances the precision and interpretability of results.</p>
 
 </body>"
 
+wordincontext <- "<body>
 
+    <h3><strong>Words in Context in TALL</strong></h3>
+
+    <p>The <strong>Words in Context</strong> feature in TALL allows users to analyze how specific words appear in textual data, offering valuable insights into <strong>semantic usage, contextual meaning, and discourse structure</strong>. This tool is particularly useful for <strong>qualitative text analysis, linguistic research, and content exploration</strong> in diverse domains, such as <strong>social sciences, digital humanities, marketing, and legal studies</strong>.</p>
+    <hr>
+    <h4><strong>How Words in Context Works in TALL</strong></h4>
+
+    <h4><strong>1. Concordance Analysis (Keyword in Context - KWIC)</strong></h4>
+    <ul>
+    <li>Displays a <strong>side-by-side view of words and their surrounding textual context</strong> (left and right neighbors).</li>
+    <li>Helps in identifying <strong>common phrases, recurring structures, and usage variations</strong>.</li>
+    <li>Useful for <strong>studying semantic shifts, idiomatic expressions, and collocations</strong>.</li>
+    </ul>
+
+    <div class='example'>
+      📌 <strong>Example:</strong><br>
+      If analyzing the term <strong>'sustainable'</strong> in a corpus of news articles, KWIC might show:<br>
+      - 'sustainable <strong>development</strong> is a key focus of international policies'<br>
+      - 'the company promotes <strong>sustainable</strong> and ethical supply chains'<br>
+      - 'concerns over <strong>sustainable</strong> agricultural practices are increasing'<br>
+      This helps in understanding <strong>how 'sustainable' is used in different thematic contexts</strong>.
+    </div>
+
+      <h4><strong>2. Context Window Customization</strong></h4>
+      <ul>
+      <li>Users can define the <strong>window size</strong> (number of words before and after the target term) to adjust the level of contextual information displayed.</li>
+      <li>Shorter windows highlight <strong>immediate linguistic relationships</strong>, while larger windows help analyze <strong>broader semantic dependencies</strong>.</li>
+      </ul>
+
+      <div class='example'>
+        📌 <strong>Example:</strong><br>
+        When studying <strong>'risk'</strong> in financial reports, adjusting the window size allows users to see if it is used in association with:<br>
+        - <strong>'risk management,' 'high-risk investments'</strong> (short window)<br>
+        - <strong>'the recent economic downturn has increased financial risk for small businesses'</strong> (larger window)<br>
+        </div>
+
+        <h4><strong>3. Frequency and Distribution Insights</strong></h4>
+        <ul>
+        <li>Words appearing in <strong>multiple contexts</strong> can be analyzed for <strong>frequency trends</strong>, helping users identify <strong>dominant themes</strong> associated with a term.</li>
+        <li>Examines whether a word is <strong>evenly distributed</strong> across the corpus or <strong>clustered</strong> in specific sections/documents.</li>
+        </ul>
+
+        <div class='example'>
+          📌 <strong>Example:</strong><br>
+          In a dataset of <strong>customer reviews</strong>, the word <strong>'expensive'</strong> might frequently co-occur with:<br>
+          - <strong>'but worth it'</strong> in <strong>positive reviews</strong><br>
+          - <strong>'not justified for the quality'</strong> in <strong>negative reviews</strong><br>
+          This helps distinguish <strong>when 'expensive' has a neutral, positive, or negative connotation</strong>.
+        </div>
+
+          <p>By enabling <strong>customizable and interactive text exploration</strong>, the <strong>Words in Context</strong> tool in TALL provides users with <strong>a deeper understanding of language patterns</strong> in large textual datasets.</p>
+
+
+          </body>"
 
   reinert <- "<body>
 
-  <div class='container'>
     <h3><strong>Reinert Clustering in TALL</strong></h3>
 
     <p>Reinert clustering is a <strong>hierarchical descending classification method</strong> used for <strong>textual data clustering</strong>. It identifies <strong>lexically homogeneous word clusters</strong> based on the <strong>co-occurrence of terms within textual contexts</strong>. Originally developed by <strong>Max Reinert (1983, 1990)</strong>, this approach has become a core method in <strong>corpus linguistics, sociolinguistics, and content analysis</strong>.</p>
@@ -508,13 +542,11 @@ helpContent <- function(){
         <p><strong>Barnier, J., & Privé, F.</strong></p>
         <p><i>rainette: The Reinert Method for Textual Data Clustering.</i> <strong>R CRAN Repository</strong>, 2023. DOI: <a href='https://doi.org/10.32614/CRAN.package.rainette' target='_blank'>10.32614/CRAN.package.rainette</a></p>
     </div>
-</div>
 
 </body>"
 
   correspondenceanalysis <- "<body>
 
-  <div class='container'>
     <h3><strong>Correspondence Analysis in TALL</strong></strong></h3>
 
     <p>Correspondence Analysis (<strong>CA</strong>) is a fundamental technique for exploring <strong>semantic relationships</strong> among words within a text collection (<strong>Benzécri, 1982; Lebart et al., 1997</strong>). By applying <strong>dimensionality reduction</strong>, CA represents the most relevant information in a low-rank vector space, uncovering <strong>latent structures</strong> within the data. These structures are then <strong>visualized on factorial maps</strong>, allowing users to detect associations between terms and documents effectively.</p>
@@ -552,13 +584,11 @@ helpContent <- function(){
       <p><strong>Lebart, L., Salem, A., & Berry, L.</strong> (1997). <i>Exploring textual data.</i> Volume 4. Springer Science & Business Media.</p>
       <p><strong>Misuraca, M., & Spano, M.</strong> (2020). <i>Unsupervised Analytic Strategies to Explore Large Document Collections.</i> Heidelberg: Springer, 06, 17-28.</p>
       </div>
-      </div>
 
       </body>"
 
   cowordanalysis <- "<body>
 
-  <div class='container'>
     <h3><strong>Co-Word Analysis in TALL</strong></strong></h3>
 
     <p>Co-word analysis is a <strong>network-based text mining technique</strong> that examines <strong>co-occurrence patterns</strong> of words within a corpus, identifying <strong>semantic structures</strong> based on term relationships (<strong>Callon et al., 1983</strong>). This method is particularly valuable in <strong>detecting thematic clusters</strong> within large textual datasets, as it helps uncover <strong>conceptual linkages</strong> and <strong>emerging research topics</strong> in various fields.</p>
@@ -624,19 +654,17 @@ helpContent <- function(){
             <p><strong>Pons, P., & Latapy, M.</strong></p>
             <p><i>Computing communities in large networks using random walks.</i> Retrieved from <a href='https://arxiv.org/abs/physics/0512106' target='_blank'>arXiv:physics/0512106</a>.</p>
               </div>
-              </div>
 
               </body>"
 
   tmkchoice <- "<body>
 
-  <div class='container'>
     <h3><strong>Topic Modeling in TALL: K Selection</strong></strong></h3>
 
-    <p>Topic modeling is a fundamental technique in <strong>unsupervised text mining</strong>, allowing users to uncover <strong>latent themes</strong> <br>within large collections of documents. <br>One of the key challenges in <strong>Latent Dirichlet Allocation (LDA)</strong> and other topic modeling techniques is determining the <strong>optimal number of topics (K)</strong>.</p>
+    <p>Topic modeling is a fundamental technique in <strong>unsupervised text mining</strong>, allowing users to uncover <strong>latent themes</strong> within large collections of documents. One of the key challenges in <strong>Latent Dirichlet Allocation (LDA)</strong> and other topic modeling techniques is determining the <strong>optimal number of topics (K)</strong>.</p>
 
-    <p>TALL estimates <strong>K automatically</strong> using four well-established statistical measures (<strong>Griffiths & Steyvers, 2004; Deveaud et al., 2014; <br>Cao et al., 2009; Arun et al., 2010</strong>).
-    <br>However, users can also <strong>manually adjust K</strong> and explore different solutions in the <strong>Model Estimation Menu</strong>, <br>enabling greater flexibility based on the dataset and research objectives.</p>
+    <p>TALL estimates <strong>K automatically</strong> using four well-established statistical measures (<strong>Griffiths & Steyvers, 2004; Deveaud et al., 2014; Cao et al., 2009; Arun et al., 2010</strong>).
+    <br>However, users can also <strong>manually adjust K</strong> and explore different solutions in the <strong>Model Estimation Menu</strong>, enabling greater flexibility based on the dataset and research objectives.</p>
     <hr>
     <h4><strong>Why is K Selection Important?</strong></h4>
     <ul>
@@ -688,13 +716,11 @@ helpContent <- function(){
         <p><i>On finding the natural number of topics with latent Dirichlet allocation: Some observations.</i> In Zaki, M.J., Yu, J.X., Ravindran, B., & Pudi, V. (Eds.),
         <br><strong>Advances in Knowledge Discovery and Data Mining</strong> (pp. 391-402). Berlin, Heidelberg: Springer.</p>
     </div>
-</div>
 
 </body>"
 
   tmmodelestimation <- "<body>
 
-  <div class='container'>
     <h3><strong>Topic Modeling in TALL: Model Estimation</strong></strong></h3>
 
     <p>Topic modeling is a <strong>family of generative statistical models</strong> designed to uncover <strong>semantic structures</strong> within large document collections. These models aim to <strong>identify latent topics</strong> that explain the observed word distributions in text corpora, allowing for a <strong>low-dimensional representation</strong> of textual data.</p>
@@ -737,14 +763,12 @@ helpContent <- function(){
 
       <p><strong>Blei, D.M., Ng, A.Y., & Jordan, M.I.</strong> <i>Latent Dirichlet Allocation.</i> <strong>Journal of Machine Learning Research</strong>, 3(Jan), 993-1022.</p>
       </div>
-      </div>
 
       </body>"
 
 
   polaritydetection <- "<body>
 
-  <div class='container'>
     <h3><strong>Polarity Detection in TALL</strong></strong></h3>
 
     <p>Polarity detection is a fundamental <strong>sentiment analysis technique</strong> used to determine whether a document expresses a <strong>positive, negative, or neutral</strong> sentiment. This process is essential in analyzing <strong>consumer feedback, financial reports, product reviews, and social media discussions</strong>, where understanding sentiment trends can provide valuable insights into public opinion and decision-making processes.</p>
@@ -808,22 +832,20 @@ helpContent <- function(){
       <p><strong>Mohammad, S., & Turney, P.</strong></p>
       <p><i>Emotions evoked by common words and phrases: Using Mechanical Turk to create an emotion lexicon.</i> In <strong>Proceedings of the NAACL HLT 2010 Workshop on Computational Approaches to Analysis and Generation of Emotion in Text</strong>, 26-34. Los Angeles, CA: Association for Computational Linguistics.</p>
       </div>
-      </div>
 
       </body>"
 
   summarization <- "<body>
 
-  <div class='container'>
     <h3><strong>Summarization in TALL</strong></h3>
 
     <p>Summarization is a <strong>key technique in text analysis</strong> that allows users to extract the <strong>most relevant information</strong> from a document
-    <br>while maintaining its core meaning.
+    while maintaining its core meaning.
     <br><strong>TALL implements extractive summarization</strong>, a method that selects and reorders the most important sentences <strong>directly from the original text</strong>
-    <br>to generate a <strong>coherent, condensed version</strong> of the content.</p>
+    to generate a <strong>coherent, condensed version</strong> of the content.</p>
 
     <p>Unlike <strong>abstractive summarization</strong>, which rephrases content using deep learning models, <strong>extractive summarization</strong> ensures that
-    <br>the summary remains <strong>factually consistent</strong> with the input document, making it a <strong>reliable method for automated text compression</strong>.</p>
+    the summary remains <strong>factually consistent</strong> with the input document, making it a <strong>reliable method for automated text compression</strong>.</p>
     <hr>
     <h4><strong>How Summarization Works in TALL</strong></h4>
 
@@ -872,29 +894,28 @@ helpContent <- function(){
     <h4><strong>Implementation of Summarization in TALL</strong></h4>
 
     <p>TALL’s <strong>summarization routines</strong> are built upon the <strong>TextRank algorithm</strong>, with optimizations for handling
-    <br><strong>preprocessed and structured corpora</strong>:</p>
+    <strong>preprocessed and structured corpora</strong>:</p>
 
     <ul>
     <li><strong>Customized Text Preprocessing</strong> – The system operates on <strong>tokenized, lemmatized, and PoS-tagged corpora</strong>,
-    <br>ensuring better sentence representation.</li>
+    ensuring better sentence representation.</li>
     <li><strong>Sentence Similarity Based on Multiple Metrics</strong> – Supports <strong>TF-IDF, cosine similarity, and word embeddings</strong> for improved ranking.</li>
     <li><strong>Multi-Document Summarization (Future Work)</strong> – The framework is being expanded to support <strong>multi-document summarization</strong>,
-    <br>allowing users to extract summaries from <strong>multiple related texts</strong>.</li>
+    allowing users to extract summaries from <strong>multiple related texts</strong>.</li>
     </ul>
 
     <p>By integrating <strong>unsupervised graph-based techniques</strong>, TALL provides users with a <strong>robust and efficient summarization tool</strong>,
-    <br>ideal for <strong>academic, business, and legal applications</strong>.</p>
+    ideal for <strong>academic, business, and legal applications</strong>.</p>
     <hr>
     <div class='references'>
       <h4><strong>References</strong></h4>
 
       <p><strong>Mihalcea, R., & Tarau, P.</strong></p>
       <p><i>TextRank: Bringing order into text.</i> <strong>Proceedings of the 2004 Conference on Empirical Methods in Natural Language Processing</strong>,
-      <br>404-411, Barcelona, Spain, July. Association for Computational Linguistics.</p>
+      404-411, Barcelona, Spain, July. Association for Computational Linguistics.</p>
 
       <p><strong>Page, L., Brin, S., Motwani, R., & Winograd, T.</strong></p>
       <p><i>The PageRank Citation Ranking: Bringing Order to the Web.</i> <strong>Technical report, Stanford Digital Library Technologies Project</strong>, 1998.</p>
-      </div>
       </div>
 
       </body>"
@@ -909,6 +930,7 @@ helpContent <- function(){
               multiwordlist =  multiwordlist,
               customterm = customterm,
               posselection = posselection,
+              wordincontext = wordincontext,
               reinert = reinert,
               correspondenceanalysis = correspondenceanalysis,
               cowordanalysis = cowordanalysis,

@@ -1023,24 +1023,26 @@ body <- dashboardBody(
                          box(
                            width = 12,
                            div(h3(strong(em("Import a Multi-Word List"))), style="margin-top:-57px"),
+                           helpText(h5("Please ensure that the Multi-Word List is formatted as an Excel/CSV file with one column.
+                                       Each cell of that column include a multi-word. Each term have to be separated by a single whitespace.")),
                            hr(),
+                           style="text-align: left; text-color: #989898",
+                           fluidRow(column(12,
                            selectInput("termMWL",
                                        "Terms:",
                                        choices = c("Tokens" = "token",
                                                    "Lemma" = "lemma"),
-                                       selected = "lemma"),
-                           helpText(h5("Please ensure that the Multi-Word List is formatted as an Excel/CSV file with one column.
-                                       Each cell of that column include a multi-word. Each term have to be separated by a single whitespace.")),
+                                       selected = "lemma"))
+                           ),
                            fluidRow(column(12,
                                            fileInput("multiword_lists", label=NULL,
                                                      multiple = TRUE,
                                                      accept = c(".csv",
                                                                 ".xls",
-                                                                ".xlsx"))
-                           )),
+                                                                ".xlsx")))
+                           ),
+                           hr(),
                            div(
-                             hr(),
-                             div(
                                fluidRow(column(4,
                                                div(
                                                  align = "center",style="margin-top:-15px",
@@ -1070,8 +1072,8 @@ body <- dashboardBody(
                                         )
                                       )
                                )
-                               ), style="margin-top: -8px"), style="margin-top:-15px")
-                         ),style="margin-top:40px"
+                               ), style="margin-top:-15px")
+                         ),style="margin-top:40px; width:100%;"
                        )
                 )
 
@@ -1611,6 +1613,18 @@ body <- dashboardBody(
                                           shinycssloaders::withSpinner(visNetworkOutput("wordsContNetwork", width="auto", height = "75vh"),
                                                                        color = getOption("spinner.color", default = "#4F7942"))
                                  )
+                                 ,tabPanel("Info & References",
+                                           fluidPage(
+                                             fluidRow(
+                                               column(1),
+                                               column(10,
+                                                      br(),
+                                                      HTML(infoTexts$wordincontext)
+                                               ),
+                                               column(1)
+                                             )
+                                           ))
+
                      )
               ),
               column(3,
@@ -1910,7 +1924,7 @@ body <- dashboardBody(
                                       shinycssloaders::withSpinner(DT::DTOutput("w_ReinClusteringTableSegments"),
                                                                    color = getOption("spinner.color", default = "#4F7942"))
                             )
-                            ,tabPanel("References",
+                            ,tabPanel("Info & References",
                                       fluidPage(
                                         fluidRow(
                                           column(1),
