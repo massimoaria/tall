@@ -190,7 +190,14 @@ To ensure the functionality of TALL,
         }
 
       } else {
-        writeLines(wdTall, con = paste0(homeFolder(),"/tall/tallWD.tall"))
+        # setting up the main directory
+        home <- homeFolder()
+        path_tall <- file.path(home,"tall")
+        # check if sub directory exists
+      if (!file.exists(path_tall)){
+          dir.create(path_tall)
+         }
+        writeLines(wdTall, con = paste0(path_tall,"/tallWD.tall"))
         if (values$menu == -2) values$menu <-  -1
         values$wdTall <- wdTall
         # output$wdFolder <- renderText({
