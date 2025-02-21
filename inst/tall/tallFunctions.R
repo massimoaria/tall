@@ -1103,29 +1103,31 @@ tfidf <- function(dfTag, term="lemma", document="doc_id"){
 
 ### WORD IN CONTEXT ----
 get_context_window <- function(df, target_token, n_left = 5, n_right = 5) {
-  # Seleziona tutte le righe in cui il token corrisponde al target
-  no_upos <- c("NGRAM_MERGED", "X", "PUNCT", "SYM", "URL", "IP_ADDRESS","EMAIL","DET","CCONJ")
+  # Escludi POS non rilevanti
+  no_upos <- c("NGRAM_MERGED", "X", "PUNCT", "SYM", "URL", "IP_ADDRESS", "EMAIL", "DET", "CCONJ")
 
-  df <- df %>% filter(!upos %in% no_upos) %>%
-    group_by(doc_id) %>% mutate(term_id=row_number()) %>%
-    ungroup() %>% select(doc_id,term_id, token, upos) %>%
+  df <- df %>%
+    filter(!upos %in% no_upos) %>%
+    group_by(doc_id) %>%
+    mutate(term_id = row_number()) %>%
+    ungroup() %>%
+    select(doc_id, term_id, token, upos) %>%
     mutate(token = tolower(token))
 
   target_rows <- df %>% filter(token == target_token)
 
   # Lista per salvare le finestre di contesto
-  context_list <- list()
+  context_list <- vector("list", length = nrow(target_rows))
 
   for (i in seq_len(nrow(target_rows))) {
     row <- target_rows[i, ]  # Occorrenza specifica del token
     doc_subset <- df %>% filter(doc_id == row$doc_id)
 
     middle <- row$term_id
-    # Definisce i limiti della finestra
     start <- max(1, row$term_id - n_left)  # Non andare sotto 1
     end <- min(max(doc_subset$term_id), row$term_id + n_right)  # Non superare la fine
 
-    # Extract tokens in the interval
+    # Estrai le parole nel contesto sinistro e destro
     context_tokens_left <- doc_subset %>%
       filter(term_id >= start & term_id < middle) %>%
       pull(token)
@@ -1134,23 +1136,22 @@ get_context_window <- function(df, target_token, n_left = 5, n_right = 5) {
       filter(term_id > middle & term_id <= end) %>%
       pull(token)
 
-    # Extract upos
+    # Estrai i POS relativi al contesto
     context_upos <- doc_subset %>%
       filter(term_id >= start & term_id <= end) %>%
       pull(upos)
 
-    # Salva il risultato in una lista
+    # Salva i risultati in una tibble mantenendo le liste separate
     context_list[[i]] <- tibble(
       doc_id = row$doc_id,
-      #term_id = row$term_id,
-      context_before = paste(context_tokens_left, collapse = " "),
+      context_before = list(context_tokens_left),  # Mantiene la lista
       token = row$token,
-      context_after = paste(context_tokens_right, collapse = " "),
-      upos = paste(context_upos, collapse = " ")
+      context_after = list(context_tokens_right),  # Mantiene la lista
+      upos = list(context_upos)  # Mantiene la lista
     )
   }
 
-  # Unisce la lista in un dataframe finale
+  # Unisce tutte le tibble in una sola
   context_df <- bind_rows(context_list)
 
   return(context_df)
@@ -1158,25 +1159,23 @@ get_context_window <- function(df, target_token, n_left = 5, n_right = 5) {
 
 ## Context network
 contextNetwork <- function(df, dfTag, n=50){
-  df <- df %>%
-    mutate(segment = paste(context_before,token,context_after,sep=" "),
-           segment_id = row_number()) %>%
-    select("segment_id","segment", "upos")
 
-  # Tokenizzazione usando strsplit()
-  split_words <- lapply(strsplit(df$segment, "\\s+"), function(l) l[nchar(l)>0])
-  split_upos <- strsplit(df$upos, "\\s+")
-
-  # Creiamo un nuovo data frame con segment_id e parole
-  x <- data.frame(
-    segment_id = rep(df$segment_id, sapply(split_words, length)),  # Ripete segment_id per ogni parola
-    token = unlist(split_words),  # Appiattisce la lista in un vettore di paroleù
-    upos = unlist(split_upos),
-    stringsAsFactors = FALSE
-  )
+  # Espandi le liste nelle colonne context_before, token, context_after, e upos
+  longer_df <- df %>%
+    mutate(segment_id = row_number()) %>%  # Identificatore univoco del segmento
+    rowwise() %>%
+    mutate(
+      words = list(c(unlist(context_before), token, unlist(context_after))),  # Unisce tutto in un'unica lista
+      upos_list = list(unlist(upos))  # Appiattisce la lista dei POS
+    ) %>%
+    ungroup() %>%
+    select(segment_id, words, upos_list) %>%
+    unnest(cols = c(words, upos_list)) %>%  # Trasforma le liste in formato long
+    rename(token = words, upos = upos_list)  # Rinomina le colonne
 
   uposSelected <- unique(LemmaSelection(dfTag) %>% select(upos) %>% pull())
-  net <- network(x %>% filter(upos %in% uposSelected),
+
+  net <- network(longer_df %>% filter(upos %in% uposSelected),
                  term="token", group=c("segment_id"), n=50, minEdges=100, labelsize=4, opacity=0.6,
                  interLinks=FALSE, normalization="association", remove.isolated=FALSE, community.repulsion=0)
 

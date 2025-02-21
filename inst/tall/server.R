@@ -2270,13 +2270,14 @@ observeEvent(input$closePlotModalDoc,{
 
     content <- lapply(1:nrow(values$wordInContext), function(i) {
       row <- values$wordInContext[i, ]
+      before <- paste(unlist(row$context_before),collapse=" ")
       div(
         style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;",
         #style = "display: flex; justify-content: center; align-items: center; margin-bottom: 10px;",
         span(style = "color: darkblue; text-align: left; width: 150px; font-weight: bold;", row$doc_id),  # Nome del documento
-        span(style = "color: gray; text-align: right; flex: 1;", row$context_before),
+        span(style = "color: gray; text-align: right; flex: 1;", paste0(unlist(row$context_before), collapse=" ")),
         span(style = "color: #4F7942; font-weight: bold; padding: 0 10px;", row$token),
-        span(style = "color: gray; text-align: left; flex: 1;", row$context_after)
+        span(style = "color: gray; text-align: left; flex: 1;", paste0(unlist(row$context_after), collapse=" "))
       )
     })
 
