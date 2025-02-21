@@ -1158,7 +1158,7 @@ get_context_window <- function(df, target_token, n_left = 5, n_right = 5) {
 }
 
 ## Context network
-contextNetwork <- function(df, dfTag, n=50){
+contextNetwork <- function(df, dfTag, target_token, n=50){
 
   # Espandi le liste nelle colonne context_before, token, context_after, e upos
   longer_df <- df %>%
@@ -1176,8 +1176,13 @@ contextNetwork <- function(df, dfTag, n=50){
   uposSelected <- unique(LemmaSelection(dfTag) %>% select(upos) %>% pull())
 
   net <- network(longer_df %>% filter(upos %in% uposSelected),
-                 term="token", group=c("segment_id"), n=50, minEdges=100, labelsize=4, opacity=0.6,
-                 interLinks=FALSE, normalization="association", remove.isolated=FALSE, community.repulsion=0)
+                 term="token", group=c("segment_id"), n=50, minEdges=100, labelsize=3, opacity=0.6,
+                 interLinks=TRUE, normalization="association", remove.isolated=FALSE, community.repulsion=0)
+
+  net$edges <- net$edges %>%
+    filter(!(color == "#69696920" &
+               !(term_from == target_token) &
+               !(term_to == target_token)))
 
   vis <- net2vis(net$nodes,net$edges)
   return(vis)
