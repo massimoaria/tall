@@ -216,8 +216,23 @@ body <- dashboardBody(
     tags$style(".fa-bars {font-size: 20px}"),
     tags$style(".sidebar-toggle {font-size: 15px}"),
     tags$style(".fa-users {font-size: 18px}"),
+
+    ## radio button color for primary status
+    tags$style(HTML("
+    /* Change the default primary button color */
+    .btn-primary {
+      background-color: #808080 !important; /* new background color */
+      border-color: #808080 !important;
+    }
+    /* Change the hover and active states */
+    .btn-primary:hover,
+    .btn-primary:active,
+    .btn-primary.active {
+      background-color: #4F7942 !important; /* new hover/active color */
+      border-color: #4F7942 !important;
+    }
+  "))
   ),
-  ##checkBoxGroup
 
   tags$head(
     tags$style(HTML("
@@ -602,11 +617,11 @@ body <- dashboardBody(
             tabsetPanel(type="tabs",
                         tabPanel("Annotated Text Table",
                           fluidRow(
-                            column(9,
+                            column(8,
                                                         shinycssloaders::withSpinner(DT::DTOutput("tokPosTagData"),
                                                                                      color = getOption("spinner.color", default = "#4F7942"))
                             ),
-                            column(3,
+                            column(4,
                                    div(
                                      box(
                                        width = 12,
@@ -619,16 +634,19 @@ body <- dashboardBody(
                                        div(
                                          fluidRow(column(6,
                                                          div(
-                                                           #uiOutput("optionsTokenization")
-                                                           selectInput(
-                                                             inputId = 'language_model', label="Language", choices = label_lang,
-                                                             multiple=FALSE,
-                                                             width = "100%"
-                                                           )
+                                                           uiOutput("optionsTokenization")
+                                                           # selectInput(
+                                                           #   inputId = 'language_model', label="Language", choices = label_lang,
+                                                           #   multiple=FALSE,
+                                                           #   width = "100%"
+                                                           # )
                                                            ),style="margin-top:-9px"),
                                                   column(6,
                                                          div(
-                                                           selectInput("treebank", "Treebank", choices = NULL)),style="margin-top:-9px")
+                                                           uiOutput("treebankSelect")
+                                                           # selectInput("treebank", "Treebank", choices = "GUM")
+                                                           ),style="margin-top:-9px")
+
                                          ),
                                          fluidRow(column(6,
                                                          div(

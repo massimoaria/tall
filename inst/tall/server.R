@@ -443,13 +443,13 @@ observeEvent(input$reset_confirmation2, {
            load_tall={
              req(input$file1)
              file_tall <- input$file1$datapath
-             #print(file_tall)
              load(file_tall)
              values$menu <- menu
              values$dfTag <- dfTag
              values$txt <- rebuild_documents(dfTag)
              values$custom_lists <- custom_lists
              values$language <- language
+             values$treebank <- treebank
              values$D <- D
              values$where <- where
              if (exists("generalTerm")) values$generalTerm <- generalTerm
@@ -558,7 +558,7 @@ observeEvent(input$reset_confirmation2, {
     ndocs <- length(unique(values$dfTag$doc_id))
     txt1 <- (paste0("Tall file contains: ",strong(ndocs),strong(" documents")))
     txt2 <- (paste0("Last modified date: ", strong(values$D)))
-    txt2b <- (paste0("Language: ", strong(values$language)))
+    txt2b <- (paste0("Language: ", strong(tools::toTitleCase(values$language)), " - Treebank: ", strong(values$treebank)))
     if(!is.null(dim(values$custom_lists))){
       ncust <- nrow(values$custom_lists)
       txt3 <- (paste0("Tall file includes a custom list of: ",strong(ncust), strong(" words")))
@@ -801,19 +801,32 @@ observeEvent(input$reset_confirmation2, {
     tags$img(src = values$flag, height = "25px", width = "40px", style = "margin-top:-30px;")
   })
 
+  output$optionsTokenization <- renderUI({
+    selectInput(
+      inputId = 'language_model', label="Language", choices = values$label_lang,
+      multiple=FALSE,
+      width = "100%",
+      selected = values$language
+    )
+  })
+
+  output$treebankSelect <- renderUI({
+    selected_treebanks <- values$languages$treebank[values$languages$language_name == values$language]
+    selectInput("treebank", "Treebank", choices = selected_treebanks, selected = values$treebank)
+  })
 
 output$info_treebank <- renderUI({
-  ud_description <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(description) %>% as.character()
-  ud_info <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(tokens,words,sentences)
+  ud_description <- values$languages %>% filter(language_name==values$language , treebank==values$treebank) %>% select(description) %>% as.character()
+  ud_info <- values$languages %>% filter(language_name==values$language , treebank==values$treebank) %>% select(tokens,words,sentences)
   ud_info <- paste0("Tokens: ",format(as.numeric(ud_info$tokens), big.mark = ",", scientific = FALSE),
     " - Words: ",format(as.numeric(ud_info$words), big.mark = ",", scientific = FALSE),
     " - Sentences: ",format(as.numeric(ud_info$sentences), big.mark = ",", scientific = FALSE))
-  accuracy <- values$accuracy %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(Words,Lemma, Sentences, UPOS)
+  accuracy <- values$accuracy %>% filter(language_name==values$language , treebank==values$treebank) %>% select(Words,Lemma, Sentences, UPOS)
   ud_accuracy1 <- paste0("Words: ",accuracy$Words,"% ---  Lemma: ",accuracy$Lemma, "%")
   ud_accuracy2 <- paste0("Sentences: ",accuracy$Sentences, "%  ---  PoS:   ",accuracy$UPOS,"%")
-  ud_contributors <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(contributors) %>% as.character()
-  ud_hub_page_link <-  values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(hub_page_link) %>% as.character()
-  values$flag <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(flag) %>% as.character()
+  ud_contributors <- values$languages %>% filter(language_name==values$language , treebank==values$treebank) %>% select(contributors) %>% as.character()
+  ud_hub_page_link <-  values$languages %>% filter(language_name==values$language , treebank==values$treebank) %>% select(hub_page_link) %>% as.character()
+  values$flag <- values$languages %>% filter(language_name==values$language , treebank==values$treebank) %>% select(flag) %>% as.character()
   #  HTML
   tagList(
     tags$div(
@@ -836,17 +849,21 @@ output$info_treebank <- renderUI({
 })
 
   observeEvent(input$language_model, {
-    selected_treebanks <- values$languages$treebank[values$languages$language_name == input$language_model]
-    updateSelectInput(session, "treebank", choices = selected_treebanks)
+    values$language <- input$language_model
+    selected_treebanks <- values$languages$treebank[values$languages$language_name == values$language]
+    updateSelectInput(session, "treebank", choices = selected_treebanks, selected = values$treebank)
   })
 
+  observeEvent(input$treebank, {
+    values$treebank <- input$treebank
+  })
 
   posTagging <- eventReactive({
     input$tokPosRun
   },{
-    values$language <- input$language_model
-    values$treebank <- input$treebank
-    values$language_file <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(file) %>% as.character()
+    #values$language <- input$language_model
+    #values$treebank <- input$treebank
+    values$language_file <- values$languages %>% filter(language_name==values$language, treebank==input$treebank) %>% select(file) %>% as.character()
     ## download and load model language
     udmodel_lang <- loadLanguageModel(file = values$language_file)
 
@@ -881,13 +898,15 @@ output$info_treebank <- renderUI({
       list(
         # h5(strong("Select Analysis Term: Lemma or Token")),
         # br(),
-        radioButtons(
+        radioGroupButtons(
           inputId = "generalTerm",
           label = "Select Analysis Term:",
-          choiceValues = c("lemma", "token"),
-          choiceNames = c("Lemma", "Token")
-          #selected = "lemma",
-        ))
+          choices = c("Lemma" = "lemma", "Token" = "token"),
+          selected = "lemma",
+          status = "primary",
+          justified = TRUE
+        )
+        )
     }
   })
 

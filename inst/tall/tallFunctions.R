@@ -3274,11 +3274,12 @@ resetValues <- function(){
   accuracy <- model_accuracy()
   values$accuracy <- accuracy
   languages_df <- langrepo()
-
+  values$language <- "english"
   values$languages <- languages_df
   label_lang <- unique(languages_df$language_name)
   names(label_lang) <- gsub("_"," ",label_lang)
   values$label_lang <- label_lang
+  values$treebank <- languages_df$treebank[1]
   values$chapter <- languages_df$chapter
   values$flag <- "GB.svg"
   values$TMplotIndex <- 1
