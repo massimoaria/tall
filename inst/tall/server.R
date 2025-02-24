@@ -447,10 +447,12 @@ observeEvent(input$reset_confirmation2, {
              load(file_tall)
              values$menu <- menu
              values$dfTag <- dfTag
+             values$txt <- rebuild_documents(dfTag)
              values$custom_lists <- custom_lists
              values$language <- language
              values$D <- D
              values$where <- where
+             if (exists("generalTerm")) values$generalTerm <- generalTerm
              values$resetNeed <- TRUE
              #values$metadata <- metadata
              if (values$menu==1) updateTabItems(session, "sidebarmenu", "custTermList")
@@ -464,6 +466,7 @@ observeEvent(input$reset_confirmation2, {
                       load(file_tall)
                       values$menu <- menu
                       values$dfTag <- dfTag
+                      values$txt <- rebuild_documents(dfTag)
                       values$custom_lists <- custom_lists
                       values$language <- language
                       values$D <- D
@@ -873,6 +876,27 @@ output$info_treebank <- renderUI({
   }
   )
 
+  output$unitAnalysis <- renderUI({
+    if (!is.null(values$dfTag)){
+      list(
+        # h5(strong("Select Analysis Term: Lemma or Token")),
+        # br(),
+        radioButtons(
+          inputId = "generalTerm",
+          label = "Select Analysis Term:",
+          choiceValues = c("lemma", "token"),
+          choiceNames = c("Lemma", "Token")
+          #selected = "lemma",
+        ))
+    }
+  })
+
+  ## Term selected on the dashboard
+  output$termSelected <- renderText({
+    if (!is.null(input$generalTerm)) values$generalTerm <- input$generalTerm
+    if (values$menu>=1) HTML(paste("Analysis by: <b>", tools::toTitleCase(values$generalTerm), "</b>"))
+  })
+
   output$tokPosTagData<- DT::renderDT({
     posTagging()
 
@@ -893,7 +917,7 @@ output$info_treebank <- renderUI({
     handlerExpr = {
       file <- paste("Tall-Export-File-", sys.time(), ".tall", sep="")
       file_path <- destFolder(file,values$wdTall)
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Custom Term Lists", file_path)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Custom Term Lists", file_path, values$generalTerm)
       popUp(title="Saved in your working folder", type="saved")
     })
 
@@ -957,7 +981,7 @@ output$info_treebank <- renderUI({
     handlerExpr = {
       file <- paste("Tall-Export-File-", sys.time(), ".tall", sep="")
       file_path <- destFolder(file,values$wdTall)
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "POS Tag Selection", file_path)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "POS Tag Selection", file_path, values$generalTerm)
       popUp(title="Saved in your working folder", type="saved")
     })
 
@@ -1021,7 +1045,7 @@ output$info_treebank <- renderUI({
       req(file$datapath[1])
       custom_lists <- lapply(file$datapath,function(x){
         x <- read_excel(x) %>% select(c(1,2))
-        names(x) <- c(input$CTLterm, "upos")
+        names(x) <- c(values$generalTerm, "upos")
         return(x)
       })
       custom_lists <- do.call(rbind,custom_lists)
@@ -1052,7 +1076,7 @@ output$info_treebank <- renderUI({
     input$custTermListRun
   },{
     #req(input$custom_lists)
-    values$dfTag <- mergeCustomLists(values$dfTag,values$custom_lists, input$CTLterm)
+    values$dfTag <- mergeCustomLists(values$dfTag,values$custom_lists, values$generalTerm)
     # Update the DT proxy
 
     replaceData(proxy1, values$dfTag, resetPaging = FALSE)
@@ -1080,7 +1104,7 @@ output$info_treebank <- renderUI({
   output$customListData<- DT::renderDT(server=FALSE,{
     #customListMerging()
 
-    switch(input$CTLterm,
+    switch(values$generalTerm,
       lemma={
         if (is.null(values$custom_lists)){
           DTdf <- DTformat(data.frame(Lemma=NULL,POSTag=NULL))
@@ -1107,7 +1131,7 @@ output$info_treebank <- renderUI({
     handlerExpr = {
       file <- paste("Tall-Export-File-", sys.time(), ".tall", sep="")
       file_path <- destFolder(file,values$wdTall)
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Custom Term Lists", file_path)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Custom Term Lists", file_path, values$generalTerm)
       popUp(title="Saved in your working folder", type="saved")
     })
 
@@ -1147,7 +1171,7 @@ multiword <- eventReactive({
 
   values$posMwSel <- gsub(":","",gsub(":.*","",input$multiwordPosSelGroup))
 
-  values$rakeResults <- rake(values$dfTag, group = "doc_id", ngram_max=input$ngram_max, relevant = values$posMwSel, freq.min=input$freq_minMW, term=input$term, method=input$MWmethod)
+  values$rakeResults <- rake(values$dfTag, group = "doc_id", ngram_max=input$ngram_max, relevant = values$posMwSel, freq.min=input$freq_minMW, term=values$generalTerm, method=input$MWmethod)
 
   values$stats <- values$rakeResults$stats
 
@@ -1202,10 +1226,10 @@ multiword <- eventReactive({
     row_sel <- input$multiwordList_rows_selected
 
     if (length(row_sel)>0){
-      values$dfTag <- applyRake(values$dfTag, rakeResults=values$rakeResults, row_sel=row_sel, term=input$term)
+      values$dfTag <- applyRake(values$dfTag, rakeResults=values$rakeResults, row_sel=row_sel, term=values$generalTerm)
 
       ## Highlight multiword
-      values$dfTag <- highlight(values$dfTag, term=input$term, upos="MULTIWORD")
+      values$dfTag <- highlight(values$dfTag, term=values$generalTerm, upos="MULTIWORD")
 
 
       replaceData(proxy4, values$dfTag, resetPaging = FALSE)
@@ -1234,7 +1258,7 @@ multiword <- eventReactive({
     handlerExpr = {
       file <- paste("Tall-Export-File-", sys.time(), ".tall", sep="")
       file_path <- destFolder(file,values$wdTall)
-      saveTall(values$dfTag, values$stats, values$language, values$treebank, values$menu, "Multi-Word Creation", file_path)
+      saveTall(values$dfTag, values$stats, values$language, values$treebank, values$menu, "Multi-Word Creation", file_path, values$generalTerm)
       popUp(title="Saved in your working folder", type="saved")
     })
 
@@ -1273,7 +1297,7 @@ multiword <- eventReactive({
   },{
     req(input$multiword_lists)
     # to replace with input values
-    term <-  input$termMWL
+    term <-  values$generalTerm
 
     relevant <- unique(values$dfTag$upos)
 
@@ -1313,7 +1337,7 @@ multiword <- eventReactive({
     handlerExpr = {
       file <- paste("Tall-Export-File-", sys.time(), ".tall", sep="")
       file_path <- destFolder(file,values$wdTall)
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Multi-Word by a List", file_path)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Multi-Word by a List", file_path, values$generalTerm)
       popUp(title="Saved in your working folder", type="saved")
     })
 
@@ -1377,7 +1401,7 @@ multiword <- eventReactive({
     handlerExpr = {
       file <- paste("Tall-Export-File-", sys.time(), ".tall", sep="")
       file_path <- destFolder(file,values$wdTall)
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "POS Tag Selection", file_path)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "POS Tag Selection", file_path, values$generalTerm)
       popUp(title="Saved in your working folder", type="saved")
     })
 
@@ -1505,6 +1529,7 @@ multiword <- eventReactive({
         showModal(ungroupModal(session))
       }
     })
+
 
   ## Data grouped by dynamic text on dashboardHeader
   output$dataGroupedBy <- renderText({
@@ -1808,7 +1833,7 @@ multiword <- eventReactive({
     pos <- unique(pos$upos)
 
     values$wcDfPlot <- freqByPos(LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected),
-                                 term=input$termWC,
+                                 term=values$generalTerm,
                                  pos=pos) %>%
       slice_head(n=N) %>%
       rename(label = term,
@@ -1853,8 +1878,7 @@ multiword <- eventReactive({
     input$dictionaryApply
   },
   {
-    #values$dictFreq <- freqByPos(values$dfTag, term=input$termDict, pos=c("PROPN", "NOUN", "ADJ", "VERB"))
-    Term <- input$termDict
+    Term <- values$generalTerm
     values$dictFreq <- LemmaSelection(values$dfTag) %>%
       dplyr::filter(docSelected) %>%
       mutate(token = ifelse(upos == "MULTIWORD", lemma,token))
@@ -1895,9 +1919,9 @@ multiword <- eventReactive({
   {
     values$tfidfDATA <- LemmaSelection(values$dfTag) %>%
       dplyr::filter(docSelected) %>%
-      tfidf(term=input$termTfidf)
+      tfidf(term=values$generalTerm)
 
-    if(input$termTfidf=="lemma"){
+    if(values$generalTerm=="lemma"){
       values$tfidfDATA <- values$tfidfDATA  %>%
                  rename(
                    "Lemma" = term,
@@ -2090,7 +2114,7 @@ observeEvent(input$closePlotModalDoc,{
     },
     valueExpr = {
       if(!is.null(input$posSelectionFreq)){
-        values$wFreq <- freqByPos(values$dfTag %>% filter(docSelected), term=input$wFreqTerm, pos=input$posSelectionFreq)
+        values$wFreq <- freqByPos(values$dfTag %>% filter(docSelected), term=values$generalTerm, pos=input$posSelectionFreq)
         values$wFreqPlotly <- freqPlotly(values$wFreq,x="n",y="term",n=input$wFreqN, xlabel="Frequency",ylabel=input$posSelectionFreq, scale="identity")
 
         values$wFreqData <- values$wFreq %>%
@@ -2252,7 +2276,7 @@ observeEvent(input$closePlotModalDoc,{
                                                    n_left = input$wordsContBefore,
                                                    n_right = input$wordsContAfter)
         if (nrow(values$wordInContext)>1) {
-          values$contextNetwork <- contextNetwork(values$wordInContext, values$dfTag, target_token= word_search, n=50)
+          values$contextNetwork <- contextNetwork(df = values$wordInContext, dfTag= values$dfTag, target_token = word_search, n=50)
         } else {
             values$contextNetwork <- NULL
           }
@@ -2296,7 +2320,7 @@ observeEvent(input$closePlotModalDoc,{
     ignoreNULL = TRUE,
     eventExpr = {input$w_reinclusteringApply},
     valueExpr ={
-      values$reinert <- tall::reinert(x=values$dfTag, k = input$w_rein_k, term = input$termReinClustering,
+      values$reinert <- tall::reinert(x=values$dfTag, k = input$w_rein_k, term = values$generalTerm,
         segment_size = input$w_rein_segments_size,
         min_segment_size = input$w_rein_min_segments,
         min_split_members = input$w_rein_min_split_members,
@@ -2419,7 +2443,7 @@ observeEvent(input$closePlotModalDoc,{
     eventExpr = {input$w_clusteringApply},
     valueExpr ={
       results <- clustering(LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected), n=input$w_clusteringNMax,
-                            group="doc_id", minEdges=25, term=input$termClustering,
+                            group="doc_id", minEdges=25, term=values$generalTerm,
                             normalization=input$w_clusteringSimilarity)
       values$wordCluster <- results$cluster
       values$wordCluster<-values$wordCluster %>%
@@ -2483,9 +2507,9 @@ observeEvent(input$closePlotModalDoc,{
     valueExpr ={
       ## check to verify if groups exist or not
       if (input$groupCA == "Documents" & "ungroupDoc_id" %in% names(values$dfTag)){
-        values$CA <- wordCA(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected), n=input$nCA, term=input$termCA, group = input$groupCA)
+        values$CA <- wordCA(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected), n=input$nCA, term=values$generalTerm, group = input$groupCA)
       } else {
-        values$CA <- wordCA(LemmaSelection(values$dfTag) %>% filter(docSelected), n=input$nCA, term=input$termCA, group = input$groupCA)
+        values$CA <- wordCA(LemmaSelection(values$dfTag) %>% filter(docSelected), n=input$nCA, term=values$generalTerm, group = input$groupCA)
       }
       ##
       values$CA <- caClustering(values$CA, nclusters = input$nClustersCA, nDim=input$nDimsCA, lim.contr=input$lim.contribCA)
@@ -2622,13 +2646,13 @@ observeEvent(input$closePlotModalDoc,{
       community.repulsion <- 0
 
       if (input$w_groupNet == "Documents" & "ungroupDoc_id" %in% names(values$dfTag)){
-        values$network <- network(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected), term=input$w_term, group=group,
+        values$network <- network(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected), term=values$generalTerm, group=group,
                                   n=input$nMax, minEdges=input$minEdges,
                                   labelsize=input$labelSize, opacity=input$opacity,
                                   interLinks=input$interLinks, normalization=input$normalizationCooc,
                                   remove.isolated=input$removeIsolated, community.repulsion=community.repulsion)
       } else {
-        values$network <- network(LemmaSelection(values$dfTag) %>% filter(docSelected), term=input$w_term, group=group,
+        values$network <- network(LemmaSelection(values$dfTag) %>% filter(docSelected), term=values$generalTerm, group=group,
                                   n=input$nMax, minEdges=input$minEdges,
                                   labelsize=input$labelSize, opacity=input$opacity,
                                   interLinks=input$interLinks, normalization=input$normalizationCooc,
@@ -2944,7 +2968,7 @@ observeEvent(input$closePlotModalDoc,{
       values$grako <- grako(values$dfTag %>% filter(docSelected), n=input$grakoNMax, minEdges=input$grakoMinEdges,
                             labelsize=input$grakoLabelSize, opacity=input$grakoOpacity,
                             normalization=input$grakoNormalization,
-                            singleWords=input$grakoUnigram,term=input$grako_term)
+                            singleWords=input$grakoUnigram,term=values$generalTerm)
 
       values$grakoVis <- grako2vis(nodes=values$grako$nodes, edges=values$grako$edges)
 
@@ -3061,10 +3085,10 @@ observeEvent(input$closePlotModalDoc,{
              {groupTm = input$groupTm})
       ## check to verify if groups exist or not
       if (input$groupTm == "doc_id" & "ungroupDoc_id" %in% names(values$dfTag)){
-        values$TMKresult <- tmTuning(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected), group=groupTm, term=input$termTm,
+        values$TMKresult <- tmTuning(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected), group=groupTm, term=values$generalTerm,
                                      metric=input$metric, n=input$nTm, top_by=input$top_by, minK=input$minK, maxK=input$maxK, Kby=input$Kby)
       } else {
-        values$TMKresult <- tmTuning(LemmaSelection(values$dfTag) %>% filter(docSelected), group=groupTm, term=input$termTm,
+        values$TMKresult <- tmTuning(LemmaSelection(values$dfTag) %>% filter(docSelected), group=groupTm, term=values$generalTerm,
                                      metric=input$metric, n=input$nTm, top_by=input$top_by, minK=input$minK, maxK=input$maxK, Kby=input$Kby)
       }
       ## End check ###
@@ -3139,7 +3163,7 @@ observeEvent(input$closePlotModalDoc,{
       if (input$groupTmEstim == "doc_id" & "ungroupDoc_id" %in% names(values$dfTag)){
         if (isTRUE(input$tmKauto)){
           values$TMKresult <- tmTuning(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected),
-                                       group=groupTmEstim, term=input$termTmEstim,
+                                       group=groupTmEstim, term=values$generalTerm,
                                        metric="CaoJuan2009", n=input$nTmEstim, top_by=input$top_byEstim,
                                        minK=2, maxK=20, Kby=1)
           K <- values$TMKresult %>% slice_min(CaoJuan2009, n=1)
@@ -3150,11 +3174,11 @@ observeEvent(input$closePlotModalDoc,{
         values$TMplotList <- split(1:values$tmK, ceiling(seq_along(1:values$tmK)/3))
         values$TMestim_result <- tmEstimate(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected),
                                             K=values$tmK, group=groupTmEstim,
-                                            term=input$termTmEstim, n=input$nTmEstim, top_by=input$top_byEstim)
+                                            term=values$generalTerm, n=input$nTmEstim, top_by=input$top_byEstim)
       } else {
         if (isTRUE(input$tmKauto)){
           values$TMKresult <- tmTuning(LemmaSelection(values$dfTag) %>% filter(docSelected), group=groupTmEstim,
-                                       term=input$termTmEstim, metric="CaoJuan2009", n=input$nTmEstim,
+                                       term=values$generalTerm, metric="CaoJuan2009", n=input$nTmEstim,
                                        top_by=input$top_byEstim, minK=2, maxK=20, Kby=1)
           K <- values$TMKresult %>% slice_min(CaoJuan2009, n=1)
           values$tmK <- K$topics
@@ -3163,7 +3187,7 @@ observeEvent(input$closePlotModalDoc,{
         }
         values$TMplotList <- split(1:values$tmK, ceiling(seq_along(1:values$tmK)/3))
         values$TMestim_result <- tmEstimate(LemmaSelection(values$dfTag) %>% filter(docSelected), K=values$tmK, group=groupTmEstim,
-                                            term=input$termTmEstim, n=input$nTmEstim, top_by=input$top_byEstim)
+                                            term=values$generalTerm, n=input$nTmEstim, top_by=input$top_byEstim)
       }
       ## End check ###
 

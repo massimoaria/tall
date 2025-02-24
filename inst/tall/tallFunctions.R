@@ -3269,10 +3269,12 @@ resetValues <- function(){
   values$dfLabel <- dfLabel()
   values$posMwSel <- c("ADJ", "NOUN", "PROPN") # POS selected by default for multiword creation
   values$myChoices <- "Empty Report"
+  values$generalTerm <- "lemma"
 
   accuracy <- model_accuracy()
   values$accuracy <- accuracy
   languages_df <- langrepo()
+
   values$languages <- languages_df
   label_lang <- unique(languages_df$language_name)
   names(label_lang) <- gsub("_"," ",label_lang)
@@ -3465,11 +3467,11 @@ highlight <- function(df, term="lemma", upos=NULL) {
 
 
 ## saveTall function ----
-saveTall <- function(dfTag,custom_lists,language,treebank,menu,where,file){
+saveTall <- function(dfTag,custom_lists,language,treebank,menu,where,file,generalTerm){
   D <- date()
   D <- strsplit(gsub("\\s+", " ", D)," ")
   D <- paste(unlist(D)[c(1,2,3,5)],collapse=" ")
-  save(dfTag,custom_lists,language,treebank,menu,D,where,file=file)
+  save(dfTag,custom_lists,language,treebank,menu,D,where,file=file, generalTerm)
 }
 
 ###Export Tall analysis in .tall file ----
@@ -3525,11 +3527,7 @@ menuList <- function(menu){
              #          menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
              #          menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
-                      # menuItem("Text Normalization", tabName = "TextNorm", icon = icon("chevron-right"), startExpanded = TRUE,
-                      #          menuSubItem("Explore Tags", tabName = "textNormExpl",icon = icon("chevron-right"), selected = TRUE),
-                      #          menuSubItem("Remove Tags", tabName = "textNormRemove",icon = icon("chevron-right"), selected = TRUE)
-                      # ),
-                      # menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
+                      menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
                       menuSubItem("Tagging Special Entities", tabName = "posSpecial",icon = icon("chevron-right")),
                       menuItem("Multi-Word", tabName = "multiword", icon = icon("chevron-right"), startExpanded = TRUE,
                                menuSubItem("Automatic", tabName = "multiwordCreat",icon = icon("chevron-right")),
@@ -3569,11 +3567,7 @@ menuList <- function(menu){
              #          menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
              #          menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
              menuItem("Pre-processing", tabName = "prePro", icon = icon("indent-right", lib="glyphicon"), startExpanded = TRUE,
-                      # menuItem("Text Normalization", tabName = "TextNorm", icon = icon("chevron-right"), startExpanded = FALSE,
-                      #          menuSubItem("Explore Tags", tabName = "textNormExpl",icon = icon("chevron-right"), selected = TRUE),
-                      #          menuSubItem("Remove Tags", tabName = "textNormRemove",icon = icon("chevron-right"), selected = TRUE)
-                      # ),
-                      # menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
+                      menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos",icon = icon("chevron-right")),
                       menuSubItem("Tagging Special Entities", tabName = "posSpecial",icon = icon("chevron-right")),
                       menuItem("Multi-Word", tabName = "multiword", icon = icon("chevron-right"), startExpanded = TRUE,
                       menuSubItem("Automatic", tabName = "multiwordCreat",icon = icon("chevron-right")),
@@ -4351,4 +4345,36 @@ model_accuracy <- function(){
 
   return(df)
 
+}
+
+
+### REBUILD ORIGINAL DOCUMENTS -----
+
+rebuild_documents <- function(df) {
+  columns <- intersect(names(df),c("start","end","term_id","token","token_id", "lemma", "token_original_nomultiwords", "upos_original",
+                                   "feats", "head_token_id", "dep_rel", "deps", "POSSelected", "upos",  "ngram", "sentence_hl", "xpos",
+                                   "noHapax", "noSingleChar", "lemma_original_nomultiwords", "token_hl", "start_hl","end_hl", "misc",
+                                   "upos_specialentities"))
+
+  df <- df %>% select(!all_of(columns)) %>%
+    distinct(.,doc_id,paragraph_id,sentence_id, .keep_all = TRUE)
+
+  # Combine sentences into paragraphs
+  paragraphs <- df %>%
+    group_by(doc_id, paragraph_id) %>%
+    arrange(sentence_id) %>%
+    summarise(paragraph_text = paste(sentence, collapse = " "), .groups = "drop")
+
+  # Combine paragraphs into full documents
+  documents <- paragraphs %>%
+    group_by(doc_id) %>%
+    arrange(paragraph_id) %>%
+    summarise(text = paste(paragraph_text, collapse = "\n\n"), .groups = "drop") %>%
+    left_join(df %>% select(!c("paragraph_id","sentence_id", "sentence", "doc_selected")) %>% distinct(.,doc_id,.keep_all=TRUE),
+              by=c("doc_id")) %>%
+    rename("doc_selected" = "docSelected") %>%
+    select(!starts_with("upos")) %>%
+    mutate(text_original = text)
+
+  return(documents)
 }
