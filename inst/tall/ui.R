@@ -1659,16 +1659,6 @@ body <- dashboardBody(
                          style="text-align: left; text-color: #989898",
                          selectizeInput(inputId = "wordsContSearch",
                                         label = "Search word(s) in text", choices = NULL),
-
-                         # searchInput(
-                         #   inputId = "wordsContSearch",
-                         #   label = "Search word(s) in text",
-                         #   placeholder = "",
-                         #   btnSearch = icon("search"),
-                         #   btnReset = icon("remove"),
-                         #   resetValue = "",
-                         #   width = "100%"
-                         # ),
                          h4("Window Length:"),
                          fluidRow(
                            column(6,

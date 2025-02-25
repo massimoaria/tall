@@ -553,26 +553,94 @@ observeEvent(input$reset_confirmation2, {
     removeModal(session = getDefaultReactiveDomain())
   })
 
-
   output$loadSynthesis <- renderUI({
     ndocs <- length(unique(values$dfTag$doc_id))
-    txt1 <- (paste0("Tall file contains: ",strong(ndocs),strong(" documents")))
-    txt2 <- (paste0("Last modified date: ", strong(values$D)))
-    txt2b <- (paste0("Language: ", strong(tools::toTitleCase(values$language)), " - Treebank: ", strong(values$treebank)))
-    if(!is.null(dim(values$custom_lists))){
+    txt1 <- paste0("<strong>Tall file contains:</strong> ", ndocs, " documents")
+    txt2 <- paste0("<strong>Last modified date:</strong> ", values$D)
+    txt2b <- paste0("<strong>Language:</strong> ", tools::toTitleCase(values$language),
+                    " - <strong>Treebank:</strong> ", values$treebank)
+
+    if (!is.null(dim(values$custom_lists))) {
       ncust <- nrow(values$custom_lists)
-      txt3 <- (paste0("Tall file includes a custom list of: ",strong(ncust), strong(" words")))
-    } else{
-      txt3 <- (paste0("Tall file does not include a custom word list"))
+      txt3 <- paste0("<strong>Custom Word List:</strong> Includes ", ncust, " words")
+    } else {
+      txt3 <- "<strong>Custom Word List:</strong> Not included"
     }
-    txt4 <- (paste0("The last pre-processing step performed is: ",strong(values$where)))
-    text <- paste0(txt1,"<br><br>",txt2,"<br><br>",txt2b,"<br><br>",txt3,"<br><br>",txt4)
+
+    upos <- values$dfTag %>% select(upos) %>% pull() %>% unique()
+
+    if ("MULTIWORD" %in% upos) {
+      txt3bis <- "<strong>Multi-Words:</strong> Included"
+    } else {
+      txt3bis <- "<strong>Multi-Words:</strong> Not included"
+    }
+
+    items <- toupper(c("email", "url", "hash", "emoji", "ip_address", "mention"))
+
+    if (length(intersect(items, upos)) > 0) {
+      txt3ter <- paste0("<strong>Special Entities:</strong> ",
+                        paste0(tools::toTitleCase(tolower(intersect(items, upos))), collapse=", "))
+    } else {
+      txt3ter <- "<strong>Special Entities:</strong> Not included"
+    }
+
+    txt4 <- paste0("<strong>Last pre-processing step:</strong> ", values$where)
+
+    # Create a structured list format with added spacing
+    text <- paste0(
+      "<ul style='list-style-type: none; padding-left: 0;'>",
+      "<li style='margin-bottom: 15px;'>", txt1, "</li>",
+      "<li style='margin-bottom: 15px;'>", txt2, "</li>",
+      "<li style='margin-bottom: 15px;'>", txt2b, "</li>",
+      "<li style='margin-bottom: 15px;'>", txt3ter, "</li>",
+      "<li style='margin-bottom: 15px;'>", txt3bis, "</li>",
+      "<li style='margin-bottom: 15px;'>", txt3, "</li>",
+      "<li style='margin-bottom: 15px;'>", txt4, "</li>",
+      "</ul>"
+    )
+
     tagList(
       div(
         h4(HTML(text)),
-        style="text-align:left")
+        style = "text-align:left;"
+      )
     )
   })
+
+
+
+  # output$loadSynthesis <- renderUI({
+  #   ndocs <- length(unique(values$dfTag$doc_id))
+  #   txt1 <- (paste0("Tall file contains: ",strong(ndocs),strong(" documents")))
+  #   txt2 <- (paste0("Last modified date: ", strong(values$D)))
+  #   txt2b <- (paste0("Language: ", strong(tools::toTitleCase(values$language)), " - Treebank: ", strong(values$treebank)))
+  #   if(!is.null(dim(values$custom_lists))){
+  #     ncust <- nrow(values$custom_lists)
+  #     txt3 <- (paste0(" - includes a custom list of: ",strong(ncust), strong(" words")))
+  #   } else{
+  #     txt3 <- (paste0(" - does not include a custom word list"))
+  #   }
+  #   upos <- values$dfTag %>% select(upos) %>% pull() %>% unique()
+  #   if("MULTIWORD" %in% upos){
+  #     txt3bis <- paste0(" - includes ",strong("Multi-Words"))
+  #   } else {
+  #     txt3bis <- paste0(" - does not include Multi-Words")
+  #   }
+  #   items <- toupper(c("email", "url", "hash", "emoji", "ip_address", "mention"))
+  #   if(length(intersect(items,upos))>0){
+  #     txt3ter <- paste0(" - includes special entities: ",strong(paste0(tools::toTitleCase(tolower(intersect(items,upos))), collapse=", ")))
+  #   } else {
+  #     txt3ter <- paste0(" - does not include special entities")
+  #   }
+  #
+  #   txt4 <- (paste0("The last pre-processing step performed is: ",strong(values$where)))
+  #   text <- paste0(txt1,"<br><br>",txt2,"<br><br>",txt2b,"<br><br>",txt3ter,"<br><br>",txt3bis,"<br><br>",txt3,"<br><br>",txt4)
+  #   tagList(
+  #     div(
+  #       h4(HTML(text)),
+  #       style="text-align:left")
+  #   )
+  # })
 
   observeEvent(input$modalCustomLists,{
     if (!is.null(values$custom_lists)){
@@ -902,7 +970,7 @@ output$info_treebank <- renderUI({
           inputId = "generalTerm",
           label = "Select Analysis Term:",
           choices = c("Lemma" = "lemma", "Token" = "token"),
-          selected = "lemma",
+          selected = values$generalTerm,
           status = "primary",
           justified = TRUE
         )
@@ -2249,10 +2317,17 @@ observeEvent(input$closePlotModalDoc,{
   ## Words in Context ----
   observe({
     req(values$dfTag)
+
+    term <- values$generalTerm
+    words <- values$dfTag %>%
+      LemmaSelection() %>%
+      select(all_of(term)) %>%
+      pull() %>%
+      unique() %>%
+      sort() %>%
+      tolower()
     updateSelectizeInput(session, 'wordsContSearch',
-                         choices = c("",tolower(sort(unique(LemmaSelection(values$dfTag) %>%
-                                                         select(token) %>%
-                                                         pull())))),
+                         choices = c("",words),
                          selected = "",
                          server = TRUE)
   })
@@ -2263,10 +2338,16 @@ observeEvent(input$closePlotModalDoc,{
    handlerExpr = {
     req(values$dfTag)
     values$wordInContest <- data.frame()
+    term <- values$generalTerm
+    words <- values$dfTag %>%
+      LemmaSelection() %>%
+      select(all_of(term)) %>%
+      pull() %>%
+      unique() %>%
+      sort() %>%
+      tolower()
     updateSelectizeInput(session, 'wordsContSearch',
-                         choices = c("",tolower(sort(unique(LemmaSelection(values$dfTag) %>%
-                                                              select(token) %>%
-                                                              pull())))),
+                         choices = c("",words),
                          selected = "",
                          server = TRUE)
   })
@@ -2291,11 +2372,12 @@ observeEvent(input$closePlotModalDoc,{
     valueExpr = {
       if (input$wordsContSearch!=""){
         word_search <- req(tolower(trimws(input$wordsContSearch)))
-        values$wordInContext <- get_context_window(values$dfTag, target_token=word_search,
+        values$wordInContext <- get_context_window(values$dfTag, target_word=word_search,
                                                    n_left = input$wordsContBefore,
-                                                   n_right = input$wordsContAfter)
+                                                   n_right = input$wordsContAfter,
+                                                   term = values$generalTerm)
         if (nrow(values$wordInContext)>1) {
-          values$contextNetwork <- contextNetwork(df = values$wordInContext, dfTag= values$dfTag, target_token = word_search, n=50)
+          values$contextNetwork <- contextNetwork(df = values$wordInContext, dfTag= values$dfTag, target_word = word_search, n=50)
         } else {
             values$contextNetwork <- NULL
           }
@@ -2319,7 +2401,7 @@ observeEvent(input$closePlotModalDoc,{
         #style = "display: flex; justify-content: center; align-items: center; margin-bottom: 10px;",
         span(style = "color: darkblue; text-align: left; width: 150px; font-weight: bold;", row$doc_id),  # Nome del documento
         span(style = "color: gray; text-align: right; flex: 1;", paste0(unlist(row$context_before), collapse=" ")),
-        span(style = "color: #4F7942; font-weight: bold; padding: 0 10px;", row$token),
+        span(style = "color: #4F7942; font-weight: bold; padding: 0 10px;", row$target_word),
         span(style = "color: gray; text-align: left; flex: 1;", paste0(unlist(row$context_after), collapse=" "))
       )
     })
@@ -2389,12 +2471,12 @@ observeEvent(input$closePlotModalDoc,{
   output$w_ReinClusteringTableSegments <- renderDT({
     dendReinFunction()
     # find sentences containing the tokens/lemma
-    DTformat(values$tc$segments, size='100%', button=TRUE)
+    DTformat(values$tc$segments, size='100%', button=FALSE)
   })
   output$w_ReinSummaryTable <- renderDT({
     dendReinFunction()
     # find sentences containing the tokens/lemma
-    DTformat(values$reinertSummary, size='100%', button=FALSE)
+    DTformat(values$reinertSummary, size='100%', button=FALSE, filter="none")
   })
 
   output$w_ReinClusteringTableTerms <- renderDT({

@@ -1102,8 +1102,13 @@ tfidf <- function(dfTag, term="lemma", document="doc_id"){
 }
 
 ### WORD IN CONTEXT ----
-get_context_window <- function(df, target_token, n_left = 5, n_right = 5) {
-  # Escludi POS non rilevanti
+get_context_window <- function(df, target_word, n_left = 5, n_right = 5, term = "token") {
+  # Ensure term is correctly set
+  if (!term %in% c("token", "lemma")) {
+    stop("The 'term' argument must be either 'token' or 'lemma'.")
+  }
+
+  # Exclude irrelevant POS tags
   no_upos <- c("NGRAM_MERGED", "X", "PUNCT", "SYM", "URL", "IP_ADDRESS", "EMAIL", "DET", "CCONJ")
 
   df <- df %>%
@@ -1111,61 +1116,67 @@ get_context_window <- function(df, target_token, n_left = 5, n_right = 5) {
     group_by(doc_id) %>%
     mutate(term_id = row_number()) %>%
     ungroup() %>%
-    select(doc_id, term_id, token, upos) %>%
-    mutate(token = tolower(token))
+    select(doc_id, term_id, token, lemma, upos) %>%
+    mutate(
+      token = tolower(token),
+      lemma = tolower(lemma)  # Ensure consistency in case sensitivity
+    )
 
-  target_rows <- df %>% filter(token == target_token)
+  # Select target column based on 'term' argument
+  target_column <- if (term == "token") "token" else "lemma"
 
-  # Lista per salvare le finestre di contesto
+  target_rows <- df %>% filter(!!sym(target_column) == target_word)
+
+  # Initialize list to store context windows
   context_list <- vector("list", length = nrow(target_rows))
 
   for (i in seq_len(nrow(target_rows))) {
-    row <- target_rows[i, ]  # Occorrenza specifica del token
+    row <- target_rows[i, ]  # Specific occurrence of the target word
     doc_subset <- df %>% filter(doc_id == row$doc_id)
 
     middle <- row$term_id
-    start <- max(1, row$term_id - n_left)  # Non andare sotto 1
-    end <- min(max(doc_subset$term_id), row$term_id + n_right)  # Non superare la fine
+    start <- max(1, row$term_id - n_left)  # Ensure it doesn't go below 1
+    end <- min(max(doc_subset$term_id), row$term_id + n_right)  # Ensure it doesn't exceed document length
 
-    # Estrai le parole nel contesto sinistro e destro
-    context_tokens_left <- doc_subset %>%
+    # Extract words in left and right context based on 'term'
+    context_left <- doc_subset %>%
       filter(term_id >= start & term_id < middle) %>%
-      pull(token)
+      pull(!!sym(term))
 
-    context_tokens_right <- doc_subset %>%
+    context_right <- doc_subset %>%
       filter(term_id > middle & term_id <= end) %>%
-      pull(token)
+      pull(!!sym(term))
 
-    # Estrai i POS relativi al contesto
+    # Extract POS tags for the context
     context_upos <- doc_subset %>%
       filter(term_id >= start & term_id <= end) %>%
       pull(upos)
 
-    # Salva i risultati in una tibble mantenendo le liste separate
+    # Store results in a tibble while keeping lists separate
     context_list[[i]] <- tibble(
       doc_id = row$doc_id,
-      context_before = list(context_tokens_left),  # Mantiene la lista
-      token = row$token,
-      context_after = list(context_tokens_right),  # Mantiene la lista
-      upos = list(context_upos)  # Mantiene la lista
+      context_before = list(context_left),
+      target_word = row[[target_column]],  # Use the correct target reference
+      context_after = list(context_right),
+      upos = list(context_upos)
     )
   }
 
-  # Unisce tutte le tibble in una sola
+  # Combine all tibbles into a single dataframe
   context_df <- bind_rows(context_list)
 
   return(context_df)
 }
 
 ## Context network
-contextNetwork <- function(df, dfTag, target_token, n=50){
+contextNetwork <- function(df, dfTag, target_word, n=50){
 
   # Espandi le liste nelle colonne context_before, token, context_after, e upos
   longer_df <- df %>%
     mutate(segment_id = row_number()) %>%  # Identificatore univoco del segmento
     rowwise() %>%
     mutate(
-      words = list(c(unlist(context_before), token, unlist(context_after))),  # Unisce tutto in un'unica lista
+      words = list(c(unlist(context_before), target_word, unlist(context_after))),  # Unisce tutto in un'unica lista
       upos_list = list(unlist(upos))  # Appiattisce la lista dei POS
     ) %>%
     ungroup() %>%
@@ -1181,8 +1192,8 @@ contextNetwork <- function(df, dfTag, target_token, n=50){
 
   net$edges <- net$edges %>%
     filter(!(color == "#69696920" &
-               !(term_from == target_token) &
-               !(term_to == target_token)))
+               !(term_from == target_word) &
+               !(term_to == target_word)))
 
   vis <- net2vis(net$nodes,net$edges)
   return(vis)
