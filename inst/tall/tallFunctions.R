@@ -487,30 +487,71 @@ tall_download_model <- function(file,
   }
 
 ## Tagging Special Entites ----
-TaggingCorpusElements <- function(x){
+# TaggingCorpusElements <- function(x){
 
+#   if ("upos_specialentities" %in% names(x)){
+#     x <- resetSpecialEntities(x)
+#   } else {
+#     x$upos_specialentities <- x$upos
+#   }
+
+#   regexList <- c(
+#     EMAIL="(?i)([_+a-z0-9-]+(\\.[_+a-z0-9-]+)*@[a-z0-9-]+(\\.[a-z0-9-]+)*(\\.[a-z]{2,14}))",
+#     #url="(https?://)?(www\\.)?([\\w.-]+\\.[a-z]{2,})(/[\\w\\-./?=&%]*)?",
+#     URL="(?<!@)\\b(https?://[\\w.-]+\\.[a-z]{2,6}(/[\\S]*)?|[\\w.-]+\\.(com|org|net|edu|gov|it|uk)\\b)",
+#     #URL="\\b(https?://[\\w.-]+\\.[a-z]{2,6}(/\\S*)?|[\\w.-]+\\.(com|org|net|edu|gov|it|uk)\\b)",
+#     HASH="^#",
+#     #emoji="([:;=8X][-~^]?[()\\[\\]{}|/\\\\DpP3><]+|[<>]?[:;=8xX][-~^o]?\\)+|<3|</3|[xX][-~^]?[DdPpOo]+|[\\p{So}\\p{Sk}\\p{Emoji_Presentation}])",
+#     EMOJI="(?<!\\w)([:;=8][-o*']?[:()DPp3]|<3|[\\p{So}\\p{Sk}]+)(?!\\w)",
+#     IP_ADDRESS="\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b",
+#     MENTION="^@"
+#   )
+#   items <- names(regexList)
+
+#   resList <- list()
+#   j <- 0
+
+#   for (i in 1:length(items)){
+#     item <- items[i]
+#     results <- stringi::stri_detect_regex(x$token, regexList[[item]])
+#     if (sum(results)>0){
+#       j <- j+1
+#       resList[[j]] <- data.frame(doc_id=x$doc_id[results], item = x$token[results], tag=item)
+#       x$upos[results] <- toupper(item)
+#       x$POSSelected[results] <- FALSE
+#     }
+#   }
+
+#   if (length(resList)>0){
+#     resList <- bind_rows(resList) %>%
+#       filter(!is.na(item))
+#   } else {
+#     resList <- tibble(doc_id=0, item=NA, tag="email") %>% filter(!is.na(item))
+#   }
+
+#   return(list(resList=resList,x=x))
+# }
+TaggingCorpusElements <- function(x){
+  
   if ("upos_specialentities" %in% names(x)){
     x <- resetSpecialEntities(x)
   } else {
     x$upos_specialentities <- x$upos
   }
-
+  
   regexList <- c(
     EMAIL="(?i)([_+a-z0-9-]+(\\.[_+a-z0-9-]+)*@[a-z0-9-]+(\\.[a-z0-9-]+)*(\\.[a-z]{2,14}))",
-    #url="(https?://)?(www\\.)?([\\w.-]+\\.[a-z]{2,})(/[\\w\\-./?=&%]*)?",
     URL="(?<!@)\\b(https?://[\\w.-]+\\.[a-z]{2,6}(/[\\S]*)?|[\\w.-]+\\.(com|org|net|edu|gov|it|uk)\\b)",
-    #URL="\\b(https?://[\\w.-]+\\.[a-z]{2,6}(/\\S*)?|[\\w.-]+\\.(com|org|net|edu|gov|it|uk)\\b)",
     HASH="^#",
-    #emoji="([:;=8X][-~^]?[()\\[\\]{}|/\\\\DpP3><]+|[<>]?[:;=8xX][-~^o]?\\)+|<3|</3|[xX][-~^]?[DdPpOo]+|[\\p{So}\\p{Sk}\\p{Emoji_Presentation}])",
-    EMOJI="(?<!\\w)([:;=8][-o*']?[:()DPp3]|<3|[\\p{So}\\p{Sk}]+)(?!\\w)",
+    EMOJI="[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F700-\U0001F77F\U0001F780-\U0001F7FF\U0001F800-\U0001F8FF\U0001F900-\U0001F9FF\U0001FA00-\U0001FA6F\U0001FA70-\U0001FAFF\U00002702-\U000027B0\U000024C2-\U0001F251]",
     IP_ADDRESS="\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b",
     MENTION="^@"
   )
   items <- names(regexList)
-
+  
   resList <- list()
   j <- 0
-
+  
   for (i in 1:length(items)){
     item <- items[i]
     results <- stringi::stri_detect_regex(x$token, regexList[[item]])
@@ -521,15 +562,39 @@ TaggingCorpusElements <- function(x){
       x$POSSelected[results] <- FALSE
     }
   }
+  
+
 
   if (length(resList)>0){
-    resList <- bind_rows(resList) %>%
-      filter(!is.na(item))
+    resList <- dplyr::bind_rows(resList) %>%
+      dplyr::filter(!is.na(item))
   } else {
-    resList <- tibble(doc_id=0, item=NA, tag="email") %>% filter(!is.na(item))
+    resList <- tibble::tibble(doc_id=0, item=NA, tag="email") %>% dplyr::filter(!is.na(item))
   }
+  
+  # normalize hash and email
+  x <- x %>% 
+    mutate(
+        lemma = case_when(
+            upos %in% c("HASH", "EMAIL") ~ tolower(lemma),
+            upos == "EMOJI" ~ trimws(lemma),
+            TRUE ~ lemma
+        ),
+        token = case_when(
+            upos %in% c("HASH", "EMAIL") ~ tolower(token),
+            upos == "EMOJI" ~ trimws(token),
+            TRUE ~ token
+        )
+    )
+  
+  resList <- resList %>% 
+    mutate(item = case_when(
+        tag %in% c("HASH", "EMAIL") ~ tolower(item),
+        tag == "EMOJI" ~ trimws(item),
+        TRUE ~ item
+    ))
 
-  return(list(resList=resList,x=x))
+  return(list(resList=resList, x=x))
 }
 
 resetSpecialEntities <- function(x){
@@ -1304,7 +1369,7 @@ contextNetwork <- function(df, dfTag, target_word, n=50){
                !(term_from == target_word) &
                !(term_to == target_word)))
 
-  vis <- net2vis(net$nodes,net$edges)
+  vis <- net2vis(net$nodes,net$edges, click = FALSE)
   return(vis)
 }
 
@@ -2049,7 +2114,7 @@ network <- function(x, term="lemma", group=c("doc_id", "sentence_id"), n, minEdg
   obj <- list(nodes=nodes, edges=edges)
 }
 
-net2vis <- function(nodes,edges){
+net2vis <- function(nodes,edges, click=TRUE){
 
   layout <- "layout_nicely"
 
@@ -2089,14 +2154,19 @@ net2vis <- function(nodes,edges){
   VIS <- VIS %>%
     visNetwork::visEdges(smooth = list(type="horizontal")) %>%
     visNetwork::visOptions(highlightNearest =list(enabled = T, hover = T, degree=1), nodesIdSelection = T) %>%
-    visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed = 0.2) %>%
-    visEvents(click = "function(nodes){
-                  Shiny.onInputChange('click', nodes.nodes[0]);
-                  ;}"
-    ) %>%
+    visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed = 0.2) 
+  
+  if (click){
+    VIS <-  VIS %>% 
+      visEvents(click = "function(nodes){
+      Shiny.onInputChange('click', nodes.nodes[0]);
+      ;}"
+    )
+  }
+
+    VIS <- VIS %>%
     #visNetwork::visPhysics(barnesHut=list(avoidOverlap=1)) %>%
-    visNetwork::visOptions(manipulation = FALSE, height ="100%", width = "100%") #%>%
-  #visNetwork::addFontAwesome()
+    visNetwork::visOptions(manipulation = FALSE, height ="100%", width = "100%") 
 }
 
 weight.community=function(row,membership,weigth.within,weight.between){
