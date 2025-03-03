@@ -1,3 +1,81 @@
+### UTILS functions ----
+
+## Check Internet connection ----
+is_online <- function() {
+  # Attempt to connect to a known online resource (e.g., Google's DNS server)
+  result <- try(suppressWarnings(system("ping -c 1 8.8.8.8", intern = TRUE)), silent = TRUE)
+
+  # Check if the ping command was successful
+  if (inherits(result, "try-error")) {
+    return(FALSE)
+  } else {
+    # Check if the output contains "ttl" (time to live), which indicates a successful ping
+    return(any(grepl("ttl=", result, ignore.case = TRUE)))
+  }
+}
+
+## clean raw text before apply tokenization ----
+clean_text <- function(df, text_column = "text", 
+                       add_space = TRUE, 
+                       remove_quotes = TRUE, 
+                       punctuation_marks = c(",", ";", "!", "_", "»", "«" ,"&", "(", ")", "--",
+                                             "..", "...", "....", "--", "---", ".#", "“", "‘", "”", "’", "??", "???")) {
+  
+  # Improved emoji regex pattern to capture Unicode emojis
+  EMOJI <- "[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F700-\U0001F77F\U0001F780-\U0001F7FF\U0001F800-\U0001F8FF\U0001F900-\U0001F9FF\U0001FA00-\U0001FA6F\U0001FA70-\U0001FAFF\U00002702-\U000027B0\U000024C2-\U0001F251]"
+  
+  # Sort punctuation marks by length (longest first) to prioritize sequences
+  punctuation_marks <- punctuation_marks[order(nchar(punctuation_marks), decreasing = TRUE)]
+  
+  # Escape special regex characters
+  punctuation_marks <- sapply(punctuation_marks, function(x) gsub("([\\^$.|?*+(){}])", "\\\\\\1", x))
+  
+  # Create a regex pattern for punctuation sequences
+  punctuation_regex <- paste0("(", paste0(punctuation_marks, collapse = "|"), ")")
+  
+  df %>%
+    mutate(!!text_column := case_when(
+      add_space & remove_quotes ~ {
+        text_cleaned <- stringr::str_replace_all(.data[[text_column]], '[\"|\']', '')  # Remove quotes
+        text_cleaned <- stringr::str_replace_all(text_cleaned, punctuation_regex, " \\1 ")  # Add spaces around punctuation
+        text_cleaned <- stringr::str_replace_all(text_cleaned, EMOJI, " \\0 ")  # Add spaces around emojis
+        stringr::str_squish(text_cleaned)  # Remove extra spaces
+      },
+      add_space ~ {
+        text_cleaned <- stringr::str_replace_all(.data[[text_column]], punctuation_regex, " \\1 ")
+        text_cleaned <- stringr::str_replace_all(text_cleaned, EMOJI, " \\0 ")
+        stringr::str_squish(text_cleaned)
+      },
+      remove_quotes ~ {
+        stringr::str_replace_all(.data[[text_column]], '[\"|\']', '')
+      },
+      TRUE ~ .data[[text_column]]
+    ))
+}
+# clean_text <- function(df, text_column = "text", 
+#                        add_space = TRUE, 
+#                        remove_quotes = TRUE, 
+#                        punctuation_marks = c(",", ";", "!", "_", "»", "«" ,"&", "(", ")","--",
+#                        "..","...","....","--","---",".#","“","‘","”","’", "??","???")) {
+  
+#   # Sort punctuation marks by length (longest first) to prioritize sequences
+#   punctuation_marks <- punctuation_marks[order(nchar(punctuation_marks), decreasing = TRUE)]
+  
+#   # Escape special regex characters
+#   punctuation_marks <- sapply(punctuation_marks, function(x) gsub("([\\^$.|?*+(){}])", "\\\\\\1", x))
+  
+#   # Create a regex pattern for punctuation sequences
+#   punctuation_regex <- paste0("(", paste0(punctuation_marks, collapse = "|"), ")")
+  
+#   df %>%
+#     mutate(!!text_column := case_when(
+#       add_space & remove_quotes ~ gsub("\\s+", " ", gsub(punctuation_regex, " \\1 ", gsub('\"|\'', '', .data[[text_column]]), perl = TRUE)),
+#       add_space ~ gsub("\\s+", " ", gsub(punctuation_regex, " \\1 ", .data[[text_column]], perl = TRUE)),
+#       remove_quotes ~ gsub('"|\'', '', .data[[text_column]]),
+#       TRUE ~ .data[[text_column]]
+#     ))
+      
+# }
 
 ### DATA ----
 # IMPORT TEXT FUNCTIONS ----
@@ -239,6 +317,37 @@ wikiExtract <- function(df){
     }
   }
   return(df)
+}
+
+### REBUILD ORIGINAL DOCUMENTS -----
+
+rebuild_documents <- function(df) {
+  columns <- intersect(names(df),c("start","end","term_id","token","token_id", "lemma", "token_original_nomultiwords", "upos_original",
+                                   "feats", "head_token_id", "dep_rel", "deps", "POSSelected", "upos",  "ngram", "sentence_hl", "xpos",
+                                   "noHapax", "noSingleChar", "lemma_original_nomultiwords", "token_hl", "start_hl","end_hl", "misc",
+                                   "upos_specialentities"))
+
+  df <- df %>% select(!all_of(columns)) %>%
+    distinct(.,doc_id,paragraph_id,sentence_id, .keep_all = TRUE)
+
+  # Combine sentences into paragraphs
+  paragraphs <- df %>%
+    group_by(doc_id, paragraph_id) %>%
+    arrange(sentence_id) %>%
+    summarise(paragraph_text = paste(sentence, collapse = " "), .groups = "drop")
+
+  # Combine paragraphs into full documents
+  documents <- paragraphs %>%
+    group_by(doc_id) %>%
+    arrange(paragraph_id) %>%
+    summarise(text = paste(paragraph_text, collapse = "\n\n"), .groups = "drop") %>%
+    left_join(df %>% select(!c("paragraph_id","sentence_id", "sentence", "doc_selected")) %>% distinct(.,doc_id,.keep_all=TRUE),
+              by=c("doc_id")) %>%
+    rename("doc_selected" = "docSelected") %>%
+    select(!starts_with("upos")) %>%
+    mutate(text_original = text)
+
+  return(documents)
 }
 
 ### SPLIT TEXT INTO SUB-DOCS
@@ -4360,33 +4469,4 @@ model_accuracy <- function(){
 }
 
 
-### REBUILD ORIGINAL DOCUMENTS -----
 
-rebuild_documents <- function(df) {
-  columns <- intersect(names(df),c("start","end","term_id","token","token_id", "lemma", "token_original_nomultiwords", "upos_original",
-                                   "feats", "head_token_id", "dep_rel", "deps", "POSSelected", "upos",  "ngram", "sentence_hl", "xpos",
-                                   "noHapax", "noSingleChar", "lemma_original_nomultiwords", "token_hl", "start_hl","end_hl", "misc",
-                                   "upos_specialentities"))
-
-  df <- df %>% select(!all_of(columns)) %>%
-    distinct(.,doc_id,paragraph_id,sentence_id, .keep_all = TRUE)
-
-  # Combine sentences into paragraphs
-  paragraphs <- df %>%
-    group_by(doc_id, paragraph_id) %>%
-    arrange(sentence_id) %>%
-    summarise(paragraph_text = paste(sentence, collapse = " "), .groups = "drop")
-
-  # Combine paragraphs into full documents
-  documents <- paragraphs %>%
-    group_by(doc_id) %>%
-    arrange(paragraph_id) %>%
-    summarise(text = paste(paragraph_text, collapse = "\n\n"), .groups = "drop") %>%
-    left_join(df %>% select(!c("paragraph_id","sentence_id", "sentence", "doc_selected")) %>% distinct(.,doc_id,.keep_all=TRUE),
-              by=c("doc_id")) %>%
-    rename("doc_selected" = "docSelected") %>%
-    select(!starts_with("upos")) %>%
-    mutate(text_original = text)
-
-  return(documents)
-}

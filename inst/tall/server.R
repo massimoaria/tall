@@ -431,6 +431,7 @@ observeEvent(input$reset_confirmation2, {
              if (!is.null(req(input$file_raw))){
                file <- input$file_raw
                txt <- read_files(file,ext=input$ext, subfolder=FALSE, line_sep=input$line_sep)
+               txt <- txt %>% clean_text() ## clean text before tokenization
                values$menu <- 0
                values$custom_lists <- NULL
                values$txt <- txt %>%
