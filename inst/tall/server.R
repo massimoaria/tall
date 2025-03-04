@@ -431,6 +431,7 @@ observeEvent(input$reset_confirmation2, {
              if (!is.null(req(input$file_raw))){
                file <- input$file_raw
                txt <- read_files(file,ext=input$ext, subfolder=FALSE, line_sep=input$line_sep)
+               txt <- txt %>% clean_text() ## clean text before tokenization
                values$menu <- 0
                values$custom_lists <- NULL
                values$txt <- txt %>%
@@ -443,14 +444,16 @@ observeEvent(input$reset_confirmation2, {
            load_tall={
              req(input$file1)
              file_tall <- input$file1$datapath
-             #print(file_tall)
              load(file_tall)
              values$menu <- menu
              values$dfTag <- dfTag
+             values$txt <- rebuild_documents(dfTag)
              values$custom_lists <- custom_lists
              values$language <- language
+             values$treebank <- treebank
              values$D <- D
              values$where <- where
+             if (exists("generalTerm")) values$generalTerm <- generalTerm
              values$resetNeed <- TRUE
              #values$metadata <- metadata
              if (values$menu==1) updateTabItems(session, "sidebarmenu", "custTermList")
@@ -464,6 +467,7 @@ observeEvent(input$reset_confirmation2, {
                       load(file_tall)
                       values$menu <- menu
                       values$dfTag <- dfTag
+                      values$txt <- rebuild_documents(dfTag)
                       values$custom_lists <- custom_lists
                       values$language <- language
                       values$D <- D
@@ -550,26 +554,94 @@ observeEvent(input$reset_confirmation2, {
     removeModal(session = getDefaultReactiveDomain())
   })
 
-
   output$loadSynthesis <- renderUI({
     ndocs <- length(unique(values$dfTag$doc_id))
-    txt1 <- (paste0("Tall file contains: ",strong(ndocs),strong(" documents")))
-    txt2 <- (paste0("Last modified date: ", strong(values$D)))
-    txt2b <- (paste0("Language: ", strong(values$language)))
-    if(!is.null(dim(values$custom_lists))){
+    txt1 <- paste0("<strong>Tall file contains:</strong> ", ndocs, " documents")
+    txt2 <- paste0("<strong>Last modified date:</strong> ", values$D)
+    txt2b <- paste0("<strong>Language:</strong> ", tools::toTitleCase(values$language),
+                    " - <strong>Treebank:</strong> ", values$treebank)
+
+    if (!is.null(dim(values$custom_lists))) {
       ncust <- nrow(values$custom_lists)
-      txt3 <- (paste0("Tall file includes a custom list of: ",strong(ncust), strong(" words")))
-    } else{
-      txt3 <- (paste0("Tall file does not include a custom word list"))
+      txt3 <- paste0("<strong>Custom Word List:</strong> Includes ", ncust, " words")
+    } else {
+      txt3 <- "<strong>Custom Word List:</strong> Not included"
     }
-    txt4 <- (paste0("The last pre-processing step performed is: ",strong(values$where)))
-    text <- paste0(txt1,"<br><br>",txt2,"<br><br>",txt2b,"<br><br>",txt3,"<br><br>",txt4)
+
+    upos <- values$dfTag %>% select(upos) %>% pull() %>% unique()
+
+    if ("MULTIWORD" %in% upos) {
+      txt3bis <- "<strong>Multi-Words:</strong> Included"
+    } else {
+      txt3bis <- "<strong>Multi-Words:</strong> Not included"
+    }
+
+    items <- toupper(c("email", "url", "hash", "emoji", "ip_address", "mention"))
+
+    if (length(intersect(items, upos)) > 0) {
+      txt3ter <- paste0("<strong>Special Entities:</strong> ",
+                        paste0(tools::toTitleCase(tolower(intersect(items, upos))), collapse=", "))
+    } else {
+      txt3ter <- "<strong>Special Entities:</strong> Not included"
+    }
+
+    txt4 <- paste0("<strong>Last pre-processing step:</strong> ", values$where)
+
+    # Create a structured list format with added spacing
+    text <- paste0(
+      "<ul style='list-style-type: none; padding-left: 0;'>",
+      "<li style='margin-bottom: 15px;'>", txt1, "</li>",
+      "<li style='margin-bottom: 15px;'>", txt2, "</li>",
+      "<li style='margin-bottom: 15px;'>", txt2b, "</li>",
+      "<li style='margin-bottom: 15px;'>", txt3ter, "</li>",
+      "<li style='margin-bottom: 15px;'>", txt3bis, "</li>",
+      "<li style='margin-bottom: 15px;'>", txt3, "</li>",
+      "<li style='margin-bottom: 15px;'>", txt4, "</li>",
+      "</ul>"
+    )
+
     tagList(
       div(
         h4(HTML(text)),
-        style="text-align:left")
+        style = "text-align:left;"
+      )
     )
   })
+
+
+
+  # output$loadSynthesis <- renderUI({
+  #   ndocs <- length(unique(values$dfTag$doc_id))
+  #   txt1 <- (paste0("Tall file contains: ",strong(ndocs),strong(" documents")))
+  #   txt2 <- (paste0("Last modified date: ", strong(values$D)))
+  #   txt2b <- (paste0("Language: ", strong(tools::toTitleCase(values$language)), " - Treebank: ", strong(values$treebank)))
+  #   if(!is.null(dim(values$custom_lists))){
+  #     ncust <- nrow(values$custom_lists)
+  #     txt3 <- (paste0(" - includes a custom list of: ",strong(ncust), strong(" words")))
+  #   } else{
+  #     txt3 <- (paste0(" - does not include a custom word list"))
+  #   }
+  #   upos <- values$dfTag %>% select(upos) %>% pull() %>% unique()
+  #   if("MULTIWORD" %in% upos){
+  #     txt3bis <- paste0(" - includes ",strong("Multi-Words"))
+  #   } else {
+  #     txt3bis <- paste0(" - does not include Multi-Words")
+  #   }
+  #   items <- toupper(c("email", "url", "hash", "emoji", "ip_address", "mention"))
+  #   if(length(intersect(items,upos))>0){
+  #     txt3ter <- paste0(" - includes special entities: ",strong(paste0(tools::toTitleCase(tolower(intersect(items,upos))), collapse=", ")))
+  #   } else {
+  #     txt3ter <- paste0(" - does not include special entities")
+  #   }
+  #
+  #   txt4 <- (paste0("The last pre-processing step performed is: ",strong(values$where)))
+  #   text <- paste0(txt1,"<br><br>",txt2,"<br><br>",txt2b,"<br><br>",txt3ter,"<br><br>",txt3bis,"<br><br>",txt3,"<br><br>",txt4)
+  #   tagList(
+  #     div(
+  #       h4(HTML(text)),
+  #       style="text-align:left")
+  #   )
+  # })
 
   observeEvent(input$modalCustomLists,{
     if (!is.null(values$custom_lists)){
@@ -798,19 +870,32 @@ observeEvent(input$reset_confirmation2, {
     tags$img(src = values$flag, height = "25px", width = "40px", style = "margin-top:-30px;")
   })
 
+  output$optionsTokenization <- renderUI({
+    selectInput(
+      inputId = 'language_model', label="Language", choices = values$label_lang,
+      multiple=FALSE,
+      width = "100%",
+      selected = values$language
+    )
+  })
+
+  output$treebankSelect <- renderUI({
+    selected_treebanks <- values$languages$treebank[values$languages$language_name == values$language]
+    selectInput("treebank", "Treebank", choices = selected_treebanks, selected = values$treebank)
+  })
 
 output$info_treebank <- renderUI({
-  ud_description <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(description) %>% as.character()
-  ud_info <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(tokens,words,sentences)
+  ud_description <- values$languages %>% filter(language_name==values$language , treebank==values$treebank) %>% select(description) %>% as.character()
+  ud_info <- values$languages %>% filter(language_name==values$language , treebank==values$treebank) %>% select(tokens,words,sentences)
   ud_info <- paste0("Tokens: ",format(as.numeric(ud_info$tokens), big.mark = ",", scientific = FALSE),
     " - Words: ",format(as.numeric(ud_info$words), big.mark = ",", scientific = FALSE),
     " - Sentences: ",format(as.numeric(ud_info$sentences), big.mark = ",", scientific = FALSE))
-  accuracy <- values$accuracy %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(Words,Lemma, Sentences, UPOS)
+  accuracy <- values$accuracy %>% filter(language_name==values$language , treebank==values$treebank) %>% select(Words,Lemma, Sentences, UPOS)
   ud_accuracy1 <- paste0("Words: ",accuracy$Words,"% ---  Lemma: ",accuracy$Lemma, "%")
   ud_accuracy2 <- paste0("Sentences: ",accuracy$Sentences, "%  ---  PoS:   ",accuracy$UPOS,"%")
-  ud_contributors <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(contributors) %>% as.character()
-  ud_hub_page_link <-  values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(hub_page_link) %>% as.character()
-  values$flag <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(flag) %>% as.character()
+  ud_contributors <- values$languages %>% filter(language_name==values$language , treebank==values$treebank) %>% select(contributors) %>% as.character()
+  ud_hub_page_link <-  values$languages %>% filter(language_name==values$language , treebank==values$treebank) %>% select(hub_page_link) %>% as.character()
+  values$flag <- values$languages %>% filter(language_name==values$language , treebank==values$treebank) %>% select(flag) %>% as.character()
   #  HTML
   tagList(
     tags$div(
@@ -833,17 +918,21 @@ output$info_treebank <- renderUI({
 })
 
   observeEvent(input$language_model, {
-    selected_treebanks <- values$languages$treebank[values$languages$language_name == input$language_model]
-    updateSelectInput(session, "treebank", choices = selected_treebanks)
+    values$language <- input$language_model
+    selected_treebanks <- values$languages$treebank[values$languages$language_name == values$language]
+    updateSelectInput(session, "treebank", choices = selected_treebanks, selected = values$treebank)
   })
 
+  observeEvent(input$treebank, {
+    values$treebank <- input$treebank
+  })
 
   posTagging <- eventReactive({
     input$tokPosRun
   },{
-    values$language <- input$language_model
-    values$treebank <- input$treebank
-    values$language_file <- values$languages %>% filter(language_name==input$language_model, treebank==input$treebank) %>% select(file) %>% as.character()
+    #values$language <- input$language_model
+    #values$treebank <- input$treebank
+    values$language_file <- values$languages %>% filter(language_name==values$language, treebank==input$treebank) %>% select(file) %>% as.character()
     ## download and load model language
     udmodel_lang <- loadLanguageModel(file = values$language_file)
 
@@ -873,6 +962,29 @@ output$info_treebank <- renderUI({
   }
   )
 
+  output$unitAnalysis <- renderUI({
+    if (!is.null(values$dfTag)){
+      list(
+        # h5(strong("Select Analysis Term: Lemma or Token")),
+        # br(),
+        radioGroupButtons(
+          inputId = "generalTerm",
+          label = "Select Analysis Term:",
+          choices = c("Lemma" = "lemma", "Token" = "token"),
+          selected = values$generalTerm,
+          status = "primary",
+          justified = TRUE
+        )
+        )
+    }
+  })
+
+  ## Term selected on the dashboard
+  output$termSelected <- renderText({
+    if (!is.null(input$generalTerm)) values$generalTerm <- input$generalTerm
+    if (values$menu>=1) HTML(paste("Analysis by: <b>", tools::toTitleCase(values$generalTerm), "</b>"))
+  })
+
   output$tokPosTagData<- DT::renderDT({
     posTagging()
 
@@ -893,7 +1005,7 @@ output$info_treebank <- renderUI({
     handlerExpr = {
       file <- paste("Tall-Export-File-", sys.time(), ".tall", sep="")
       file_path <- destFolder(file,values$wdTall)
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Custom Term Lists", file_path)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Custom Term Lists", file_path, values$generalTerm)
       popUp(title="Saved in your working folder", type="saved")
     })
 
@@ -957,7 +1069,7 @@ output$info_treebank <- renderUI({
     handlerExpr = {
       file <- paste("Tall-Export-File-", sys.time(), ".tall", sep="")
       file_path <- destFolder(file,values$wdTall)
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "POS Tag Selection", file_path)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "POS Tag Selection", file_path, values$generalTerm)
       popUp(title="Saved in your working folder", type="saved")
     })
 
@@ -1021,7 +1133,7 @@ output$info_treebank <- renderUI({
       req(file$datapath[1])
       custom_lists <- lapply(file$datapath,function(x){
         x <- read_excel(x) %>% select(c(1,2))
-        names(x) <- c(input$CTLterm, "upos")
+        names(x) <- c(values$generalTerm, "upos")
         return(x)
       })
       custom_lists <- do.call(rbind,custom_lists)
@@ -1052,7 +1164,7 @@ output$info_treebank <- renderUI({
     input$custTermListRun
   },{
     #req(input$custom_lists)
-    values$dfTag <- mergeCustomLists(values$dfTag,values$custom_lists, input$CTLterm)
+    values$dfTag <- mergeCustomLists(values$dfTag,values$custom_lists, values$generalTerm)
     # Update the DT proxy
 
     replaceData(proxy1, values$dfTag, resetPaging = FALSE)
@@ -1080,7 +1192,7 @@ output$info_treebank <- renderUI({
   output$customListData<- DT::renderDT(server=FALSE,{
     #customListMerging()
 
-    switch(input$CTLterm,
+    switch(values$generalTerm,
       lemma={
         if (is.null(values$custom_lists)){
           DTdf <- DTformat(data.frame(Lemma=NULL,POSTag=NULL))
@@ -1107,7 +1219,7 @@ output$info_treebank <- renderUI({
     handlerExpr = {
       file <- paste("Tall-Export-File-", sys.time(), ".tall", sep="")
       file_path <- destFolder(file,values$wdTall)
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Custom Term Lists", file_path)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Custom Term Lists", file_path, values$generalTerm)
       popUp(title="Saved in your working folder", type="saved")
     })
 
@@ -1147,7 +1259,7 @@ multiword <- eventReactive({
 
   values$posMwSel <- gsub(":","",gsub(":.*","",input$multiwordPosSelGroup))
 
-  values$rakeResults <- rake(values$dfTag, group = "doc_id", ngram_max=input$ngram_max, relevant = values$posMwSel, freq.min=input$freq_minMW, term=input$term, method=input$MWmethod)
+  values$rakeResults <- rake(values$dfTag, group = "doc_id", ngram_max=input$ngram_max, relevant = values$posMwSel, freq.min=input$freq_minMW, term=values$generalTerm, method=input$MWmethod)
 
   values$stats <- values$rakeResults$stats
 
@@ -1202,10 +1314,10 @@ multiword <- eventReactive({
     row_sel <- input$multiwordList_rows_selected
 
     if (length(row_sel)>0){
-      values$dfTag <- applyRake(values$dfTag, rakeResults=values$rakeResults, row_sel=row_sel, term=input$term)
+      values$dfTag <- applyRake(values$dfTag, rakeResults=values$rakeResults, row_sel=row_sel, term=values$generalTerm)
 
       ## Highlight multiword
-      values$dfTag <- highlight(values$dfTag, term=input$term, upos="MULTIWORD")
+      values$dfTag <- highlight(values$dfTag, term=values$generalTerm, upos="MULTIWORD")
 
 
       replaceData(proxy4, values$dfTag, resetPaging = FALSE)
@@ -1234,7 +1346,7 @@ multiword <- eventReactive({
     handlerExpr = {
       file <- paste("Tall-Export-File-", sys.time(), ".tall", sep="")
       file_path <- destFolder(file,values$wdTall)
-      saveTall(values$dfTag, values$stats, values$language, values$treebank, values$menu, "Multi-Word Creation", file_path)
+      saveTall(values$dfTag, values$stats, values$language, values$treebank, values$menu, "Multi-Word Creation", file_path, values$generalTerm)
       popUp(title="Saved in your working folder", type="saved")
     })
 
@@ -1273,7 +1385,7 @@ multiword <- eventReactive({
   },{
     req(input$multiword_lists)
     # to replace with input values
-    term <-  input$termMWL
+    term <-  values$generalTerm
 
     relevant <- unique(values$dfTag$upos)
 
@@ -1313,7 +1425,7 @@ multiword <- eventReactive({
     handlerExpr = {
       file <- paste("Tall-Export-File-", sys.time(), ".tall", sep="")
       file_path <- destFolder(file,values$wdTall)
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Multi-Word by a List", file_path)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Multi-Word by a List", file_path, values$generalTerm)
       popUp(title="Saved in your working folder", type="saved")
     })
 
@@ -1377,7 +1489,7 @@ multiword <- eventReactive({
     handlerExpr = {
       file <- paste("Tall-Export-File-", sys.time(), ".tall", sep="")
       file_path <- destFolder(file,values$wdTall)
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "POS Tag Selection", file_path)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "POS Tag Selection", file_path, values$generalTerm)
       popUp(title="Saved in your working folder", type="saved")
     })
 
@@ -1389,82 +1501,165 @@ multiword <- eventReactive({
       label = NULL,
       choices = label,
       selected = values$selectedFilter,
+      multiple = TRUE,
       width = "100%"
     )
   })
 
-    observeEvent(ignoreNULL = TRUE,
-                 eventExpr={input$filterList},
-                 handlerExpr = {
-                   if (nchar(input$filterList)>0){
-                     filtervalues <- LemmaSelection(values$dfTag) %>%
-                       select(all_of(input$filterList)) %>%
-                       distinct()
-                     values$filtervalues <- sort(filtervalues[[1]])
-                     values$selectedFilter <- input$filterList
-
-                     output$filterValue <- renderUI({
-                       multiInput(
-                         inputId="filterValue",
-                         label=NULL,
-                         choices = values$filtervalues,
-                         selected = NULL,
-                         width = "100%"
-                       )
-                     })
-                   }
-     })
-
   observeEvent(ignoreNULL = TRUE,
-               eventExpr={input$filterAll},
-               handlerExpr = {
-                 updateMultiInput(
-                   session = session,
-                   inputId = "filterValue",
-                   selected = values$filtervalues
-                 )
-               })
+    eventExpr={input$filterList},
+    handlerExpr = {
+      if (length(input$filterList)>0){
+        filtervalues <- LemmaSelection(values$dfTag) %>%
+          select(all_of(input$filterList)) %>%
+          distinct()
+        values$filtervalues <- sort(filtervalues[[1]])
+        values$selectedFilter <- input$filterList
+      }
+})
 
-  observeEvent(ignoreNULL = TRUE,
-               eventExpr={input$filterNone},
-               handlerExpr = {
-                 updateMultiInput(
-                   session = session,
-                   inputId = "filterValue",
-                   selected = ""
-                 )
-               })
 
+  output$filterValue <- renderUI({
+    req(input$filterList)
+
+    lapply(input$filterList, function(var) {
+        if (!is.null(values[[paste0("filter_", var)]])){
+          sel_value <- values[[paste0("filter_", var)]]
+        } else {
+          sel_value <- ""
+        }
+        if (is.factor(values$dfTag[[var]])) {
+            selectInput(inputId = paste0("filter_", var),
+                        label = paste("Filter", var),
+                        choices = levels(values$dfTag[[var]]),
+                        selected = sel_value,
+                        multiple = TRUE)
+        } else if (is.numeric(values$dfTag[[var]])) {
+            if (sel_value[1] == "") sel_value <- range(values$dfTag[[var]], na.rm = TRUE)
+            sliderInput(inputId = paste0("filter_", var),
+                        label = paste("Filter", var),
+                        min = min(values$dfTag[[var]], na.rm = TRUE),
+                        max = max(values$dfTag[[var]], na.rm = TRUE),
+                        value = sel_value)
+        } else if (is.character(values$dfTag[[var]])){
+            selectInput(inputId = paste0("filter_", var),
+                        label = paste("Filter", var),
+                        choices = sort(unique(values$dfTag[[var]])),
+                        selected = sel_value,
+                        multiple = TRUE)
+        }
+    })
+  })
 
   filterDATA <- eventReactive(
     ignoreNULL = TRUE,
     eventExpr = {input$filterRun},
     valueExpr = {
-      if (!is.null(input$filterValue)){
-        values$dfTag$docSelected <- ifelse(values$dfTag[[values$selectedFilter]] %in% input$filterValue,TRUE,FALSE)
-      } else {
-        values$dfTag$docSelected <- TRUE
-      }
+      if (!is.null(input$filterList)) {
+        docSelected <- data.frame(matrix(ncol = 0, nrow = nrow(values$dfTag)))
+        for (var in input$filterList) {
+            input_id <- paste0("filter_", var)
+            filter_value <- input[[input_id]]
+            values[[input_id]] <- filter_value
+  
+            if (is.factor(values$dfTag[[var]])) {
+              docSelected[[var]] <- ifelse(values$dfTag[[var]] %in% filter_value,TRUE,FALSE)
+            } else if (is.character(values$dfTag[[var]])) {
+              docSelected[[var]] <- ifelse(values$dfTag[[var]] %in% filter_value,TRUE,FALSE)
+            } else if (is.numeric(values$dfTag[[var]])) {
+              docSelected[[var]] <- ifelse(values$dfTag[[var]] >= filter_value[1] &
+                values$dfTag[[var]] <= filter_value[2],TRUE,FALSE)
+            } else {
+              docSelected[[var]] <- TRUE
+            }
+        }
+        values$dfTag$docSelected <- ifelse(rowSums(docSelected)>=ncol(docSelected),TRUE,FALSE)
+    } else {
+      values$dfTag$docSelected <- TRUE
+    }
       values$dfTag
     })
 
-  output$filterData <- renderDT({
-    filterDATA()
-    DTformat(LemmaSelection(values$dfTag) %>%
-               dplyr::filter(docSelected), nrow=3, size='100%', title=paste0("Filtered Data by ", input$filterList))
-  })
+    output$filterData <- renderDT({
+      filterDATA()
+      DTformat(LemmaSelection(values$dfTag) %>%
+                 dplyr::filter(docSelected), nrow=3, size='100%', title=paste0("Filtered Data by ", paste0(input$filterList, collapse=", ")))
+    })
+
+    ## Data filtered by dynamic text on dashboardHeader
+
+    output$dataFilteredBy <- renderText({
+      if (!is.null(input$filterList)){
+        req(input$filterRun)
+        HTML(paste("Documents filtered by: <b>", paste0(input$filterList,collapse=", "), "</b>"))
+      } else {
+        HTML("")
+      }
+    })
+
+  observeEvent(ignoreNULL = TRUE,
+               eventExpr={input$filterAll},
+               handlerExpr = {
+                lapply(input$filterList, function(var) {
+                  if (is.factor(values$dfTag[[var]])) {
+                      updateSelectInput(inputId = paste0("filter_", var),
+                                  session = session,
+                                  #label = paste("Filter", var),
+                                  #choices = levels(values$dfTag[[var]]),
+                                  selected = levels(values$dfTag[[var]]))
+                      values[[paste0("filter_", var)]] <- levels(values$dfTag[[var]])
+                  } else if (is.numeric(values$dfTag[[var]])) {
+                      updateSliderInput(inputId = paste0("filter_", var),
+                                  session = session,
+                                  #label = paste("Filter", var),
+                                  #min = min(values$dfTag[[var]], na.rm = TRUE),
+                                  #max = max(values$dfTag[[var]], na.rm = TRUE),
+                                  value = range(values$dfTag[[var]], na.rm = TRUE))
+                      values[[paste0("filter_", var)]] <- range(values$dfTag[[var]], na.rm = TRUE)
+                  } else if (is.character(values$dfTag[[var]])){
+                      updateSelectInput(inputId = paste0("filter_", var),
+                                  session = session,
+                                  #label = paste("Filter", var),
+                                  #choices = sort(unique(values$dfTag[[var]])),
+                                  selected = sort(unique(values$dfTag[[var]])))
+                     values[[paste0("filter_", var)]] <- sort(unique(values$dfTag[[var]]))
+                  }
+              })
+               })
+
+  observeEvent(ignoreNULL = TRUE,
+    eventExpr={input$filterNone},
+    handlerExpr = {
+     lapply(input$filterList, function(var) {
+       if (is.factor(values$dfTag[[var]])) {
+           updateSelectInput(inputId = paste0("filter_", var),
+                       session = session,
+                       #label = paste("Filter", var),
+                       #choices = levels(values$dfTag[[var]]),
+                       selected = NULL)
+           values[[paste0("filter_", var)]] <- NULL
+       } else if (is.numeric(values$dfTag[[var]])) {
+           updateSliderInput(inputId = paste0("filter_", var),
+                       session = session,
+                       #label = paste("Filter", var),
+                       #min = min(values$dfTag[[var]], na.rm = TRUE),
+                       #max = max(values$dfTag[[var]], na.rm = TRUE),
+                       value = c(min(values$dfTag[[var]], na.rm = TRUE),
+                       min(values$dfTag[[var]], na.rm = TRUE)))
+           values[[paste0("filter_", var)]] <- c(min(values$dfTag[[var]], na.rm = TRUE),
+                                                 min(values$dfTag[[var]], na.rm = TRUE))
+       } else if (is.character(values$dfTag[[var]])){
+           updateSelectInput(inputId = paste0("filter_", var),
+                       session = session,
+                       #label = paste("Filter", var),
+                       #choices = sort(unique(values$dfTag[[var]])),
+                       selected = NULL)
+          values[[paste0("filter_", var)]] <- NULL
+       }
+   })
+    })
 
 
-  ## Data filtered by dynamic text on dashboardHeader
-
-  output$dataFilteredBy <- renderText({
-    if (!is.null(input$filterValue)){
-      req(input$filterRun)
-      HTML(paste("Documents filtered by: <b>", input$filterList, "</b>"))
-    } else {
-      HTML("")
-    }
-  })
 
 
   ## GROUPS ----
@@ -1505,6 +1700,7 @@ multiword <- eventReactive({
         showModal(ungroupModal(session))
       }
     })
+
 
   ## Data grouped by dynamic text on dashboardHeader
   output$dataGroupedBy <- renderText({
@@ -1808,7 +2004,7 @@ multiword <- eventReactive({
     pos <- unique(pos$upos)
 
     values$wcDfPlot <- freqByPos(LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected),
-                                 term=input$termWC,
+                                 term=values$generalTerm,
                                  pos=pos) %>%
       slice_head(n=N) %>%
       rename(label = term,
@@ -1853,8 +2049,7 @@ multiword <- eventReactive({
     input$dictionaryApply
   },
   {
-    #values$dictFreq <- freqByPos(values$dfTag, term=input$termDict, pos=c("PROPN", "NOUN", "ADJ", "VERB"))
-    Term <- input$termDict
+    Term <- values$generalTerm
     values$dictFreq <- LemmaSelection(values$dfTag) %>%
       dplyr::filter(docSelected) %>%
       mutate(token = ifelse(upos == "MULTIWORD", lemma,token))
@@ -1895,9 +2090,9 @@ multiword <- eventReactive({
   {
     values$tfidfDATA <- LemmaSelection(values$dfTag) %>%
       dplyr::filter(docSelected) %>%
-      tfidf(term=input$termTfidf)
+      tfidf(term=values$generalTerm)
 
-    if(input$termTfidf=="lemma"){
+    if(values$generalTerm=="lemma"){
       values$tfidfDATA <- values$tfidfDATA  %>%
                  rename(
                    "Lemma" = term,
@@ -2090,7 +2285,7 @@ observeEvent(input$closePlotModalDoc,{
     },
     valueExpr = {
       if(!is.null(input$posSelectionFreq)){
-        values$wFreq <- freqByPos(values$dfTag %>% filter(docSelected), term=input$wFreqTerm, pos=input$posSelectionFreq)
+        values$wFreq <- freqByPos(values$dfTag %>% filter(docSelected), term=values$generalTerm, pos=input$posSelectionFreq)
         values$wFreqPlotly <- freqPlotly(values$wFreq,x="n",y="term",n=input$wFreqN, xlabel="Frequency",ylabel=input$posSelectionFreq, scale="identity")
 
         values$wFreqData <- values$wFreq %>%
@@ -2206,10 +2401,17 @@ observeEvent(input$closePlotModalDoc,{
   ## Words in Context ----
   observe({
     req(values$dfTag)
+
+    term <- values$generalTerm
+    words <- values$dfTag %>%
+      LemmaSelection() %>%
+      select(all_of(term)) %>%
+      pull() %>%
+      unique() %>%
+      sort() %>%
+      tolower()
     updateSelectizeInput(session, 'wordsContSearch',
-                         choices = c("",tolower(sort(unique(LemmaSelection(values$dfTag) %>%
-                                                         select(token) %>%
-                                                         pull())))),
+                         choices = c("",words),
                          selected = "",
                          server = TRUE)
   })
@@ -2220,10 +2422,16 @@ observeEvent(input$closePlotModalDoc,{
    handlerExpr = {
     req(values$dfTag)
     values$wordInContest <- data.frame()
+    term <- values$generalTerm
+    words <- values$dfTag %>%
+      LemmaSelection() %>%
+      select(all_of(term)) %>%
+      pull() %>%
+      unique() %>%
+      sort() %>%
+      tolower()
     updateSelectizeInput(session, 'wordsContSearch',
-                         choices = c("",tolower(sort(unique(LemmaSelection(values$dfTag) %>%
-                                                              select(token) %>%
-                                                              pull())))),
+                         choices = c("",words),
                          selected = "",
                          server = TRUE)
   })
@@ -2248,11 +2456,12 @@ observeEvent(input$closePlotModalDoc,{
     valueExpr = {
       if (input$wordsContSearch!=""){
         word_search <- req(tolower(trimws(input$wordsContSearch)))
-        values$wordInContext <- get_context_window(values$dfTag, target_token=word_search,
+        values$wordInContext <- get_context_window(values$dfTag, target_word=word_search,
                                                    n_left = input$wordsContBefore,
-                                                   n_right = input$wordsContAfter)
+                                                   n_right = input$wordsContAfter,
+                                                   term = values$generalTerm)
         if (nrow(values$wordInContext)>1) {
-          values$contextNetwork <- contextNetwork(values$wordInContext, values$dfTag, target_token= word_search, n=50)
+          values$contextNetwork <- contextNetwork(df = values$wordInContext, dfTag= values$dfTag, target_word = word_search, n=50)
         } else {
             values$contextNetwork <- NULL
           }
@@ -2276,7 +2485,7 @@ observeEvent(input$closePlotModalDoc,{
         #style = "display: flex; justify-content: center; align-items: center; margin-bottom: 10px;",
         span(style = "color: darkblue; text-align: left; width: 150px; font-weight: bold;", row$doc_id),  # Nome del documento
         span(style = "color: gray; text-align: right; flex: 1;", paste0(unlist(row$context_before), collapse=" ")),
-        span(style = "color: #4F7942; font-weight: bold; padding: 0 10px;", row$token),
+        span(style = "color: #4F7942; font-weight: bold; padding: 0 10px;", row$target_word),
         span(style = "color: gray; text-align: left; flex: 1;", paste0(unlist(row$context_after), collapse=" "))
       )
     })
@@ -2296,7 +2505,7 @@ observeEvent(input$closePlotModalDoc,{
     ignoreNULL = TRUE,
     eventExpr = {input$w_reinclusteringApply},
     valueExpr ={
-      values$reinert <- tall::reinert(x=values$dfTag, k = input$w_rein_k, term = input$termReinClustering,
+      values$reinert <- tall::reinert(x=values$dfTag, k = input$w_rein_k, term = values$generalTerm,
         segment_size = input$w_rein_segments_size,
         min_segment_size = input$w_rein_min_segments,
         min_split_members = input$w_rein_min_split_members,
@@ -2346,12 +2555,12 @@ observeEvent(input$closePlotModalDoc,{
   output$w_ReinClusteringTableSegments <- renderDT({
     dendReinFunction()
     # find sentences containing the tokens/lemma
-    DTformat(values$tc$segments, size='100%', button=TRUE)
+    DTformat(values$tc$segments, size='100%', button=FALSE)
   })
   output$w_ReinSummaryTable <- renderDT({
     dendReinFunction()
     # find sentences containing the tokens/lemma
-    DTformat(values$reinertSummary, size='100%', button=FALSE)
+    DTformat(values$reinertSummary, size='100%', button=FALSE, filter="none")
   })
 
   output$w_ReinClusteringTableTerms <- renderDT({
@@ -2419,7 +2628,7 @@ observeEvent(input$closePlotModalDoc,{
     eventExpr = {input$w_clusteringApply},
     valueExpr ={
       results <- clustering(LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected), n=input$w_clusteringNMax,
-                            group="doc_id", minEdges=25, term=input$termClustering,
+                            group="doc_id", minEdges=25, term=values$generalTerm,
                             normalization=input$w_clusteringSimilarity)
       values$wordCluster <- results$cluster
       values$wordCluster<-values$wordCluster %>%
@@ -2483,9 +2692,9 @@ observeEvent(input$closePlotModalDoc,{
     valueExpr ={
       ## check to verify if groups exist or not
       if (input$groupCA == "Documents" & "ungroupDoc_id" %in% names(values$dfTag)){
-        values$CA <- wordCA(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected), n=input$nCA, term=input$termCA, group = input$groupCA)
+        values$CA <- wordCA(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected), n=input$nCA, term=values$generalTerm, group = input$groupCA)
       } else {
-        values$CA <- wordCA(LemmaSelection(values$dfTag) %>% filter(docSelected), n=input$nCA, term=input$termCA, group = input$groupCA)
+        values$CA <- wordCA(LemmaSelection(values$dfTag) %>% filter(docSelected), n=input$nCA, term=values$generalTerm, group = input$groupCA)
       }
       ##
       values$CA <- caClustering(values$CA, nclusters = input$nClustersCA, nDim=input$nDimsCA, lim.contr=input$lim.contribCA)
@@ -2622,13 +2831,13 @@ observeEvent(input$closePlotModalDoc,{
       community.repulsion <- 0
 
       if (input$w_groupNet == "Documents" & "ungroupDoc_id" %in% names(values$dfTag)){
-        values$network <- network(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected), term=input$w_term, group=group,
+        values$network <- network(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected), term=values$generalTerm, group=group,
                                   n=input$nMax, minEdges=input$minEdges,
                                   labelsize=input$labelSize, opacity=input$opacity,
                                   interLinks=input$interLinks, normalization=input$normalizationCooc,
                                   remove.isolated=input$removeIsolated, community.repulsion=community.repulsion)
       } else {
-        values$network <- network(LemmaSelection(values$dfTag) %>% filter(docSelected), term=input$w_term, group=group,
+        values$network <- network(LemmaSelection(values$dfTag) %>% filter(docSelected), term=values$generalTerm, group=group,
                                   n=input$nMax, minEdges=input$minEdges,
                                   labelsize=input$labelSize, opacity=input$opacity,
                                   interLinks=input$interLinks, normalization=input$normalizationCooc,
@@ -2944,7 +3153,7 @@ observeEvent(input$closePlotModalDoc,{
       values$grako <- grako(values$dfTag %>% filter(docSelected), n=input$grakoNMax, minEdges=input$grakoMinEdges,
                             labelsize=input$grakoLabelSize, opacity=input$grakoOpacity,
                             normalization=input$grakoNormalization,
-                            singleWords=input$grakoUnigram,term=input$grako_term)
+                            singleWords=input$grakoUnigram,term=values$generalTerm)
 
       values$grakoVis <- grako2vis(nodes=values$grako$nodes, edges=values$grako$edges)
 
@@ -3061,10 +3270,10 @@ observeEvent(input$closePlotModalDoc,{
              {groupTm = input$groupTm})
       ## check to verify if groups exist or not
       if (input$groupTm == "doc_id" & "ungroupDoc_id" %in% names(values$dfTag)){
-        values$TMKresult <- tmTuning(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected), group=groupTm, term=input$termTm,
+        values$TMKresult <- tmTuning(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected), group=groupTm, term=values$generalTerm,
                                      metric=input$metric, n=input$nTm, top_by=input$top_by, minK=input$minK, maxK=input$maxK, Kby=input$Kby)
       } else {
-        values$TMKresult <- tmTuning(LemmaSelection(values$dfTag) %>% filter(docSelected), group=groupTm, term=input$termTm,
+        values$TMKresult <- tmTuning(LemmaSelection(values$dfTag) %>% filter(docSelected), group=groupTm, term=values$generalTerm,
                                      metric=input$metric, n=input$nTm, top_by=input$top_by, minK=input$minK, maxK=input$maxK, Kby=input$Kby)
       }
       ## End check ###
@@ -3139,7 +3348,7 @@ observeEvent(input$closePlotModalDoc,{
       if (input$groupTmEstim == "doc_id" & "ungroupDoc_id" %in% names(values$dfTag)){
         if (isTRUE(input$tmKauto)){
           values$TMKresult <- tmTuning(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected),
-                                       group=groupTmEstim, term=input$termTmEstim,
+                                       group=groupTmEstim, term=values$generalTerm,
                                        metric="CaoJuan2009", n=input$nTmEstim, top_by=input$top_byEstim,
                                        minK=2, maxK=20, Kby=1)
           K <- values$TMKresult %>% slice_min(CaoJuan2009, n=1)
@@ -3150,11 +3359,11 @@ observeEvent(input$closePlotModalDoc,{
         values$TMplotList <- split(1:values$tmK, ceiling(seq_along(1:values$tmK)/3))
         values$TMestim_result <- tmEstimate(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected),
                                             K=values$tmK, group=groupTmEstim,
-                                            term=input$termTmEstim, n=input$nTmEstim, top_by=input$top_byEstim)
+                                            term=values$generalTerm, n=input$nTmEstim, top_by=input$top_byEstim)
       } else {
         if (isTRUE(input$tmKauto)){
           values$TMKresult <- tmTuning(LemmaSelection(values$dfTag) %>% filter(docSelected), group=groupTmEstim,
-                                       term=input$termTmEstim, metric="CaoJuan2009", n=input$nTmEstim,
+                                       term=values$generalTerm, metric="CaoJuan2009", n=input$nTmEstim,
                                        top_by=input$top_byEstim, minK=2, maxK=20, Kby=1)
           K <- values$TMKresult %>% slice_min(CaoJuan2009, n=1)
           values$tmK <- K$topics
@@ -3163,7 +3372,7 @@ observeEvent(input$closePlotModalDoc,{
         }
         values$TMplotList <- split(1:values$tmK, ceiling(seq_along(1:values$tmK)/3))
         values$TMestim_result <- tmEstimate(LemmaSelection(values$dfTag) %>% filter(docSelected), K=values$tmK, group=groupTmEstim,
-                                            term=input$termTmEstim, n=input$nTmEstim, top_by=input$top_byEstim)
+                                            term=values$generalTerm, n=input$nTmEstim, top_by=input$top_byEstim)
       }
       ## End check ###
 

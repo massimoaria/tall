@@ -76,6 +76,7 @@ infoTexts <- helpContent()
 
 header <- shinydashboardPlus::dashboardHeader(title = title_tall,
                                               titleWidth = 250, controlbarIcon = NULL,
+                                              tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("termSelected"))))),
                                               tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("dataGroupedBy"))))),
                                               tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("dataFilteredBy"))))),
                                               #tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("resetButton"))))),
@@ -215,8 +216,23 @@ body <- dashboardBody(
     tags$style(".fa-bars {font-size: 20px}"),
     tags$style(".sidebar-toggle {font-size: 15px}"),
     tags$style(".fa-users {font-size: 18px}"),
+
+    ## radio button color for primary status
+    tags$style(HTML("
+    /* Change the default primary button color */
+    .btn-primary {
+      background-color: #808080 !important; /* new background color */
+      border-color: #808080 !important;
+    }
+    /* Change the hover and active states */
+    .btn-primary:hover,
+    .btn-primary:active,
+    .btn-primary.active {
+      background-color: #4F7942 !important; /* new hover/active color */
+      border-color: #4F7942 !important;
+    }
+  "))
   ),
-  ##checkBoxGroup
 
   tags$head(
     tags$style(HTML("
@@ -233,6 +249,18 @@ body <- dashboardBody(
 
    "))),
 
+   ## Style for selectInput menu with several choices
+   tags$head(
+    tags$style(HTML("
+      .selectize-dropdown-content {
+        max-height: 200px !important; /* Limita l'altezza della lista */
+        overflow-y: auto !important; /* Aggiunge lo scrolling verticale */
+        overflow-x: auto !important; /* Aggiunge lo scrolling orizzontale se necessario */
+        white-space: nowrap !important; /* Evita il wrapping del testo */
+      }
+    "))
+  ),
+  
   tabItems(
 
     ### TALL PAGE ----
@@ -601,11 +629,11 @@ body <- dashboardBody(
             tabsetPanel(type="tabs",
                         tabPanel("Annotated Text Table",
                           fluidRow(
-                            column(9,
+                            column(8,
                                                         shinycssloaders::withSpinner(DT::DTOutput("tokPosTagData"),
                                                                                      color = getOption("spinner.color", default = "#4F7942"))
                             ),
-                            column(3,
+                            column(4,
                                    div(
                                      box(
                                        width = 12,
@@ -618,15 +646,19 @@ body <- dashboardBody(
                                        div(
                                          fluidRow(column(6,
                                                          div(
-                                                           #uiOutput("optionsTokenization")
-                                                           selectInput(
-                                                             inputId = 'language_model', label="Language", choices = label_lang,
-                                                             multiple=FALSE,
-                                                             width = "100%"
-                                                           )),style="margin-top:-9px"),
+                                                           uiOutput("optionsTokenization")
+                                                           # selectInput(
+                                                           #   inputId = 'language_model', label="Language", choices = label_lang,
+                                                           #   multiple=FALSE,
+                                                           #   width = "100%"
+                                                           # )
+                                                           ),style="margin-top:-9px"),
                                                   column(6,
                                                          div(
-                                                           selectInput("treebank", "Treebank", choices = NULL)),style="margin-top:-9px")
+                                                           uiOutput("treebankSelect")
+                                                           # selectInput("treebank", "Treebank", choices = "GUM")
+                                                           ),style="margin-top:-9px")
+
                                          ),
                                          fluidRow(column(6,
                                                          div(
@@ -652,7 +684,9 @@ body <- dashboardBody(
                                                   ))
                                                 ))), style="margin-top:-5px"),
                                        tags$hr(),
-                                       uiOutput("info_treebank")
+                                       uiOutput("info_treebank"),
+                                       tags$hr(),
+                                       uiOutput("unitAnalysis")
                                      )
                                    ),style="margin-top:40px"
                             )
@@ -798,11 +832,11 @@ body <- dashboardBody(
                            width = 12,
                            div(h3(strong(em("Import Custom Term List"))), style="margin-top:-57px"),
                            hr(),
-                           selectInput("CTLterm",
-                                       "Terms:",
-                                       choices = c("Tokens" = "token",
-                                                   "Lemma" = "lemma"),
-                                       selected = "lemma"),
+                           # selectInput("CTLterm",
+                           #             "Terms:",
+                           #             choices = c("Tokens" = "token",
+                           #                         "Lemma" = "lemma"),
+                           #             selected = "lemma"),
                            helpText(h5("Please ensure that the Custom Term List is formatted as an Excel file with two columns.
                                        In the first column include the desired terms.
                                        In the second column provide the corresponding list of PoS associated with each term.")),
@@ -905,14 +939,15 @@ body <- dashboardBody(
                                                                    "Mutual Dependency" = "md",
                                                                    "Log-Frequency Biased Mutual Dependency" = "lfmd"
                                                        ),
-                                                       selected = "lemma")
+                                                       selected = "rake")
                            ),
-                           column(6,
-                                  selectInput("term",
-                                              "Terms:",
-                                              choices = c("Tokens" = "token",
-                                                          "Lemma" = "lemma"),
-                                              selected = "lemma"))
+                           column(6
+                                  # ,selectInput("term",
+                                  #             "Terms:",
+                                  #             choices = c("Tokens" = "token",
+                                  #                         "Lemma" = "lemma"),
+                                  #             selected = "lemma")
+                                  )
                            ),
                            fluidRow(
                              column(6,
@@ -1027,13 +1062,13 @@ body <- dashboardBody(
                                        Each cell of that column include a multi-word. Each term have to be separated by a single whitespace.")),
                            hr(),
                            style="text-align: left; text-color: #989898",
-                           fluidRow(column(12,
-                           selectInput("termMWL",
-                                       "Terms:",
-                                       choices = c("Tokens" = "token",
-                                                   "Lemma" = "lemma"),
-                                       selected = "lemma"))
-                           ),
+                           # fluidRow(column(12,
+                           # selectInput("termMWL",
+                           #             "Terms:",
+                           #             choices = c("Tokens" = "token",
+                           #                         "Lemma" = "lemma"),
+                           #             selected = "lemma"))
+                           # ),
                            fluidRow(column(12,
                                            fileInput("multiword_lists", label=NULL,
                                                      multiple = TRUE,
@@ -1336,11 +1371,11 @@ body <- dashboardBody(
                                                 fluidRow(
                                                   column(12,
                                                          div(
-                                                           selectInput("termWC",
-                                                                       label = "WordCloud by:",
-                                                                       choices = c("Tokens"="token",
-                                                                                   "Lemma"="lemma"),
-                                                                       selected = "token"),
+                                                           # selectInput("termWC",
+                                                           #             label = "WordCloud by:",
+                                                           #             choices = c("Tokens"="token",
+                                                           #                         "Lemma"="lemma"),
+                                                           #             selected = "token"),
                                                            numericInput("nWC",
                                                                         label = "Words",
                                                                         value = 100,
@@ -1393,14 +1428,14 @@ body <- dashboardBody(
                                               box(
                                                 width = 12,
                                                 fluidRow(
-                                                  column(9,
-                                                         div(
-                                                           selectInput("termDict",
-                                                                       label = "Vocabulary by:",
-                                                                       choices = c("Tokens"="token",
-                                                                                   "Lemma"="lemma"),
-                                                                       selected = "token"), style="margin-top:-3px"
-                                                         )
+                                                  column(9
+                                                         # ,div(
+                                                         #   selectInput("termDict",
+                                                         #               label = "Vocabulary by:",
+                                                         #               choices = c("Tokens"="token",
+                                                         #                           "Lemma"="lemma"),
+                                                         #               selected = "token"), style="margin-top:-3px"
+                                                         # )
                                                   ),
                                                   column(3,
                                                          div(
@@ -1427,14 +1462,14 @@ body <- dashboardBody(
                                               box(
                                                 width = 12,
                                                 fluidRow(
-                                                  column(9,
-                                                         div(
-                                                           selectInput("termTfidf",
-                                                                       label = "TF-IDF by:",
-                                                                       choices = c("Tokens"="token",
-                                                                                   "Lemma"="lemma"),
-                                                                       selected = "lemma"), style="margin-top:-3px"
-                                                         )
+                                                  column(9
+                                                         # ,div(
+                                                         #   selectInput("termTfidf",
+                                                         #               label = "TF-IDF by:",
+                                                         #               choices = c("Tokens"="token",
+                                                         #                           "Lemma"="lemma"),
+                                                         #               selected = "lemma"), style="margin-top:-3px"
+                                                         # )
                                                   ),
                                                   column(3,
                                                          div(
@@ -1497,11 +1532,11 @@ body <- dashboardBody(
                                           label=("Number of words"),
                                           value = 20),
                              uiOutput("posSelectionFreq"),
-                             selectInput("wFreqTerm",
-                                         "Terms:",
-                                         choices = c("Tokens" = "token",
-                                                     "Lemma" = "lemma"),
-                                         selected = "lemma"),
+                             # selectInput("wFreqTerm",
+                             #             "Terms:",
+                             #             choices = c("Tokens" = "token",
+                             #                         "Lemma" = "lemma"),
+                             #             selected = "lemma"),
                              width = "220px", icon = icon("cog", lib="glyphicon"),
                              right = TRUE, animate = TRUE,
                              tooltip = tooltipOptions(title = "Options"),
@@ -1636,16 +1671,6 @@ body <- dashboardBody(
                          style="text-align: left; text-color: #989898",
                          selectizeInput(inputId = "wordsContSearch",
                                         label = "Search word(s) in text", choices = NULL),
-
-                         # searchInput(
-                         #   inputId = "wordsContSearch",
-                         #   label = "Search word(s) in text",
-                         #   placeholder = "",
-                         #   btnSearch = icon("search"),
-                         #   btnReset = icon("remove"),
-                         #   resetValue = "",
-                         #   width = "100%"
-                         # ),
                          h4("Window Length:"),
                          fluidRow(
                            column(6,
@@ -1736,11 +1761,11 @@ body <- dashboardBody(
                            dropdown(
                              h4(strong("Options: ")),
                              hr(),
-                             selectInput("termClustering",
-                                         "By:",
-                                         choices = c("Tokens" = "token",
-                                                     "Lemma" = "lemma"),
-                                         selected = "lemma"),
+                             # selectInput("termClustering",
+                             #             "By:",
+                             #             choices = c("Tokens" = "token",
+                             #                         "Lemma" = "lemma"),
+                             #             selected = "lemma"),
                              selectInput("w_clusteringSimilarity",
                                          label = "Words Similarity by:",
                                          choices = c("None"="none",
@@ -1834,11 +1859,11 @@ body <- dashboardBody(
                            dropdown(
                              h4(strong("Options: ")),
                              hr(),
-                             selectInput("termReinClustering",
-                                         "By:",
-                                         choices = c("Tokens" = "token",
-                                                     "Lemma" = "lemma"),
-                                         selected = "token"),
+                             # selectInput("termReinClustering",
+                             #             "By:",
+                             #             choices = c("Tokens" = "token",
+                             #                         "Lemma" = "lemma"),
+                             #             selected = "token"),
                              fluidRow(
                                column(6,
                                       numericInput("w_rein_k",
@@ -1987,13 +2012,14 @@ body <- dashboardBody(
                                                    min = 2,
                                                    step=1)
                                ),
-                               column(6,
-                                      selectInput("termCA",
-                                                  "By:",
-                                                  choices = c("Tokens" = "token",
-                                                              "Lemma" = "lemma"),
-                                                  selected = "lemma")
-                               )),
+                               column(6
+                               #        ,selectInput("termCA",
+                               #                    "By:",
+                               #                    choices = c("Tokens" = "token",
+                               #                                "Lemma" = "lemma"),
+                               #                    selected = "lemma")
+                               )
+                               ),
                              fluidRow(
                                column(6,
                                       numericInput("nClustersCA",
@@ -2138,13 +2164,13 @@ body <- dashboardBody(
                            dropdown(
                              h4(strong("Options: ")),
                              hr(),
-                             selectInput(inputId="w_term",
-                                         label = "Terms:",
-                                         choices = c(
-                                           "Tokens"="token",
-                                           "Lemma"="lemma"),
-                                         selected = "lemma"
-                             ),
+                             # selectInput(inputId="w_term",
+                             #             label = "Terms:",
+                             #             choices = c(
+                             #               "Tokens"="token",
+                             #               "Lemma"="lemma"),
+                             #             selected = "lemma"
+                             # ),
                              selectInput(
                                inputId = "w_groupNet",
                                label = "Co-occurrences in ",
@@ -2266,13 +2292,13 @@ body <- dashboardBody(
                            dropdown(
                              h4(strong("Options: ")),
                              br(),
-                             selectInput(inputId="grako_term",
-                                         label = "By:",
-                                         choices = c(
-                                           "Tokens"="token",
-                                           "Lemma"="lemma"),
-                                         selected = "lemma"
-                             ),
+                             # selectInput(inputId="grako_term",
+                             #             label = "By:",
+                             #             choices = c(
+                             #               "Tokens"="token",
+                             #               "Lemma"="lemma"),
+                             #             selected = "lemma"
+                             # ),
                              selectInput("grakoNormalization",
                                          label = "Normalization by:",
                                          choices = c("None"="none",
@@ -2412,13 +2438,14 @@ body <- dashboardBody(
                              selected = "doc_id"
                            ),
                            uiOutput("TMmetric"),
-                           fluidRow(column(6,
-                                           selectInput("termTm", "Terms:",
-                                                       choices = c(
-                                                         "Tokens"="token",
-                                                         "Lemma"="lemma"),
-                                                       selected = "lemma"
-                                           )),
+                           fluidRow(column(6
+                                           # ,selectInput("termTm", "Terms:",
+                                           #             choices = c(
+                                           #               "Tokens"="token",
+                                           #               "Lemma"="lemma"),
+                                           #             selected = "lemma"
+                                           # )
+                                           ),
                                     column(6,
                                            numericInput("nTm",
                                                         label = "N. of terms",
@@ -2514,13 +2541,14 @@ body <- dashboardBody(
                                            "Sentences"="sentence_id"),
                                selected = "doc_id"),
                              fluidRow(
-                               column(6,
-                                      selectInput("termTmEstim", "By:",
-                                                  choices = c(
-                                                    "Tokens"="token",
-                                                    "Lemma"="lemma"),
-                                                  selected = "lemma"
-                                      )),
+                               column(6
+                                      # ,selectInput("termTmEstim", "By:",
+                                      #             choices = c(
+                                      #               "Tokens"="token",
+                                      #               "Lemma"="lemma"),
+                                      #             selected = "lemma"
+                                      # )
+                                      ),
                                column(6,
                                       numericInput("nTmEstim",
                                                    label = "N. of terms",
