@@ -249,6 +249,18 @@ body <- dashboardBody(
 
    "))),
 
+   ## Style for selectInput menu with several choices
+   tags$head(
+    tags$style(HTML("
+      .selectize-dropdown-content {
+        max-height: 200px !important; /* Limita l'altezza della lista */
+        overflow-y: auto !important; /* Aggiunge lo scrolling verticale */
+        overflow-x: auto !important; /* Aggiunge lo scrolling orizzontale se necessario */
+        white-space: nowrap !important; /* Evita il wrapping del testo */
+      }
+    "))
+  ),
+  
   tabItems(
 
     ### TALL PAGE ----

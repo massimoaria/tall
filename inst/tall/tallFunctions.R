@@ -15,24 +15,24 @@ is_online <- function() {
 }
 
 ## clean raw text before apply tokenization ----
-clean_text <- function(df, text_column = "text", 
-                       add_space = TRUE, 
-                       remove_quotes = TRUE, 
+clean_text <- function(df, text_column = "text",
+                       add_space = TRUE,
+                       remove_quotes = TRUE,
                        punctuation_marks = c(",", ";", "!", "_", "»", "«" ,"&", "(", ")", "--",
                                              "..", "...", "....", "--", "---", ".#", "“", "‘", "”", "’", "??", "???")) {
-  
+
   # Improved emoji regex pattern to capture Unicode emojis
   EMOJI <- "[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F700-\U0001F77F\U0001F780-\U0001F7FF\U0001F800-\U0001F8FF\U0001F900-\U0001F9FF\U0001FA00-\U0001FA6F\U0001FA70-\U0001FAFF\U00002702-\U000027B0\U000024C2-\U0001F251]"
-  
+
   # Sort punctuation marks by length (longest first) to prioritize sequences
   punctuation_marks <- punctuation_marks[order(nchar(punctuation_marks), decreasing = TRUE)]
-  
+
   # Escape special regex characters
   punctuation_marks <- sapply(punctuation_marks, function(x) gsub("([\\^$.|?*+(){}])", "\\\\\\1", x))
-  
+
   # Create a regex pattern for punctuation sequences
   punctuation_regex <- paste0("(", paste0(punctuation_marks, collapse = "|"), ")")
-  
+
   df %>%
     mutate(!!text_column := case_when(
       add_space & remove_quotes ~ {
@@ -52,21 +52,21 @@ clean_text <- function(df, text_column = "text",
       TRUE ~ .data[[text_column]]
     ))
 }
-# clean_text <- function(df, text_column = "text", 
-#                        add_space = TRUE, 
-#                        remove_quotes = TRUE, 
+# clean_text <- function(df, text_column = "text",
+#                        add_space = TRUE,
+#                        remove_quotes = TRUE,
 #                        punctuation_marks = c(",", ";", "!", "_", "»", "«" ,"&", "(", ")","--",
 #                        "..","...","....","--","---",".#","“","‘","”","’", "??","???")) {
-  
+
 #   # Sort punctuation marks by length (longest first) to prioritize sequences
 #   punctuation_marks <- punctuation_marks[order(nchar(punctuation_marks), decreasing = TRUE)]
-  
+
 #   # Escape special regex characters
 #   punctuation_marks <- sapply(punctuation_marks, function(x) gsub("([\\^$.|?*+(){}])", "\\\\\\1", x))
-  
+
 #   # Create a regex pattern for punctuation sequences
 #   punctuation_regex <- paste0("(", paste0(punctuation_marks, collapse = "|"), ")")
-  
+
 #   df %>%
 #     mutate(!!text_column := case_when(
 #       add_space & remove_quotes ~ gsub("\\s+", " ", gsub(punctuation_regex, " \\1 ", gsub('\"|\'', '', .data[[text_column]]), perl = TRUE)),
@@ -74,7 +74,7 @@ clean_text <- function(df, text_column = "text",
 #       remove_quotes ~ gsub('"|\'', '', .data[[text_column]]),
 #       TRUE ~ .data[[text_column]]
 #     ))
-      
+
 # }
 
 ### DATA ----
@@ -532,13 +532,13 @@ tall_download_model <- function(file,
 #   return(list(resList=resList,x=x))
 # }
 TaggingCorpusElements <- function(x){
-  
+
   if ("upos_specialentities" %in% names(x)){
     x <- resetSpecialEntities(x)
   } else {
     x$upos_specialentities <- x$upos
   }
-  
+
   regexList <- c(
     EMAIL="(?i)([_+a-z0-9-]+(\\.[_+a-z0-9-]+)*@[a-z0-9-]+(\\.[a-z0-9-]+)*(\\.[a-z]{2,14}))",
     URL="(?<!@)\\b(https?://[\\w.-]+\\.[a-z]{2,6}(/[\\S]*)?|[\\w.-]+\\.(com|org|net|edu|gov|it|uk)\\b)",
@@ -548,10 +548,10 @@ TaggingCorpusElements <- function(x){
     MENTION="^@"
   )
   items <- names(regexList)
-  
+
   resList <- list()
   j <- 0
-  
+
   for (i in 1:length(items)){
     item <- items[i]
     results <- stringi::stri_detect_regex(x$token, regexList[[item]])
@@ -562,7 +562,7 @@ TaggingCorpusElements <- function(x){
       x$POSSelected[results] <- FALSE
     }
   }
-  
+
 
 
   if (length(resList)>0){
@@ -571,9 +571,9 @@ TaggingCorpusElements <- function(x){
   } else {
     resList <- tibble::tibble(doc_id=0, item=NA, tag="email") %>% dplyr::filter(!is.na(item))
   }
-  
+
   # normalize hash and email
-  x <- x %>% 
+  x <- x %>%
     mutate(
         lemma = case_when(
             upos %in% c("HASH", "EMAIL") ~ tolower(lemma),
@@ -586,8 +586,8 @@ TaggingCorpusElements <- function(x){
             TRUE ~ token
         )
     )
-  
-  resList <- resList %>% 
+
+  resList <- resList %>%
     mutate(item = case_when(
         tag %in% c("HASH", "EMAIL") ~ tolower(item),
         tag == "EMOJI" ~ trimws(item),
@@ -2154,10 +2154,10 @@ net2vis <- function(nodes,edges, click=TRUE){
   VIS <- VIS %>%
     visNetwork::visEdges(smooth = list(type="horizontal")) %>%
     visNetwork::visOptions(highlightNearest =list(enabled = T, hover = T, degree=1), nodesIdSelection = T) %>%
-    visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed = 0.2) 
-  
+    visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed = 0.2)
+
   if (click){
-    VIS <-  VIS %>% 
+    VIS <-  VIS %>%
       visEvents(click = "function(nodes){
       Shiny.onInputChange('click', nodes.nodes[0]);
       ;}"
@@ -2166,7 +2166,7 @@ net2vis <- function(nodes,edges, click=TRUE){
 
     VIS <- VIS %>%
     #visNetwork::visPhysics(barnesHut=list(avoidOverlap=1)) %>%
-    visNetwork::visOptions(manipulation = FALSE, height ="100%", width = "100%") 
+    visNetwork::visOptions(manipulation = FALSE, height ="100%", width = "100%")
 }
 
 weight.community=function(row,membership,weigth.within,weight.between){

@@ -1501,82 +1501,165 @@ multiword <- eventReactive({
       label = NULL,
       choices = label,
       selected = values$selectedFilter,
+      multiple = TRUE,
       width = "100%"
     )
   })
 
-    observeEvent(ignoreNULL = TRUE,
-                 eventExpr={input$filterList},
-                 handlerExpr = {
-                   if (nchar(input$filterList)>0){
-                     filtervalues <- LemmaSelection(values$dfTag) %>%
-                       select(all_of(input$filterList)) %>%
-                       distinct()
-                     values$filtervalues <- sort(filtervalues[[1]])
-                     values$selectedFilter <- input$filterList
-
-                     output$filterValue <- renderUI({
-                       multiInput(
-                         inputId="filterValue",
-                         label=NULL,
-                         choices = values$filtervalues,
-                         selected = NULL,
-                         width = "100%"
-                       )
-                     })
-                   }
-     })
-
   observeEvent(ignoreNULL = TRUE,
-               eventExpr={input$filterAll},
-               handlerExpr = {
-                 updateMultiInput(
-                   session = session,
-                   inputId = "filterValue",
-                   selected = values$filtervalues
-                 )
-               })
+    eventExpr={input$filterList},
+    handlerExpr = {
+      if (length(input$filterList)>0){
+        filtervalues <- LemmaSelection(values$dfTag) %>%
+          select(all_of(input$filterList)) %>%
+          distinct()
+        values$filtervalues <- sort(filtervalues[[1]])
+        values$selectedFilter <- input$filterList
+      }
+})
 
-  observeEvent(ignoreNULL = TRUE,
-               eventExpr={input$filterNone},
-               handlerExpr = {
-                 updateMultiInput(
-                   session = session,
-                   inputId = "filterValue",
-                   selected = ""
-                 )
-               })
 
+  output$filterValue <- renderUI({
+    req(input$filterList)
+
+    lapply(input$filterList, function(var) {
+        if (!is.null(values[[paste0("filter_", var)]])){
+          sel_value <- values[[paste0("filter_", var)]]
+        } else {
+          sel_value <- ""
+        }
+        if (is.factor(values$dfTag[[var]])) {
+            selectInput(inputId = paste0("filter_", var),
+                        label = paste("Filter", var),
+                        choices = levels(values$dfTag[[var]]),
+                        selected = sel_value,
+                        multiple = TRUE)
+        } else if (is.numeric(values$dfTag[[var]])) {
+            if (sel_value[1] == "") sel_value <- range(values$dfTag[[var]], na.rm = TRUE)
+            sliderInput(inputId = paste0("filter_", var),
+                        label = paste("Filter", var),
+                        min = min(values$dfTag[[var]], na.rm = TRUE),
+                        max = max(values$dfTag[[var]], na.rm = TRUE),
+                        value = sel_value)
+        } else if (is.character(values$dfTag[[var]])){
+            selectInput(inputId = paste0("filter_", var),
+                        label = paste("Filter", var),
+                        choices = sort(unique(values$dfTag[[var]])),
+                        selected = sel_value,
+                        multiple = TRUE)
+        }
+    })
+  })
 
   filterDATA <- eventReactive(
     ignoreNULL = TRUE,
     eventExpr = {input$filterRun},
     valueExpr = {
-      if (!is.null(input$filterValue)){
-        values$dfTag$docSelected <- ifelse(values$dfTag[[values$selectedFilter]] %in% input$filterValue,TRUE,FALSE)
-      } else {
-        values$dfTag$docSelected <- TRUE
-      }
+      if (!is.null(input$filterList)) {
+        docSelected <- data.frame(matrix(ncol = 0, nrow = nrow(values$dfTag)))
+        for (var in input$filterList) {
+            input_id <- paste0("filter_", var)
+            filter_value <- input[[input_id]]
+            values[[input_id]] <- filter_value
+  
+            if (is.factor(values$dfTag[[var]])) {
+              docSelected[[var]] <- ifelse(values$dfTag[[var]] %in% filter_value,TRUE,FALSE)
+            } else if (is.character(values$dfTag[[var]])) {
+              docSelected[[var]] <- ifelse(values$dfTag[[var]] %in% filter_value,TRUE,FALSE)
+            } else if (is.numeric(values$dfTag[[var]])) {
+              docSelected[[var]] <- ifelse(values$dfTag[[var]] >= filter_value[1] &
+                values$dfTag[[var]] <= filter_value[2],TRUE,FALSE)
+            } else {
+              docSelected[[var]] <- TRUE
+            }
+        }
+        values$dfTag$docSelected <- ifelse(rowSums(docSelected)>=ncol(docSelected),TRUE,FALSE)
+    } else {
+      values$dfTag$docSelected <- TRUE
+    }
       values$dfTag
     })
 
-  output$filterData <- renderDT({
-    filterDATA()
-    DTformat(LemmaSelection(values$dfTag) %>%
-               dplyr::filter(docSelected), nrow=3, size='100%', title=paste0("Filtered Data by ", input$filterList))
-  })
+    output$filterData <- renderDT({
+      filterDATA()
+      DTformat(LemmaSelection(values$dfTag) %>%
+                 dplyr::filter(docSelected), nrow=3, size='100%', title=paste0("Filtered Data by ", paste0(input$filterList, collapse=", ")))
+    })
+
+    ## Data filtered by dynamic text on dashboardHeader
+
+    output$dataFilteredBy <- renderText({
+      if (!is.null(input$filterList)){
+        req(input$filterRun)
+        HTML(paste("Documents filtered by: <b>", paste0(input$filterList,collapse=", "), "</b>"))
+      } else {
+        HTML("")
+      }
+    })
+
+  observeEvent(ignoreNULL = TRUE,
+               eventExpr={input$filterAll},
+               handlerExpr = {
+                lapply(input$filterList, function(var) {
+                  if (is.factor(values$dfTag[[var]])) {
+                      updateSelectInput(inputId = paste0("filter_", var),
+                                  session = session,
+                                  #label = paste("Filter", var),
+                                  #choices = levels(values$dfTag[[var]]),
+                                  selected = levels(values$dfTag[[var]]))
+                      values[[paste0("filter_", var)]] <- levels(values$dfTag[[var]])
+                  } else if (is.numeric(values$dfTag[[var]])) {
+                      updateSliderInput(inputId = paste0("filter_", var),
+                                  session = session,
+                                  #label = paste("Filter", var),
+                                  #min = min(values$dfTag[[var]], na.rm = TRUE),
+                                  #max = max(values$dfTag[[var]], na.rm = TRUE),
+                                  value = range(values$dfTag[[var]], na.rm = TRUE))
+                      values[[paste0("filter_", var)]] <- range(values$dfTag[[var]], na.rm = TRUE)
+                  } else if (is.character(values$dfTag[[var]])){
+                      updateSelectInput(inputId = paste0("filter_", var),
+                                  session = session,
+                                  #label = paste("Filter", var),
+                                  #choices = sort(unique(values$dfTag[[var]])),
+                                  selected = sort(unique(values$dfTag[[var]])))
+                     values[[paste0("filter_", var)]] <- sort(unique(values$dfTag[[var]]))
+                  }
+              })
+               })
+
+  observeEvent(ignoreNULL = TRUE,
+    eventExpr={input$filterNone},
+    handlerExpr = {
+     lapply(input$filterList, function(var) {
+       if (is.factor(values$dfTag[[var]])) {
+           updateSelectInput(inputId = paste0("filter_", var),
+                       session = session,
+                       #label = paste("Filter", var),
+                       #choices = levels(values$dfTag[[var]]),
+                       selected = NULL)
+           values[[paste0("filter_", var)]] <- NULL
+       } else if (is.numeric(values$dfTag[[var]])) {
+           updateSliderInput(inputId = paste0("filter_", var),
+                       session = session,
+                       #label = paste("Filter", var),
+                       #min = min(values$dfTag[[var]], na.rm = TRUE),
+                       #max = max(values$dfTag[[var]], na.rm = TRUE),
+                       value = c(min(values$dfTag[[var]], na.rm = TRUE),
+                       min(values$dfTag[[var]], na.rm = TRUE)))
+           values[[paste0("filter_", var)]] <- c(min(values$dfTag[[var]], na.rm = TRUE),
+                                                 min(values$dfTag[[var]], na.rm = TRUE))
+       } else if (is.character(values$dfTag[[var]])){
+           updateSelectInput(inputId = paste0("filter_", var),
+                       session = session,
+                       #label = paste("Filter", var),
+                       #choices = sort(unique(values$dfTag[[var]])),
+                       selected = NULL)
+          values[[paste0("filter_", var)]] <- NULL
+       }
+   })
+    })
 
 
-  ## Data filtered by dynamic text on dashboardHeader
-
-  output$dataFilteredBy <- renderText({
-    if (!is.null(input$filterValue)){
-      req(input$filterRun)
-      HTML(paste("Documents filtered by: <b>", input$filterList, "</b>"))
-    } else {
-      HTML("")
-    }
-  })
 
 
   ## GROUPS ----
