@@ -1260,7 +1260,9 @@ body <- dashboardBody(
 
                                )
 
-                             ), style="margin-top:-15px")
+                             ), style="margin-top:-15px"),
+                             br(),
+                             htmlOutput("filterSummary")
 
                          )
                        )

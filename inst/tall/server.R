@@ -1579,6 +1579,28 @@ multiword <- eventReactive({
     }
       values$dfTag
     })
+  
+  observeEvent(eventExpr=input$filterRun,
+    handlerExpr={
+    output$filterSummary <- renderUI({
+      num_docs <- length(unique(LemmaSelection(values$dfTag) %>% filter(docSelected) %>% pull(doc_id)))
+      num_paragraphs <- sum(LemmaSelection(values$dfTag) %>% filter(docSelected) %>% group_by(doc_id) %>% summarize(sent = max(paragraph_id)) %>% pull())
+      num_sentences <- sum(LemmaSelection(values$dfTag) %>% filter(docSelected) %>% group_by(doc_id) %>% summarize(sent = max(sentence_id)) %>% pull())
+      num_tokens <- nrow(LemmaSelection(values$dfTag)%>% filter(docSelected))
+
+      HTML(paste(
+        "<div style='border: 1px solid #ddd; padding: 10px; border-radius: 5px; background-color: #f9f9f9;'>",
+        "<h4>Filter Summary</h4>",
+        "<br>",
+        "<p><strong>Number of Documents:</strong> ", num_docs, "</p>",
+        "<p><strong>Number of Paragraphs:</strong> ", num_paragraphs, "</p>",
+        "<p><strong>Number of Sentences:</strong> ", num_sentences, "</p>",
+        "<p><strong>Number of Tokens:</strong> ", num_tokens, "</p>",
+        "</div>"
+      ))
+    })
+  })
+    
 
     output$filterData <- renderDT({
       filterDATA()
