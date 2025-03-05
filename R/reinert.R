@@ -1,5 +1,5 @@
 utils::globalVariables(c("doc_id","uc","uce","segment_size","upos","noSingleChar",
-"token","lemma","freq","chi_square", "cluster", "negative", "positive", "term", "freq_true", "indep", "p_value","."))
+"token","lemma","freq","chi_square", "cluster", "negative", "positive", "term", "freq_true", "indep", "p_value",".", "segment"))
 
 
 #' Segment clustering based on the Reinert method - Simple clustering

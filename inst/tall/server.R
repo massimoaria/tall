@@ -1015,7 +1015,7 @@ output$info_treebank <- renderUI({
   },{
     res <- TaggingCorpusElements(values$dfTag)
 
-    values$dfTag <- res$x %>% filter(!token %in% c("#","@")) # remove empty hast and tags
+    values$dfTag <- res$x %>% filter(!token %in% c("#","@")) # remove empty hashs and tags
     values$posSpecialData <- res$resList %>% filter(!item %in% c("#","@"))
 
     rm(res)
@@ -1561,7 +1561,7 @@ multiword <- eventReactive({
             input_id <- paste0("filter_", var)
             filter_value <- input[[input_id]]
             values[[input_id]] <- filter_value
-  
+
             if (is.factor(values$dfTag[[var]])) {
               docSelected[[var]] <- ifelse(values$dfTag[[var]] %in% filter_value,TRUE,FALSE)
             } else if (is.character(values$dfTag[[var]])) {

@@ -19,7 +19,8 @@ clean_text <- function(df, text_column = "text",
                        add_space = TRUE,
                        remove_quotes = TRUE,
                        punctuation_marks = c(",", ";", "!", "_", "»", "«" ,"&", "(", ")", "--",
-                                             "..", "...", "....", "--", "---", ".#", "“", "‘", "”", "’", "??", "???")) {
+                                             "..", "...", "....", "--", "---", ".#", "“", "‘",
+                                             "”", "’", "??", "???")) {
 
   # Improved emoji regex pattern to capture Unicode emojis
   EMOJI <- "[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F700-\U0001F77F\U0001F780-\U0001F7FF\U0001F800-\U0001F8FF\U0001F900-\U0001F9FF\U0001FA00-\U0001FA6F\U0001FA70-\U0001FAFF\U00002702-\U000027B0\U000024C2-\U0001F251]"
@@ -36,7 +37,7 @@ clean_text <- function(df, text_column = "text",
   df %>%
     mutate(!!text_column := case_when(
       add_space & remove_quotes ~ {
-        text_cleaned <- stringr::str_replace_all(.data[[text_column]], '[\"|\']', '')  # Remove quotes
+        text_cleaned <- stringr::str_replace_all(.data[[text_column]], '[\"]', '')  # Remove quotes
         text_cleaned <- stringr::str_replace_all(text_cleaned, punctuation_regex, " \\1 ")  # Add spaces around punctuation
         text_cleaned <- stringr::str_replace_all(text_cleaned, EMOJI, " \\0 ")  # Add spaces around emojis
         stringr::str_squish(text_cleaned)  # Remove extra spaces
@@ -559,7 +560,7 @@ TaggingCorpusElements <- function(x){
       j <- j+1
       resList[[j]] <- data.frame(doc_id=x$doc_id[results], item = x$token[results], tag=item)
       x$upos[results] <- toupper(item)
-      x$POSSelected[results] <- FALSE
+      x$POSSelected[results] <- TRUE
     }
   }
 
@@ -3512,10 +3513,7 @@ posSel <- function(dfTag, pos){
 # remove Hapax and lowwer and higher lemmas
 removeHapaxFreq <- function(dfTag,hapax,singleChar){
 
-  #posTagFreq <- as.numeric(gsub("%","",posTagFreq))
-
-
-  ## reset noHapax column
+ ## reset noHapax column
   dfTag <- dfTag %>%
     mutate(noHapax = TRUE)
 
@@ -3534,7 +3532,8 @@ removeHapaxFreq <- function(dfTag,hapax,singleChar){
   ## Single Char
   if (is.null(singleChar)){
     dfTag <- dfTag %>%
-      mutate(noSingleChar = ifelse(nchar(lemma)>1,TRUE,FALSE))
+      mutate(noSingleChar = ifelse(nchar(lemma)>1,TRUE,FALSE),
+             noSingleChar = ifelse(upos %in% c("EMOJI", "MENTION", "HASH", "IP_ADDRESS", "URL","EMAIL"), TRUE, noSingleChar))
   }
 
   return(dfTag)
