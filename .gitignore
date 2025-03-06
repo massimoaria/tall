@@ -10,5 +10,5 @@ inst/bbc$
 /entertainment
 /loc
 /temp_functions
-src/*.o
-src/*.so
+*.o
+*.so
