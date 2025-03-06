@@ -76,9 +76,9 @@ infoTexts <- helpContent()
 
 header <- shinydashboardPlus::dashboardHeader(title = title_tall,
                                               titleWidth = 250, controlbarIcon = NULL,
-                                              tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("termSelected"))))),
                                               tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("dataGroupedBy"))))),
                                               tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("dataFilteredBy"))))),
+                                              tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("termSelected"))))),
                                               #tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("resetButton"))))),
                                               dropdownMenu(type = "messages",
                                                            icon = icon("comment-dollar", lib = "font-awesome"),
@@ -217,19 +217,32 @@ body <- dashboardBody(
     tags$style(".sidebar-toggle {font-size: 15px}"),
     tags$style(".fa-users {font-size: 18px}"),
 
-    ## radio button color for primary status
+    ## radio button color for primary status (Lemma or Token)
     tags$style(HTML("
-    /* Change the default primary button color */
+    /* Change the default primary button color to a gradient */
     .btn-primary {
-      background-color: #808080 !important; /* new background color */
-      border-color: #808080 !important;
+      background: linear-gradient(to right,rgb(191, 191, 191),rgb(148, 148, 148),rgb(123, 123, 123)) !important;
+      border: none !important;
+      color: white !important;
     }
-    /* Change the hover and active states */
+
+    /* Change the hover state */
     .btn-primary:hover,
+    .btn-primary.hover {
+      background: linear-gradient(to left, #4F7942,rgb(62, 97, 52)) !important;
+      border: none !important;
+    }
+
+    /* Change the active state */
     .btn-primary:active,
     .btn-primary.active {
-      background-color: #4F7942 !important; /* new hover/active color */
-      border-color: #4F7942 !important;
+      background: linear-gradient(to right, #95D297, #6CC283, #4F7942) !important;
+      border: none !important;
+    }
+
+    /* Make button labels bold */
+    .btn-group .btn {
+      font-weight: bold;
     }
   "))
   ),
@@ -483,7 +496,20 @@ body <- dashboardBody(
                                                   do.call("actionButton", c(back_bttn, list(
                                                     inputId = "randomTextBack")
                                                   ))
-                                           )
+                                           ),
+                                           column(4,
+                                            div(align="center",
+                                                title = t_save,
+                                                do.call("actionButton", c(list(
+                                                  label=NULL,
+                                                  style ="display:block; height: 37px; width: 37px; border-radius: 50%;
+                                                          border: 1px; margin-top: 16px;",
+                                                  icon = icon(name ="floppy-save", lib="glyphicon"),
+                                                  inputId = "randomTextSave")
+                                                )
+                                                )
+                                            )
+                                            )
                                          )
 
                                        )
@@ -809,7 +835,7 @@ body <- dashboardBody(
               fluidRow(
                 column(9,
                        tabsetPanel(type = "tabs",
-                                   tabPanel("Pos Tagging with Custom Lists",
+                                   tabPanel("Pos Tagging with Custom List",
                                             shinycssloaders::withSpinner(DT::DTOutput("customPosTagData"),
                                                                          color = getOption("spinner.color", default = "#4F7942"))
                                    ),
@@ -927,11 +953,11 @@ body <- dashboardBody(
                          box(
                            width = 12,
                            div(h3(strong(em("Automatic Multi-Words"))), style="margin-top:-57px"),
-                           helpText(h5("Multi-word creation extracts keywords (single terms or sequences) from the text.")),
+                           helpText(h5("Multi-word creation extracts keywords (sequence of terms) from the text.")),
                            helpText(h5("After keywords are generated, select those you wish to include in your data from the list.")),
                            hr(),
                            style="text-align: left; text-color: #989898",
-                           fluidRow(column(6,
+                           fluidRow(column(12,
                                            selectInput("MWmethod",
                                                        "Relevant Collocation Algorithm",
                                                        choices = c("Rake" = "rake",
@@ -1222,43 +1248,25 @@ body <- dashboardBody(
                            uiOutput("filterListUI"),
                            uiOutput("filterValue"),
                            hr(),
-                           conditionalPanel(
-                             condition = 'input.filterList !=""',
-                             column(6,
-                                    div(
-                                      align = "center",style="margin-top:-5px",
-                                      width=12,
-                                      do.call("actionButton", list(
-                                        label = "Select All",
-                                        style ="border-radius: 15px; border-width: 1px; font-size: 15px; text-align: center; color: #ffff; ",
-                                        icon = NULL,
-                                        inputId = "filterAll")
-                                      )
-                                    )
-                             ),
-                             column(6,
-                                    div(
-                                      align = "center",style="margin-top:-5px",
-                                      width=12,
-                                      do.call("actionButton", list(
-                                        label = "Deselect All",
-                                        style ="border-radius: 15px; border-width: 1px; font-size: 15px; text-align: center; color: #ffff; ",
-                                        icon = NULL,
-                                        inputId = "filterNone")
-                                      )
-                                    )
-                             )
-                           ),
-                           br(),
                            div(
                              fluidRow(
-                               div(align="center",
+                              column(6,
+                                div(align="center",
                                    title = t_run,
                                    do.call("actionButton", c(run_bttn, list(
                                      inputId = "filterRun")
                                    ))
-
                                )
+                              ), 
+                              column(6,
+                                div(align="center",
+                                title = t_back,
+                                                  do.call("actionButton", c(back_bttn, list(
+                                                    inputId = "filterBack")
+                                                  ))
+                                                )
+                              )
+                               
 
                              ), style="margin-top:-15px"),
                              br(),
@@ -2800,7 +2808,9 @@ body <- dashboardBody(
                        div(
                          box(
                            width = 12,
-                           div(h3(strong(em("Sentences extraction"))), style="margin-top:-57px"),
+                           div(h3(strong(em("Extractive Summarization"))), style="margin-top:-57px"),
+                           h5(("TALL selects and reorders the most relevant sentences from the original text to generate a coherent and concise summary"),
+                                style="text-align: left; text-color: #989898"),
                            tags$hr(),
                            fluidRow(column(12,
                                            uiOutput("optionsUnitSummarization"),
@@ -2916,9 +2926,10 @@ body <- dashboardBody(
                 br(),
               ),
               fluidRow(column(6,
-                              h3("Settings:"),
+                              h3("Select a folder where the analysis outputs will be saved"),
                               br(),
                               shinyDirButton("workingfolder", "Select a Working Folder", "Select"),
+                              br(),
                               textOutput("wdFolder"),
                               hr(),
                               actionButton(inputId="cache",

@@ -560,11 +560,9 @@ TaggingCorpusElements <- function(x){
       j <- j+1
       resList[[j]] <- data.frame(doc_id=x$doc_id[results], item = x$token[results], tag=item)
       x$upos[results] <- toupper(item)
-      x$POSSelected[results] <- TRUE
+      x$POSSelected[results] <- ifelse(x$upos[results] %in% c("HASH","MENTION", "EMOJI"),TRUE, FALSE)
     }
   }
-
-
 
   if (length(resList)>0){
     resList <- dplyr::bind_rows(resList) %>%
@@ -647,7 +645,7 @@ mergeCustomLists <- function(df,custom_lists, term="lemma"){
       #mutate(lemma_norm = ifelse(upos!="PROPN", tolower(lemma), lemma)) %>%
       left_join(custom_lists, by = c("lemma" = "lemma")) %>%
       mutate(upos.x = ifelse(!is.na(upos.y),toupper(upos.y),upos.x),
-             POSSelected = ifelse(upos.x %in% c("ADJ","NOUN","PROPN", "VERB"), TRUE, FALSE)) %>%
+             POSSelected = ifelse(upos.x %in% c("ADJ","NOUN","PROPN", "VERB", "HASH", "EMOJI", "MENTION"), TRUE, FALSE)) %>%
       select(-upos.y) %>%
       rename(upos = upos.x) %>%
           highlight()
@@ -3703,7 +3701,7 @@ menuList <- function(menu){
                       menuItem("Multi-Word", tabName = "multiword", icon = icon("chevron-right"), startExpanded = TRUE,
                                menuSubItem("Automatic", tabName = "multiwordCreat",icon = icon("chevron-right")),
                                menuSubItem("By a List", tabName = "multiwordByList",icon = icon("chevron-right"))),
-                      menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right"), selected = TRUE),
+                      menuSubItem("Custom Term List", tabName = "custTermList",icon = icon("chevron-right"), selected = TRUE),
                       menuSubItem("PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right"))
              ),
              menuItem("Settings",tabName = "settings", icon = icon("tasks"))
@@ -3722,7 +3720,7 @@ menuList <- function(menu){
                       menuItem("Multi-Word", tabName = "multiword", icon = icon("chevron-right"), startExpanded = TRUE,
                                menuSubItem("Automatic", tabName = "multiwordCreat",icon = icon("chevron-right")),
                                menuSubItem("By a List", tabName = "multiwordByList",icon = icon("chevron-right"))),
-                      menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right")),
+                      menuSubItem("Custom Term List", tabName = "custTermList",icon = icon("chevron-right")),
                       menuSubItem("PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right")), selected = TRUE),
              # menuItem("Filter", tabName = "filter_text", icon = icon("filter")),
              # menuItem("Groups",tabName = "defineGroups", icon = icon("th", lib="glyphicon")),
@@ -3762,7 +3760,7 @@ menuList <- function(menu){
                       menuItem("Multi-Word", tabName = "multiword", icon = icon("chevron-right"), startExpanded = TRUE,
                       menuSubItem("Automatic", tabName = "multiwordCreat",icon = icon("chevron-right")),
                       menuSubItem("By a List", tabName = "multiwordByList",icon = icon("chevron-right"))),
-                      menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right")),
+                      menuSubItem("Custom Term List", tabName = "custTermList",icon = icon("chevron-right")),
                       menuSubItem("PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right")), selected = TRUE),
              menuItem("Filter", tabName = "filter_text", icon = icon("filter")),
              menuItem("Groups",tabName = "defineGroups", icon = icon("th", lib="glyphicon")),
@@ -3871,8 +3869,9 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
   # }
   if (isTRUE(specialtags)) {
     df <- df %>%
-      mutate(Table = paste0('<button id2="custom_btn" onclick="Shiny.onInputChange(\'button_id2\', \'', UPOS, '\')">View</button>')) %>%
-      select(Table, everything())
+      rename("Special Entity" = "UPOS") %>%
+      mutate("Frequency Distribution" = paste0('<button id2="custom_btn" onclick="Shiny.onInputChange(\'button_id2\', \'', `Special Entity`, '\')">View</button>')) %>%
+      select("Frequency Distribution", everything())
   }
 
 

@@ -51,7 +51,8 @@ helpContent <- function(){
       <hr>
       <div class='references'>
         <h4><strong>References</strong></strong></h4>
-        <p><strong>Aria, M., Cuccurullo, C., D’Aniello, L., Misuraca, M., & Spano, M. (2024, June).</strong> <i>TALL: A New Shiny App for Text Analysis</i>. In <i>Scientific Meeting of the Italian Statistical Society</i> (pp. 64-70). Cham: Springer Nature Switzerland.</p>
+        <p><strong>Aria, M., Cuccurullo, C., D’Aniello, L., Misuraca, M., & Spano, M. (2024).</strong> <i>Breaking Barriers with TALL: A Text Analysis Shiny app for ALL</i>. In A. Dister, D. Longrée (eds.), <i>Mots competes textes déchiffrés (JADT24)</i> Presses Universitaires De Louvain Vol.1 pp.39-48.</p>
+        <p><strong>Aria, M., Cuccurullo, C., D’Aniello, L., Misuraca, M., & Spano, M. (2024).</strong> <i>TALL: A New Shiny App for Text Analysis</i>. In <i>Scientific Meeting of the Italian Statistical Society</i> (pp. 64-70). Cham: Springer Nature Switzerland.</p>
         <p><strong>Aria, M., Cuccurullo, C., D'Aniello, L., Misuraca, M., & Spano, M. (2023).</strong> <i>TALL: A New Shiny App of Text Analysis for All</i>. In <i>CLiC-it</i>.</p>
     </div>
 
@@ -272,7 +273,7 @@ helpContent <- function(){
     <h4><strong>Why Use a Custom Term List?</strong></strong></h4>
     <ul>
     <li><strong>Highlighting Specific Concepts:</strong> Identifying key terms related to methodologies, specialized vocabulary, or domain-specific jargon.</li>
-    <li><strong>Filtering Unwanted Words:</strong> Removing terms that are irrelevant to the analysis, ensuring a cleaner dataset.</li>
+    <li><strong>Filtering Stop Words:</strong> Removing terms that are irrelevant to the analysis, ensuring a cleaner dataset.</li>
     <li><strong>Enhancing Named Entity Recognition (NER):</strong> Manually tagging specific words that the language model may misclassify.</li>
     <li><strong>Overriding Default PoS Assignments:</strong> Ensuring consistency in tagging across texts by defining a fixed categorization for certain terms.</li>
     </ul>
@@ -293,8 +294,8 @@ helpContent <- function(){
 
   <table border='1' cellspacing='0' cellpadding='5'>
   <tr>
-  <th> ---- Term ------------- </th>
-  <th> ---- Custom Tag ------- </th>
+  <th> -------- Term ---------- </th>
+  <th> ------ Custom Tag ------ </th>
   </tr>
   <tr>
   <td>artificial intelligence</td>

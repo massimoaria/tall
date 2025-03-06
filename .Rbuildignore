@@ -10,3 +10,5 @@ inst/bbc$
 ^loc$
 ^entertainment$
 ^references$
+^cran-comments\.md$
+^CRAN-SUBMISSION$

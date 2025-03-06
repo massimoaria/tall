@@ -759,9 +759,6 @@ observeEvent(input$reset_confirmation2, {
         na = "NA",
         append = FALSE,
         col_names = TRUE
-        # quote = c("needed"),
-        # escape = c("backslash"),
-        # eol = "\n"
       )
       popUp(title="Saved in your working folder", type="saved")
     })
@@ -806,8 +803,25 @@ observeEvent(input$reset_confirmation2, {
   observeEvent(input$randomTextBack, {
     values$txt <- values$txt %>%
       mutate(doc_selected = TRUE)
+    updateNumericInput(inputId="sampleSize",
+                      value=100)
+    
   })
 
+  observeEvent(eventExpr = {input$randomTextSave},
+    handlerExpr = {
+      file_path <- destFolder(paste("Tall-Export-File-", sys.time(), ".csv", sep=""),values$wdTall)
+      readr::write_csv(
+        x=values$txt %>%
+          filter(doc_selected) %>%
+          select(-c("text_original", "doc_selected", ends_with("id_old"))),
+        file=file_path,
+        na = "NA",
+        append = FALSE,
+        col_names = TRUE
+      )
+      popUp(title="Saved in your working folder", type="saved")
+    })
 
   ### EXTERNAL INFORMATION ----
 
@@ -1020,15 +1034,13 @@ output$info_treebank <- renderUI({
 
     rm(res)
     values$posSpecialTaggingDT <- DTformat(values$posSpecialData %>%
-                                             summarySpecialEntities(type="all"),
-                                          nrow=nrow(df), filter="none", button=F, delete=F, dom=FALSE,pagelength=FALSE,
-                                          size="110%",
-                                          filename="TaggingSpecialEntities", title="", specialtags=TRUE)
+      summarySpecialEntities(type="all"),
+      nrow=nrow(df), filter="none", button=F, delete=F, dom=FALSE,pagelength=FALSE, size="110%",
+      filename="TaggingSpecialEntities", title="", specialtags=TRUE, right=3,numeric=3, round=0)
 
   }, ignoreNULL = TRUE)
 
   output$posSpecialTags <- DT::renderDT({
-
     posSpecialTagging()
     values$posSpecialTaggingDT
   })
@@ -1104,7 +1116,7 @@ output$info_treebank <- renderUI({
 
   output$specialEntityFreq <- renderDT(server=FALSE,{
     if (!is.null(input$button_id2)) id <- input$button_id2
-    summarySpecialEntity <- values$posSpecialData %>% summarySpecialEntities(type=id)
+    summarySpecialEntity <- values$posSpecialData %>% summarySpecialEntities(type=id) %>% rename("Frequency" = "n")
 
     if (id=="URL"){
       summarySpecialEntity$item <- paste0(
@@ -1280,7 +1292,7 @@ multiword <- eventReactive({
                      div(
                        align = "center",style="margin-top:-5px",
                        width=12,
-                       helpText("Please note",br(),"pressing 'Apply List' will delete previous multiword entries"),
+                       helpText("Please note",br(),"pressing 'Apply List' will delete previous multiword and custom list entries"),
                        do.call("actionButton", c(run_bttn, list(
                          inputId = "multiwordCreatApply")
                        ))
@@ -1590,12 +1602,12 @@ multiword <- eventReactive({
 
       HTML(paste(
         "<div style='border: 1px solid #ddd; padding: 10px; border-radius: 5px; background-color: #f9f9f9;'>",
-        "<h4>Filter Summary</h4>",
+        "<h4><strong>Filter Summary</strong></h4>",
         "<br>",
-        "<p><strong>Number of Documents:</strong> ", num_docs, "</p>",
-        "<p><strong>Number of Paragraphs:</strong> ", num_paragraphs, "</p>",
-        "<p><strong>Number of Sentences:</strong> ", num_sentences, "</p>",
-        "<p><strong>Number of Tokens:</strong> ", num_tokens, "</p>",
+        "<p>Number of Documents: <strong>", num_docs, "</strong></p>",
+        "<p>Number of Paragraphs: <strong>", num_paragraphs, "</strong></p>",
+        "<p>Number of Sentences: <strong>", num_sentences, "</strong></p>",
+        "<p>Number of Tokens: <strong>", num_tokens, "</strong></p>",
         "</div>"
       ))
     })
@@ -1620,68 +1632,25 @@ multiword <- eventReactive({
     })
 
   observeEvent(ignoreNULL = TRUE,
-               eventExpr={input$filterAll},
+               eventExpr={input$filterBack},
                handlerExpr = {
+                
+                values$dfTag$docSelected <- TRUE
                 lapply(input$filterList, function(var) {
-                  if (is.factor(values$dfTag[[var]])) {
-                      updateSelectInput(inputId = paste0("filter_", var),
-                                  session = session,
-                                  #label = paste("Filter", var),
-                                  #choices = levels(values$dfTag[[var]]),
-                                  selected = levels(values$dfTag[[var]]))
-                      values[[paste0("filter_", var)]] <- levels(values$dfTag[[var]])
-                  } else if (is.numeric(values$dfTag[[var]])) {
-                      updateSliderInput(inputId = paste0("filter_", var),
-                                  session = session,
-                                  #label = paste("Filter", var),
-                                  #min = min(values$dfTag[[var]], na.rm = TRUE),
-                                  #max = max(values$dfTag[[var]], na.rm = TRUE),
-                                  value = range(values$dfTag[[var]], na.rm = TRUE))
-                      values[[paste0("filter_", var)]] <- range(values$dfTag[[var]], na.rm = TRUE)
-                  } else if (is.character(values$dfTag[[var]])){
-                      updateSelectInput(inputId = paste0("filter_", var),
-                                  session = session,
-                                  #label = paste("Filter", var),
-                                  #choices = sort(unique(values$dfTag[[var]])),
-                                  selected = sort(unique(values$dfTag[[var]])))
-                     values[[paste0("filter_", var)]] <- sort(unique(values$dfTag[[var]]))
-                  }
-              })
+                                  removeUI(paste0("filter_", var))
+                                  if (is.factor(values$dfTag[[var]])) {
+                                      values[[paste0("filter_", var)]] <- NULL
+                                  } else if (is.numeric(values$dfTag[[var]])) {
+                                      values[[paste0("filter_", var)]] <- range(values$dfTag[[var]], na.rm = TRUE)
+                                  } else if (is.character(values$dfTag[[var]])){
+                                     values[[paste0("filter_", var)]] <- NULL
+                                  }
+                              })
+                updateSelectInput(
+                  inputId = "filterList",
+                  session = session,
+                  selected = "")
                })
-
-  observeEvent(ignoreNULL = TRUE,
-    eventExpr={input$filterNone},
-    handlerExpr = {
-     lapply(input$filterList, function(var) {
-       if (is.factor(values$dfTag[[var]])) {
-           updateSelectInput(inputId = paste0("filter_", var),
-                       session = session,
-                       #label = paste("Filter", var),
-                       #choices = levels(values$dfTag[[var]]),
-                       selected = NULL)
-           values[[paste0("filter_", var)]] <- NULL
-       } else if (is.numeric(values$dfTag[[var]])) {
-           updateSliderInput(inputId = paste0("filter_", var),
-                       session = session,
-                       #label = paste("Filter", var),
-                       #min = min(values$dfTag[[var]], na.rm = TRUE),
-                       #max = max(values$dfTag[[var]], na.rm = TRUE),
-                       value = c(min(values$dfTag[[var]], na.rm = TRUE),
-                       min(values$dfTag[[var]], na.rm = TRUE)))
-           values[[paste0("filter_", var)]] <- c(min(values$dfTag[[var]], na.rm = TRUE),
-                                                 min(values$dfTag[[var]], na.rm = TRUE))
-       } else if (is.character(values$dfTag[[var]])){
-           updateSelectInput(inputId = paste0("filter_", var),
-                       session = session,
-                       #label = paste("Filter", var),
-                       #choices = sort(unique(values$dfTag[[var]])),
-                       selected = NULL)
-          values[[paste0("filter_", var)]] <- NULL
-       }
-   })
-    })
-
-
 
 
   ## GROUPS ----
