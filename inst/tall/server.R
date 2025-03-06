@@ -805,7 +805,7 @@ observeEvent(input$reset_confirmation2, {
       mutate(doc_selected = TRUE)
     updateNumericInput(inputId="sampleSize",
                       value=100)
-    
+
   })
 
   observeEvent(eventExpr = {input$randomTextSave},
@@ -1634,7 +1634,7 @@ multiword <- eventReactive({
   observeEvent(ignoreNULL = TRUE,
                eventExpr={input$filterBack},
                handlerExpr = {
-                
+
                 values$dfTag$docSelected <- TRUE
                 lapply(input$filterList, function(var) {
                                   removeUI(paste0("filter_", var))
@@ -2339,7 +2339,7 @@ observeEvent(input$closePlotModalDoc,{
     valueExpr = {
       values$freqPOS <- values$dfTag %>%
         filter(docSelected) %>%
-        dplyr::filter(!upos %in% c("PUNCT", "SYM", "NUM")) %>%
+        dplyr::filter(!upos %in% c("PUNCT", "SYM", "NUM", "NGRAM_MERGED")) %>%
         group_by(upos) %>%
         count() %>%
         arrange(desc(n)) %>%

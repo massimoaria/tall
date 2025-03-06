@@ -10,3 +10,4 @@ inst/bbc$
 /entertainment
 /loc
 /temp_functions
+src/*.o

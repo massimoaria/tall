@@ -273,7 +273,7 @@ body <- dashboardBody(
       }
     "))
   ),
-  
+
   tabItems(
 
     ### TALL PAGE ----
@@ -1257,7 +1257,7 @@ body <- dashboardBody(
                                      inputId = "filterRun")
                                    ))
                                )
-                              ), 
+                              ),
                               column(6,
                                 div(align="center",
                                 title = t_back,
@@ -1266,7 +1266,7 @@ body <- dashboardBody(
                                                   ))
                                                 )
                               )
-                               
+
 
                              ), style="margin-top:-15px"),
                              br(),
@@ -1510,7 +1510,7 @@ body <- dashboardBody(
             fluidPage(
               fluidRow(
                 column(8,
-                       h3(strong("Words Frequency by PoS"), align = "center")
+                       h3(strong("Word Frequency by PoS"), align = "center")
                 ),
                 div(
                   title = t_run,
