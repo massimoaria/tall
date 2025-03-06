@@ -11,3 +11,4 @@ inst/bbc$
 /loc
 /temp_functions
 src/*.o
+src/*.so
