@@ -1579,7 +1579,7 @@ multiword <- eventReactive({
     }
       values$dfTag
     })
-  
+
   observeEvent(eventExpr=input$filterRun,
     handlerExpr={
     output$filterSummary <- renderUI({
@@ -1600,7 +1600,7 @@ multiword <- eventReactive({
       ))
     })
   })
-    
+
 
     output$filterData <- renderDT({
       filterDATA()
@@ -3690,13 +3690,15 @@ output$optionsUnitSummarization <- renderUI({
 })
 
 output$optionsSummarization <- renderUI({
-    selectInput(
+    selectizeInput(
       inputId = 'document_selection',
       label = ifelse(input$unit_selection=="Documents","Select Document","Select Group"),
-      choices = ids(values$dfTag %>% dplyr::filter(docSelected),type=input$unit_selection),
-               multiple=FALSE,
-               width = "100%"
-        )
+      choices = ids(values$dfTag %>% group_by(doc_id) %>%
+        mutate(n_sentences = max(sentence_id)) %>% ungroup() %>%
+        dplyr::filter(docSelected, n_sentences>1),type=input$unit_selection),
+      multiple=FALSE,
+      width = "100%"
+    )
 })
 
 
