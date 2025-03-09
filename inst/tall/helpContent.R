@@ -51,7 +51,8 @@ helpContent <- function(){
       <hr>
       <div class='references'>
         <h4><strong>References</strong></strong></h4>
-        <p><strong>Aria, M., Cuccurullo, C., D’Aniello, L., Misuraca, M., & Spano, M. (2024, June).</strong> <i>TALL: A New Shiny App for Text Analysis</i>. In <i>Scientific Meeting of the Italian Statistical Society</i> (pp. 64-70). Cham: Springer Nature Switzerland.</p>
+        <p><strong>Aria, M., Cuccurullo, C., D’Aniello, L., Misuraca, M., & Spano, M. (2024).</strong> <i>Breaking Barriers with TALL: A Text Analysis Shiny app for ALL</i>. In A. Dister, D. Longrée (eds.), <i>Mots competes textes déchiffrés (JADT24)</i> Presses Universitaires De Louvain Vol.1 pp.39-48.</p>
+        <p><strong>Aria, M., Cuccurullo, C., D’Aniello, L., Misuraca, M., & Spano, M. (2024).</strong> <i>TALL: A New Shiny App for Text Analysis</i>. In <i>Scientific Meeting of the Italian Statistical Society</i> (pp. 64-70). Cham: Springer Nature Switzerland.</p>
         <p><strong>Aria, M., Cuccurullo, C., D'Aniello, L., Misuraca, M., & Spano, M. (2023).</strong> <i>TALL: A New Shiny App of Text Analysis for All</i>. In <i>CLiC-it</i>.</p>
     </div>
 
@@ -272,7 +273,7 @@ helpContent <- function(){
     <h4><strong>Why Use a Custom Term List?</strong></strong></h4>
     <ul>
     <li><strong>Highlighting Specific Concepts:</strong> Identifying key terms related to methodologies, specialized vocabulary, or domain-specific jargon.</li>
-    <li><strong>Filtering Unwanted Words:</strong> Removing terms that are irrelevant to the analysis, ensuring a cleaner dataset.</li>
+    <li><strong>Filtering Stop Words:</strong> Removing terms that are irrelevant to the analysis, ensuring a cleaner dataset.</li>
     <li><strong>Enhancing Named Entity Recognition (NER):</strong> Manually tagging specific words that the language model may misclassify.</li>
     <li><strong>Overriding Default PoS Assignments:</strong> Ensuring consistency in tagging across texts by defining a fixed categorization for certain terms.</li>
     </ul>
@@ -293,8 +294,8 @@ helpContent <- function(){
 
   <table border='1' cellspacing='0' cellpadding='5'>
   <tr>
-  <th> ---- Term ------------- </th>
-  <th> ---- Custom Tag ------- </th>
+  <th> -------- Term ---------- </th>
+  <th> ------ Custom Tag ------ </th>
   </tr>
   <tr>
   <td>artificial intelligence</td>
@@ -390,6 +391,66 @@ helpContent <- function(){
     the ability to refine PoS selection enhances the precision and interpretability of results.</p>
 
 </body>"
+
+  overview <- "<body>
+
+  <div class='container'>
+    <h3><strong>Corpus Metrics in TALL</strong></h3>
+    <p>These metrics provide a summary of the key textual characteristics of the analyzed corpus.</p>
+
+    <h4><strong>📂 Corpus Size & Structure</strong></h4>
+    <ul>
+    <li><strong>Documents →</strong> The total number of documents in the corpus.</li>
+    <li><strong>Sentences →</strong> The total number of sentences in the corpus.</li>
+    <li><strong>Tokens →</strong> The total number of words or linguistic units, including punctuation marks.</li>
+    <li><strong>Types →</strong> The number of unique words in the corpus, representing vocabulary richness.</li>
+    <li><strong>Lemma →</strong> The number of unique lemmas, considering the base form of words.</li>
+    </ul>
+
+    <h4><strong>📏 Average Length Metrics</strong></h4>
+    <ul>
+    <li><strong>Doc Avg Length in Chars →</strong> The average document length in characters, with variability.</li>
+    <li><strong>Doc Avg Length in Tokens →</strong> The average document length in words (tokens), reflecting textual density.</li>
+    <li><strong>Sent Avg Length in Chars →</strong> The average sentence length in characters.</li>
+    <li><strong>Sent Avg Length in Tokens →</strong> The average sentence length in words.</li>
+    </ul>
+
+    <h4><strong>📊 Lexical Metrics</strong></h4>
+    <ul>
+    <li><strong>Type-Token Ratio (TTR) →</strong> The ratio between the number of unique words (types) and the total number of words (tokens). Higher values indicate greater lexical diversity (Tweedie & Baayen, 1998).</li>
+    <li><strong>Hapax Legomena (%) →</strong> The percentage of words that appear only once in the corpus. A high value suggests a significant presence of unique terms (Baayen, 1996).</li>
+    <li><strong>Guiraud Index →</strong> A measure of lexical richness, based on the number of unique words relative to the square root of the total words (Guiraud, 1954).</li>
+    </ul>
+
+    <h4><strong>📊 Additional Lexical Measures</strong></h4>
+    <ul>
+    <li><strong>Lexical Density →</strong> The percentage of content words (nouns, verbs, adjectives, adverbs) relative to the total tokens. It indicates how informative the text is compared to function words (prepositions, conjunctions, articles) (Ure, 1971).</li>
+    <li><strong>Nominal Ratio →</strong> The ratio between nouns and verbs. Higher values suggest more abstract and formal texts, whereas lower values indicate a more dynamic and narrative style (Biber, 1988).</li>
+    <li><strong>Gini Index →</strong> A measure of the inequality in word frequency distribution. Values closer to 1 suggest that a few words dominate the text, while lower values indicate a more even vocabulary distribution (Bentz, Alikaniotis, Cysouw, Ferrer-i-Cancho, 2017).</li>
+    <li><strong>Yule’s K Index →</strong> A measure of lexical diversity that reflects the degree of word repetition. Higher values indicate a text dominated by a few highly frequent words (Yule, 1944).</li>
+    </ul>
+
+    <div class='references'>
+      <h4><strong>References</strong></h4>
+
+      <p><strong>Baayen, R. H.</strong><i>The effect of lexical specialization on the growth curve of vocabulary.</i> <strong>Computational Linguistics</strong>, 22(2), 1996.</p>
+
+      <p><strong>Bentz, C., Alikaniotis, D., Cysouw, M., & Ferrer-i-Cancho, R.</strong><i>The entropy of words—learnability and expressivity across more than 1000 languages.</i> <strong>Entropy</strong>, 19(6), 2017.</p>
+
+      <p><strong>Biber, D.</strong><i>Variation across speech and writing.</i> <strong>Cambridge University Press</strong>, 1988.</p>
+
+      <p><strong>Guiraud, P.</strong><i>Les caractères statistiques du vocabulaire.</i> <strong>Presse Universitaire de France</strong>, 1954.</p>
+
+      <p><strong>Tweedie, F. J., & Baayen, R. H.</strong>><i>How variable may a constant be? Measures of lexical richness in perspective.</i> <strong>Computers and the Humanities</strong>, 32(5), 323-352, 1998.</p>
+
+      <p><strong>Ure, J.</strong><i>Lexical density and register differentiation.</i> <strong>Applications of linguistics</strong>, 1971.</p>
+
+      <p><strong>Yule, G. U.</strong><i>The statistical study of literary vocabulary.</i> <strong>Cambridge University Press</strong>, 1944.</p>
+      </div>
+      </div>
+
+      </body>"
+
 
 wordincontext <- "<body>
 
@@ -930,6 +991,7 @@ wordincontext <- "<body>
               multiwordlist =  multiwordlist,
               customterm = customterm,
               posselection = posselection,
+              overview = overview,
               wordincontext = wordincontext,
               reinert = reinert,
               correspondenceanalysis = correspondenceanalysis,

@@ -10,3 +10,7 @@ inst/bbc$
 /entertainment
 /loc
 /temp_functions
+*.o
+*.so
+src/tall.so
+CRAN-SUBMISSION

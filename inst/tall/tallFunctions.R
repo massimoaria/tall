@@ -19,7 +19,8 @@ clean_text <- function(df, text_column = "text",
                        add_space = TRUE,
                        remove_quotes = TRUE,
                        punctuation_marks = c(",", ";", "!", "_", "»", "«" ,"&", "(", ")", "--",
-                                             "..", "...", "....", "--", "---", ".#", "“", "‘", "”", "’", "??", "???")) {
+                                             "..", "...", "....", "--", "---", ".#", "“", "‘",
+                                             "”", "’", "??", "???")) {
 
   # Improved emoji regex pattern to capture Unicode emojis
   EMOJI <- "[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F700-\U0001F77F\U0001F780-\U0001F7FF\U0001F800-\U0001F8FF\U0001F900-\U0001F9FF\U0001FA00-\U0001FA6F\U0001FA70-\U0001FAFF\U00002702-\U000027B0\U000024C2-\U0001F251]"
@@ -36,7 +37,7 @@ clean_text <- function(df, text_column = "text",
   df %>%
     mutate(!!text_column := case_when(
       add_space & remove_quotes ~ {
-        text_cleaned <- stringr::str_replace_all(.data[[text_column]], '[\"|\']', '')  # Remove quotes
+        text_cleaned <- stringr::str_replace_all(.data[[text_column]], '[\"]', '')  # Remove quotes
         text_cleaned <- stringr::str_replace_all(text_cleaned, punctuation_regex, " \\1 ")  # Add spaces around punctuation
         text_cleaned <- stringr::str_replace_all(text_cleaned, EMOJI, " \\0 ")  # Add spaces around emojis
         stringr::str_squish(text_cleaned)  # Remove extra spaces
@@ -559,11 +560,9 @@ TaggingCorpusElements <- function(x){
       j <- j+1
       resList[[j]] <- data.frame(doc_id=x$doc_id[results], item = x$token[results], tag=item)
       x$upos[results] <- toupper(item)
-      x$POSSelected[results] <- FALSE
+      x$POSSelected[results] <- ifelse(x$upos[results] %in% c("HASH","MENTION", "EMOJI"),TRUE, FALSE)
     }
   }
-
-
 
   if (length(resList)>0){
     resList <- dplyr::bind_rows(resList) %>%
@@ -646,7 +645,7 @@ mergeCustomLists <- function(df,custom_lists, term="lemma"){
       #mutate(lemma_norm = ifelse(upos!="PROPN", tolower(lemma), lemma)) %>%
       left_join(custom_lists, by = c("lemma" = "lemma")) %>%
       mutate(upos.x = ifelse(!is.na(upos.y),toupper(upos.y),upos.x),
-             POSSelected = ifelse(upos.x %in% c("ADJ","NOUN","PROPN", "VERB"), TRUE, FALSE)) %>%
+             POSSelected = ifelse(upos.x %in% c("ADJ","NOUN","PROPN", "VERB", "HASH", "EMOJI", "MENTION"), TRUE, FALSE)) %>%
       select(-upos.y) %>%
       rename(upos = upos.x) %>%
           highlight()
@@ -1003,6 +1002,53 @@ backToOriginalGroups <- function(dfTag){
 
 ### OVERVIEW ----
 
+# Vocabulary calculation
+vocabulary <- function(dfTag,term){
+  dictFreq <- LemmaSelection(dfTag) %>%
+    dplyr::filter(docSelected) %>%
+    mutate(token = ifelse(upos == "MULTIWORD", lemma,token))
+
+  if (term=="lemma"){
+    dictFreq <- dictFreq %>%
+      group_by(upos, lemma) %>%
+      summarize(n=n()) %>%
+      arrange(desc(n)) %>%
+      rename(Lemma = lemma,
+             Frequency = n,
+             "Part of Speech"=upos) %>%
+      relocate("Part of Speech", .after = last_col())
+  } else {
+    dictFreq <- dictFreq %>%
+      group_by(upos, token) %>%
+      summarize(n=n()) %>%
+      arrange(desc(n)) %>%
+      rename(Token = token,
+             Frequency = n,
+             "Part of Speech"=upos) %>%
+      relocate("Part of Speech", .after = last_col())
+  }
+  return(dictFreq)
+}
+
+# tfidf calculation
+tfidfTable <- function(dfTag, term){
+  tfidfDATA <- LemmaSelection(dfTag) %>%
+    dplyr::filter(docSelected) %>%
+    tfidf(term=term)
+
+  if(term=="lemma"){
+    tfidfDATA <-tfidfDATA  %>%
+      rename(
+        "Lemma" = term,
+        "TF-IDF" = TFIDF)}
+  else{
+    tfidfDATA <- tfidfDATA  %>%
+      rename(
+        "Token" = term,
+        "TF-IDF" = TFIDF)}
+  return(tfidfDATA)
+}
+
 # Term Frequency Distributions
 freqByPos <- function(df, term="lemma", pos="NOUN"){
   obj <- df %>%
@@ -1100,27 +1146,32 @@ valueBoxesIndices <- function(x){
 
   # 5. # of sentences
   nSentences <- x %>% group_by(doc_id) %>%
-    summarize(nSent = max(sentence_id)) %>%
+    reframe(nSent = max(sentence_id)) %>%
     ungroup() %>% select(nSent) %>%
-    summarize(nSent = sum(nSent)) %>%
+    reframe(nSent = sum(nSent)) %>%
     as.numeric()
 
   # 6. # avg document length
   avgDocLength <- x %>% group_by(doc_id) %>%
     select(doc_id,sentence) %>%
-    summarize(nTokens = n(),
+    reframe(nTokens = n(),
               nChars = nchar(paste(sentence, collapse=" "))) %>%
     ungroup() %>%
-    summarize(avgChars = round(mean(nChars),0),
-              avgTokens = round(mean(nTokens),0))
+    reframe(avgChars = round(mean(nChars),0),
+            sdChars = round(sd(nChars),0),
+              avgTokens = round(mean(nTokens),0),
+            sdTokens = round(sd(nTokens),0))
 
   # 7. # avg length sentence
   avgSentLength <- x %>% group_by(doc_id,sentence_id) %>%
-    summarize(sentLength = n(),
+    reframe(sentLength = n(),
               nChars = nchar(sentence)) %>%
     ungroup() %>%
-    summarize(avgTokens = round(mean(sentLength),1),
-              avgChars = round(mean(nChars),1))
+    reframe(avgTokens = round(mean(sentLength),1),
+            sdTokens = round(sd(sentLength),1),
+            avgChars = round(mean(nChars),1),
+            sdChars = round(sd(nChars),1)
+            )
 
   # 8. TTR: il rapporto tra la varietà del dizionario (Dictionary) e il numero totale di token in una raccolta testuale (# terms); in altre parole, misura la diversità lessicale in un corpus
   TTR = round(nDictionary/nTokens*100,2)
@@ -1130,11 +1181,37 @@ valueBoxesIndices <- function(x){
     count() %>%
     filter(n==1) %>%
     ungroup() %>%
-    summarize(n=sum(n)) %>%
+    reframe(n=sum(n)) %>%
     as.numeric() / nDictionary *100
 
   # 10. Guiraud
   guiraud <- round(nDictionary/sqrt(nTokens),1)
+
+  # 11. Lexical density
+  lexical_words <- x %>%
+    filter(upos %in% c("NOUN", "VERB", "ADJ", "ADV")) # Parole di contenuto
+
+  lexical_density <- (nrow(lexical_words) / nrow(x)) * 100
+
+  # 12. Nominal Ratio (Rapporto Nominale)
+  num_nouns <- sum(x$upos == "NOUN", na.rm = TRUE) # Numero di sostantivi
+  num_verbs <- sum(x$upos == "VERB", na.rm = TRUE) # Numero di verbi
+
+  nominal_ratio <- ifelse(num_verbs > 0, num_nouns / num_verbs, NA) # Evita divisione per zero
+
+  # 13. Gini Index sui Token (Disomogeneità della Distribuzione)
+  token_counts <- x %>%
+    count(token, sort = TRUE) %>%
+    pull(n)  # Ottieni solo il conteggio delle occorrenze
+
+  gini_index <- Gini(token_counts)  # Calcola l'indice di Gini sulla distribuzione delle parole
+
+  # 14 Yule’s K (Misura della diversità lessicale)
+  words <- x$token[x$token != ""] # Remove empty strings
+  word_freq <- table(words)
+  M1 <- length(word_freq)
+  M2 <- sum(word_freq^2)
+  K <- 10000 * (M2 - M1) / (length(words)^2)
 
   obj <- list(nDoc=nDoc,
               nTokens=nTokens,
@@ -1142,13 +1219,32 @@ valueBoxesIndices <- function(x){
               nLemmas=nLemmas,
               nSentences=nSentences,
               avgDocLengthChars=avgDocLength$avgChars,
+              avgDocLengthCharsSD= avgDocLength$sdChars,
               avgDocLengthTokens=avgDocLength$avgTokens,
+              avgDocLengthTokensSD=avgDocLength$sdTokens,
               avgSentLengthTokens=avgSentLength$avgTokens,
+              avgSentLengthTokensSD=avgSentLength$sdTokens,
               avgSentLengthChars=avgSentLength$avgChars,
+              avgSentLengthCharsSD=avgSentLength$sdChars,
               TTR=TTR,
               hapax=round(hapax,1),
-              guiraud=guiraud
+              guiraud=guiraud,
+              lexical_density = round(lexical_density,1),
+              nominal_ratio = round(nominal_ratio,2),
+              gini_index = round(gini_index,2),
+              yule_k = round(K,1)
   )
+}
+
+Gini <- function(x, corr = FALSE, na.rm = TRUE)
+{
+  if(!na.rm && any(is.na(x))) return(NA_real_)
+  x <- as.numeric(na.omit(x))
+  n <- length(x)
+  x <- sort(x)
+  G <- sum(x * 1L:n)
+  G <- 2 * G/sum(x) - (n + 1L)
+  if (corr) G/(n - 1L) else G/n
 }
 
 ## wordcloud2vis
@@ -2114,7 +2210,7 @@ network <- function(x, term="lemma", group=c("doc_id", "sentence_id"), n, minEdg
   obj <- list(nodes=nodes, edges=edges)
 }
 
-net2vis <- function(nodes,edges, click=TRUE){
+net2vis <- function(nodes,edges, click=TRUE, noOverlap=FALSE){
 
   layout <- "layout_nicely"
 
@@ -2137,15 +2233,19 @@ net2vis <- function(nodes,edges, click=TRUE){
 
 # avoid overlaps among node labels
   ## avoid label overlaps
-  coords <- VIS$x$nodes %>%
-    select(x,y)
+  if (noOverlap){
+    coords <- VIS$x$nodes %>%
+      select(x,y)
 
-  threshold <- 0.03
-  ymax <- diff(range(coords[,2]))
-  xmax <- diff(range(coords[,1]))
-  threshold2 <- threshold*mean(xmax,ymax)
-  w <- data.frame(x=coords[,1],y=coords[,2],labelToPlot=VIS$x$nodes$label, dotSize=VIS$x$nodes$font.size, row.names = VIS$x$nodes$label)
-  labelToRemove <- avoidNetOverlaps(w, threshold = threshold2)
+    threshold <- 0.03
+    ymax <- diff(range(coords[,2]))
+    xmax <- diff(range(coords[,1]))
+    threshold2 <- threshold*mean(xmax,ymax)
+    w <- data.frame(x=coords[,1],y=coords[,2],labelToPlot=VIS$x$nodes$label, dotSize=VIS$x$nodes$font.size, row.names = VIS$x$nodes$label)
+    labelToRemove <- avoidNetOverlaps(w, threshold = threshold2)
+  } else {
+    labelToRemove <- ""
+  }
 
   VIS$x$nodes <- VIS$x$nodes %>%
     mutate(title = label,
@@ -3512,10 +3612,7 @@ posSel <- function(dfTag, pos){
 # remove Hapax and lowwer and higher lemmas
 removeHapaxFreq <- function(dfTag,hapax,singleChar){
 
-  #posTagFreq <- as.numeric(gsub("%","",posTagFreq))
-
-
-  ## reset noHapax column
+ ## reset noHapax column
   dfTag <- dfTag %>%
     mutate(noHapax = TRUE)
 
@@ -3534,7 +3631,8 @@ removeHapaxFreq <- function(dfTag,hapax,singleChar){
   ## Single Char
   if (is.null(singleChar)){
     dfTag <- dfTag %>%
-      mutate(noSingleChar = ifelse(nchar(lemma)>1,TRUE,FALSE))
+      mutate(noSingleChar = ifelse(nchar(lemma)>1,TRUE,FALSE),
+             noSingleChar = ifelse(upos %in% c("EMOJI", "MENTION", "HASH", "IP_ADDRESS", "URL","EMAIL"), TRUE, noSingleChar))
   }
 
   return(dfTag)
@@ -3704,7 +3802,7 @@ menuList <- function(menu){
                       menuItem("Multi-Word", tabName = "multiword", icon = icon("chevron-right"), startExpanded = TRUE,
                                menuSubItem("Automatic", tabName = "multiwordCreat",icon = icon("chevron-right")),
                                menuSubItem("By a List", tabName = "multiwordByList",icon = icon("chevron-right"))),
-                      menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right"), selected = TRUE),
+                      menuSubItem("Custom Term List", tabName = "custTermList",icon = icon("chevron-right"), selected = TRUE),
                       menuSubItem("PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right"))
              ),
              menuItem("Settings",tabName = "settings", icon = icon("tasks"))
@@ -3723,7 +3821,7 @@ menuList <- function(menu){
                       menuItem("Multi-Word", tabName = "multiword", icon = icon("chevron-right"), startExpanded = TRUE,
                                menuSubItem("Automatic", tabName = "multiwordCreat",icon = icon("chevron-right")),
                                menuSubItem("By a List", tabName = "multiwordByList",icon = icon("chevron-right"))),
-                      menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right")),
+                      menuSubItem("Custom Term List", tabName = "custTermList",icon = icon("chevron-right")),
                       menuSubItem("PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right")), selected = TRUE),
              # menuItem("Filter", tabName = "filter_text", icon = icon("filter")),
              # menuItem("Groups",tabName = "defineGroups", icon = icon("th", lib="glyphicon")),
@@ -3763,7 +3861,7 @@ menuList <- function(menu){
                       menuItem("Multi-Word", tabName = "multiword", icon = icon("chevron-right"), startExpanded = TRUE,
                       menuSubItem("Automatic", tabName = "multiwordCreat",icon = icon("chevron-right")),
                       menuSubItem("By a List", tabName = "multiwordByList",icon = icon("chevron-right"))),
-                      menuSubItem("Custom Term Lists", tabName = "custTermList",icon = icon("chevron-right")),
+                      menuSubItem("Custom Term List", tabName = "custTermList",icon = icon("chevron-right")),
                       menuSubItem("PoS Tag Selection", tabName = "posTagSelect",icon = icon("chevron-right")), selected = TRUE),
              menuItem("Filter", tabName = "filter_text", icon = icon("filter")),
              menuItem("Groups",tabName = "defineGroups", icon = icon("th", lib="glyphicon")),
@@ -3872,8 +3970,9 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
   # }
   if (isTRUE(specialtags)) {
     df <- df %>%
-      mutate(Table = paste0('<button id2="custom_btn" onclick="Shiny.onInputChange(\'button_id2\', \'', UPOS, '\')">View</button>')) %>%
-      select(Table, everything())
+      rename("Special Entity" = "UPOS") %>%
+      mutate("Frequency Distribution" = paste0('<button id2="custom_btn" onclick="Shiny.onInputChange(\'button_id2\', \'', `Special Entity`, '\')">View</button>')) %>%
+      select("Frequency Distribution", everything())
   }
 
 
@@ -4537,6 +4636,5 @@ model_accuracy <- function(){
   return(df)
 
 }
-
 
 
