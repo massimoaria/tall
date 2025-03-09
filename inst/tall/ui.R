@@ -1346,19 +1346,27 @@ body <- dashboardBody(
                                          column(3,
                                                 div(id='clickbox1',title="Numbers of Documents", valueBoxOutput("nDoc", width = "33vh")),
                                                 div(id='clickbox2',title= "Average Document's Lenght by characters", valueBoxOutput("avgDocLengthChar", width = "33vh")),
-                                                div(id='clickbox3',title="Average Document's Length by tokens",valueBoxOutput("avgDocLengthTokens", width = "33vh"))),
+                                                div(id='clickbox3',title="Average Document's Length by tokens",valueBoxOutput("avgDocLengthTokens", width = "33vh")),
+                                                div(id='clickbox13',title="Lexical Density",valueBoxOutput("lexicalDensity", width = "33vh")),
+                                                ),
                                          column(3,
                                                 div(id='clickbox4',title="Number of Sentences", valueBoxOutput("nSentences", width = "33vh")),
                                                 div(id='clickbox5',title="Average Sentence's Length by characters", valueBoxOutput("avgSentLengthChar", width = "33vh")),
-                                                div(id='clickbox6',title="Average Sentence's Length by tokens", valueBoxOutput("avgSentLengthTokens", width = "33vh"))),
+                                                div(id='clickbox6',title="Average Sentence's Length by tokens", valueBoxOutput("avgSentLengthTokens", width = "33vh")),
+                                                div(id='clickbox14',title="Nominal Ratio", valueBoxOutput("nominalRatio", width = "33vh"))
+                                                ),
                                          column(3,
                                                 div(id='clickbox7',title="Number of Types", valueBoxOutput("nDictionary", width = "33vh")),
                                                 div(id='clickbox8',title="Number of Tokens", valueBoxOutput("nTokens", width = "33vh")),
-                                                div(id='clickbox9',title="Number of Lemma", valueBoxOutput("nLemmas", width = "33vh"))),
+                                                div(id='clickbox9',title="Number of Lemma", valueBoxOutput("nLemmas", width = "33vh")),
+                                                div(id='clickbox15',title="Gini Index", valueBoxOutput("giniIndex", width = "33vh"))
+                                                ),
                                          column(3,
                                                 div(id='clickbox10',title="Types/Tokens Ratio", valueBoxOutput("TTR", width = "33vh")),
                                                 div(id='clickbox11',title="Percentage of Hapax", valueBoxOutput("hapax", width = "33vh")),
-                                                div(id='clickbox12',title="Guiraud Index", valueBoxOutput("guiraud", width = "33vh"))),
+                                                div(id='clickbox12',title="Guiraud Index", valueBoxOutput("guiraud", width = "33vh")),
+                                                div(id='clickbox16',title="Yule's K", valueBoxOutput("yuleK", width = "33vh"))
+                                                ),
                                        )
                                      )
                             ),
@@ -1367,6 +1375,21 @@ body <- dashboardBody(
                                        shinycssloaders::withSpinner(DT::DTOutput(outputId = "overviewData", width = 700),
                                                                     color = getOption("spinner.color", default = "#4F7942"))
                                        , align="center")
+                            ),
+                            tabPanel("Vocabulary",
+                                     column(12,
+                                            div(
+                                       shinycssloaders::withSpinner(DT::DTOutput(outputId = "dictionaryData", width = 700),
+                                                                    color = getOption("spinner.color", default = "#4F7942"))),
+                                       align="center")
+                                     # ,column(1)
+                            ),
+                            tabPanel("TF-IDF",
+                                     column(12,
+                                            div(
+                                              shinycssloaders::withSpinner(DT::DTOutput(outputId = "tfidfData", width = 700),
+                                                                           color = getOption("spinner.color", default = "#4F7942"))),
+                                            align="center")
                             ),
                             tabPanel("WordCloud",
                                      column(9,
@@ -1427,74 +1450,18 @@ body <- dashboardBody(
                                                 ,align="left")
                                             )
                                      )
-                            ),
-                            tabPanel("Vocabulary",
-                                     column(9,div(
-                                       shinycssloaders::withSpinner(DT::DTOutput(outputId = "dictionaryData", width = 700),
-                                                                    color = getOption("spinner.color", default = "#4F7942"))),
-                                       align="center"),
-                                     column(3,
-                                            div(
-                                              box(
-                                                width = 12,
-                                                fluidRow(
-                                                  column(9
-                                                         # ,div(
-                                                         #   selectInput("termDict",
-                                                         #               label = "Vocabulary by:",
-                                                         #               choices = c("Tokens"="token",
-                                                         #                           "Lemma"="lemma"),
-                                                         #               selected = "token"), style="margin-top:-3px"
-                                                         # )
-                                                  ),
-                                                  column(3,
-                                                         div(
-                                                           align = "center",style="margin-top:15px",
-                                                           width=12,
-                                                           do.call("actionButton", c(run_bttn, list(
-                                                             inputId = "dictionaryApply")
-                                                           ))
-                                                         )
-                                                  )
-                                                )
-                                              )
-                                              ,align="left")
-                                     )
-                            ),
-                            tabPanel("TF-IDF",
-                                     column(9,
-                                            div(
-                                              shinycssloaders::withSpinner(DT::DTOutput(outputId = "tfidfData", width = 700),
-                                                                           color = getOption("spinner.color", default = "#4F7942"))),
-                                            align="center"),
-                                     column(3,
-                                            div(
-                                              box(
-                                                width = 12,
-                                                fluidRow(
-                                                  column(9
-                                                         # ,div(
-                                                         #   selectInput("termTfidf",
-                                                         #               label = "TF-IDF by:",
-                                                         #               choices = c("Tokens"="token",
-                                                         #                           "Lemma"="lemma"),
-                                                         #               selected = "lemma"), style="margin-top:-3px"
-                                                         # )
-                                                  ),
-                                                  column(3,
-                                                         div(
-                                                           align = "center",style="margin-top:15px",
-                                                           width=12,
-                                                           do.call("actionButton", c(run_bttn, list(
-                                                             inputId = "tfidfApply")
-                                                           ))
-                                                         )
-                                                  )
-                                                )
-                                              )
-                                              ,align="left")
-                                     )
                             )
+                            ,tabPanel("Info & References",
+                                      fluidPage(
+                                        fluidRow(
+                                          column(1),
+                                          column(10,
+                                                 br(),
+                                                 HTML(infoTexts$overview)
+                                          ),
+                                          column(1)
+                                        )
+                                      ))
                 )#, align="center"
               )
             )
@@ -2186,6 +2153,12 @@ body <- dashboardBody(
                                label = "Co-occurrences in ",
                                choices = c("Groups","Documents", "Paragraphs", "Sentences"),
                                selected = "Sentences"
+                             ),
+                             materialSwitch(
+                               inputId = "noOverlap",
+                               label = "Avoid label overlap",
+                               value = TRUE,
+                               status = "success"
                              ),
                              materialSwitch(
                                inputId = "interLinks",

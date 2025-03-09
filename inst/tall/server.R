@@ -1753,15 +1753,15 @@ multiword <- eventReactive({
 
   ## BOX ----
 
-
   #### box1 ---------------
   output$nDoc <- renderValueBox({
     values$vb <- valueBoxesIndices(values$dfTag %>% filter(docSelected))
 
     values$VbData <- data.frame(Description=c("Documents", "Tokens", "Types", "Lemma", "Sentences",
-                                              "Docs Avg Length in Chars", "Doc Avg Length in Tokens",
-                                              "Sent Avg Length in Tokens", "Sent Avg Length in Chars",
-                                              "TTR", "Hapax (%)", "Guiraud Index"),
+                                              "Docs Avg Length in Chars","Docs SD Length in Chars", "Doc Avg Length in Tokens",
+                                              "Doc SD Length in Tokens","Sent Avg Length in Tokens", "Sent SD Length in Tokens",
+                                              "Sent Avg Length in Chars", "Sent SD Length in Chars",
+                                              "TTR", "Hapax (%)", "Guiraud Index", "Lexical Density", "Nominal Ratio", "Gini Index", "Yule's K"),
                                 Values=unlist(values$vb))
     valueBox(value = p(ifelse(is.null(input$defineGroupsList), "Documents", paste0("Docs grouped by ",input$defineGroupsList)), style = 'font-size:16px;color:white;'),
              subtitle = p(strong(values$vb$nDoc), style = 'font-size:36px;color:white;', align="center"),
@@ -1779,28 +1779,32 @@ multiword <- eventReactive({
   #### box2 ---------------
   output$avgDocLengthChar <- renderValueBox({
     valueBox(value = p("Doc Avg Length in Chars", style = 'font-size:16px;color:white;'),
-             subtitle = p(strong(values$vb$avgDocLengthChars), style = 'font-size:36px;color:white;', align="center"),
+             subtitle = p(strong(paste0(
+               values$vb$avgDocLengthChars," ± ",values$vb$avgDocLengthCharsSD)
+               ), style = 'font-size:36px;color:white;', align="center"),
              icon = icon("duplicate", lib="glyphicon"), color = "olive",
              width = NULL)
   })
 
   onclick('clickbox2', showModal(modalDialog(
     title = "Doc Avg Length in Chars",
-    h3("Average Document's Length by characters"),
+    h3("Average Document's Length by characters ± standard deviation"),
     easyClose = TRUE
   )))
 
   #### box3 ------------
   output$avgDocLengthTokens <- renderValueBox({
     valueBox(value = p("Doc Avg Length in Tokens", style = 'font-size:16px;color:white;'),
-             subtitle = p(strong(values$vb$avgDocLengthTokens), style = 'font-size:36px;color:white;', align="center"),
+             subtitle = p(strong(
+               paste0(values$vb$avgDocLengthTokens," ± ",values$vb$avgDocLengthTokensSD)
+               ), style = 'font-size:36px;color:white;', align="center"),
              icon = icon("duplicate", lib="glyphicon"), color = "olive",
              width = NULL)
   })
 
   onclick('clickbox3', showModal(modalDialog(
     title = "Doc Avg Length in tokens",
-    h3("Average Document's Length by tokens"),
+    h3("Average Document's Length by tokens ± standard deviation"),
     easyClose = TRUE
   )))
 
@@ -1821,28 +1825,32 @@ multiword <- eventReactive({
   #### box5 --------------------
   output$avgSentLengthChar <- renderValueBox({
     valueBox(value = p("Sent Avg Length in Chars", style = 'font-size:16px;color:white;'),
-             subtitle = p(strong(values$vb$avgSentLengthChars), style = 'font-size:36px;color:white;', align="center"),
+             subtitle = p(strong(
+               paste0(values$vb$avgSentLengthChars, " ± ",values$vb$avgSentLengthCharsSD)
+               ), style = 'font-size:36px;color:white;', align="center"),
              icon = icon(name="align-left", lib="glyphicon"), color = "olive",
              width = NULL)
   })
 
   onclick('clickbox5', showModal(modalDialog(
     title = "Sent Avg Length in Chars",
-    h3("Average Sentence's Length by characters"),
+    h3("Average Sentence's Length by characters ± standard deviation"),
     easyClose = TRUE
   )))
 
   #### box6 -------------
   output$avgSentLengthTokens <- renderValueBox({
     valueBox(value = p("Sent Avg Length in Tokens", style = 'font-size:16px;color:white;'),
-             subtitle = p(strong(values$vb$avgSentLengthTokens), style = 'font-size:36px;color:white;', align="center"),
+             subtitle = p(strong(
+               paste0(values$vb$avgSentLengthTokens, " ± ", values$vb$avgSentLengthTokensSD)
+               ), style = 'font-size:36px;color:white;', align="center"),
              icon = icon(name="align-left", lib="glyphicon"), color = "olive",
              width = NULL)
   })
 
   onclick('clickbox6', showModal(modalDialog(
     title = "Sent Avg Length in Tokens",
-    h3("Average Sentence's Length by tokens"),
+    h3("Average Sentence's Length by tokens ± standard deviation"),
     easyClose = TRUE
   )))
 
@@ -1958,11 +1966,139 @@ multiword <- eventReactive({
     easyClose = TRUE
   )))
 
+  #### box13 -------
+  output$lexicalDensity <- renderValueBox({
+    valueBox(value = p("Lexical Density", style = 'font-size:16px;color:white;'),
+             subtitle = p(strong(values$vb$lexical_density), style = 'font-size:36px;color:white;', align="center"),
+             icon = icon(name="stats", lib="glyphicon"), color = "olive",
+             width = NULL)
+  })
+
+  onclick('clickbox13', showModal(modalDialog(
+    title = "Lexical Density",
+    h3("Lexical Density"),
+    hr(),
+    p(HTML("<span style='font-family: Calibri, sans-serif; font-size: 16px;'>The <strong>Lexical Density (GI)</strong> is the percentage of content tokens (nouns, verbs, adjectives, and adverbs) relative to the total number of tokens in the corpus. The formula is:</span>
+             <div style='font-size:1.2em; color:'black'; text-align: center; margin:10px 0;'>
+          <p style='text-align: center;'><span style='font-size: 16px;'><em><span style='font-family: Calibri, sans-serif;'> Lexical Density = (Number of Content Tokebs / &#8730;Number of Tokens) * 100 </span></em></span></p>
+             </div>"), style = 'font-size:16px'),
+    easyClose = TRUE
+  )))
+
+  #### box14 -------
+  output$nominalRatio <- renderValueBox({
+    valueBox(value = p("Nominal Ratio", style = 'font-size:16px;color:white;'),
+             subtitle = p(strong(values$vb$nominal_ratio), style = 'font-size:36px;color:white;', align="center"),
+             icon = icon(name="stats", lib="glyphicon"), color = "olive",
+             width = NULL)
+  })
+
+  onclick('clickbox14', showModal(modalDialog(
+    title = "Nominal Ratio",
+    h3("Nominal Ratio"),
+    hr(),
+    p(HTML("<span style='font-family: Calibri, sans-serif; font-size: 16px;'>The <strong>Nominal Ratio (GI)</strong> is The ratio between the number of nouns and the number of verbs in the corpus. A high value indicates a more abstract and formal text, while a low value suggests a more dynamic and narrative style. The formula is:</span>
+             <div style='font-size:1.2em; color:'black'; text-align: center; margin:10px 0;'>
+          <p style='text-align: center;'><span style='font-size: 16px;'><em><span style='font-family: Calibri, sans-serif;'> Nominal Ratio = (Number of Nuons / &#8730;Number of Verbs) </span></em></span></p>
+             </div>"), style = 'font-size:16px'),
+    easyClose = TRUE
+  )))
+
+  #### box15 -------
+  output$giniIndex <- renderValueBox({
+    valueBox(value = p("Gini Index", style = 'font-size:16px;color:white;'),
+             subtitle = p(strong(values$vb$gini_index), style = 'font-size:36px;color:white;', align="center"),
+             icon = icon(name="stats", lib="glyphicon"), color = "olive",
+             width = NULL)
+  })
+
+  onclick('clickbox15', showModal(modalDialog(
+    title = "Gini Index",
+    h3("Gini Index"),
+    hr(),
+    p(HTML("<span style='font-family: Calibri, sans-serif; font-size: 16px;'>The <strong>Gini Index on Tokens</strong> is a measures the inequality in the frequency distribution of tokens. A high value indicates that a few words dominate the corpus, while a low value suggests a more evenly distributed vocabulary. The formula is:</span>
+             <div style='font-size:1.2em; color:'black'; text-align: center; margin:10px 0;'>
+          <p style='text-align: center;'><span style='font-size: 16px;'><em><span style='font-family: Calibri, sans-serif;'>
+          <math xmlns='http://www.w3.org/1998/Math/MathML'>
+  <mi>G</mi>
+  <mo>=</mo>
+  <mfrac>
+  <mrow>
+  <munderover>
+  <mo>&Sum;</mo>
+  <mrow><mi>i</mi>=1</mrow>
+  <mi>n</mi>
+  </munderover>
+  <munderover>
+  <mo>&Sum;</mo>
+  <mrow><mi>j</mi>=1</mrow>
+  <mi>n</mi>
+  </munderover>
+  <mo>|</mo>
+  <msub><mi>f</mi> <mi>i</mi></msub>
+  <mo>-</mo>
+  <msub><mi>f</mi> <mi>j</mi></msub>
+  <mo>|</mo>
+  </mrow>
+  <mrow>
+  <mn>2</mn>
+  <msup><mi>n</mi><mn>2</mn></msup>
+  <mover>  <mi>f</mi>  <mo>&macr;</mo></mover></mrow></mfrac></math>
+          </span></em></span></p>
+             </div>"), style = 'font-size:16px'),
+    easyClose = TRUE
+  )))
+
+  #### box16 -------
+  output$yuleK <- renderValueBox({
+    valueBox(value = p("Yule's K", style = 'font-size:16px;color:white;'),
+             subtitle = p(strong(values$vb$yule_k), style = 'font-size:36px;color:white;', align="center"),
+             icon = icon(name="stats", lib="glyphicon"), color = "olive",
+             width = NULL)
+  })
+
+  onclick('clickbox16', showModal(modalDialog(
+    title = "Yule's K",
+    h3("Yule's K"),
+    hr(),
+    p(HTML("<span style='font-family: Calibri, sans-serif; font-size: 16px;'>The <strong>Yule's K</strong> is a measure of lexical diversity that reflects the degree of word repetition in a text. A higher value indicates that the text is dominated by a few highly frequent words, whereas a lower value suggests a more balanced vocabulary distribution. The formula is:</span>
+             <div style='font-size:1.2em; color:'black'; text-align: center; margin:10px 0;'>
+          <p style='text-align: center;'><span style='font-size: 16px;'><em><span style='font-family: Calibri, sans-serif;'>
+          <math xmlns='http://www.w3.org/1998/Math/MathML'>
+  <mi>K</mi>
+  <mo>=</mo>
+  <mn>10^4</mn>
+  <mn></mn>
+  </msup>
+  <mo>&times;</mo>
+  <mfenced>
+  <mrow>
+  <munderover>
+  <mo>&Sum;</mo>
+  <mrow><mi>i</mi>=1</mrow>
+  <mi>n</mi>
+  </munderover>
+  <msup>
+  <mfrac>
+  <msub><mi>f</mi> <mi>i</mi></msub>
+  <mi>N</mi>
+  </mfrac>
+  <mn>2</mn>
+  </msup>
+  <mo>-</mo>
+  <mfrac>
+  <msub><mi>V</mi> <mn>1</mn></msub>
+  <mi>N</mi>
+  </mfrac></mrow></mfenced></math>
+          </span></em></span></p>
+             </div>"), style = 'font-size:16px'),
+    easyClose = TRUE
+  )))
 
   ## Overview Table ----
 
   output$overviewData <- renderDT(server = FALSE,{
-    DTformat(values$VbData,nrow=12, left=1, right=2, numeric=2, pagelength=FALSE, dom=FALSE, size='110%', filename="Overview")
+    DTformat(values$VbData,nrow=nrow(values$VbData), left=1, right=2, numeric=2, pagelength=FALSE, dom=FALSE, size='110%', filename="Overview")
   })
 
   ## Report
@@ -2007,24 +2143,6 @@ multiword <- eventReactive({
     wcData()
     values$WC2VIS
   })
-  # output$wordcloudPlot <- renderWordcloud2({
-  #   wcData()
-  #   values$wcPlot <- wordcloud2a(values$wcDfPlot,
-  #                                           fontFamily = "Impact", fontWeight = "normal", minSize=0,
-  #                                           minRotation = 0, maxRotation = 0, shuffle = TRUE,
-  #                                           rotateRatio = 0.7, shape = "circle",ellipticity = 0.65,
-  #                                           #widgetsize = "100%",
-  #                                           figPath = NULL,
-  #                                           #size = ifelse(length(values$wcDfPlot$text)>100,1,1.3),
-  #                                           color = "random-dark", backgroundColor = "transparent")
-  #   values$wcPlot
-  # })
-
-
-  # output$wcDfData <- renderDT(server=FALSE,{
-  #   wcData()
-  #   DTformat(values$wcDfPlot,n=15, left=1, right=2, numeric=2, pagelength=TRUE, dom=TRUE, size='110%', filename="WordCloudData")
-  # })
 
   ## export WordCloud button
   observeEvent(eventExpr = {input$wcSave},
@@ -2036,68 +2154,16 @@ multiword <- eventReactive({
     })
 
   ## VOCABULARY ----
-  dictionary <- eventReactive({
-    input$dictionaryApply
-  },
-  {
-    Term <- values$generalTerm
-    values$dictFreq <- LemmaSelection(values$dfTag) %>%
-      dplyr::filter(docSelected) %>%
-      mutate(token = ifelse(upos == "MULTIWORD", lemma,token))
-
-    if (Term=="lemma"){
-      values$dictFreq <- values$dictFreq %>%
-        group_by(upos, lemma) %>%
-        summarize(n=n()) %>%
-        arrange(desc(n)) %>%
-        rename(Lemma = lemma,
-               Frequency = n,
-               "Part of Speech"=upos) %>%
-      relocate("Part of Speech", .after = last_col())
-    } else {
-      values$dictFreq <- values$dictFreq %>%
-        group_by(upos, token) %>%
-        summarize(n=n()) %>%
-        arrange(desc(n)) %>%
-        rename(Token = token,
-               Frequency = n,
-               "Part of Speech"=upos) %>%
-        relocate("Part of Speech", .after = last_col())
-    }
-  })
-
-
   output$dictionaryData <- renderDT(server=FALSE,{
-    dictionary()
+    #dictionary()
+    values$dictFreq <- vocabulary(values$dfTag, term = values$generalTerm)
     DTformat(values$dictFreq,
              left=c(1,2), nrow=15, pagelength=TRUE, filename="Dictionary", dom=TRUE, size="110%")
   })
 
-  ## TF-IDF ----
-
-  tf_idf <- eventReactive({
-    input$tfidfApply
-  },
-  {
-    values$tfidfDATA <- LemmaSelection(values$dfTag) %>%
-      dplyr::filter(docSelected) %>%
-      tfidf(term=values$generalTerm)
-
-    if(values$generalTerm=="lemma"){
-      values$tfidfDATA <- values$tfidfDATA  %>%
-                 rename(
-                   "Lemma" = term,
-                   "TF-IDF" = TFIDF)}
-      else{
-        values$tfidfDATA <- values$tfidfDATA  %>%
-          rename(
-            "Token" = term,
-            "TF-IDF" = TFIDF)}
-  })
-
-
+  ## TF-IDF Table----
   output$tfidfData <- renderDT(server=FALSE,{
-    tf_idf()
+    values$tfidfDATA <- tfidfTable(values$dfTag, term = values$generalTerm)
     DTformat(values$tfidfDATA,
              left=1, numeric=2,round=4, size="110%")
   })
@@ -2838,7 +2904,7 @@ observeEvent(input$closePlotModalDoc,{
       #net=values$network
       #save(net, file="network.rdata")
 
-      values$netVis <- net2vis(nodes=values$network$nodes, edges=values$network$edges)
+      values$netVis <- net2vis(nodes=values$network$nodes, edges=values$network$edges, click=TRUE, noOverlap=input$noOverlap)
 
       #network$nodes
       if (is.na(values$network$nodes)[1]){
