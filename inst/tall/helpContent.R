@@ -392,12 +392,11 @@ helpContent <- function(){
 
 </body>"
 
-  overview <- "<body>
-
+overview <- "<body>
   <div class='container'>
     <h3><strong>Corpus Metrics in TALL</strong></h3>
     <p>These metrics provide a summary of the key textual characteristics of the analyzed corpus.</p>
-
+    
     <h4><strong>📂 Corpus Size & Structure</strong></h4>
     <ul>
     <li><strong>Documents →</strong> The total number of documents in the corpus.</li>
@@ -406,51 +405,160 @@ helpContent <- function(){
     <li><strong>Types →</strong> The number of unique words in the corpus, representing vocabulary richness.</li>
     <li><strong>Lemma →</strong> The number of unique lemmas, considering the base form of words.</li>
     </ul>
-
+    
     <h4><strong>📏 Average Length Metrics</strong></h4>
     <ul>
-    <li><strong>Doc Avg Length in Chars →</strong> The average document length in characters, with variability.</li>
-    <li><strong>Doc Avg Length in Tokens →</strong> The average document length in words (tokens), reflecting textual density.</li>
-    <li><strong>Sent Avg Length in Chars →</strong> The average sentence length in characters.</li>
-    <li><strong>Sent Avg Length in Tokens →</strong> The average sentence length in words.</li>
-    </ul>
-
-    <h4><strong>📊 Lexical Metrics</strong></h4>
-    <ul>
-    <li><strong>Type-Token Ratio (TTR) →</strong> The ratio between the number of unique words (types) and the total number of words (tokens). Higher values indicate greater lexical diversity (Tweedie & Baayen, 1998).</li>
-    <li><strong>Hapax Legomena (%) →</strong> The percentage of words that appear only once in the corpus. A high value suggests a significant presence of unique terms (Baayen, 1996).</li>
-    <li><strong>Guiraud Index →</strong> A measure of lexical richness, based on the number of unique words relative to the square root of the total words (Guiraud, 1954).</li>
-    </ul>
-
-    <h4><strong>📊 Additional Lexical Measures</strong></h4>
-    <ul>
-    <li><strong>Lexical Density →</strong> The percentage of content words (nouns, verbs, adjectives, adverbs) relative to the total tokens. It indicates how informative the text is compared to function words (prepositions, conjunctions, articles) (Ure, 1971).</li>
-    <li><strong>Nominal Ratio →</strong> The ratio between nouns and verbs. Higher values suggest more abstract and formal texts, whereas lower values indicate a more dynamic and narrative style (Biber, 1988).</li>
-    <li><strong>Gini Index →</strong> A measure of the inequality in word frequency distribution. Values closer to 1 suggest that a few words dominate the text, while lower values indicate a more even vocabulary distribution (Bentz, Alikaniotis, Cysouw, Ferrer-i-Cancho, 2017).</li>
-    <li><strong>Yule’s K Index →</strong> A measure of lexical diversity that reflects the degree of word repetition. Higher values indicate a text dominated by a few highly frequent words (Yule, 1944).</li>
-    </ul>
-
-    <div class='references'>
-      <h4><strong>References</strong></h4>
-
-      <p><strong>Baayen, R. H.</strong><i>The effect of lexical specialization on the growth curve of vocabulary.</i> <strong>Computational Linguistics</strong>, 22(2), 1996.</p>
-
-      <p><strong>Bentz, C., Alikaniotis, D., Cysouw, M., & Ferrer-i-Cancho, R.</strong><i>The entropy of words—learnability and expressivity across more than 1000 languages.</i> <strong>Entropy</strong>, 19(6), 2017.</p>
-
-      <p><strong>Biber, D.</strong><i>Variation across speech and writing.</i> <strong>Cambridge University Press</strong>, 1988.</p>
-
-      <p><strong>Guiraud, P.</strong><i>Les caractères statistiques du vocabulaire.</i> <strong>Presse Universitaire de France</strong>, 1954.</p>
-
-      <p><strong>Tweedie, F. J., & Baayen, R. H.</strong>><i>How variable may a constant be? Measures of lexical richness in perspective.</i> <strong>Computers and the Humanities</strong>, 32(5), 323-352, 1998.</p>
-
-      <p><strong>Ure, J.</strong><i>Lexical density and register differentiation.</i> <strong>Applications of linguistics</strong>, 1971.</p>
-
-      <p><strong>Yule, G. U.</strong><i>The statistical study of literary vocabulary.</i> <strong>Cambridge University Press</strong>, 1944.</p>
-      </div>
-      </div>
-
-      </body>"
-
+    <li><strong>Doc Avg Length in Chars →</strong> The average number of characters per document.<br>
+    <math xmlns='http://www.w3.org/1998/Math/MathML' style='font-size: 1.5em; display: block; text-align: center; margin-top: 4px; margin-bottom: 12px;'>
+      <mrow>
+      <mfrac>
+      <mtext>Total Characters</mtext>
+      <mtext>Number of Documents</mtext>
+      </mfrac>
+      </mrow>
+      </math>
+      </li>
+      <li><strong>Doc Avg Length in Tokens →</strong> The average number of tokens per document.<br>
+      <math xmlns='http://www.w3.org/1998/Math/MathML' style='font-size: 1.5em; display: block; text-align: center; margin-top: 4px; margin-bottom: 12px;'>
+        <mrow>
+        <mfrac>
+        <mtext>Total Tokens</mtext>
+        <mtext>Number of Documents</mtext>
+        </mfrac>
+        </mrow>
+        </math>
+        </li>
+        <li><strong>Sent Avg Length in Chars →</strong> The average number of characters per sentence.<br>
+        <math xmlns='http://www.w3.org/1998/Math/MathML' style='font-size: 1.5em; display: block; text-align: center; margin-top: 4px; margin-bottom: 12px;'>
+          <mrow>
+          <mfrac>
+          <mtext>Total Characters</mtext>
+          <mtext>Number of Sentences</mtext>
+          </mfrac>
+          </mrow>
+          </math>
+          </li>
+          <li><strong>Sent Avg Length in Tokens →</strong> The average number of tokens per sentence.<br>
+          <math xmlns='http://www.w3.org/1998/Math/MathML' style='font-size: 1.5em; display: block; text-align: center; margin-top: 4px; margin-bottom: 12px;'>
+            <mrow>
+            <mfrac>
+            <mtext>Total Tokens</mtext>
+            <mtext>Number of Sentences</mtext>
+            </mfrac>
+            </mrow>
+            </math>
+            </li>
+            </ul>
+            
+            <h4><strong>📊 Lexical Metrics</strong></h4>
+            <ul>
+            <li><strong>Type-Token Ratio (TTR) →</strong> Ratio of unique words (types) to total words (tokens). Higher values indicate greater lexical diversity.<br>
+            <math xmlns='http://www.w3.org/1998/Math/MathML' style='font-size: 1.5em; display: block; text-align: center; margin-top: 4px; margin-bottom: 12px;'>
+              <mrow>
+              <mtext>TTR = </mtext>
+                <mfrac>
+                <mtext>Types</mtext>
+                <mtext>Tokens</mtext>
+                </mfrac>
+                </mrow>
+                </math>
+                </li>
+                
+                <li><strong>Hapax Legomena (%) →</strong> Percentage of words that appear only once in the corpus.<br>
+                <math xmlns='http://www.w3.org/1998/Math/MathML' style='font-size: 1.5em; display: block; text-align: center; margin-top: 4px; margin-bottom: 12px;'>
+                  <mrow>
+                  <mtext>Hapax % = </mtext>
+                    <mfrac>
+                    <mtext>Hapax</mtext>
+                    <mtext>Types</mtext>
+                    </mfrac>
+                    <mo>×</mo>
+                    <mn>100</mn>
+                    </mrow>
+                    </math>
+                    </li>
+                    
+                    <li><strong>Guiraud Index →</strong> Measure of lexical richness correcting for text length.<br>
+                    <math xmlns='http://www.w3.org/1998/Math/MathML' style='font-size: 1.5em; display: block; text-align: center; margin-top: 4px; margin-bottom: 12px;'>
+                      <mrow>
+                      <mtext>Guiraud = </mtext>
+                        <mfrac>
+                        <mtext>Types</mtext>
+                        <msqrt>
+                        <mtext>Tokens</mtext>
+                        </msqrt>
+                        </mfrac>
+                        </mrow>
+                        </math>
+                        </li>
+                        </ul>
+                        
+                        <h4><strong>📊 Additional Lexical Measures</strong></h4>
+                        <ul>
+                        <li><strong>Lexical Density →</strong> Proportion of content words over total tokens.<br>
+                        <math xmlns='http://www.w3.org/1998/Math/MathML' style='font-size: 1.5em; display: block; text-align: center; margin-top: 4px; margin-bottom: 12px;'>
+                          <mrow>
+                          <mtext>Lexical Density = </mtext>
+                            <mfrac>
+                            <mtext>Content Words</mtext>
+                            <mtext>Total Tokens</mtext>
+                            </mfrac>
+                            </mrow>
+                            </math>
+                            </li>
+                            
+                            <li><strong>Nominal Ratio →</strong> Ratio between nouns and verbs.<br>
+                            <math xmlns='http://www.w3.org/1998/Math/MathML' style='font-size: 1.5em; display: block; text-align: center; margin-top: 4px; margin-bottom: 12px;'>
+                              <mrow>
+                              <mtext>Nominal Ratio = </mtext>
+                                <mfrac>
+                                <mtext>Number of Nouns</mtext>
+                                <mtext>Number of Verbs</mtext>
+                                </mfrac>
+                                </mrow>
+                                </math>
+                                </li>
+                                
+                                <li><strong>Gini Index →</strong> Measure of inequality in word frequency distribution. Calculated from the Lorenz curve of word frequencies.</li>
+                                
+                                <li><strong>Yule’s K Index →</strong> Measure of lexical diversity based on word repetition.<br>
+                                <math xmlns='http://www.w3.org/1998/Math/MathML' style='font-size: 1.5em; display: block; text-align: center; margin-top: 4px; margin-bottom: 12px;'>
+                                  <mrow>
+                                  <mtext>K = </mtext>
+                                    <mn>10,000</mn>
+                                    <mo>×</mo>
+                                    <mfrac>
+                                    <mrow>
+                                    <mo>(</mo>
+                                           <munderover>
+                                           <mo>&#x2211;</mo>
+                                           <mi>i</mi>
+                                           <mi>n</mi>
+                                           </munderover>
+                                           <msup><mi>f</mi><mn>2</mn></msup>
+                                           <mo>)</mo>
+                                    <mo>-</mo>
+                                    <mi>N</mi>
+                                    </mrow>
+                                    <msup><mi>N</mi><mn>2</mn></msup>
+                                    </mfrac>
+                                    </mrow>
+                                    </math>
+                                    </li>
+                                    </ul>
+                                    
+                                    <div class='references'>
+                                      <h4><strong>References</strong></h4>
+                                      <p><strong>Baayen, R. H.</strong> <i>The effect of lexical specialization on the growth curve of vocabulary.</i> <strong>Computational Linguistics</strong>, 22(2), 1996.</p>
+                                      <p><strong>Bentz, C., Alikaniotis, D., Cysouw, M., & Ferrer-i-Cancho, R.</strong> <i>The entropy of words—learnability and expressivity across more than 1000 languages.</i> <strong>Entropy</strong>, 19(6), 2017.</p>
+                                      <p><strong>Biber, D.</strong> <i>Variation across speech and writing.</i> <strong>Cambridge University Press</strong>, 1988.</p>
+                                      <p><strong>Guiraud, P.</strong> <i>Les caractères statistiques du vocabulaire.</i> <strong>Presse Universitaire de France</strong>, 1954.</p>
+                                      <p><strong>Tweedie, F. J., & Baayen, R. H.</strong> <i>How variable may a constant be? Measures of lexical richness in perspective.</i> <strong>Computers and the Humanities</strong>, 32(5), 323–352, 1998.</p>
+                                      <p><strong>Ure, J.</strong> <i>Lexical density and register differentiation. In G. Perren and J.L.M. Trim (eds).</i> <strong>Applications of Linguistics</strong>, Cambridge University Press, 443–452, 1971.</p>
+                                      <p><strong>Yule, G. U.</strong> <i>The statistical study of literary vocabulary.</i> <strong>Cambridge University Press</strong>, 1944.</p>
+                                      </div>
+                                      </div>
+                                      </body>"
 
 wordincontext <- "<body>
 

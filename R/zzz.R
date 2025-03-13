@@ -28,6 +28,7 @@
 #' @import doParallel
 #' @import parallel
 #' @import shinyFiles
+#' @import ggraph
 #' @importFrom readr write_csv
 #' @importFrom strucchange breakpoints
 #' @importFrom shinyjs useShinyjs
