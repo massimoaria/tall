@@ -71,6 +71,7 @@ Imports:
     readtext,
     jsonlite,
     fontawesome,
+    ggraph,
     ca,
     ldatuning,
     shinycssloaders,

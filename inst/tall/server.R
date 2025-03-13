@@ -1769,12 +1769,6 @@ multiword <- eventReactive({
              width = NULL)
   })
 
-  onclick('clickbox1', showModal(modalDialog(
-    title = ifelse(is.null(input$defineGroupsList), "Documents", paste0("Docs grouped by ",input$defineGroupsList)),
-    h3("Number of Documents"),
-    easyClose = TRUE
-  )))
-
 
   #### box2 ---------------
   output$avgDocLengthChar <- renderValueBox({
@@ -1786,12 +1780,6 @@ multiword <- eventReactive({
              width = NULL)
   })
 
-  onclick('clickbox2', showModal(modalDialog(
-    title = "Doc Avg Length in Chars",
-    h3("Average Document's Length by characters ± standard deviation"),
-    easyClose = TRUE
-  )))
-
   #### box3 ------------
   output$avgDocLengthTokens <- renderValueBox({
     valueBox(value = p("Doc Avg Length in Tokens", style = 'font-size:16px;color:white;'),
@@ -1802,13 +1790,7 @@ multiword <- eventReactive({
              width = NULL)
   })
 
-  onclick('clickbox3', showModal(modalDialog(
-    title = "Doc Avg Length in tokens",
-    h3("Average Document's Length by tokens ± standard deviation"),
-    easyClose = TRUE
-  )))
-
-  #### box4 ---------------
+ #### box4 ---------------
   output$nSentences <- renderValueBox({
     valueBox(value = p("Sentences", style = 'font-size:16px;color:white;'),
              subtitle = p(strong(values$vb$nSentences), style = 'font-size:36px;color:white;', align="center"),
@@ -1816,13 +1798,7 @@ multiword <- eventReactive({
              width = NULL)
   })
 
-  onclick('clickbox4', showModal(modalDialog(
-    title = "Sentences",
-    h3("Number of Sentences"),
-    easyClose = TRUE
-  )))
-
-  #### box5 --------------------
+ #### box5 --------------------
   output$avgSentLengthChar <- renderValueBox({
     valueBox(value = p("Sent Avg Length in Chars", style = 'font-size:16px;color:white;'),
              subtitle = p(strong(
@@ -1831,12 +1807,6 @@ multiword <- eventReactive({
              icon = icon(name="align-left", lib="glyphicon"), color = "olive",
              width = NULL)
   })
-
-  onclick('clickbox5', showModal(modalDialog(
-    title = "Sent Avg Length in Chars",
-    h3("Average Sentence's Length by characters ± standard deviation"),
-    easyClose = TRUE
-  )))
 
   #### box6 -------------
   output$avgSentLengthTokens <- renderValueBox({
@@ -1848,12 +1818,6 @@ multiword <- eventReactive({
              width = NULL)
   })
 
-  onclick('clickbox6', showModal(modalDialog(
-    title = "Sent Avg Length in Tokens",
-    h3("Average Sentence's Length by tokens ± standard deviation"),
-    easyClose = TRUE
-  )))
-
   #### box7 ----------------
   output$nDictionary <- renderValueBox({
     valueBox(value = p("Types", style = 'font-size:16px;color:white;'),
@@ -1861,14 +1825,6 @@ multiword <- eventReactive({
              icon = icon(name="font", lib="glyphicon"), color = "olive",
              width = NULL)
   })
-
-  onclick('clickbox7', showModal(modalDialog(
-    title = "Types",
-    h3("Number of Types"),
-    hr(),
-    p("The size of the vocabulary in terms of different/distinct words", style = 'font-size:16px'),
-    easyClose = TRUE
-  )))
 
   #### box8 ---------------
   output$nTokens <- renderValueBox({
@@ -1878,14 +1834,6 @@ multiword <- eventReactive({
              width = NULL)
   })
 
-  onclick('clickbox8', showModal(modalDialog(
-    title = "Tokens",
-    h3("Number of Tokens"),
-    hr(),
-    p("The size of the collection in terms of occurrences",style = 'font-size:16px'),
-    easyClose = TRUE
-  )))
-
   #### box9 ---------------
   output$nLemmas <- renderValueBox({
     valueBox(value = p("Lemma", style = 'font-size:16px;color:white;'),
@@ -1893,14 +1841,6 @@ multiword <- eventReactive({
              icon = icon(name="font", lib="glyphicon"), color = "olive",
              width = NULL)
   })
-
-  onclick('clickbox9', showModal(modalDialog(
-    title = "Lemmas",
-    h3("Number of Lemma"),
-    hr(),
-    p(HTML("<p><span style='text-align: start; color: rgb(32, 33, 34); background-color: rgb(255, 255, 255); font-size: 16px; font-family: Calibri;'>&nbsp;</span><span style='text-align: start; color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); font-size: 16px;'>A <em>lemma&nbsp;</em>is the <strong>canonical form</strong>, or <strong>d</strong><strong>ictionary form</strong> of a set of words forms.</span></p>")),
-    easyClose = TRUE
-  )))
 
   #### box10 ------------------
   output$TTR <- renderValueBox({
@@ -1910,20 +1850,6 @@ multiword <- eventReactive({
              width = NULL)
   })
 
-  onclick('clickbox10', showModal(modalDialog(
-    title = "TTR",
-    h3("Types/Tokens Ratio"),
-    hr(),
-    p(HTML("<p><span style='font-family: Calibri, sans-serif; font-size: 16px;'>The <strong>type-token ratio (TTR)</strong> is a measure of the <em>lexical diversity</em> of a text.&nbsp;</span></p>
-<p style='text-align: center;'><span style='font-size: 16px;'><em><span style='font-family: Calibri, sans-serif;'>TTR = (number of types / number of tokens) * 100</span></em></span></p>
-<p><span style='font-family: Calibri, sans-serif; font-size: 16px;'>A high TTR indicates that the text uses a wide variety of words, while a low TTR indicates that the text uses a relatively small number of words repeatedly.</span></p>
-<p><br></p>
-<p style='margin:0cm;font-size:16px;font-family:'Calibri',sans-serif;text-align:center;'><br></p>"), style = 'font-size:16px'),
-    easyClose = TRUE
-  )))
-
-#McMurtry, J., & Mather, N. (2013). Assessing lexical diversity in written language: A review of methods. Written Communication, 30(1), 1-36.
-
   #### box11 ------
   output$hapax <- renderValueBox({
     valueBox(value = p("Hapax (%)", style = 'font-size:16px;color:white;'),
@@ -1931,20 +1857,6 @@ multiword <- eventReactive({
              icon = icon(name="stats", lib="glyphicon"), color = "olive",
              width = NULL)
   })
-
-  onclick('clickbox11', showModal(modalDialog(
-    title = "Hapax (%)",
-    h3("Percentage of Hapax"),
-    hr(),
-    p(HTML("<p style='margin:0cm;font-size:16px;font-family:'Calibri',sans-serif;'><span style='font-family:Helvetica;color:black;'>The words that occur just one time are called <strong style='font-weight: 700; color: rgb(0, 0, 0); font-family: Helvetica; font-size: 16px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;'>Hapax</strong> - the number of words that appear only once in a text.</span></p>
-<p style='margin:0cm;font-size:16px;font-family:'Calibri',sans-serif;'><span style='font-family:Helvetica;color:black;'><strong>Hapax (%)</strong> can be used to measure the <em>lexical richness</em> of a text.&nbsp;</span></p>
-<p style='margin:0cm;font-size:16px;font-family:'Calibri',sans-serif;'><br></p>
-<p style='margin: 0cm; font-size: 16px; font-family: Calibri, sans-serif; text-align: center;'><span style='font-family:Helvetica;color:black;'><span style='color: rgb(0, 0, 0); font-family: Helvetica; font-size: 16px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;'><em>Hapax (%) = (number of hapax / number of types) * 100</em></span></span></p>
-<p style='margin: 0cm; font-size: 16px; font-family: Calibri, sans-serif; text-align: center;'><br></p>
-<p style='margin:0cm;font-size:16px;font-family:'Calibri',sans-serif;'><span style='font-family:Helvetica;color:black;'>A text with a high Hapax (%) is likely to be more lexically rich than a text with a low Hapax (%). It can also be used to compare different texts. For example, a text written in a technical field is likely to have a higher Hapax (%) than a text written in a general-interest field.&nbsp;</span><span style='font-family:Helvetica;color:black;'>&nbsp;</span></p>
-<p style='margin:0cm;font-size:16px;font-family:'Calibri',sans-serif;text-align:center;'><br></p>"), style = 'font-size:16px'),
-    easyClose = TRUE
-  )))
 
   #### box12 -------
   output$guiraud <- renderValueBox({
@@ -1954,18 +1866,6 @@ multiword <- eventReactive({
              width = NULL)
   })
 
-  onclick('clickbox12', showModal(modalDialog(
-    title = "Guiraud Index",
-    h3("Guiraud Index"),
-    hr(),
-    p(HTML("<span style='font-family: Calibri, sans-serif; font-size: 16px;'>The <strong>Guiraud Index (GI)</strong> is a <em>lexical diversity</em> measure calculated by dividing the number of unique terms (types) by the square root of the total number of terms (tokens) in the text. The formula is:</span>
-             <div style='font-size:1.2em; color:'black'; text-align: center; margin:10px 0;'>
-          <p style='text-align: center;'><span style='font-size: 16px;'><em><span style='font-family: Calibri, sans-serif;'> Guiraud Index = (Number of Types / &#8730;Number of Tokens) * 100 </span></em></span></p>
-             </div>
-             <span style='font-family: Calibri, sans-serif; font-size: 16px;'> GI is less sensitive to text length than a simple type-to-token ratio, making it particularly useful for comparing texts of varying lengths. A higher </strong>GI</strong> indicates a richer vocabulary, reflecting greater lexical diversity.</span>"), style = 'font-size:16px'),
-    easyClose = TRUE
-  )))
-
   #### box13 -------
   output$lexicalDensity <- renderValueBox({
     valueBox(value = p("Lexical Density", style = 'font-size:16px;color:white;'),
@@ -1973,17 +1873,6 @@ multiword <- eventReactive({
              icon = icon(name="stats", lib="glyphicon"), color = "olive",
              width = NULL)
   })
-
-  onclick('clickbox13', showModal(modalDialog(
-    title = "Lexical Density",
-    h3("Lexical Density"),
-    hr(),
-    p(HTML("<span style='font-family: Calibri, sans-serif; font-size: 16px;'>The <strong>Lexical Density (GI)</strong> is the percentage of content tokens (nouns, verbs, adjectives, and adverbs) relative to the total number of tokens in the corpus. The formula is:</span>
-             <div style='font-size:1.2em; color:'black'; text-align: center; margin:10px 0;'>
-          <p style='text-align: center;'><span style='font-size: 16px;'><em><span style='font-family: Calibri, sans-serif;'> Lexical Density = (Number of Content Tokebs / &#8730;Number of Tokens) * 100 </span></em></span></p>
-             </div>"), style = 'font-size:16px'),
-    easyClose = TRUE
-  )))
 
   #### box14 -------
   output$nominalRatio <- renderValueBox({
@@ -1993,17 +1882,6 @@ multiword <- eventReactive({
              width = NULL)
   })
 
-  onclick('clickbox14', showModal(modalDialog(
-    title = "Nominal Ratio",
-    h3("Nominal Ratio"),
-    hr(),
-    p(HTML("<span style='font-family: Calibri, sans-serif; font-size: 16px;'>The <strong>Nominal Ratio (GI)</strong> is The ratio between the number of nouns and the number of verbs in the corpus. A high value indicates a more abstract and formal text, while a low value suggests a more dynamic and narrative style. The formula is:</span>
-             <div style='font-size:1.2em; color:'black'; text-align: center; margin:10px 0;'>
-          <p style='text-align: center;'><span style='font-size: 16px;'><em><span style='font-family: Calibri, sans-serif;'> Nominal Ratio = (Number of Nuons / &#8730;Number of Verbs) </span></em></span></p>
-             </div>"), style = 'font-size:16px'),
-    easyClose = TRUE
-  )))
-
   #### box15 -------
   output$giniIndex <- renderValueBox({
     valueBox(value = p("Gini Index", style = 'font-size:16px;color:white;'),
@@ -2012,43 +1890,6 @@ multiword <- eventReactive({
              width = NULL)
   })
 
-  onclick('clickbox15', showModal(modalDialog(
-    title = "Gini Index",
-    h3("Gini Index"),
-    hr(),
-    p(HTML("<span style='font-family: Calibri, sans-serif; font-size: 16px;'>The <strong>Gini Index on Tokens</strong> is a measures the inequality in the frequency distribution of tokens. A high value indicates that a few words dominate the corpus, while a low value suggests a more evenly distributed vocabulary. The formula is:</span>
-             <div style='font-size:1.2em; color:'black'; text-align: center; margin:10px 0;'>
-          <p style='text-align: center;'><span style='font-size: 16px;'><em><span style='font-family: Calibri, sans-serif;'>
-          <math xmlns='http://www.w3.org/1998/Math/MathML'>
-  <mi>G</mi>
-  <mo>=</mo>
-  <mfrac>
-  <mrow>
-  <munderover>
-  <mo>&Sum;</mo>
-  <mrow><mi>i</mi>=1</mrow>
-  <mi>n</mi>
-  </munderover>
-  <munderover>
-  <mo>&Sum;</mo>
-  <mrow><mi>j</mi>=1</mrow>
-  <mi>n</mi>
-  </munderover>
-  <mo>|</mo>
-  <msub><mi>f</mi> <mi>i</mi></msub>
-  <mo>-</mo>
-  <msub><mi>f</mi> <mi>j</mi></msub>
-  <mo>|</mo>
-  </mrow>
-  <mrow>
-  <mn>2</mn>
-  <msup><mi>n</mi><mn>2</mn></msup>
-  <mover>  <mi>f</mi>  <mo>&macr;</mo></mover></mrow></mfrac></math>
-          </span></em></span></p>
-             </div>"), style = 'font-size:16px'),
-    easyClose = TRUE
-  )))
-
   #### box16 -------
   output$yuleK <- renderValueBox({
     valueBox(value = p("Yule's K", style = 'font-size:16px;color:white;'),
@@ -2056,44 +1897,6 @@ multiword <- eventReactive({
              icon = icon(name="stats", lib="glyphicon"), color = "olive",
              width = NULL)
   })
-
-  onclick('clickbox16', showModal(modalDialog(
-    title = "Yule's K",
-    h3("Yule's K"),
-    hr(),
-    p(HTML("<span style='font-family: Calibri, sans-serif; font-size: 16px;'>The <strong>Yule's K</strong> is a measure of lexical diversity that reflects the degree of word repetition in a text. A higher value indicates that the text is dominated by a few highly frequent words, whereas a lower value suggests a more balanced vocabulary distribution. The formula is:</span>
-             <div style='font-size:1.2em; color:'black'; text-align: center; margin:10px 0;'>
-          <p style='text-align: center;'><span style='font-size: 16px;'><em><span style='font-family: Calibri, sans-serif;'>
-          <math xmlns='http://www.w3.org/1998/Math/MathML'>
-  <mi>K</mi>
-  <mo>=</mo>
-  <mn>10^4</mn>
-  <mn></mn>
-  </msup>
-  <mo>&times;</mo>
-  <mfenced>
-  <mrow>
-  <munderover>
-  <mo>&Sum;</mo>
-  <mrow><mi>i</mi>=1</mrow>
-  <mi>n</mi>
-  </munderover>
-  <msup>
-  <mfrac>
-  <msub><mi>f</mi> <mi>i</mi></msub>
-  <mi>N</mi>
-  </mfrac>
-  <mn>2</mn>
-  </msup>
-  <mo>-</mo>
-  <mfrac>
-  <msub><mi>V</mi> <mn>1</mn></msub>
-  <mi>N</mi>
-  </mfrac></mrow></mfenced></math>
-          </span></em></span></p>
-             </div>"), style = 'font-size:16px'),
-    easyClose = TRUE
-  )))
 
   ## Overview Table ----
 
