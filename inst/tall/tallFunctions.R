@@ -3546,6 +3546,7 @@ resetValues <- function(){
   ### Initial values ----
   values <- list()
   values <- reactiveValues()
+  values$biblioshiny <- NULL
   values$resetNeed <- FALSE
   values$normButton <- FALSE
   values$path <- NULL
