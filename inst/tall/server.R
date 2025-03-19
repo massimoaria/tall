@@ -137,6 +137,10 @@ To ensure the functionality of TALL,
     updateTabItems(session, "sidebarmenu", "import_tx")
   })
 
+  observeEvent(input$biblioRun, {
+    updateTabItems(session, "sidebarmenu", "import_tx")
+  })
+
   observeEvent(input$tokPosRun, {
     updateTabItems(session, "sidebarmenu", "tokPos")
   })
@@ -229,9 +233,10 @@ To ensure the functionality of TALL,
                     choices = c(
                       " "= "null",
                       "Load text files"="import",
+                      "Load file from Biblioshiny"="biblioshiny",
                       "Load Tall structured files"="load_tall",
-                      "Use a sample collection"="demo",
-                      "Wikipedia pages"="wiki"
+                      "Wikipedia pages"="wiki",
+                      "Use a sample collection"="demo"
                     ),
                     selected = "null"
         ),
@@ -280,8 +285,12 @@ To ensure the functionality of TALL,
                    )
             )
           )
-          ),
+          )),
+        conditionalPanel(
+          condition="input.load == 'import' | input.load == 'biblioshiny'",
           uiOutput("file_rawUI"),
+          uiOutput("biblioChoiceUI"), # select text field in file from bibliometrix
+          uiOutput("biblioRunUI"), # apply
           uiOutput(outputId = "infoImport"),
           conditionalPanel(
             condition= "input.ext == 'xlsx' ||  input.ext =='csv'",
@@ -365,8 +374,6 @@ To ensure the functionality of TALL,
   })
 
 
-
-
 observeEvent(input$runReset2, {
   ask_confirmation(
     inputId = "reset_confirmation2",
@@ -402,6 +409,8 @@ observeEvent(input$reset_confirmation2, {
            pdf = {
              ext <- c(".pdf",".zip")
            })
+
+    if (input$load=="biblioshiny") ext <- c("text/csv", ".csv",".zip")
 
     fileInput(
       "file_raw",
@@ -439,6 +448,12 @@ observeEvent(input$reset_confirmation2, {
                    text_original = text) %>%
                  arrange(doc_id)
                values$resetNeed <- TRUE
+             }
+           },
+           biblioshiny={
+             if (!is.null(req(input$file_raw))){
+               file <- input$file_raw
+               values$biblioshiny <- read_files(file,ext="csv", subfolder=FALSE, line_sep=",")
              }
            },
            load_tall={
@@ -514,6 +529,46 @@ observeEvent(input$reset_confirmation2, {
            }
     )
   })
+
+  observeEvent(eventExpr = {values$biblioshiny},
+               handlerExpr = {
+                 tallFields <- intersect(c("AB","TI","DE"), names(values$biblioshiny))
+                 output$biblioChoiceUI <- renderUI({
+                   selectizeInput(
+                     inputId = "biblioChoice",
+                     label = "Choose the text column",
+                     choices = tallFields,
+                     selected = NULL,
+                     multiple = FALSE
+                   )
+                 })
+                 hide("runImport")
+                 output$biblioRunUI <- renderUI({
+                   div(
+                     align = "center",
+                     width=12,
+                     br(),
+                     actionButton(inputId="biblioRun",
+                                  label = div(icon(name="play",lib = "glyphicon"),strong("Apply")),
+                                  icon = NULL,
+                                  style = "border-radius: 20px; border-width: 1px;
+                                                                    font-size: 17px; color: #ffff;")
+                   )
+                 })
+               })
+
+  observeEvent(eventExpr ={input$biblioRun},
+               handlerExpr = {
+                 req(input$biblioChoice)
+                 values$txt <- values$biblioshiny %>%
+                   mutate(text = removeHTMLTags(!!sym(input$biblioChoice)),
+                          text_original = text) %>%
+                   clean_text() %>% ## clean text before tokenization
+                   arrange(doc_id)
+                   values$menu <- 0
+                   values$custom_lists <- NULL
+                 values$resetNeed <- TRUE
+               })
 
   output$dataImported <- DT::renderDT({
     DATAloading()
