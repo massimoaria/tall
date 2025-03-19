@@ -1,60 +1,72 @@
 helpContent <- function(){
-  importmenu <- "<body>
+  importmenu <- "
+  <body>
 
-      <h3><strong>Importing Data in TALL</strong></strong></h3>
+  <h3><strong>Importing Data in TALL</strong></h3>
 
-      <p>TALL provides a versatile and user-friendly interface for importing textual data from various sources, ensuring flexibility in data handling for diverse analytical needs. The platform supports multiple file formats and structures, allowing users to seamlessly prepare their datasets for analysis.</p>
-      <hr>
-      <h4><strong>Supported File Formats</strong></strong></h4>
+  <p>TALL provides a versatile and user-friendly interface for importing textual data from various sources, ensuring flexibility in data handling for diverse analytical needs. The platform supports multiple file formats and structures, allowing users to seamlessly prepare their datasets for analysis.</p>
+  <hr>
 
-      <h4>1. Plain Text Files (.txt)</h4>
-      <p>Plain text files can be imported in three different ways, depending on the structure of the data:</p>
-      <ul>
-      <li><strong>Single file containing a single document:</strong> Ideal for analyzing an individual document, such as a speech transcript, literary work, or report.</li>
-      <li><strong>Single file with multiple documents separated by alphanumeric codes</strong> (e.g., 'Chapter', '0001', '****'):
-      <ul>
-      <li>TALL automatically detects these separators, enabling structured document segmentation.</li>
-      <li>Users can further refine the segmentation using the <strong>Edit → Split</strong> menu.</li>
-      </ul>
-      </li>
-      <li><strong>Multiple .txt files, where each file represents a separate document:</strong>
-      <ul>
-      <li>Users can either select individual files manually or import a compressed (.zip) folder containing multiple text files.</li>
-      <li>Each document will be automatically assigned an ID based on its file name, ensuring clear organization.</li>
-      </ul>
-      </li>
-      </ul>
+  <h4><strong>Supported File Formats</strong></h4>
 
-      <h4>2. Tabular Data (.csv, .xlsx)</h4>
-      <p>Tabular formats are useful for structured datasets, such as online reviews, survey responses, or social media posts.</p>
+  <h4>1. Plain Text Files (.txt)</h4>
+  <p>Plain text files can be imported in three different ways, depending on the structure of the data:</p>
+  <ul>
+    <li><strong>Single file containing a single document:</strong> Ideal for analyzing an individual document, such as a speech transcript, literary work, or report.</li>
+    <li><strong>Single file with multiple documents separated by alphanumeric codes</strong> (e.g., 'Chapter', '0001', '****'):
       <ul>
-      <li>The text to be analyzed must be stored in a dedicated column named <strong>'text'</strong> to ensure proper identification.</li>
-      <li>Each row in the dataset is treated as an individual document.</li>
-      <li>Additional metadata (e.g., timestamps, user IDs, categories) can be retained for contextual analysis.</li>
+        <li>TALL automatically detects these separators, enabling structured document segmentation.</li>
+        <li>Users can further refine the segmentation using the <strong>Edit → Split</strong> menu.</li>
       </ul>
+    </li>
+    <li><strong>Multiple .txt files, where each file represents a separate document:</strong>
+      <ul>
+        <li>Users can either select individual files manually or import a compressed (.zip) folder containing multiple text files.</li>
+        <li>Each document will be automatically assigned an ID based on its file name, ensuring clear organization.</li>
+      </ul>
+    </li>
+  </ul>
 
-      <h4>3. PDF Documents (.pdf)</h4>
-      <p>TALL supports the import of PDF files, facilitating the analysis of academic papers, reports, books, and other document types.</p>
-      <ul>
-      <li>Text extraction occurs automatically, converting the content into a format suitable for processing.</li>
-      <li><strong>Limitation:</strong> At the moment, TALL can only import and process PDFs that follow a single-column formatting. PDFs with multi-column layouts, footnotes, or complex page structures may not be correctly parsed, and additional preprocessing may be required.</li>
-      </ul>
-      <hr>
-      <h4><strong>TALL Structured Files (.tall)</strong></strong></h4>
-      <p>TALL allows users to save their analysis progress in a structured format, ensuring continuity across sessions.</p>
-      <ul>
-      <li><strong>Save Progress:</strong> Users can export their current session as a <strong>.tall</strong> file, preserving all imported data, configurations, and analytical steps.</li>
-      <li><strong>Load Saved Sessions:</strong> Previously saved <strong>.tall</strong> files can be reloaded, allowing users to resume their work seamlessly without the need to re-import or preprocess data.</li>
-      </ul>
+  <h4>2. Tabular Data (.csv, .xlsx)</h4>
+  <p>Tabular formats are useful for structured datasets, such as online reviews, survey responses, or social media posts.</p>
+  <ul>
+    <li>The text to be analyzed must be stored in a dedicated column named <strong>'text'</strong> to ensure proper identification.</li>
+    <li>Each row in the dataset is treated as an individual document.</li>
+    <li>Additional metadata (e.g., timestamps, user IDs, categories) can be retained for contextual analysis.</li>
+  </ul>
 
-      <p>By offering flexible and structured data import capabilities, TALL streamlines the initial steps of text analysis, enabling users to focus on extracting insights efficiently.</p>
-      <hr>
-      <div class='references'>
-        <h4><strong>References</strong></strong></h4>
-        <p><strong>Aria, M., Cuccurullo, C., D’Aniello, L., Misuraca, M., & Spano, M. (2024).</strong> <i>Breaking Barriers with TALL: A Text Analysis Shiny app for ALL</i>. In A. Dister, D. Longrée (eds.), <i>Mots competes textes déchiffrés (JADT24)</i> Presses Universitaires De Louvain Vol.1 pp.39-48.</p>
-        <p><strong>Aria, M., Cuccurullo, C., D’Aniello, L., Misuraca, M., & Spano, M. (2024).</strong> <i>TALL: A New Shiny App for Text Analysis</i>. In <i>Scientific Meeting of the Italian Statistical Society</i> (pp. 64-70). Cham: Springer Nature Switzerland.</p>
-        <p><strong>Aria, M., Cuccurullo, C., D'Aniello, L., Misuraca, M., & Spano, M. (2023).</strong> <i>TALL: A New Shiny App of Text Analysis for All</i>. In <i>CLiC-it</i>.</p>
-    </div>
+  <h4>3. PDF Documents (.pdf)</h4>
+  <p>TALL supports the import of PDF files, facilitating the analysis of academic papers, reports, books, and other document types.</p>
+  <ul>
+    <li>Text extraction occurs automatically, converting the content into a format suitable for processing.</li>
+    <li><strong>Limitation:</strong> At the moment, TALL can only import and process PDFs that follow a single-column formatting. PDFs with multi-column layouts, footnotes, or complex page structures may not be correctly parsed, and additional preprocessing may be required.</li>
+  </ul>
+
+  <h4>4. Biblioshiny Export Files</h4>
+  <p>TALL supports the import of files exported from <strong>Biblioshiny</strong>, the graphical user interface of the <strong>Bibliometrix</strong> R package. This feature allows users to directly analyze the textual content of bibliographic metadata extracted from bibliometric databases such as Scopus or Web of Science.</p>
+  <ul>
+    <li>The exported file (typically in <strong>.csv</strong> format) can be loaded into TALL.</li>
+    <li>Users must specify which column (e.g., <strong>Abstract</strong>, <strong>Keywords</strong>, or <strong>Title</strong>) should be used as the main textual content for analysis.</li>
+    <li>Other fields (e.g., authors, year, journal) can be imported and used as metadata for document grouping or filtering.</li>
+  </ul>
+
+  <hr>
+  <h4><strong>TALL Structured Files (.tall)</strong></h4>
+  <p>TALL allows users to save their analysis progress in a structured format, ensuring continuity across sessions.</p>
+  <ul>
+    <li><strong>Save Progress:</strong> Users can export their current session as a <strong>.tall</strong> file, preserving all imported data, configurations, and analytical steps.</li>
+    <li><strong>Load Saved Sessions:</strong> Previously saved <strong>.tall</strong> files can be reloaded, allowing users to resume their work seamlessly without the need to re-import or preprocess data.</li>
+  </ul>
+
+  <p>By offering flexible and structured data import capabilities, TALL streamlines the initial steps of text analysis, enabling users to focus on extracting insights efficiently.</p>
+  <hr>
+
+  <div class='references'>
+    <h4><strong>References</strong></h4>
+    <p><strong>Aria, M., Cuccurullo, C., D’Aniello, L., Misuraca, M., & Spano, M. (2024).</strong> <i>Breaking Barriers with TALL: A Text Analysis Shiny app for ALL</i>. In A. Dister, D. Longrée (eds.), <i>Mots competes textes déchiffrés (JADT24)</i> Presses Universitaires De Louvain Vol.1 pp.39-48.</p>
+    <p><strong>Aria, M., Cuccurullo, C., D’Aniello, L., Misuraca, M., & Spano, M. (2024).</strong> <i>TALL: A New Shiny App for Text Analysis</i>. In <i>Scientific Meeting of the Italian Statistical Society</i> (pp. 64-70). Cham: Springer Nature Switzerland.</p>
+    <p><strong>Aria, M., Cuccurullo, C., D'Aniello, L., Misuraca, M., & Spano, M. (2023).</strong> <i>TALL: A New Shiny App of Text Analysis for All</i>. In <i>CLiC-it</i>.</p>
+  </div>
 
 </body>
 "
