@@ -488,50 +488,7 @@ tall_download_model <- function(file,
   }
 
 ## Tagging Special Entites ----
-# TaggingCorpusElements <- function(x){
 
-#   if ("upos_specialentities" %in% names(x)){
-#     x <- resetSpecialEntities(x)
-#   } else {
-#     x$upos_specialentities <- x$upos
-#   }
-
-#   regexList <- c(
-#     EMAIL="(?i)([_+a-z0-9-]+(\\.[_+a-z0-9-]+)*@[a-z0-9-]+(\\.[a-z0-9-]+)*(\\.[a-z]{2,14}))",
-#     #url="(https?://)?(www\\.)?([\\w.-]+\\.[a-z]{2,})(/[\\w\\-./?=&%]*)?",
-#     URL="(?<!@)\\b(https?://[\\w.-]+\\.[a-z]{2,6}(/[\\S]*)?|[\\w.-]+\\.(com|org|net|edu|gov|it|uk)\\b)",
-#     #URL="\\b(https?://[\\w.-]+\\.[a-z]{2,6}(/\\S*)?|[\\w.-]+\\.(com|org|net|edu|gov|it|uk)\\b)",
-#     HASH="^#",
-#     #emoji="([:;=8X][-~^]?[()\\[\\]{}|/\\\\DpP3><]+|[<>]?[:;=8xX][-~^o]?\\)+|<3|</3|[xX][-~^]?[DdPpOo]+|[\\p{So}\\p{Sk}\\p{Emoji_Presentation}])",
-#     EMOJI="(?<!\\w)([:;=8][-o*']?[:()DPp3]|<3|[\\p{So}\\p{Sk}]+)(?!\\w)",
-#     IP_ADDRESS="\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b",
-#     MENTION="^@"
-#   )
-#   items <- names(regexList)
-
-#   resList <- list()
-#   j <- 0
-
-#   for (i in 1:length(items)){
-#     item <- items[i]
-#     results <- stringi::stri_detect_regex(x$token, regexList[[item]])
-#     if (sum(results)>0){
-#       j <- j+1
-#       resList[[j]] <- data.frame(doc_id=x$doc_id[results], item = x$token[results], tag=item)
-#       x$upos[results] <- toupper(item)
-#       x$POSSelected[results] <- FALSE
-#     }
-#   }
-
-#   if (length(resList)>0){
-#     resList <- bind_rows(resList) %>%
-#       filter(!is.na(item))
-#   } else {
-#     resList <- tibble(doc_id=0, item=NA, tag="email") %>% filter(!is.na(item))
-#   }
-
-#   return(list(resList=resList,x=x))
-# }
 TaggingCorpusElements <- function(x){
 
   if ("upos_specialentities" %in% names(x)){
@@ -586,12 +543,14 @@ TaggingCorpusElements <- function(x){
         )
     )
 
-  resList <- resList %>%
-    mutate(item = case_when(
+  if (nrow(resList)>0){
+    resList <- resList %>%
+      mutate(item = case_when(
         tag %in% c("HASH", "EMAIL") ~ tolower(item),
         tag == "EMOJI" ~ trimws(item),
         TRUE ~ item
-    ))
+      ))
+  }
 
   return(list(resList=resList, x=x))
 }

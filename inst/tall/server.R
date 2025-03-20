@@ -663,41 +663,6 @@ observeEvent(input$reset_confirmation2, {
     )
   })
 
-
-
-  # output$loadSynthesis <- renderUI({
-  #   ndocs <- length(unique(values$dfTag$doc_id))
-  #   txt1 <- (paste0("Tall file contains: ",strong(ndocs),strong(" documents")))
-  #   txt2 <- (paste0("Last modified date: ", strong(values$D)))
-  #   txt2b <- (paste0("Language: ", strong(tools::toTitleCase(values$language)), " - Treebank: ", strong(values$treebank)))
-  #   if(!is.null(dim(values$custom_lists))){
-  #     ncust <- nrow(values$custom_lists)
-  #     txt3 <- (paste0(" - includes a custom list of: ",strong(ncust), strong(" words")))
-  #   } else{
-  #     txt3 <- (paste0(" - does not include a custom word list"))
-  #   }
-  #   upos <- values$dfTag %>% select(upos) %>% pull() %>% unique()
-  #   if("MULTIWORD" %in% upos){
-  #     txt3bis <- paste0(" - includes ",strong("Multi-Words"))
-  #   } else {
-  #     txt3bis <- paste0(" - does not include Multi-Words")
-  #   }
-  #   items <- toupper(c("email", "url", "hash", "emoji", "ip_address", "mention"))
-  #   if(length(intersect(items,upos))>0){
-  #     txt3ter <- paste0(" - includes special entities: ",strong(paste0(tools::toTitleCase(tolower(intersect(items,upos))), collapse=", ")))
-  #   } else {
-  #     txt3ter <- paste0(" - does not include special entities")
-  #   }
-  #
-  #   txt4 <- (paste0("The last pre-processing step performed is: ",strong(values$where)))
-  #   text <- paste0(txt1,"<br><br>",txt2,"<br><br>",txt2b,"<br><br>",txt3ter,"<br><br>",txt3bis,"<br><br>",txt3,"<br><br>",txt4)
-  #   tagList(
-  #     div(
-  #       h4(HTML(text)),
-  #       style="text-align:left")
-  #   )
-  # })
-
   observeEvent(input$modalCustomLists,{
     if (!is.null(values$custom_lists)){
       text =tagList(
