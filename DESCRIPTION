@@ -80,6 +80,8 @@ Imports:
     readr,
     curl,
     pagedown,
+    word2vec,
+    umap,
     parallel,
     doParallel
 LazyData: true

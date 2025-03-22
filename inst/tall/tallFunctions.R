@@ -1,5 +1,18 @@
 ### UTILS functions ----
 
+## CPU cores ------
+coresCPU <- function(){
+  ## set cores for parallel computing
+  ncores <- max(1,parallel::detectCores()-1)
+
+  ## set cores for windows machines
+  if (Sys.info()[["sysname"]]=="Windows") {
+    cl <- parallel::makeCluster(ncores)
+    doParallel::registerDoParallel(cl)
+  }
+  return(ncores)
+}
+
 ## Check Internet connection ----
 is_online <- function() {
   # Attempt to connect to a known online resource (e.g., Google's DNS server)
@@ -1261,10 +1274,6 @@ wordcloud2vis <- function(nodes, labelsize=7, opacity=1){
   VIS <-
     visNetwork::visNetwork(nodes = nodes, edges = NULL, type="full", smooth=TRUE, physics=TRUE) %>%
     visNetwork::visNodes(shadow=FALSE, shape=nodes$shape, font=list(color=nodes$font.color, size=nodes$font.size,vadjust=nodes$font.vadjust)) %>%
-    # visPhysics(solver = "barnesHut", barnesHut=list(
-    #   gravitationalConstant=-2000,
-    #   avoidOverlap=1
-    # )) %>%
     visNetwork::visOptions(highlightNearest =list(enabled = T, hover = T, degree=1), nodesIdSelection = T) %>%
     visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed = 0.2) %>%
     visEvents(click = "function(nodes){
@@ -2302,6 +2311,240 @@ avoidNetOverlaps <- function(w,threshold=0.10){
   label
 
 }
+
+## WORD EMBEDDING TRAINING ----
+w2vTraining <- function(x, term="lemma", dim=100, iter=20){
+
+  # Filter tokens excluding those with upos PUNCT or X
+  x <- x %>%
+    filter(!upos %in% c("PUNCT", "X")) %>%
+    mutate(id = paste0(doc_id,"_",sentence_id))
+
+  stopwords <- x %>%
+    filter(upos %in% c("AUX","DET","ADP","CCONJ","SCONJ","INTJ")) %>%
+    pull(!!sym(term)) %>% unique()
+
+  # Group by sentence_id and create a list of token/lemma vectors.
+  word_list <- split(x %>% select(any_of(term)) %>% pull() %>% tolower(), x$id)
+
+  w2v_model <- word2vec(x = word_list, type = "cbow", dim = dim, iter = iter, stopwords = stopwords,
+                        threads = coresCPU())
+  return(w2v_model)
+}
+
+summary_stats_embeddings <- function(embedding_matrix, as_tibble = TRUE) {
+
+  # Skewness personalizzata (corretta per bias)
+  skewness_custom <- function(x) {
+    m <- mean(x)
+    s <- sd(x)
+    n <- length(x)
+    if (s == 0) return(0)
+    sum(((x - m) / s)^3) * (n / ((n - 1) * (n - 2)))
+  }
+
+  # Kurtosis personalizzata (excess kurtosis corretta per bias)
+  kurtosis_custom <- function(x) {
+    m <- mean(x)
+    s <- sd(x)
+    n <- length(x)
+    if (s == 0) return(0)
+    term1 <- sum(((x - m) / s)^4) * (n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3))
+    term2 <- (3 * (n - 1)^2) / ((n - 2) * (n - 3))
+    return(term1 - term2)
+  }
+
+  stats <- data.frame(
+    Mean = apply(embedding_matrix, 2, mean),
+    Median = apply(embedding_matrix, 2, median),
+    SD = apply(embedding_matrix, 2, sd),
+    Min = apply(embedding_matrix, 2, min),
+    P25 = apply(embedding_matrix, 2, quantile, probs = 0.25),
+    P75 = apply(embedding_matrix, 2, quantile, probs = 0.75),
+    Max = apply(embedding_matrix, 2, max),
+    Range = apply(embedding_matrix, 2, function(x) max(x) - min(x)),
+    Skewness = apply(embedding_matrix, 2, skewness_custom),
+    Kurtosis = apply(embedding_matrix, 2, kurtosis_custom)
+  )
+
+  # Se richiesto, restituisci una tibble (se disponibile)
+  if (as_tibble && "tibble" %in% rownames(installed.packages())) {
+    stats <- tibble::as_tibble(stats, rownames = "Dimension")
+  } else {
+    stats$Dimension <- rownames(stats)
+    stats <- stats[, c("Dimension", setdiff(names(stats), "Dimension"))]
+  }
+
+  return(stats)
+}
+
+
+## cosine among matrix vectors
+distance_similarity_stats <- function(embedding_matrix) {
+  n <- nrow(embedding_matrix)
+
+  # --- Distanza euclidea ---
+  dist_euclidean <- dist(embedding_matrix, method = "euclidean")
+  mean_euclidean <- mean(as.vector(dist_euclidean))
+
+  # --- Similarità coseno manuale ---
+  cosine_similarity_matrix <- function(mat) {
+    # Numeratore: prodotto scalare tra righe
+    dot_products <- mat %*% t(mat)
+    # Denominatore: norme
+    norms <- sqrt(rowSums(mat^2))
+    denom <- outer(norms, norms)
+    sim <- dot_products / denom
+    sim[is.na(sim)] <- 0  # nel caso ci siano divisioni per zero
+    return(sim)
+  }
+
+  cosine_matrix <- cosine_similarity_matrix(embedding_matrix)
+  # Consideriamo solo i valori nella parte superiore senza la diagonale
+  cosine_values <- cosine_matrix[upper.tri(cosine_matrix)]
+  mean_cosine <- mean(cosine_values, na.rm = TRUE)
+
+  return(list(
+    Mean_Euclidean_Distance = mean_euclidean,
+    Mean_Cosine_Similarity = mean_cosine
+  ))
+}
+
+
+pca_analysis_embeddings <- function(embedding_matrix) {
+  pca <- prcomp(embedding_matrix, center = TRUE, scale. = TRUE)
+  var_explained <- summary(pca)$importance[2, ]
+  return(var_explained)
+}
+
+## WORD EMBEDDING SIMILARITY ----
+w2vNetwork <- function(w2v_model, dfTag, term, n=100){
+
+  w2v_matrix <- as.matrix(w2v_model)
+
+  ## similarity
+  top_words <- dfTag %>%
+    filter(docSelected) %>%
+    filter(upos %in% c("NOUN", "PROPN", "ADJ")) %>%
+    group_by(!!sym(term)) %>%
+    summarize(n = n()) %>%
+    arrange(desc(n)) %>%
+    slice_head(n = n) %>%
+    pull(!!sym(term)) %>%
+    tolower()
+
+  # remove top_words felt in the stop_word list
+  top_words <- intersect(top_words, row.names(as.matrix(w2v_model)))
+
+  similarity <- predict(w2v_model, newdata=top_words)
+  df_similarity <- bind_rows(similarity) %>% select(-rank) %>%
+    rename(from = term1, to = term2)
+
+  # Nodi unici
+  nodes <- data.frame(id = as.character(unique(c(df_similarity$from, df_similarity$to)))) %>%
+    mutate(label = id,
+           shape = ifelse(id %in% top_words,"triangle","dot"),
+           size=20,
+           font.size=35) %>%
+    arrange(id)
+
+  # Edges
+  edges <- df_similarity %>%
+    filter(similarity>=0.5) %>%
+    mutate(width = similarity * 10)
+
+  ### COMMUNITY DETECTION
+  graph <- igraph::graph_from_data_frame(edges, directed = FALSE)
+  cluster <- igraph::cluster_walktrap(graph)
+  cluster_df <- data.frame(as.list(igraph::membership(cluster)))
+  cluster_df <- as.data.frame(t(cluster_df)) %>%
+    rownames_to_column(var = "id") %>%
+    rename(group = "V1")
+
+  #Create group column
+  nodes <- left_join(nodes, cluster_df, by = "id") %>%
+    drop_na(group)
+
+  return(list(nodes=nodes, edges=edges, top_words=top_words))
+}
+
+
+w2v2Vis <- function(nodes, edges, layout = "layout_nicely", size=20, labelsize=35){
+
+  nodes$font.size <- labelsize*2.5
+
+  VIS <- visNetwork(nodes, edges, type="full", smooth=TRUE, physics=FALSE,
+                    x=1,y=1) %>%
+    visEdges(smooth = TRUE) %>%
+    visOptions(
+      highlightNearest = list(enabled = TRUE, degree = 1, hover = TRUE),
+      nodesIdSelection = list(enabled = FALSE)
+    ) %>%
+    visIgraphLayout(layout = "layout_nicely", type = "full") %>%
+    visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed = 0.2)
+
+  return(VIS)
+}
+
+w2vUMAP <- function(w2v_model, top_words){
+  cbow_embedding <- as.matrix(w2v_model)
+  visualization <- umap(cbow_embedding, n_neighbors = 15, n_threads = 2)
+
+  df  <- data.frame(word = rownames(cbow_embedding),
+                    x = visualization$layout[, 1], y = visualization$layout[, 2],
+                    stringsAsFactors = FALSE) %>%
+    filter(word %in% top_words)
+  return(df)
+}
+
+reduce_overlap <- function(df, jitter_amount = 0.05, min_dist = 0.05) {
+  df_sorted <- df[order(df$x, df$y), ]  # ordinamento spaziale semplice
+  for (i in 2:nrow(df_sorted)) {
+    dx <- df_sorted$x[i] - df_sorted$x[i - 1]
+    dy <- df_sorted$y[i] - df_sorted$y[i - 1]
+    dist <- sqrt(dx^2 + dy^2)
+    if (dist < min_dist) {
+      df_sorted$y[i] <- df_sorted$y[i] + runif(1, -jitter_amount, jitter_amount)
+      df_sorted$x[i] <- df_sorted$x[i] + runif(1, -jitter_amount, jitter_amount)
+    }
+  }
+  return(df_sorted)
+}
+
+
+adjust_labels_iterative_with_opacity <- function(df, min_dist = 0.03, max_iter = 50, shift_step = 0.05, alpha_low = 0.4) {
+  df$opacity_val <- rep(0.9, nrow(df))  # inizialmente opacità massima
+
+  for (iter in seq_len(max_iter)) {
+    overlap_found <- FALSE
+    for (i in 1:(nrow(df) - 1)) {
+      for (j in (i + 1):nrow(df)) {
+        dx <- df$x[i] - df$x[j]
+        dy <- df$y[i] - df$y[j]
+        dist <- sqrt(dx^2 + dy^2)
+        if (dist < min_dist) {
+          overlap_found <- TRUE
+          angle <- atan2(dy, dx) + pi / 2
+          df$x[i] <- df$x[i] + shift_step * cos(angle)
+          df$y[i] <- df$y[i] + shift_step * sin(angle)
+          df$x[j] <- df$x[j] - shift_step * cos(angle)
+          df$y[j] <- df$y[j] - shift_step * sin(angle)
+
+          # Diminuzione dell'opacità per j (o entrambi, a scelta)
+          df$opacity_val[j] <- min(df$opacity_val[j], alpha_low)
+        }
+      }
+    }
+    if (!overlap_found) break
+  }
+
+  # Assegnazione colore con trasparenza RGBA
+  base_rgb <- "79,121,66"  # colore #4F7942 in formato RGB
+  df$text_color <- paste0("rgba(", base_rgb, ",", df$opacity_val, ")")
+  return(df)
+}
+
+
 
 ## GRAKO ----
 grako <- function(dfTag, normalization="association", n=50, labelsize=4, opacity=0.6, minEdges=50, singleWords=TRUE, term="lemma"){
@@ -3543,6 +3786,7 @@ resetValues <- function(){
   } else {
     values$menu <- -1
   }
+  values$embedding <- FALSE
 
   return(values)
 }
@@ -3728,7 +3972,7 @@ saveTall <- function(dfTag,custom_lists,language,treebank,menu,where,file,genera
 
 
 # SIDEBARMENU DYNAMIC ----
-menuList <- function(menu){
+menuList <- function(menu, embedding=FALSE){
 
   switch(as.character(menu),
          "-2" = {
@@ -3790,14 +4034,20 @@ menuList <- function(menu){
                       menuItem("Frequencies", tabName = "freqList", icon = icon("chevron-right"),
                                menuSubItem("Words", tabName = "w_freq", icon = icon("chevron-right")),
                                menuSubItem("Part of Speech", tabName = "w_pos", icon = icon("chevron-right"))),
-                      menuSubItem("Words in Context", tabName = "wordCont", icon = icon("chevron-right")),
+                               menuSubItem("Words in Context", tabName = "wordCont", icon = icon("chevron-right")),
                       #menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),
-                      menuSubItem("Reinert Clustering", tabName = "w_reinclustering", icon = icon("chevron-right")),
-                      menuSubItem("Correspondence Analysis", tabName = "ca", icon = icon("chevron-right")),
+                               menuSubItem("Reinert Clustering", tabName = "w_reinclustering", icon = icon("chevron-right")),
+                               menuSubItem("Correspondence Analysis", tabName = "ca", icon = icon("chevron-right")),
                       menuItem("Network", tabName = "w_network", icon = icon("chevron-right"),
                                menuSubItem("Co-word analysis", tabName = "w_networkCooc", icon = icon("chevron-right"))
                                # ,menuSubItem("Grako", tabName = "w_networkGrako", icon = icon("chevron-right"))
-                               )),
+                               ),
+                      menuItem("Word Embeddings", tabName = "w_embeddings", icon = icon("chevron-right"),
+                               menuSubItem("Training", tabName = "w_word2vec", icon = icon("chevron-right")),
+                               if (embedding){
+                                 menuSubItem("Similarity", tabName = "w_w2v_similarity", icon = icon("chevron-right"))
+                               }
+                              )),
              menuItem("Documents",tabName = "documents", icon = icon(name="duplicate", lib="glyphicon"),
                       menuItem("Topic Modeling", tabName = "d_topicMod", icon = icon("chevron-right"),
                                menuSubItem("K choice", tabName = "d_tm_select", icon = icon("chevron-right")),
@@ -3830,14 +4080,19 @@ menuList <- function(menu){
                       menuItem("Frequencies", tabName = "freqList", icon = icon("chevron-right"),
                                menuSubItem("Words", tabName = "w_freq", icon = icon("chevron-right")),
                                menuSubItem("Part of Speech", tabName = "w_pos", icon = icon("chevron-right"))),
-                      menuSubItem("Words in Context", tabName = "wordCont", icon = icon("chevron-right")),
-                      #menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),
-                      menuSubItem("Reinert Clustering", tabName = "w_reinclustering", icon = icon("chevron-right")),
-                      menuSubItem("Correspondence Analysis", tabName = "ca", icon = icon("chevron-right")),
+                               menuSubItem("Words in Context", tabName = "wordCont", icon = icon("chevron-right")),
+                               menuSubItem("Reinert Clustering", tabName = "w_reinclustering", icon = icon("chevron-right")),
+                               menuSubItem("Correspondence Analysis", tabName = "ca", icon = icon("chevron-right")),
                       menuItem("Network", tabName = "w_network", icon = icon("chevron-right"),
                                menuSubItem("Co-word analysis", tabName = "w_networkCooc", icon = icon("chevron-right"))
                                # ,menuSubItem("Grako", tabName = "w_networkGrako", icon = icon("chevron-right"))
-                               )),
+                               ),
+                      menuItem("Word Embeddings", tabName = "w_embeddings", icon = icon("chevron-right"),
+                               menuSubItem("Training", tabName = "w_word2vec", icon = icon("chevron-right")),
+                               if (embedding){
+                                 menuSubItem("Similarity", tabName = "w_w2v_similarity", icon = icon("chevron-right"))
+                               }
+                              )),
              menuItem("Documents",tabName = "documents", icon = icon(name="duplicate", lib="glyphicon"),
                       menuItem("Topic Modeling", tabName = "d_topicMod", icon = icon("chevron-right"),
                                menuSubItem("K choice", tabName = "d_tm_select", icon = icon("chevron-right")),

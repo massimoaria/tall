@@ -126,7 +126,7 @@ To ensure the functionality of TALL,
         values$menu <- 3
       }
     }
-    sidebarMenu(.list=menuList(values$menu))
+    sidebarMenu(.list=menuList(values$menu, values$embedding))
   })
 
   observeEvent(input$workingfolder, {
@@ -171,6 +171,10 @@ To ensure the functionality of TALL,
 
   observeEvent(input$multiwordListBack, {
     updateTabItems(session, "sidebarmenu", "multiwordByList")
+  })
+
+  observeEvent(input$w2vApply, {
+    updateTabItems(session, "sidebarmenu", "w_word2vec")
   })
 
   ## Choose Working folder in Setting Menu
@@ -970,14 +974,15 @@ output$info_treebank <- renderUI({
     ## download and load model language
     udmodel_lang <- loadLanguageModel(file = values$language_file)
 
-    ## set cores for parallel computing
-    ncores <- max(1,parallel::detectCores()-1)
-
-    ## set cores for windows machines
-    if (Sys.info()[["sysname"]]=="Windows") {
-      cl <- parallel::makeCluster(ncores)
-      doParallel::registerDoParallel(cl)
-    }
+    # ## set cores for parallel computing
+    ncores <- coresCPU()
+    # ncores <- max(1,parallel::detectCores()-1)
+    #
+    # ## set cores for windows machines
+    # if (Sys.info()[["sysname"]]=="Windows") {
+    #   cl <- parallel::makeCluster(ncores)
+    #   doParallel::registerDoParallel(cl)
+    # }
 
     #Lemmatization and POS Tagging
     values$dfTag <- udpipe(object=udmodel_lang, x = values$txt %>%
@@ -3024,6 +3029,130 @@ observeEvent(input$closePlotModalDoc,{
   })
 
 
+  ## word2vec TRAINING ----
+
+  w2vTrainingFunction <- eventReactive(input$w2vApply,
+                                       valueExpr = {
+                                         values$w2v_model <- w2vTraining(values$dfTag %>% filter(docSelected), term=values$generalTerm, dim=input$w2vDim, iter=input$w2vIter)
+                                         values$w2v_stats <- list()
+                                         values$w2v_stats$stats <- summary_stats_embeddings(as.matrix(values$w2v_model))
+                                         #values$w2v_stats$distances <- distance_similarity_stats(as.matrix(values$w2v_model))
+                                         values$w2v_stats$pca <- pca_analysis_embeddings(as.matrix(values$w2v_model))
+                                         values$df_EmbeddingDims <- as.matrix(values$w2v_model) %>%
+                                           as.data.frame() %>%
+                                           tibble::rownames_to_column(var = "Word") %>%
+                                           tidyr::pivot_longer(
+                                             cols = -Word,
+                                             names_to = "Dimension",
+                                             values_to = "Value"
+                                           )
+                                         values$df_EmbeddingDims$Dimension <- rep(sprintf("D%03d",
+                                                        seq_len(nrow(values$df_EmbeddingDims)/length(unique(values$df_EmbeddingDims$Word)))),
+                                                        length(unique(values$df_EmbeddingDims$Word)))
+                                         values$embedding <- TRUE
+                                       })
+
+  output$w_word2vecBoxplot <- renderPlotly({
+
+    w2vTrainingFunction()
+
+    plot_ly(
+      data = values$df_EmbeddingDims,
+      y = ~Value,
+      x = ~Dimension,
+      type = "box",
+      boxpoints = "outliers",
+      hoverinfo = "x+y"
+    ) %>%
+      layout(
+        title = "Distribution of embedding values by dimension",
+        xaxis = list(title = "Dimension", tickangle = -45),
+        yaxis = list(title = "Value")
+      )
+  })
+
+  output$w_word2vecPCA <- renderPlotly({
+    w2vTrainingFunction()
+
+    plot_ly(
+      x = sprintf("PC%03d", seq_along(values$w2v_stats$pca)),
+      y = values$w2v_stats$pca*100,
+      type = "bar"
+    ) %>%
+      layout(
+        title = "Variance Explained by Principal Components",
+        xaxis = list(title = "Principal Components"),
+        yaxis = list(title = "Variance Proportion"),
+        bargap = 0.2
+      )
+  })
+
+  output$w_word2vecTable <- renderDT(server=FALSE,{
+    w2vTrainingFunction()
+    DTformat(values$w2v_stats$stats, size='80%',filename="WordEmbeddingTable", pagelength=TRUE, left=NULL, right=NULL,
+             numeric=NULL, dom=TRUE, filter="none")
+  })
+
+  ## word2vec SIMILARITY ----
+  # observe({
+  #   if (values$embedding){
+  #     hide("w_w2v_similarity")
+  #   } else {
+  #     show("w_w2v_similarity")
+  #     }
+  # })
+
+  w2vSimilarity <- eventReactive(input$w_w2v_similarityApply,{
+    w2vTrainingFunction()
+    values$w2vNetwork <- w2vNetwork(values$w2v_model, values$dfTag, term=values$generalTerm, n=input$w_w2v_similarityN)
+    values$umapDf <- w2vUMAP(values$w2v_model, top_words = values$w2vNetwork$top_words)
+  })
+
+  output$w_w2v_Selected <- renderUI({
+    w2vTrainingFunction()
+    nodesId <- sort(values$w2vNetwork$top_words)
+    selectInput("w2v_selected_node", "Select word to highlight:",
+                choices = c("",nodesId),
+                selected = "")
+  })
+
+  output$w_w2vNetworkplot <- renderVisNetwork({
+    w2vSimilarity()
+    values$w2vNetworkPlot <- w2v2Vis(nodes=values$w2vNetwork$nodes, edges=values$w2vNetwork$edges, size=20, labelsize=input$w_w2v_font_size)
+    values$w2vNetworkPlot
+  })
+
+  observe({
+    visNetworkProxy("w_w2vNetworkplot") %>%
+      visSelectNodes(id = input$w2v_selected_node)
+  })
+
+  output$w_w2vUMAPplot <- renderPlotly({
+    w2vSimilarity()
+    #df_adj <- reduce_overlap(values$umapDf, jitter_amount = 0.2, min_dist = 0.03)
+    df_adj <- adjust_labels_iterative_with_opacity(values$umapDf, min_dist = 0.3, max_iter = 50, shift_step = 0.05, alpha_low = 0.4)
+
+    plot_ly(
+      data = df_adj,
+      x = ~x, y = ~y,
+      type = "scatter",
+      mode = "text",
+      text = ~word,
+      textfont = list(
+        size = input$w_w2v_font_size
+      ),
+      textposition = "top center"
+    ) %>%
+      style(
+        textfont = list(color = df_adj$text_color, size = input$w_w2v_font_size)
+      ) %>%
+      layout(
+        #title = list(text = "CBOW Embeddings Visualization (UMAP)", x = 0.5),
+        xaxis = list(title = "UMAP Dimensione 1", zeroline = FALSE, showgrid = FALSE),
+        yaxis = list(title = "UMAP Dimensione 2", zeroline = FALSE, showgrid = FALSE),
+        hovermode = "closest"
+      )
+  })
 
   ## GRAKO ----
   grakoFunction <- eventReactive(
