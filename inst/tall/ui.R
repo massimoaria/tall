@@ -2243,6 +2243,229 @@ body <- dashboardBody(
             )
     ),
 
+
+    ## WORD EMBEDDINGS TRAINING----
+
+    tabItem(tabName = "w_word2vec",
+            fluidPage(
+              fluidRow(
+                column(9,
+                tabsetPanel(type = "tabs",
+                            tabPanel("Embedding Distributions",
+                                     shinycssloaders::withSpinner(plotlyOutput("w_word2vecBoxplot", height = "75vh",width ="98.9%"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            ),
+                            tabPanel("Embedding Dimensions",
+                                     shinycssloaders::withSpinner(DT::DTOutput("w_word2vecTable"),
+                                                                  color = getOption("spinner.color", default = "#4F7942")),
+                                     shinycssloaders::withSpinner(plotlyOutput("w_word2vecPCA", width="auto", height = "50vh"),
+                                                                           color = getOption("spinner.color", default = "#4F7942"))
+                            )
+                            # ,tabPanel("Links",
+                            #          shinycssloaders::withSpinner(DT::DTOutput("w_networkGrakoEdgesTable"),
+                            #                                       color = getOption("spinner.color", default = "#4F7942"))
+                            # )
+                )
+              ),
+              column(3,
+                     div(
+                       box(
+                         width = 12,
+                         div(h3(strong(em("Model Training"))), style="margin-top:-57px"),
+                         tags$hr(),
+                         style="text-align: left; text-color: #989898",
+                         h4("Options:"),
+                         selectizeInput(inputId = "w2vMethod",
+                                        label = "Embedding Method",
+                                        choices = c("Continuous Bag of Words" = "cbow",
+                                                    "Skip-Gram" = "skip-gram"),
+                                        selected = "cbow"
+                                        ),
+                         fluidRow(
+                           column(6,
+                                  numericInput(inputId = "w2vDim",
+                                               label = "Dimensions",
+                                               value = 100,
+                                               min = 10,
+                                               step = 1)
+                           ),
+                           column(6,
+                                  numericInput(inputId = "w2vIter",
+                                               label = "Iterations",
+                                               value = 20,
+                                               min = 5,
+                                               max = 100)
+                           )
+                         ),
+                         fluidRow(
+                           column(6,
+                                  div(align="center",
+                                      title = "Apply",
+                                      do.call("actionButton", c(list(
+                                        label=NULL,
+                                        style ="display:block; height: 37px; width: 37px; border-radius: 50%;
+                                      border: 1px; margin-top: 16px;",
+                                        icon = icon(name ="play", lib="glyphicon"),
+                                        inputId = "w2vApply")
+                                      )))
+                           ),
+                           column(6,
+                                  div(align="center",
+                                      title = "Export Embedding Matrix",
+                                      do.call("actionButton", c(list(
+                                        label=NULL,
+                                        style ="display:block; height: 37px; width: 37px; border-radius: 50%;
+                                      border: 1px; margin-top: 16px;",
+                                        icon = icon(name ="download-alt", lib="glyphicon"),
+                                        inputId = "w2vSave")
+                                      )
+                                      )
+                                  )
+                           ))
+                       ),style="margin-top:40px"
+                     )
+              )
+            )
+            )
+    ),
+
+    ## WORD EMBEDDING SIMILARITY ----
+    tabItem(tabName = "w_w2v_similarity",
+            fluidPage(
+              fluidRow(
+                column(8,
+                       h3(strong("Embedding Similarity"), align = "center")),
+                div(
+                  title = t_run,
+                  column(1,
+                         do.call("actionButton", c(run_bttn, list(
+                           inputId = "w_w2v_similarityApply")
+                         ))
+                  )),
+                div(
+                  title = t_export,
+                  column(1,
+                         do.call("actionButton", c(export_bttn, list(
+                           inputId = "w_w2v_similarityExport")
+                         ))
+                  )),
+                div(
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "w_w2v_similarityReport")
+                         ))
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             br(),
+                             numericInput("w_w2v_similarityN",
+                                          label = "Top Words",
+                                          min = 1,
+                                          value = 100,
+                                          step = 1),
+                             sliderInput("w_w2v_font_size",
+                                         "Font Size",
+                                         min = 8, max = 30, value = 14, step = 1),
+                             tooltip = tooltipOptions(title = "Options"),
+                             width = "300px", icon = icon("cog", lib="glyphicon"),
+                             right = TRUE, animate = TRUE,
+                             style = "material-circle", size = "sm"
+                           )
+                ),
+                style = style_opt
+                )
+              ),
+              fluidRow(
+                tabsetPanel(type = "tabs",
+                            tabPanel("Similarity Network",
+                                     fluidRow(column(11,align = "right",
+                                              uiOutput("w_w2v_Selected")),
+                                              column(1)
+                                     ),
+                                     shinycssloaders::withSpinner(visNetworkOutput("w_w2vNetworkplot", width="auto", height = "75vh"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            )
+                            ,tabPanel("UMAP",
+                                      shinycssloaders::withSpinner(plotlyOutput("w_w2vUMAPplot", width="auto", height = "75vh"),
+                                                                   color = getOption("spinner.color", default = "#4F7942"))
+                            ),
+                            # tabPanel("Links",
+                            #          shinycssloaders::withSpinner(DT::DTOutput("w_networkGrakoEdgesTable"),
+                            #                                       color = getOption("spinner.color", default = "#4F7942"))
+                            # )
+                )
+              )
+            )
+    ),
+    # tabItem(tabName = "w_w2v_similarity",
+    #         fluidPage(
+    #           fluidRow(
+    #             column(9,
+    #             tabsetPanel(type = "tabs",
+    #                         tabPanel("Similarity Network",
+    #                                  fluidRow(align = "right",
+    #                                           uiOutput("w_w2v_Selected")
+    #                                  ),
+    #                                  shinycssloaders::withSpinner(visNetworkOutput("w_w2vNetworkplot", width="auto", height = "75vh"),
+    #                                                               color = getOption("spinner.color", default = "#4F7942"))
+    #                         )
+    #                         ,tabPanel("UMAP",
+    #                                  shinycssloaders::withSpinner(plotlyOutput("w_w2vUMAPplot", width="auto", height = "75vh"),
+    #                                                               color = getOption("spinner.color", default = "#4F7942"))
+    #                         ),
+    #                         # tabPanel("Links",
+    #                         #          shinycssloaders::withSpinner(DT::DTOutput("w_networkGrakoEdgesTable"),
+    #                         #                                       color = getOption("spinner.color", default = "#4F7942"))
+    #                         # )
+    #             )),
+    #             column(3,
+    #                    div(
+    #                      box(
+    #                        width = 12,
+    #                        div(h3(strong(em("Word Similarity by Embedding"))), style="margin-top:-57px"),
+    #                        tags$hr(),
+    #                        style="text-align: left; text-color: #989898",
+    #                        h4("Options:"),
+    #                      br(),
+    #                      numericInput("w_w2v_similarityN",
+    #                                   label = "Top Words",
+    #                                   min = 1,
+    #                                   value = 100,
+    #                                   step = 1),
+    #                      sliderInput("w_w2v_font_size",
+    #                                  "Font Size",
+    #                                  min = 8, max = 30, value = 14, step = 1),
+    #                      # uiOutput("w_w2v_Selected"),
+    #                    #),
+    #                    div(
+    #                      title = t_run,
+    #                      column(4,
+    #                             do.call("actionButton", c(run_bttn, list(
+    #                               inputId = "w_w2v_similarityApply")
+    #                             ))
+    #                      )),
+    #                    div(
+    #                      title = t_export,
+    #                      column(4,
+    #                             do.call("actionButton", c(export_bttn, list(
+    #                               inputId = "w_w2v_similarityExport")
+    #                             ))
+    #                      )),
+    #                    div(
+    #                      title = t_report,
+    #                      column(4,
+    #                             do.call("actionButton", c(report_bttn, list(
+    #                               inputId = "w_w2v_similarityReport")
+    #                             ))
+    #                      ))
+    #                    )
+    #                    )
+    #           ))
+    #         )
+    # ),
+
     ## GRAKO ----
 
     tabItem(tabName = "w_networkGrako",
