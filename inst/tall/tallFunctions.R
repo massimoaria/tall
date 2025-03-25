@@ -3786,7 +3786,7 @@ resetValues <- function(){
   } else {
     values$menu <- -1
   }
-  values$embedding <- FALSE
+  #values$embedding <- FALSE
 
   return(values)
 }
@@ -3972,7 +3972,7 @@ saveTall <- function(dfTag,custom_lists,language,treebank,menu,where,file,genera
 
 
 # SIDEBARMENU DYNAMIC ----
-menuList <- function(menu, embedding=FALSE){
+menuList <- function(menu){
 
   switch(as.character(menu),
          "-2" = {
@@ -4044,9 +4044,9 @@ menuList <- function(menu, embedding=FALSE){
                                ),
                       menuItem("Word Embeddings", tabName = "w_embeddings", icon = icon("chevron-right"),
                                menuSubItem("Training", tabName = "w_word2vec", icon = icon("chevron-right")),
-                               if (embedding){
+                               #if (embedding){
                                  menuSubItem("Similarity", tabName = "w_w2v_similarity", icon = icon("chevron-right"))
-                               }
+                               #}
                               )),
              menuItem("Documents",tabName = "documents", icon = icon(name="duplicate", lib="glyphicon"),
                       menuItem("Topic Modeling", tabName = "d_topicMod", icon = icon("chevron-right"),
@@ -4089,9 +4089,9 @@ menuList <- function(menu, embedding=FALSE){
                                ),
                       menuItem("Word Embeddings", tabName = "w_embeddings", icon = icon("chevron-right"),
                                menuSubItem("Training", tabName = "w_word2vec", icon = icon("chevron-right")),
-                               if (embedding){
+                               #if (embedding){
                                  menuSubItem("Similarity", tabName = "w_w2v_similarity", icon = icon("chevron-right"))
-                               }
+                               #}
                               )),
              menuItem("Documents",tabName = "documents", icon = icon(name="duplicate", lib="glyphicon"),
                       menuItem("Topic Modeling", tabName = "d_topicMod", icon = icon("chevron-right"),

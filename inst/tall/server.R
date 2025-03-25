@@ -126,7 +126,7 @@ To ensure the functionality of TALL,
         values$menu <- 3
       }
     }
-    sidebarMenu(.list=menuList(values$menu, values$embedding))
+    sidebarMenu(.list=menuList(values$menu))
   })
 
   observeEvent(input$workingfolder, {
@@ -173,9 +173,9 @@ To ensure the functionality of TALL,
     updateTabItems(session, "sidebarmenu", "multiwordByList")
   })
 
-  observeEvent(input$w2vApply, {
-    updateTabItems(session, "sidebarmenu", "w_word2vec")
-  })
+  # observeEvent(input$w2vApply, {
+  #   updateTabItems(session, "sidebarmenu", "w_word2vec")
+  # })
 
   ## Choose Working folder in Setting Menu
   roots <- c(home = homeFolder())
@@ -3049,7 +3049,7 @@ observeEvent(input$closePlotModalDoc,{
                                          values$df_EmbeddingDims$Dimension <- rep(sprintf("D%03d",
                                                         seq_len(nrow(values$df_EmbeddingDims)/length(unique(values$df_EmbeddingDims$Word)))),
                                                         length(unique(values$df_EmbeddingDims$Word)))
-                                         values$embedding <- TRUE
+                                         #values$embedding <- TRUE
                                        })
 
   output$w_word2vecBoxplot <- renderPlotly({

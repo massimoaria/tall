@@ -21,12 +21,9 @@
 #' @export
 
 tall <- function(host = "127.0.0.1", port = NULL,
-                        launch.browser = TRUE, maxUploadSize=1000
-){
-
+                 launch.browser = TRUE, maxUploadSize = 1000) {
   shinyOptions(maxUploadSize = maxUploadSize)
   suppressWarnings(
-    runApp(system.file("tall",package="tall"),launch.browser = launch.browser, port = port, host = getOption("shiny.host", host))
+    runApp(system.file("tall", package = "tall"), launch.browser = launch.browser, port = port, host = getOption("shiny.host", host))
   )
-  
 }
