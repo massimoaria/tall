@@ -408,7 +408,7 @@ overview <- "<body>
   <div class='container'>
     <h3><strong>Corpus Metrics in TALL</strong></h3>
     <p>These metrics provide a summary of the key textual characteristics of the analyzed corpus.</p>
-    
+
     <h4><strong>📂 Corpus Size & Structure</strong></h4>
     <ul>
     <li><strong>Documents →</strong> The total number of documents in the corpus.</li>
@@ -417,7 +417,7 @@ overview <- "<body>
     <li><strong>Types →</strong> The number of unique words in the corpus, representing vocabulary richness.</li>
     <li><strong>Lemma →</strong> The number of unique lemmas, considering the base form of words.</li>
     </ul>
-    
+
     <h4><strong>📏 Average Length Metrics</strong></h4>
     <ul>
     <li><strong>Doc Avg Length in Chars →</strong> The average number of characters per document.<br>
@@ -461,7 +461,7 @@ overview <- "<body>
             </math>
             </li>
             </ul>
-            
+
             <h4><strong>📊 Lexical Metrics</strong></h4>
             <ul>
             <li><strong>Type-Token Ratio (TTR) →</strong> Ratio of unique words (types) to total words (tokens). Higher values indicate greater lexical diversity.<br>
@@ -475,7 +475,7 @@ overview <- "<body>
                 </mrow>
                 </math>
                 </li>
-                
+
                 <li><strong>Hapax Legomena (%) →</strong> Percentage of words that appear only once in the corpus.<br>
                 <math xmlns='http://www.w3.org/1998/Math/MathML' style='font-size: 1.5em; display: block; text-align: center; margin-top: 4px; margin-bottom: 12px;'>
                   <mrow>
@@ -489,7 +489,7 @@ overview <- "<body>
                     </mrow>
                     </math>
                     </li>
-                    
+
                     <li><strong>Guiraud Index →</strong> Measure of lexical richness correcting for text length.<br>
                     <math xmlns='http://www.w3.org/1998/Math/MathML' style='font-size: 1.5em; display: block; text-align: center; margin-top: 4px; margin-bottom: 12px;'>
                       <mrow>
@@ -504,7 +504,7 @@ overview <- "<body>
                         </math>
                         </li>
                         </ul>
-                        
+
                         <h4><strong>📊 Additional Lexical Measures</strong></h4>
                         <ul>
                         <li><strong>Lexical Density →</strong> Proportion of content words over total tokens.<br>
@@ -518,7 +518,7 @@ overview <- "<body>
                             </mrow>
                             </math>
                             </li>
-                            
+
                             <li><strong>Nominal Ratio →</strong> Ratio between nouns and verbs.<br>
                             <math xmlns='http://www.w3.org/1998/Math/MathML' style='font-size: 1.5em; display: block; text-align: center; margin-top: 4px; margin-bottom: 12px;'>
                               <mrow>
@@ -530,9 +530,9 @@ overview <- "<body>
                                 </mrow>
                                 </math>
                                 </li>
-                                
+
                                 <li><strong>Gini Index →</strong> Measure of inequality in word frequency distribution. Calculated from the Lorenz curve of word frequencies.</li>
-                                
+
                                 <li><strong>Yule’s K Index →</strong> Measure of lexical diversity based on word repetition.<br>
                                 <math xmlns='http://www.w3.org/1998/Math/MathML' style='font-size: 1.5em; display: block; text-align: center; margin-top: 4px; margin-bottom: 12px;'>
                                   <mrow>
@@ -558,7 +558,7 @@ overview <- "<body>
                                     </math>
                                     </li>
                                     </ul>
-                                    
+
                                     <div class='references'>
                                       <h4><strong>References</strong></h4>
                                       <p><strong>Baayen, R. H.</strong> <i>The effect of lexical specialization on the growth curve of vocabulary.</i> <strong>Computational Linguistics</strong>, 22(2), 1996.</p>
@@ -838,6 +838,85 @@ wordincontext <- "<body>
 
               </body>"
 
+  thematicmap <- "
+  <body>
+
+  <h3><strong>Thematic Map</strong></h3>
+
+  <p>
+  The <strong>Thematic Map</strong> feature in TALL enables users to explore the conceptual structure of a text corpus by visually mapping the most relevant topics. It is based on an unsupervised, network-based method designed to extract, cluster, and characterize groups of words representing distinct semantic areas within the analyzed texts. This approach has been successfully applied in bibliometric research and adapted in TALL for general-purpose text analysis.
+</p>
+
+  <hr>
+
+  <h4><strong>Methodological Framework</strong></h4>
+
+  <p>
+  Thematic mapping starts with the construction of a <strong>co-occurrence matrix</strong> from the pre-processed text corpus. The association strength between terms is then calculated to normalize the raw co-occurrence frequencies:
+  </p>
+
+  <math xmlns=,http://www.w3.org/1998/Math/MathML, style=,font-size: 1.1em; display: block; text-align: center; margin: 10px 0;,>
+    <mrow>
+    <mtext>AS</mtext><msub><mi>jj'</mi></msub><mo>=</mo>
+      <mfrac>
+        <msub><mi>a</mi><mi>jj'</mi></msub>
+    <mrow>
+    <msub><mi>a</mi><mi>jj</mi></msub><mo>&#x22C5;</mo><msub><mi>a</mi><mi>j'j'</mi></msub>
+    </mrow>
+    </mfrac>
+    </mrow>
+    </math>
+
+    <p>
+    where <em>AS<sub>jj'</sub></em> is the association strength between terms <em>j</em> and <em>j'</em>, and <em>a<sub>jj'</sub></em> is their observed co-occurrence. This metric expresses the semantic relatedness of term pairs.
+  </p>
+
+  <p>
+    A <strong>community detection algorithm</strong> (WalkTrap) is then applied to the normalized network to identify clusters of terms (i.e., topics). Each cluster is projected onto a two-dimensional plane using two dimensions:
+  </p>
+
+  <ul>
+    <li><strong>Callon Centrality (CC):</strong> measures a topic’s interaction with others, indicating its <em>relevance</em> in the corpus.</li>
+    <li><strong>Callon Density (CD):</strong> measures the internal cohesion of the topic, reflecting its <em>development</em>.</li>
+  </ul>
+
+  <p>Each topic is placed on a <strong>strategic diagram</strong> based on its centrality and density values:</p>
+
+  <ul>
+    <li><strong>Upper-right (Hot Topics):</strong> High centrality and high density – well-developed and important.</li>
+    <li><strong>Lower-right (Basic Topics):</strong> High centrality and low density – important but still under development.</li>
+    <li><strong>Upper-left (Niche Topics):</strong> Low centrality and high density – well developed but marginal.</li>
+    <li><strong>Lower-left (Peripheral Topics):</strong> Low centrality and low density – weakly developed and marginal.</li>
+  </ul>
+
+  <hr>
+
+  <h4><strong>Features in TALL</strong></h4>
+
+  <ul>
+    <li>Users can generate thematic maps from any textual dataset preprocessed and tokenized in TALL.</li>
+    <li>The algorithm works automatically and does <strong>not require setting the number of topics</strong> in advance.</li>
+    <li>Topics are labeled by the most frequent keywords within each cluster.</li>
+    <li>Topic size (i.e., the size of the bubble) represents the number of terms in the cluster.</li>
+    <li>The user can select specific time slices or metadata filters to perform <strong>comparative thematic analysis</strong> across groups or periods.</li>
+  </ul>
+
+  <p>
+    Thematic maps offer a rich, interpretable representation of discourse structure and are particularly effective for exploratory text mining and culturomic studies.
+  </p>
+
+  <hr>
+
+  <div class='references'>
+    <h4><strong>References</strong></h4>
+    <p><strong>Aria, M., Cuccurullo, C., D’Aniello, L., Misuraca, M., & Spano, M. (2022).</strong> <i>Thematic Analysis as a New Culturomic Tool: The Social Media Coverage on COVID-19 Pandemic in Italy.</i> <strong>Sustainability</strong>, 14(6), 3643. https://doi.org/10.3390/su14063643</p>
+    <p><strong>Cobo, M.J., López-Herrera, A.G., Herrera-Viedma, E., & Herrera, F. (2011).</strong> <i>An approach for detecting, quantifying, and visualising the evolution of a research field: A practical application to the fuzzy sets theory field.</i> <strong>Journal of Informetrics</strong>, 5(1), 146–166.</p>
+  </div>
+
+</body>
+
+  "
+
   tmkchoice <- "<body>
 
     <h3><strong>Topic Modeling in TALL: K Selection</strong></strong></h3>
@@ -1116,6 +1195,7 @@ wordincontext <- "<body>
               reinert = reinert,
               correspondenceanalysis = correspondenceanalysis,
               cowordanalysis = cowordanalysis,
+              thematicmap = thematicmap,
               tmkchoice = tmkchoice,
               tmmodelestimation = tmmodelestimation,
               polaritydetection = polaritydetection,

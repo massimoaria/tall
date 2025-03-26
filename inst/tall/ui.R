@@ -2344,7 +2344,7 @@ body <- dashboardBody(
                                          column(1),
                                          column(10,
                                                 br(),
-                                                HTML("bho")
+                                                HTML(infoTexts$thematicmap)
                                          ),
                                          column(1)
                                        )
