@@ -2793,6 +2793,30 @@ observeEvent(input$closePlotModalDoc,{
       popUp(title="Saved in your working folder", type="saved")
     })
 
+
+  ## Report
+
+  observeEvent(input$w_networkCoocReport,{
+    if(!is.null(values$network$nodes)){
+      popUp(title=NULL, type="waiting")
+      sheetname <- "CoWord"
+      list_df <- list(values$network$nodesData
+                      ,values$network$edgesData
+      )
+      res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
+      #values$wb <- res$wb
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      values$filenetVis <- plot2png(values$netVis, filename="CoWord.png", zoom = values$zoom)
+      values$list_file <- rbind(values$list_file, c(sheetname=res$sheetname,values$filenetVis,res$col))
+      popUp(title="Co-Word Analysis Results", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
+  })
+
+
   ## Click on visNetwork: WORDS IN CONTEXT ----
   observeEvent(ignoreNULL = TRUE,
                eventExpr={input$click},
@@ -2910,27 +2934,27 @@ observeEvent(input$closePlotModalDoc,{
     DTformat(sentences, size='100%', button=TRUE)
   }, escape=FALSE)
 
-  ## Report
-
-  observeEvent(input$w_networkCoocReport,{
-    if(!is.null(values$network$nodes)){
-      popUp(title=NULL, type="waiting")
-      sheetname <- "CoWord"
-      list_df <- list(values$network$nodesData
-                      ,values$network$edgesData
-      )
-      res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
-      #values$wb <- res$wb
-      owd <- setwd(tempdir())
-      on.exit(setwd(owd))
-      values$filenetVis <- plot2png(values$netVis, filename="CoWord.png", zoom = values$zoom)
-      values$list_file <- rbind(values$list_file, c(sheetname=res$sheetname,values$filenetVis,res$col))
-      popUp(title="Co-Word Analysis Results", type="success")
-      values$myChoices <- sheets(values$wb)
-    } else {
-      popUp(type="error")
-    }
-  })
+  # ## Report
+  #
+  # observeEvent(input$w_networkCoocReport,{
+  #   if(!is.null(values$network$nodes)){
+  #     popUp(title=NULL, type="waiting")
+  #     sheetname <- "CoWord"
+  #     list_df <- list(values$network$nodesData
+  #                     ,values$network$edgesData
+  #     )
+  #     res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
+  #     #values$wb <- res$wb
+  #     owd <- setwd(tempdir())
+  #     on.exit(setwd(owd))
+  #     values$filenetVis <- plot2png(values$netVis, filename="CoWord.png", zoom = values$zoom)
+  #     values$list_file <- rbind(values$list_file, c(sheetname=res$sheetname,values$filenetVis,res$col))
+  #     popUp(title="Co-Word Analysis Results", type="success")
+  #     values$myChoices <- sheets(values$wb)
+  #   } else {
+  #     popUp(type="error")
+  #   }
+  # })
 
 
   ## Click on Reinert Dendrogram: WORDS IN CONTEXT ----
@@ -3005,23 +3029,121 @@ observeEvent(input$closePlotModalDoc,{
     tall::reinPlot(values$tc_k$terms, nPlot=10)
   })
 
+#
+#   ## Report
+#
+#   observeEvent(input$w_networkCoocReport,{
+#     if(!is.null(values$network$nodes)){
+#       popUp(title=NULL, type="waiting")
+#       sheetname <- "CoWord"
+#       list_df <- list(values$network$nodesData
+#                       ,values$network$edgesData
+#       )
+#       res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
+#       #values$wb <- res$wb
+#       owd <- setwd(tempdir())
+#       on.exit(setwd(owd))
+#       values$filenetVis <- plot2png(values$netVis, filename="CoWord.png", zoom = values$zoom)
+#       values$list_file <- rbind(values$list_file, c(sheetname=res$sheetname,values$filenetVis,res$col))
+#       popUp(title="Co-Word Analysis Results", type="success")
+#       values$myChoices <- sheets(values$wb)
+#     } else {
+#       popUp(type="error")
+#     }
+#   })
+
+  ## Thematic Map ----
+  TMFunction <- eventReactive(
+    ignoreNULL = TRUE,
+    eventExpr = {input$w_networkTMApply},
+    valueExpr ={
+      switch(input$w_groupTM,
+             Groups = {group = "doc_id"},
+             Documents = {group <- "doc_id"},
+             Paragraphs = {group <- c("doc_id", "paragraph_id")},
+             Sentences = {group <- c("doc_id", "sentence_id")})
+      ## check to verify if groups exist or not
+
+
+      if (input$w_groupTM == "Documents" & "ungroupDoc_id" %in% names(values$dfTag)){
+
+        values$TM <- tallThematicmap(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected),
+                                     term = values$generalTerm, group=group, n=input$nMaxTM, labelsize=input$labelSizeTM, n.labels=input$n.labelsTM,
+                                     opacity = input$opacityTM)
+      } else {
+        values$TM <- tallThematicmap(LemmaSelection(values$dfTag) %>% filter(docSelected),
+                                     term = values$generalTerm, group=group, n=input$nMaxTM, labelsize=input$labelSizeTM, n.labels=input$n.labelsTM,
+                                     opacity = input$opacityTM)
+      }
+
+
+      values$TMvis <- net2vis(nodes=values$TM$net$nodes, edges=values$TM$net$edges, click=FALSE, noOverlap=TRUE)
+      values$TMmap <- plotTM(values$TM$df, size=input$labelSizeTM/10)
+      values$TM$ClusterTable <- values$TM$df %>%
+        rename("Label" = name,
+               "Cluster Frequency" = freq,
+               "Num. of Words" = n,
+               "Centrality" = centrality,
+               "Density" = density,
+               "Cluster"= groups,
+               "Color" = color) %>%
+        select("Label", "Cluster", "Cluster Frequency", "Num. of Words", "Centrality", "Density", "Color")
+
+    }
+  )
+
+  output$w_networkTMMapPlot <- renderPlotly({
+    TMFunction()
+    values$TMmap
+  })
+
+  output$w_networkTMNetPlot <- renderVisNetwork({
+    TMFunction()
+    values$TMvis
+  })
+
+  output$w_networkTMClusterTable <- renderDT(server=FALSE,{
+    TMFunction()
+    DTformat(values$TM$ClusterTable, size='100%',filename="TMClusterTable", pagelength=TRUE, left=NULL, right=NULL,
+             numeric=NULL, dom=TRUE, filter="top")
+  })
+
+  output$w_networkTMWordTable <- renderDT(server=FALSE,{
+    TMFunction()
+    DTformat(values$TM$df_lab %>% select(-Cluster_Frequency), size='100%',filename="TMWordsTable", pagelength=TRUE, left=NULL, right=NULL,
+             numeric=NULL, dom=TRUE, filter="top")
+  })
+
+  ## export TM button
+  observeEvent(eventExpr = {input$w_networkTMExport},
+               handlerExpr = {
+                 file1 <- paste("TAMap-", sys.time(), ".png", sep="")
+                 file1 <- destFolder(file1,values$wdTall)
+                 file2 <- paste("TANetwork-", sys.time(), ".png", sep="")
+                 file2 <- destFolder(file2,values$wdTall)
+                 plot2png(values$TMmap, filename=file1, type="plotly")
+                 plot2png(values$TMvis, filename=file2, type="vis")
+                 popUp(title="Saved in your working folder", type="saved")
+               })
 
   ## Report
 
-  observeEvent(input$w_networkCoocReport,{
-    if(!is.null(values$network$nodes)){
+  observeEvent(input$w_networkTMReport,{
+    if(!is.null(values$TM)){
       popUp(title=NULL, type="waiting")
-      sheetname <- "CoWord"
-      list_df <- list(values$network$nodesData
-                      ,values$network$edgesData
+      sheetname <- "ThematicMap"
+      list_df <- list(values$TM$ClusterTable
+                      ,values$TM$df_lab %>% select(-Cluster_Frequency)
       )
       res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
       #values$wb <- res$wb
       owd <- setwd(tempdir())
       on.exit(setwd(owd))
-      values$filenetVis <- plot2png(values$netVis, filename="CoWord.png", zoom = values$zoom)
-      values$list_file <- rbind(values$list_file, c(sheetname=res$sheetname,values$filenetVis,res$col))
-      popUp(title="Co-Word Analysis Results", type="success")
+      values$fileplotTM <- plot2png(values$TMmap, filename="TMMap.png", type="plotly", zoom = values$zoom)
+      values$fileTMNetwork <-plot2png(values$TMvis, filename="TMNetwork.png", type="vis",zoom = values$zoom)
+      values$list_file <- rbind(values$list_file, c(sheetname=res$sheetname,values$fileplotTM,res$col),
+                                c(sheetname=res$sheetname, values$fileTMNetwork,res$col))
+      popUp(title="Thematic Map Results", type="success")
       values$myChoices <- sheets(values$wb)
     } else {
       popUp(type="error")
@@ -3049,42 +3171,40 @@ observeEvent(input$closePlotModalDoc,{
                                          values$df_EmbeddingDims$Dimension <- rep(sprintf("D%03d",
                                                         seq_len(nrow(values$df_EmbeddingDims)/length(unique(values$df_EmbeddingDims$Word)))),
                                                         length(unique(values$df_EmbeddingDims$Word)))
-                                         #values$embedding <- TRUE
+                                         values$w2vBoxplot <- plot_ly(
+                                           data = values$df_EmbeddingDims,
+                                           y = ~Value,
+                                           x = ~Dimension,
+                                           type = "box",
+                                           boxpoints = "outliers",
+                                           hoverinfo = "x+y"
+                                         ) %>%
+                                           layout(
+                                             title = "Distribution of embedding values by dimension",
+                                             xaxis = list(title = "Dimension", tickangle = -45),
+                                             yaxis = list(title = "Value")
+                                           )
+                                         values$w2vPCA <- plot_ly(
+                                           x = sprintf("PC%03d", seq_along(values$w2v_stats$pca)),
+                                           y = values$w2v_stats$pca*100,
+                                           type = "bar"
+                                         ) %>%
+                                           layout(
+                                             title = "Variance Explained by Principal Components",
+                                             xaxis = list(title = "Principal Components"),
+                                             yaxis = list(title = "Variance Proportion"),
+                                             bargap = 0.2
+                                           )
                                        })
 
   output$w_word2vecBoxplot <- renderPlotly({
-
     w2vTrainingFunction()
-
-    plot_ly(
-      data = values$df_EmbeddingDims,
-      y = ~Value,
-      x = ~Dimension,
-      type = "box",
-      boxpoints = "outliers",
-      hoverinfo = "x+y"
-    ) %>%
-      layout(
-        title = "Distribution of embedding values by dimension",
-        xaxis = list(title = "Dimension", tickangle = -45),
-        yaxis = list(title = "Value")
-      )
+    values$w2vBoxplot
   })
 
   output$w_word2vecPCA <- renderPlotly({
     w2vTrainingFunction()
-
-    plot_ly(
-      x = sprintf("PC%03d", seq_along(values$w2v_stats$pca)),
-      y = values$w2v_stats$pca*100,
-      type = "bar"
-    ) %>%
-      layout(
-        title = "Variance Explained by Principal Components",
-        xaxis = list(title = "Principal Components"),
-        yaxis = list(title = "Variance Proportion"),
-        bargap = 0.2
-      )
+    values$w2vPCA
   })
 
   output$w_word2vecTable <- renderDT(server=FALSE,{
@@ -3093,19 +3213,70 @@ observeEvent(input$closePlotModalDoc,{
              numeric=NULL, dom=TRUE, filter="none")
   })
 
+  ## export Embedding button
+  observeEvent(eventExpr = {input$w2vSave},
+               handlerExpr = {
+                 file1 <- paste("WEmatrix-", sys.time(), ".csv", sep="")
+                 file1 <- destFolder(file1,values$wdTall)
+                 file2 <- paste("WEboxplot-", sys.time(), ".png", sep="")
+                 file2 <- destFolder(file2,values$wdTall)
+                 file3 <- paste("WEpca-", sys.time(), ".png", sep="")
+                 file3 <- destFolder(file3,values$wdTall)
+                 write.csv(as.matrix(values$w2v_model), file = file1)
+                 plot2png(values$w2vBoxplot, filename=file2, type="plotly")
+                 plot2png(values$w2vPCA, filename=file3, type="plotly")
+                 popUp(title="Saved in your working folder", type="saved")
+               })
+
+  ## Report
+  observeEvent(input$w2vReport,{
+    if(!is.null(values$w2v_model)){
+      popUp(title=NULL, type="waiting")
+      sheetname <- "EmbeddingTraining"
+      list_df <- list(values$w2v_stats$stats
+      )
+      res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
+      #values$wb <- res$wb
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      values$fileplotw2vBoxplot <- plot2png(values$w2vBoxplot, filename="w2vBoxplot.png", type="plotly", zoom = values$zoom)
+      values$fileplotw2vPCA <- plot2png(values$w2vPCA, filename="w2vPCA.png", type="plotly", zoom = values$zoom)
+      values$list_file <- rbind(values$list_file, c(sheetname=res$sheetname,values$fileplotw2vBoxplot,res$col),
+                                c(sheetname=res$sheetname, values$fileplotw2vPCA,res$col))
+      popUp(title="Word Embedding Training Results", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
+  })
+
   ## word2vec SIMILARITY ----
-  # observe({
-  #   if (values$embedding){
-  #     hide("w_w2v_similarity")
-  #   } else {
-  #     show("w_w2v_similarity")
-  #     }
-  # })
 
   w2vSimilarity <- eventReactive(input$w_w2v_similarityApply,{
     w2vTrainingFunction()
     values$w2vNetwork <- w2vNetwork(values$w2v_model, values$dfTag, term=values$generalTerm, n=input$w_w2v_similarityN)
     values$umapDf <- w2vUMAP(values$w2v_model, top_words = values$w2vNetwork$top_words)
+    df_adj <- adjust_labels_iterative_with_opacity(values$umapDf, min_dist = 0.3, max_iter = 50, shift_step = 0.05, alpha_low = 0.4)
+    values$w2vUMAPplot <- plot_ly(
+      data = df_adj,
+      x = ~x, y = ~y,
+      type = "scatter",
+      mode = "text",
+      text = ~word,
+      textfont = list(
+        size = input$w_w2v_font_size
+      ),
+      textposition = "top center"
+    ) %>%
+      style(
+        textfont = list(color = df_adj$text_color, size = input$w_w2v_font_size)
+      ) %>%
+      layout(
+        #title = list(text = "CBOW Embeddings Visualization (UMAP)", x = 0.5),
+        xaxis = list(title = "UMAP Dimension 1", zeroline = FALSE, showgrid = FALSE),
+        yaxis = list(title = "UMAP Dimension 2", zeroline = FALSE, showgrid = FALSE),
+        hovermode = "closest"
+      )
   })
 
   output$w_w2v_Selected <- renderUI({
@@ -3129,29 +3300,42 @@ observeEvent(input$closePlotModalDoc,{
 
   output$w_w2vUMAPplot <- renderPlotly({
     w2vSimilarity()
-    #df_adj <- reduce_overlap(values$umapDf, jitter_amount = 0.2, min_dist = 0.03)
-    df_adj <- adjust_labels_iterative_with_opacity(values$umapDf, min_dist = 0.3, max_iter = 50, shift_step = 0.05, alpha_low = 0.4)
+    values$w2vUMAPplot
+  })
 
-    plot_ly(
-      data = df_adj,
-      x = ~x, y = ~y,
-      type = "scatter",
-      mode = "text",
-      text = ~word,
-      textfont = list(
-        size = input$w_w2v_font_size
-      ),
-      textposition = "top center"
-    ) %>%
-      style(
-        textfont = list(color = df_adj$text_color, size = input$w_w2v_font_size)
-      ) %>%
-      layout(
-        #title = list(text = "CBOW Embeddings Visualization (UMAP)", x = 0.5),
-        xaxis = list(title = "UMAP Dimensione 1", zeroline = FALSE, showgrid = FALSE),
-        yaxis = list(title = "UMAP Dimensione 2", zeroline = FALSE, showgrid = FALSE),
-        hovermode = "closest"
+  ## export Embedding Similarity button
+  observeEvent(eventExpr = {input$w_w2v_similarityExport},
+               handlerExpr = {
+                 file1 <- paste("WENetplot-", sys.time(), ".png", sep="")
+                 file1 <- destFolder(file1,values$wdTall)
+                 file2 <- paste("WEumap-", sys.time(), ".png", sep="")
+                 file2 <- destFolder(file2,values$wdTall)
+                 plot2png(values$w2vNetworkPlot, filename=file1, type="vis")
+                 plot2png( values$w2vUMAPplot, filename=file2, type="plotly")
+                 popUp(title="Saved in your working folder", type="saved")
+               })
+
+  ## Report
+  observeEvent(input$w_w2v_similarityReport,{
+    if(!is.null(values$umapDf)){
+      popUp(title=NULL, type="waiting")
+      sheetname <- "EmbeddingSimilarity"
+      list_df <- list(values$w2vNetwork$edges,
+                      values$umapDf
       )
+      res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
+      #values$wb <- res$wb
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      values$fileplotw2vNet <- plot2png(values$w2vNetworkPlot, filename="w2vNetworkPlot.png", type="vis", zoom = values$zoom)
+      values$fileplotw2vUMAP <- plot2png(values$w2vUMAPplot, filename="w2vUMAPPlot.png", type="plotly", zoom = values$zoom)
+      values$list_file <- rbind(values$list_file, c(sheetname=res$sheetname,values$fileplotw2vNet,res$col),
+                                c(sheetname=res$sheetname, values$fileplotw2vUMAP,res$col))
+      popUp(title="Word Embedding Similarity Results", type="success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type="error")
+    }
   })
 
   ## GRAKO ----

@@ -2243,6 +2243,117 @@ body <- dashboardBody(
             )
     ),
 
+    ## Thematic Map ----
+
+    tabItem(tabName = "w_networkTM",
+            fluidPage(
+              fluidRow(
+                column(8,
+                       h3(strong("Thematic Map"), align = "center")),
+                div(
+                  title = t_run,
+                  column(1,
+                         do.call("actionButton", c(run_bttn, list(
+                           inputId = "w_networkTMApply")
+                         ))
+                  )),
+                div(
+                  title = t_export,
+                  column(1,
+                         do.call("actionButton", c(export_bttn, list(
+                           inputId = "w_networkTMExport")
+                         ))
+                  )),
+                div(
+                  title = t_report,
+                  column(1,
+                         do.call("actionButton", c(report_bttn, list(
+                           inputId = "w_networkTMReport")
+                         ))
+                  )),
+                div(column(1,
+                           dropdown(
+                             h4(strong("Options: ")),
+                             hr(),
+                             selectInput(
+                               inputId = "w_groupTM",
+                               label = "Co-occurrences in ",
+                               choices = c("Groups","Documents", "Paragraphs", "Sentences"),
+                               selected = "Sentences"
+                             ),
+                             materialSwitch(
+                               inputId = "noOverlapTM",
+                               label = "Avoid label overlap",
+                               value = TRUE,
+                               status = "success"
+                             ),
+                             fluidRow(
+                               column(6,
+                                      numericInput("nMaxTM",
+                                                   label = "Words",
+                                                   value = 500,
+                                                   min = 2,
+                                                   step=1),
+                                      numericInput("labelSizeTM",
+                                                   label = "Label Size",
+                                                   value = 4,
+                                                   min = 1,
+                                                   step = 0.5)
+                               ),column(6,
+                                        numericInput("n.labelsTM",
+                                                     label = "Labels",
+                                                     value = 3,
+                                                     min = 0,
+                                                     step = 1),
+                                        numericInput("opacityTM",
+                                                     label = "Opacity",
+                                                     value = 0.6,
+                                                     min = 0,
+                                                     step = 0.1)
+                               )),
+                             tooltip = tooltipOptions(title = "Options"),
+                             width = "300px", icon = icon("cog", lib="glyphicon"),
+                             right = TRUE, animate = TRUE,
+                             style = "material-circle", size = "sm"
+                           )
+                ),
+                style = style_opt
+                )
+              ),
+              fluidRow(
+                tabsetPanel(type = "tabs",
+                            tabPanel("Thematic Map",
+                                     shinycssloaders::withSpinner(plotlyOutput("w_networkTMMapPlot", width="auto", height = "75vh"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            ),
+                            tabPanel("Network",
+                                     shinycssloaders::withSpinner(visNetworkOutput("w_networkTMNetPlot", width="auto", height = "75vh"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            ),
+                            tabPanel("Clusters",
+                                     shinycssloaders::withSpinner(DT::DTOutput("w_networkTMClusterTable"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            ),
+                            tabPanel("Words",
+                                     shinycssloaders::withSpinner(DT::DTOutput("w_networkTMWordTable"),
+                                                                  color = getOption("spinner.color", default = "#4F7942"))
+                            ),
+                            tabPanel("Info & References",
+                                     fluidPage(
+                                       fluidRow(
+                                         column(1),
+                                         column(10,
+                                                br(),
+                                                HTML("bho")
+                                         ),
+                                         column(1)
+                                       )
+                                     )
+                            )
+                )
+              )
+            )
+    ),
 
     ## WORD EMBEDDINGS TRAINING----
 
@@ -2298,29 +2409,20 @@ body <- dashboardBody(
                            )
                          ),
                          fluidRow(
-                           column(6,
-                                  div(align="center",
-                                      title = "Apply",
-                                      do.call("actionButton", c(list(
-                                        label=NULL,
-                                        style ="display:block; height: 37px; width: 37px; border-radius: 50%;
-                                      border: 1px; margin-top: 16px;",
-                                        icon = icon(name ="play", lib="glyphicon"),
-                                        inputId = "w2vApply")
-                                      )))
+                           column(4, align="center",
+                                  do.call("actionButton", c(run_bttn, list(
+                                    inputId = "w2vApply")
+                                  ))
                            ),
-                           column(6,
-                                  div(align="center",
-                                      title = "Export Embedding Matrix",
-                                      do.call("actionButton", c(list(
-                                        label=NULL,
-                                        style ="display:block; height: 37px; width: 37px; border-radius: 50%;
-                                      border: 1px; margin-top: 16px;",
-                                        icon = icon(name ="download-alt", lib="glyphicon"),
-                                        inputId = "w2vSave")
-                                      )
-                                      )
-                                  )
+                           column(4, align="center",
+                                  do.call("actionButton", c(export_bttn, list(
+                                    inputId = "w2vSave")
+                                  ))
+                           ),
+                           column(4, align="center",
+                                  do.call("actionButton", c(report_bttn, list(
+                                    inputId = "w2vReport")
+                                  ))
                            ))
                        ),style="margin-top:40px"
                      )

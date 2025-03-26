@@ -2311,6 +2311,247 @@ avoidNetOverlaps <- function(w,threshold=0.10){
   label
 
 }
+## THEMATIC MAP ----
+tallThematicmap <- function(dfTag, term = "lemma", group="doc_id", n=100, labelsize=10, n.labels=1, opacity=0.8){
+
+  net <- network(LemmaSelection(dfTag) %>% filter(docSelected), term=term, group=group,
+                 n=n, minEdges=100,labelsize=labelsize, opacity=opacity,
+                 interLinks=FALSE, normalization="association",
+                 remove.isolated=FALSE, community.repulsion=0)
+  nodes <- net$nodes
+  edges <- net$edges %>%
+    mutate(sE = sC^2)
+
+  # centrality and density calculation
+  thematicIndices <- edges %>%
+    mutate(ext = ifelse(group_from!=group_to,1,0)) %>%
+    #filter(group_from == group_to) %>%
+    group_by(group_from) %>%
+    mutate(k = n()) %>%
+    reframe(n = max(k),
+            centrality = sum(sE*ext)*10,
+            density = sum(sE*(1-ext)/k)*100) %>%
+    rename(group = group_from) %>%
+    left_join(nodes %>%
+                select(group, label, value) %>%
+                group_by(group) %>%
+                slice_max(order_by = value, n=1),
+              by = "group") %>%
+    mutate(rcentrality=rank(centrality),
+           rdensity=rank(density)
+    )
+
+  df <- nodes %>% group_by(group) %>% #dplyr::filter(sC>1) %>%
+    arrange(desc(value), .by_group = TRUE) %>%
+    mutate(freq = sum(value)) %>%
+    slice_max(n=10, value, with_ties=FALSE) %>%
+    reframe(wordlist = paste(label,value,collapse="\n"),
+            name_full = paste(label[1:min(n.labels,n())], collapse="\n"),
+            color = color[1],
+            freq = max(freq)) %>%
+    right_join(., thematicIndices, by = "group") %>%
+    rename(name = label,
+           groups = group,
+           words = wordlist) %>%
+    select(-value)
+
+  df_lab <- nodes %>%
+    rename(Words = label,
+           Occurrences = value,
+           Cluster = group,
+           Color = color
+    ) %>%
+    group_by(Cluster) %>%
+    arrange(desc(Occurrences), .by_group = TRUE) %>%
+    mutate(Cluster_Label = Words[1],
+           Cluster_Frequency = sum(Occurrences)) %>%
+    ungroup() %>%
+    select("Occurrences", "Words", "Cluster", "Color","Cluster_Label", "Cluster_Frequency")
+
+  return(list(net=net, df=df, df_lab=df_lab))
+}
+
+plotTM <- function(df, size=0.5){
+
+  meandens <- mean(df$rdensity)
+  meancentr <- mean(df$rcentrality)
+  xlimits <- c(0, max(df$rcentrality) + 1)
+  ylimits <- c(0, max(df$rdensity) + 1)
+  #size <- 0.5
+  df_labels <- df[df$freq > 1, ]
+  df_labels <- df_labels %>%
+    mutate(size = log(as.numeric(freq))* (5 + size))
+
+  df_labels <- adjust_positions_oblique(df_labels, xvar = "rcentrality", yvar = "rdensity", min_dist = 1)
+
+  annotations <- data.frame(
+    xpos = sort(c(xlimits,xlimits)),
+    ypos = c(ylimits, ylimits),
+    words = c("Peripheral Topics","Niche Topics","Basic Topics ","Hot Topics "),
+    hjustvar = c(0,0,1,1) ,
+    vjustvar = c(0,1.0,0,1))
+
+  # 1. Crea i punti con hover e dimensione proporzionale
+  fig <- plot_ly(
+    data = df_labels,
+    x = ~rcentrality,
+    y = ~rdensity,
+    type = 'scatter',
+    mode = 'markers',
+    marker = list(
+      size = ~size,
+      color = ~color,
+      opacity = 0.5
+    ),
+    hovertext = ~words,
+    hovertemplate = "%{hovertext}<extra></extra>"
+    #hoverinfo = 'hovertext'
+  )
+
+  # 2. Aggiungi le etichette (solo se freq > 1)
+
+  fig <- fig %>%
+    add_trace(
+      data = df_labels,
+      x = ~rcentrality,
+      y = ~rdensity,
+      type = 'scatter',
+      mode = 'text',
+      text = ~tolower(name_full),
+      textfont = list(
+        color = 'rgba(0,0,0,0.7)',
+        size = 12 * (1 + size)
+      ),
+      #hoverinfo = 'none',
+      showlegend = FALSE
+    )
+
+
+  # 3. Aggiungi linee medie
+  fig <- fig %>%
+    add_trace(
+      data = NULL,
+      inherit = FALSE,
+      type = 'scatter',
+      mode = 'lines',
+      x = c(xlimits[1], xlimits[2]),
+      y = c(meandens, meandens),
+      line = list(dash = "dash", color = 'rgba(0,0,0,0.7)'),
+      marker = list(opacity = 0),
+      showlegend = FALSE,
+      hoverinfo = 'none'
+    ) %>%
+    add_trace(
+      data = NULL,
+      inherit = FALSE,
+      type = 'scatter',
+      mode = 'lines',
+      x = c(meancentr, meancentr),
+      y = c(ylimits[1], ylimits[2]),
+      line = list(dash = "dash", color = 'rgba(0,0,0,0.7)'),
+      marker = list(opacity = 0),
+      showlegend = FALSE,
+      hoverinfo = 'none'
+    )
+
+  # 4. Eventuali annotazioni (puoi rimuovere questo blocco se non ne hai)
+  if (exists("annotations")) {
+    k <- 0
+    for (i in 1:nrow(annotations)) {
+      if (i>2) k <- max(xlimits)*0.05
+      fig <- fig %>%
+        add_annotations(
+          x = annotations$xpos[i] - k,
+          y = annotations$ypos[i],
+          text = annotations$words[i],
+          showarrow = FALSE,
+          font = list(
+            color = 'rgba(50,50,50,0.5)',
+            size = 8 * (1 + size*2)
+          ),
+          xanchor = 'center',
+          yanchor = 'middle'
+        )
+    }
+  }
+
+  # 5. Layout
+  fig <- fig %>%
+    layout(
+      xaxis = list(
+        title = "Relevance degree<br>(Centrality)",
+        range = xlimits,
+        showticklabels = FALSE,
+        showline = FALSE,
+        zeroline = FALSE,
+        ticks = '',
+        showgrid = TRUE
+      ),
+      yaxis = list(
+        title = "Development degree<br>(Density)",
+        range = ylimits,
+        showticklabels = FALSE,
+        showline = FALSE,
+        zeroline = FALSE,
+        ticks = '',
+        showgrid = TRUE
+      ),
+      plot_bgcolor = "#FFFFFF",
+      showlegend = FALSE
+    )
+
+  return(fig)
+
+}
+
+adjust_positions_oblique <- function(df, xvar = "rcentrality", yvar = "rdensity",
+                                     min_dist = 0.5, max_iter = 100, step_factor = 0.5, jitter_strength = 0.1) {
+  df_adj <- df
+
+  for (iter in 1:max_iter) {
+    moved <- FALSE
+    for (i in 1:(nrow(df_adj) - 1)) {
+      for (j in (i + 1):nrow(df_adj)) {
+        xi <- df_adj[[xvar]][i]
+        yi <- df_adj[[yvar]][i]
+        xj <- df_adj[[xvar]][j]
+        yj <- df_adj[[yvar]][j]
+
+        dx <- xi - xj
+        dy <- yi - yj
+        dist <- sqrt(dx^2 + dy^2)
+
+        # Se perfettamente sovrapposti, applica jitter obliquo casuale
+        if (dist == 0) {
+          jitter_angle <- runif(1, 0, 2 * pi)
+          offset <- jitter_strength
+
+          df_adj[[xvar]][i] <- xi + cos(jitter_angle) * offset
+          df_adj[[yvar]][i] <- yi + sin(jitter_angle) * offset
+          df_adj[[xvar]][j] <- xj - cos(jitter_angle) * offset
+          df_adj[[yvar]][j] <- yj - sin(jitter_angle) * offset
+
+          moved <- TRUE
+
+        } else if (dist < min_dist) {
+          angle <- atan2(dy, dx)
+          offset <- (min_dist - dist) * step_factor
+
+          df_adj[[xvar]][i] <- xi + cos(angle) * offset
+          df_adj[[yvar]][i] <- yi + sin(angle) * offset
+          df_adj[[xvar]][j] <- xj - cos(angle) * offset
+          df_adj[[yvar]][j] <- yj - sin(angle) * offset
+
+          moved <- TRUE
+        }
+      }
+    }
+    if (!moved) break
+  }
+
+  return(df_adj)
+}
+
 
 ## WORD EMBEDDING TRAINING ----
 w2vTraining <- function(x, term="lemma", dim=100, iter=20){
@@ -3607,7 +3848,10 @@ dfLabel <- function(){
              "Reinert",
              "CorrespondenceAnalysis",
              "CoWord",
+             "ThematicMap",
              "Grako",
+             "EmbeddingTraining",
+             "EmbeddingSimilarity",
              "KChoice",
              "ModelEstim",
              "PolarityDetection",
@@ -3621,7 +3865,10 @@ dfLabel <- function(){
             "Reinert Clustering",
             "Correspondence Analysis",
             "Co-Word Analysis",
+            "Thematic Map",
             "Grako",
+            "Word Embedding Training",
+            "Word Embedding Similarity",
             "TM-K choice",
             "TM-Model Estimation",
             "Polarity Detection",
@@ -4039,7 +4286,8 @@ menuList <- function(menu){
                                menuSubItem("Reinert Clustering", tabName = "w_reinclustering", icon = icon("chevron-right")),
                                menuSubItem("Correspondence Analysis", tabName = "ca", icon = icon("chevron-right")),
                       menuItem("Network", tabName = "w_network", icon = icon("chevron-right"),
-                               menuSubItem("Co-word analysis", tabName = "w_networkCooc", icon = icon("chevron-right"))
+                               menuSubItem("Co-word analysis", tabName = "w_networkCooc", icon = icon("chevron-right")),
+                               menuSubItem("Thematic Map", tabName = "w_networkTM", icon = icon("chevron-right"))
                                # ,menuSubItem("Grako", tabName = "w_networkGrako", icon = icon("chevron-right"))
                                ),
                       menuItem("Word Embeddings", tabName = "w_embeddings", icon = icon("chevron-right"),
@@ -4084,7 +4332,8 @@ menuList <- function(menu){
                                menuSubItem("Reinert Clustering", tabName = "w_reinclustering", icon = icon("chevron-right")),
                                menuSubItem("Correspondence Analysis", tabName = "ca", icon = icon("chevron-right")),
                       menuItem("Network", tabName = "w_network", icon = icon("chevron-right"),
-                               menuSubItem("Co-word analysis", tabName = "w_networkCooc", icon = icon("chevron-right"))
+                               menuSubItem("Co-word analysis", tabName = "w_networkCooc", icon = icon("chevron-right")),
+                               menuSubItem("Thematic Map", tabName = "w_networkTM", icon = icon("chevron-right"))
                                # ,menuSubItem("Grako", tabName = "w_networkGrako", icon = icon("chevron-right"))
                                ),
                       menuItem("Word Embeddings", tabName = "w_embeddings", icon = icon("chevron-right"),
@@ -4271,7 +4520,6 @@ DTformat <- function(df, nrow=10, filename="Table", pagelength=TRUE, left=NULL, 
 
   tab
 }
-
 
 
 ### FUNCTIONS FOR EXPORTING PLOTS ----
