@@ -1988,7 +1988,7 @@ To ensure the functionality of TALL,
         "Docs Avg Length in Chars", "Docs SD Length in Chars", "Doc Avg Length in Tokens",
         "Doc SD Length in Tokens", "Sent Avg Length in Tokens", "Sent SD Length in Tokens",
         "Sent Avg Length in Chars", "Sent SD Length in Chars",
-        "TTR", "Hapax (%)", "Guiraud Index", "Lexical Density", "Nominal Ratio", "Gini Index", "Yule's K"
+        "TTR (%)", "Hapax (%)", "Guiraud Index", "Lexical Density", "Nominal Ratio", "Gini Index", "Yule's K"
       ),
       Values = unlist(values$vb)
     )
@@ -2092,7 +2092,7 @@ To ensure the functionality of TALL,
   #### box10 ------------------
   output$TTR <- renderValueBox({
     valueBox(
-      value = p("TTR", style = "font-size:16px;color:white;"),
+      value = p("TTR (%)", style = "font-size:16px;color:white;"),
       subtitle = p(strong(values$vb$TTR), style = "font-size:36px;color:white;", align = "center"),
       icon = icon(name = "stats", lib = "glyphicon"), color = "olive",
       width = NULL
