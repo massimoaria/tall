@@ -13,25 +13,24 @@
 # webshot2 package: https://github.com/rstudio/webshot2
 
 tallShot <- function(
-  url = NULL,
-  file = "tallShot.png",
-  vwidth = 992,
-  vheight = 744,
-  selector = NULL,
-  cliprect = NULL,
-  expand = NULL,
-  delay = 0.2,
-  zoom = 1,
-  useragent = NULL,
-  max_concurrent = getOption("tallShot.concurrent", default = 6),
-  verbose = FALSE
-) {
-
+    url = NULL,
+    file = "tallShot.png",
+    vwidth = 992,
+    vheight = 744,
+    selector = NULL,
+    cliprect = NULL,
+    expand = NULL,
+    delay = 0.2,
+    zoom = 1,
+    useragent = NULL,
+    max_concurrent = getOption("tallShot.concurrent", default = 6),
+    verbose = FALSE) {
   if (length(url) == 0) {
     stop("Need url.")
   }
 
-  url <- vapply(url,
+  url <- vapply(
+    url,
     function(x) {
       if (!is_url(x)) {
         file_url(x)
@@ -44,7 +43,7 @@ tallShot <- function(
 
   if (!is.null(cliprect) && !is.list(cliprect)) cliprect <- list(cliprect)
   if (!is.null(selector) && !is.list(selector)) selector <- list(selector)
-  if (!is.null(expand)   && !is.list(expand))   expand   <- list(expand)
+  if (!is.null(expand) && !is.list(expand)) expand <- list(expand)
 
   if (is.null(selector)) {
     selector <- "html"
@@ -58,33 +57,33 @@ tallShot <- function(
   }
 
   args_all <- list(
-    url       = url,
-    file      = file,
-    vwidth    = vwidth,
-    vheight   = vheight,
-    selector  = selector,
-    cliprect  = cliprect,
-    expand    = expand,
-    delay     = delay,
-    zoom      = zoom,
+    url = url,
+    file = file,
+    vwidth = vwidth,
+    vheight = vheight,
+    selector = selector,
+    cliprect = cliprect,
+    expand = expand,
+    delay = delay,
+    zoom = zoom,
     useragent = useragent,
     verbose = verbose
   )
 
   n_urls <- length(url)
   args_all <- mapply(args_all, names(args_all),
-    FUN = function(arg, name) {
-      if (length(arg) == 0) {
-        return(vector(mode = "list", n_urls))
-      } else if (length(arg) == 1) {
-        return(rep(arg, n_urls))
-      } else if (length(arg) == n_urls) {
-        return(arg)
-      } else {
-        stop("Argument `", name, "` should be NULL, length 1, or same length as `url`.")
-      }
-    },
-    SIMPLIFY = FALSE
+                     FUN = function(arg, name) {
+                       if (length(arg) == 0) {
+                         return(vector(mode = "list", n_urls))
+                       } else if (length(arg) == 1) {
+                         return(rep(arg, n_urls))
+                       } else if (length(arg) == n_urls) {
+                         return(arg)
+                       } else {
+                         stop("Argument `", name, "` should be NULL, length 1, or same length as `url`.")
+                       }
+                     },
+                     SIMPLIFY = FALSE
   )
 
   args_all <- long_to_wide(args_all)
@@ -92,9 +91,11 @@ tallShot <- function(
   cm <- default_chromote_object()
 
   # A list of promises for the screenshots
-  res <- lapply(args_all,
+  res <- lapply(
+    args_all,
     function(args) {
-      new_session_screenshot(cm,
+      new_session_screenshot(
+        cm,
         args$url, args$file, args$vwidth, args$vheight, args$selector,
         args$cliprect, args$expand, args$delay, args$zoom, args$useragent,
         verbose
@@ -110,20 +111,18 @@ tallShot <- function(
 
 
 new_session_screenshot <- function(
-  chromote,
-  url,
-  file,
-  vwidth,
-  vheight,
-  selector,
-  cliprect,
-  expand,
-  delay,
-  zoom,
-  useragent,
-  verbose = FALSE
-) {
-
+    chromote,
+    url,
+    file,
+    vwidth,
+    vheight,
+    selector,
+    cliprect,
+    expand,
+    delay,
+    zoom,
+    useragent,
+    verbose = FALSE) {
   filetype <- tolower(tools::file_ext(file))
   if (filetype != "png" && filetype != "pdf") {
     stop("File extension must be 'png' or 'pdf'")
@@ -147,10 +146,11 @@ new_session_screenshot <- function(
 
   s <- NULL
 
-  p <- chromote$new_session(wait_ = FALSE,
-      width = vwidth,
-      height = vheight
-    )$
+  p <- chromote$new_session(
+    wait_ = FALSE,
+    width = vwidth,
+    height = vheight
+  )$
     then(function(session) {
       s <<- session
 
@@ -182,7 +182,6 @@ new_session_screenshot <- function(
           expand = expand, scale = zoom,
           show = FALSE, wait_ = FALSE
         )
-
       } else if (filetype == "pdf") {
         s$screenshot_pdf(filename = file, wait_ = FALSE)
       }
@@ -218,8 +217,9 @@ is_mac <- function() Sys.info()[["sysname"]] == "Darwin"
 is_linux <- function() Sys.info()[["sysname"]] == "Linux"
 
 long_to_wide <- function(x) {
-  if (length(x) == 0)
+  if (length(x) == 0) {
     return(x)
+  }
 
   lapply(seq_along(x[[1]]), function(n) {
     lapply(stats::setNames(names(x), names(x)), function(name) {

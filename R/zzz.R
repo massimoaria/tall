@@ -63,7 +63,7 @@ NULL
 ## usethis namespace: end
 NULL
 
-.onAttach<-function(...){
+.onAttach <- function(...) {
   packageStartupMessage("Please note that our software is open source and available for use, distributed under the MIT license.
                         \nFor information and bug reports:
                         - Write a post on https://github.com/massimoaria/tall/issues

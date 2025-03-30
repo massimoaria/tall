@@ -1,4 +1,4 @@
-helpContent <- function(){
+helpContent <- function() {
   importmenu <- "
   <body>
 
@@ -71,7 +71,7 @@ helpContent <- function(){
 </body>
 "
 
-  split <-  "<body>
+  split <- "<body>
 
     <h3><strong>Splitting the Corpus in TALL</strong></strong></h3>
 
@@ -404,7 +404,7 @@ helpContent <- function(){
 
 </body>"
 
-overview <- "<body>
+  overview <- "<body>
   <div class='container'>
     <h3><strong>Corpus Metrics in TALL</strong></h3>
     <p>These metrics provide a summary of the key textual characteristics of the analyzed corpus.</p>
@@ -572,7 +572,7 @@ overview <- "<body>
                                       </div>
                                       </body>"
 
-wordincontext <- "<body>
+  wordincontext <- "<body>
 
     <h3><strong>Words in Context in TALL</strong></h3>
 
@@ -1180,28 +1180,26 @@ wordincontext <- "<body>
 
       </body>"
 
-  return(list(importmenu = importmenu,
-              split = split,
-              random = random,
-              externalinfo = externalinfo,
-              tokenization = tokenization,
-              specialentities = specialentities,
-              multiwordcreation = multiwordcreation,
-              multiwordlist =  multiwordlist,
-              customterm = customterm,
-              posselection = posselection,
-              overview = overview,
-              wordincontext = wordincontext,
-              reinert = reinert,
-              correspondenceanalysis = correspondenceanalysis,
-              cowordanalysis = cowordanalysis,
-              thematicmap = thematicmap,
-              tmkchoice = tmkchoice,
-              tmmodelestimation = tmmodelestimation,
-              polaritydetection = polaritydetection,
-              summarization = summarization
+  return(list(
+    importmenu = importmenu,
+    split = split,
+    random = random,
+    externalinfo = externalinfo,
+    tokenization = tokenization,
+    specialentities = specialentities,
+    multiwordcreation = multiwordcreation,
+    multiwordlist = multiwordlist,
+    customterm = customterm,
+    posselection = posselection,
+    overview = overview,
+    wordincontext = wordincontext,
+    reinert = reinert,
+    correspondenceanalysis = correspondenceanalysis,
+    cowordanalysis = cowordanalysis,
+    thematicmap = thematicmap,
+    tmkchoice = tmkchoice,
+    tmmodelestimation = tmmodelestimation,
+    polaritydetection = polaritydetection,
+    summarization = summarization
   ))
 }
-
-
-
