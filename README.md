@@ -6,7 +6,6 @@
 <img src="images/tall_logo.jpg" width="685" />
 
 <!-- badges: start -->
-
 <!-- badges: end -->
 
 TALL - Text Analysis for ALL, an R Shiny app that includes a wide set of
@@ -125,7 +124,11 @@ researchers to conduct thorough the following workflow:
 
 ### Automatic Lemmatization and PoS-Tagging through LLM
 
-![](images/postag.png)
+![](images/Tokenization&PoSTagging.png)
+
+### Language, Model, and Analysis Term Selection
+
+![](images/Language,%20Model,%20and%20Analysis%20Term%20Selection.png)
 
 ### Tagging Special Entities through multiple regex
 

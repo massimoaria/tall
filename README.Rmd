@@ -82,7 +82,10 @@ By leveraging the strengths of both R packages and Shiny's interactive web inter
 ![](images/edit.png)\n
 
 ### Automatic Lemmatization and PoS-Tagging through LLM
-![](images/postag.png)\n
+![](images/Tokenization&PoSTagging.png)\n
+
+### Language, Model, and Analysis Term Selection
+![](images/Language, Model, and Analysis Term Selection.png)\n
 
 ### Tagging Special Entities through multiple regex
 ![](images/SpecEntitiesTagging1.png)\n
