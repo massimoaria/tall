@@ -36,7 +36,7 @@ The plot uses different colors for positive and negative terms, with hover toolt
 \dontrun{
 data(mobydick)
 res <- reinert(
-  x=mobydick,
+  x = mobydick,
   k = 10,
   term = "token",
   segment_size = 40,
@@ -46,7 +46,7 @@ res <- reinert(
   tsj = 3
 )
 
-tc <- term_per_cluster(res, cutree = NULL, k=1, negative=FALSE)
+tc <- term_per_cluster(res, cutree = NULL, k = 1, negative = FALSE)
 
 fig <- reinPlot(tc$terms, nPlot = 10)
 }

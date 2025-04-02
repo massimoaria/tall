@@ -1,6 +1,6 @@
 Package: tall
 Title: Text Analysis for All
-Version: 0.1.2
+Version: 0.2.0
 Authors@R: c(
     person(given = "Massimo", 
            family = "Aria",
@@ -80,6 +80,8 @@ Imports:
     readr,
     curl,
     pagedown,
+    word2vec,
+    umap,
     parallel,
     doParallel
 LazyData: true

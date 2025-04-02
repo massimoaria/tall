@@ -39,11 +39,10 @@ This function performs the following steps:
 }
 }
 \examples{
-
 \donttest{
 data(mobydick)
 res <- reinert(
-  x=mobydick,
+  x = mobydick,
   k = 10,
   term = "token",
   segment_size = 40,
@@ -53,9 +52,9 @@ res <- reinert(
   tsj = 3
 )
 
-tc <- term_per_cluster(res, cutree = NULL, k=1:10, negative=FALSE)
+tc <- term_per_cluster(res, cutree = NULL, k = 1:10, negative = FALSE)
 
-S <- reinSummary(tc, n=10)
+S <- reinSummary(tc, n = 10)
 
 head(S, 10)
 }

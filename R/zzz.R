@@ -29,19 +29,21 @@
 #' @import parallel
 #' @import shinyFiles
 #' @import ggraph
+#' @import word2vec
+#' @import umap
 #' @importFrom readr write_csv
 #' @importFrom strucchange breakpoints
 #' @importFrom shinyjs useShinyjs
 #' @importFrom shinyWidgets alert updatePrettyCheckboxGroup prettyCheckboxGroup
 #' @importFrom DT datatable formatStyle formatRound renderDT DTOutput
-#' @importFrom jsonlite fromJSON 
-#' @importFrom chromote Chromote default_chromote_object 
+#' @importFrom jsonlite fromJSON
+#' @importFrom chromote Chromote default_chromote_object
 #' @importFrom graphics plot lines text legend
 #' @importFrom later later
-#' @importFrom promises promise_all 
+#' @importFrom promises promise_all
 #' @importFrom rlang sym
 #' @importFrom igraph cluster_walktrap graph_from_data_frame membership centr_betw
-#' @importFrom plotly add_annotations 
+#' @importFrom plotly add_annotations
 #' @importFrom plotly api_create as.widget as_widget attrs_selected colorbar
 #' @importFrom plotly config embed_notebook event_data event_register event_unregister
 #' @importFrom plotly export geom2trace get_figure gg2list ggplotly group2NA hide_colorbar
@@ -61,7 +63,7 @@ NULL
 ## usethis namespace: end
 NULL
 
-.onAttach<-function(...){
+.onAttach <- function(...) {
   packageStartupMessage("Please note that our software is open source and available for use, distributed under the MIT license.
                         \nFor information and bug reports:
                         - Write a post on https://github.com/massimoaria/tall/issues

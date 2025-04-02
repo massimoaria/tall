@@ -44,11 +44,10 @@ Special thanks to the authors of the rainette package (https://github.com/juba/r
 for inspiring the coding approach used in this function.
 }
 \examples{
-
 \donttest{
 data(mobydick)
 res <- reinert(
-  x=mobydick,
+  x = mobydick,
   k = 10,
   term = "token",
   segment_size = 40,
