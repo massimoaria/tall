@@ -3024,6 +3024,12 @@ body <- dashboardBody(
                             "Font Size",
                             min = 8, max = 30, value = 14, step = 1
                 ),
+                selectInput("w_w2v_overlap",
+                            "Avoid Label Overlap",
+                            choices = c("No" = "none",
+                                        "Hide" = "hide",
+                                        "Transparency" = "transparency"),
+                            selected = "hide"),
                 tooltip = tooltipOptions(title = "Options"),
                 width = "300px", icon = icon("cog", lib = "glyphicon"),
                 right = TRUE, animate = TRUE,
@@ -3355,17 +3361,17 @@ body <- dashboardBody(
                   ),
                   selected = "doc_id"
                 ),
-                uiOutput("TMmetric"),
+                selectInput("metric", "Metric for model tuning",
+                            choices = c(
+                              "CaoJuan-2009" = "CaoJuan2009",
+                              "Deveaud-2014" = "Deveaud2014",
+                              "Arun-2010" = "Arun2010",
+                              "Perplexity" = "Perplexity"
+                            ),
+                            selected = "CaoJuan2009"
+                ),
                 fluidRow(
-                  column(
-                    6
-                    # ,selectInput("termTm", "Terms:",
-                    #             choices = c(
-                    #               "Tokens"="token",
-                    #               "Lemma"="lemma"),
-                    #             selected = "lemma"
-                    # )
-                  ),
+                  column(6),
                   column(
                     6,
                     numericInput("nTm",
@@ -3489,15 +3495,7 @@ body <- dashboardBody(
                   selected = "doc_id"
                 ),
                 fluidRow(
-                  column(
-                    6
-                    # ,selectInput("termTmEstim", "By:",
-                    #             choices = c(
-                    #               "Tokens"="token",
-                    #               "Lemma"="lemma"),
-                    #             selected = "lemma"
-                    # )
-                  ),
+                  column(6),
                   column(
                     6,
                     numericInput("nTmEstim",
