@@ -3024,6 +3024,12 @@ body <- dashboardBody(
                             "Font Size",
                             min = 8, max = 30, value = 14, step = 1
                 ),
+                selectInput("w_w2v_overlap",
+                            "Avoid Label Overlap",
+                            choices = c("No" = "none",
+                                        "Hide" = "hide",
+                                        "Transparency" = "transparency"),
+                            selected = "hide"),
                 tooltip = tooltipOptions(title = "Options"),
                 width = "300px", icon = icon("cog", lib = "glyphicon"),
                 right = TRUE, animate = TRUE,

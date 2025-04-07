@@ -2607,7 +2607,7 @@ plotTM <- function(df, size = 0.5) {
   df_labels <- df_labels %>%
     mutate(size = log(as.numeric(freq)) * (5 + size))
 
-  df_labels <- adjust_positions_oblique(df_labels, xvar = "rcentrality", yvar = "rdensity", min_dist = 1)
+  if (nrow(df_labels)>1) df_labels <- adjust_positions_oblique(df_labels, xvar = "rcentrality", yvar = "rdensity", min_dist = 1)
 
   annotations <- data.frame(
     xpos = sort(c(xlimits, xlimits)),
@@ -2915,7 +2915,7 @@ w2vNetwork <- function(w2v_model, dfTag, term, n = 100) {
     mutate(
       label = id,
       shape = ifelse(id %in% top_words, "triangle", "dot"),
-      size = 20,
+      size = 10,
       font.size = 35
     ) %>%
     arrange(id)
@@ -2940,9 +2940,57 @@ w2vNetwork <- function(w2v_model, dfTag, term, n = 100) {
   return(list(nodes = nodes, edges = edges, top_words = top_words))
 }
 
+apply_horizontal_transparency <- function(nodes, x_col = "x", y_col = "y", threshold = 30, type = "transparency") {
 
-w2v2Vis <- function(nodes, edges, layout = "layout_nicely", size = 20, labelsize = 35) {
+  # Check that the specified x and y coordinate columns exist in the data frame
+  if (!all(c(x_col, y_col) %in% names(nodes))) {
+    stop("The specified coordinate columns are not found in the data frame.")
+  }
+
+  # Extract the x and y coordinates from the node data frame
+  x_coords <- nodes[[x_col]]
+  y_coords <- nodes[[y_col]]
+
+  # Compute the absolute pairwise horizontal (x-axis) distances between all nodes
+  distance_matrix_x <- outer(x_coords, x_coords, FUN = function(a, b) abs(a - b))
+
+  # Compute vertical (y-axis) distances, but consider only values below a small threshold (0.05),
+  # otherwise assign Inf to ignore vertical mismatches
+  distance_matrix_y <- outer(y_coords, y_coords, FUN = function(a, b) ifelse(abs(a - b) < 0.05, abs(a - b), Inf))
+
+  # Set the diagonal elements to Inf to avoid self-comparisons
+  diag(distance_matrix_x) <- Inf
+  diag(distance_matrix_y) <- Inf
+
+  # Identify nodes whose combined horizontal + (negligible) vertical distance is less than the threshold
+  overlapping_nodes <- apply(distance_matrix_x + distance_matrix_y, 1, function(row) any(row < threshold))
+
+  # Assign font color based on overlap:
+  # use semi-transparent black (alpha = 0.3) for overlapping nodes,
+  # and fully opaque black (alpha = 0.9) otherwise
+  switch(type,
+         "transparency"={
+           nodes$font.color <- ifelse(overlapping_nodes,
+                                      "rgba(0, 0, 0, 0.3)",  # semi-transparent label
+                                      "rgba(0, 0, 0, 0.9)")  # fully opaque label
+         },
+         hide={
+           nodes <- nodes %>%
+             mutate(overlapping_nodes = overlapping_nodes,
+               label = ifelse(overlapping_nodes, "", label)) %>%
+             select(-overlapping_nodes)
+         })
+
+  return(nodes)
+}
+
+w2v2Vis <- function(nodes, edges, layout = "layout_nicely", size = 20, labelsize = 35, overlap = "none") {
   nodes$font.size <- labelsize * 2.5
+  nodes$size <- round(labelsize / 1.2,0)
+  nodes$font.vadjust = -20
+  K <- max(nodes$group)
+  colors <- paste0((rep(colorlist(),ceiling(K/35))), "70", sep="")
+  nodes$color = colors[nodes$group]
 
   VIS <- visNetwork(nodes, edges,
                     type = "full", smooth = TRUE, physics = FALSE,
@@ -2955,6 +3003,13 @@ w2v2Vis <- function(nodes, edges, layout = "layout_nicely", size = 20, labelsize
     ) %>%
     visIgraphLayout(layout = "layout_nicely", type = "full") %>%
     visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed = 0.2)
+
+  if (overlap != "none"){
+    VIS$x$nodes <-apply_horizontal_transparency(VIS$x$nodes, threshold = labelsize*0.0035714, type = overlap)
+  }
+
+  VIS$x$nodes <- VIS$x$nodes %>%
+    mutate(title = id)
 
   return(VIS)
 }
@@ -3442,7 +3497,8 @@ tmTuningPlot <- function(result, metric) {
   names(df) <- c("x", "y")
   df <- df %>%
     mutate(y = (y - min(y)) / diff(range(y)),
-           color = ifelse(x == bestT,"#cb453e" ,"#6CC283"))
+           color = ifelse(x == bestT,"#cb453e" ,"#6CC283"),
+           size = ifelse(x == bestT,20 ,10))
 
 
   hoverText <- paste(" <b>Topic ", df$x, "</b>\n ", metric, ": ",
@@ -3454,7 +3510,7 @@ tmTuningPlot <- function(result, metric) {
                  x = ~x, y = ~y, type = "scatter", mode = "markers+lines",
                  line = list(color = "#6CC28360", width = 2),
                  marker = list(
-                   size = 5,
+                   size = ~size,
                    color = ~color,#"#6CC283",
                    line = list(
                      color = ~color,#color = "#6CC283",

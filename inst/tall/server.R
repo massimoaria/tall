@@ -3743,7 +3743,9 @@ To ensure the functionality of TALL,
 
   output$w_w2vNetworkplot <- renderVisNetwork({
     w2vSimilarity()
-    values$w2vNetworkPlot <- w2v2Vis(nodes = values$w2vNetwork$nodes, edges = values$w2vNetwork$edges, size = 20, labelsize = input$w_w2v_font_size)
+    values$w2vNetworkPlot <- w2v2Vis(nodes = values$w2vNetwork$nodes, edges = values$w2vNetwork$edges, size = 20,
+                                     labelsize = input$w_w2v_font_size,
+                                     overlap = input$w_w2v_overlap)
     values$w2vNetworkPlot
   })
 
