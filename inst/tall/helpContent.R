@@ -919,65 +919,65 @@ helpContent <- function() {
 
   tmkchoice <- "<body>
 
-    <h3><strong>Topic Modeling in TALL: K Selection</strong></strong></h3>
+  <h3><strong>Topic Modeling in TALL: K Selection</strong></h3>
 
-    <p>Topic modeling is a fundamental technique in <strong>unsupervised text mining</strong>, allowing users to uncover <strong>latent themes</strong> within large collections of documents. One of the key challenges in <strong>Latent Dirichlet Allocation (LDA)</strong> and other topic modeling techniques is determining the <strong>optimal number of topics (K)</strong>.</p>
+  <p>Topic modeling is a fundamental technique in <strong>unsupervised text mining</strong>, allowing users to uncover <strong>latent themes</strong> within large collections of documents. One of the key challenges in <strong>Latent Dirichlet Allocation (LDA)</strong> and other topic modeling techniques is determining the <strong>optimal number of topics (K)</strong>.</p>
 
-    <p>TALL estimates <strong>K automatically</strong> using four well-established statistical measures (<strong>Griffiths & Steyvers, 2004; Deveaud et al., 2014; Cao et al., 2009; Arun et al., 2010</strong>).
-    <br>However, users can also <strong>manually adjust K</strong> and explore different solutions in the <strong>Model Estimation Menu</strong>, enabling greater flexibility based on the dataset and research objectives.</p>
-    <hr>
-    <h4><strong>Why is K Selection Important?</strong></h4>
-    <ul>
-    <li>A <strong>too small K</strong> may <strong>merge distinct topics</strong>, reducing the model's ability to separate different thematic structures.</li>
-        <li>A <strong>too large K</strong> may <strong>fragment coherent topics</strong>, introducing unnecessary complexity and reducing interpretability.</li>
-        <li>The <strong>correct K</strong> ensures that topics are <strong>coherent, interpretable, and representative</strong> of the dataset.</li>
-    </ul>
-    <hr>
-    <h4><strong>Automatic K Estimation in TALL</strong></h4>
-    <p>TALL integrates <strong>four standard measures</strong> for determining the optimal number of topics in LDA:</p>
+  <p>TALL estimates <strong>K automatically</strong> using well-established statistical measures (<strong>Deveaud et al., 2014; Cao et al., 2009; Arun et al., 2010</strong>), including <strong>Perplexity</strong>.
+<br>However, users can also <strong>manually adjust K</strong> and explore different solutions in the <strong>Model Estimation Menu</strong>, enabling greater flexibility based on the dataset and research objectives.</p>
 
-    <h4><em>Griffiths & Steyvers (2004) – Log-Likelihood Maximization</em></h4>
-    <p>- Based on <strong>Bayesian model selection</strong>, this method computes the <strong>log-likelihood</strong> of the dataset given the topic model.</p>
-    <p>- The <strong>optimal K</strong> is the one that maximizes the likelihood function, meaning it best explains the data without overfitting.</p>
+  <hr>
+  <h4><strong>Why is K Selection Important?</strong></h4>
+  <ul>
+  <li>A <strong>too small K</strong> may <strong>merge distinct topics</strong>, reducing the model's ability to separate different thematic structures.</li>
+    <li>A <strong>too large K</strong> may <strong>fragment coherent topics</strong>, introducing unnecessary complexity and reducing interpretability.</li>
+    <li>The <strong>correct K</strong> ensures that topics are <strong>coherent, interpretable, and representative</strong> of the dataset.</li>
+  </ul>
 
-    <h4><em>Cao et al. (2009) – Topic Coherence Measure</em></h4>
-    <p>- Computes the <strong>average pairwise similarity</strong> between topics based on word distributions.</p>
-    <p>- The <strong>optimal K</strong> is found when inter-topic similarity is minimized, ensuring that topics are well-separated.</p>
+  <hr>
+  <h4><strong>Automatic K Estimation in TALL</strong></h4>
+  <p>TALL integrates several standard measures for determining the optimal number of topics in LDA:</p>
 
-    <h4><em>Arun et al. (2010) – KL Divergence-Based Measure</em></h4>
-    <p>- Compares the <strong>word-topic distribution</strong> and <strong>document-topic distribution</strong> using <strong>Kullback-Leibler (KL) divergence</strong>.</p>
-    <p>- The <strong>optimal K</strong> is identified as the point where KL divergence stabilizes, meaning topics balance between coherence and specificity.</p>
+  <h4><em>Blei et al. (2003) – Perplexity Measure</em></h4>
+  <p>- Perplexity (Probabilistic Evaluation of Generalization) is a <strong>likelihood-based metric</strong> that measures how well a model generalizes to unseen data.</p>
+  <p>- It evaluates the model's ability to predict a held-out test set, with <strong>lower values indicating better performance</strong>.</p>
+  <p>- Perplexity is defined as the inverse geometric mean of the likelihood function, computed over the test corpus.</p>
 
-    <h4><em>Deveaud et al. (2014) – A Hybrid Approach</em></h4>
-    <p>- A refinement of previous approaches that balances topic coherence and diversity.</p>
-    <p>- The <strong>optimal K</strong> is chosen where <strong>topic distinctiveness</strong> is maximized while preserving thematic coverage.</p>
-    <hr>
-    <h4><strong>Manual K Adjustment for Customization</strong></h4>
-    <p>While <strong>automatic estimation</strong> provides a strong baseline, users may need to adjust <strong>K manually</strong> based on <strong>domain knowledge and interpretability</strong>:</p>
-    <ul>
-        <li><strong>For exploratory research:</strong> Start with <strong>low K</strong> values (e.g., <strong>5-20 topics</strong>) to gain an <strong>overview of broad themes</strong>.</li>
-        <li><strong>For fine-grained analysis:</strong> Use <strong>higher K values</strong> (e.g., <strong>30-100 topics</strong>) to capture <strong>more nuanced subtopics</strong>.</li>
-        <li><strong>For benchmarking:</strong> Compare different <strong>K values</strong> using topic coherence scores and human interpretability.</li>
-    </ul>
-    <hr>
-    <div class='references'>
-        <h4><strong>References</strong></h4>
+  <h4><em>Cao et al. (2009) – Topic Coherence Measure</em></h4>
+  <p>- Computes the <strong>average pairwise similarity</strong> between topics based on word distributions.</p>
+  <p>- The <strong>optimal K</strong> is found when inter-topic similarity is minimized, ensuring that topics are well-separated.</p>
 
-        <p><strong>Griffiths, T.L., & Steyvers, M.</strong></p>
-        <p><i>Finding scientific topics.</i> <strong>Proceedings of the National Academy of Sciences</strong>, 101(suppl 1), 5228-5235.</p>
+  <h4><em>Arun et al. (2010) – KL Divergence-Based Measure</em></h4>
+  <p>- Compares the <strong>word-topic distribution</strong> and <strong>document-topic distribution</strong> using <strong>Kullback-Leibler (KL) divergence</strong>.</p>
+  <p>- The <strong>optimal K</strong> is identified as the point where KL divergence stabilizes, meaning topics balance between coherence and specificity.</p>
 
-        <p><strong>Deveaud, R., Sanjuan, E., & Bellot, P.</strong></p>
-        <p><i>Accurate and effective latent concept modeling for ad hoc information retrieval.</i> <strong>Document Numérique</strong>, 17, 61-84.</p>
+  <h4><em>Deveaud et al. (2014) – A Hybrid Approach</em></h4>
+  <p>- A refinement of previous approaches that balances topic coherence and diversity.</p>
+  <p>- The <strong>optimal K</strong> is chosen where <strong>topic distinctiveness</strong> is maximized while preserving thematic coverage.</p>
 
-        <p><strong>Cao, J., Xia, T., Li, J., Zhang, Y., & Tang, S.</strong></p>
-        <p><i>A density-based method for adaptive LDA model selection.</i> <strong>Neurocomputing</strong>, 72(7), 1775-1781.</p>
+  <hr>
+  <h4><strong>Manual K Adjustment for Customization</strong></h4>
+  <p>While <strong>automatic estimation</strong> provides a strong baseline, users may need to adjust <strong>K manually</strong> based on <strong>domain knowledge and interpretability</strong>:</p>
+  <ul>
+  <li><strong>For exploratory research:</strong> Start with <strong>low K</strong> values (e.g., <strong>5–20 topics</strong>) to gain an <strong>overview of broad themes</strong>.</li>
+  <li><strong>For fine-grained analysis:</strong> Use <strong>higher K values</strong> (e.g., <strong>30–100 topics</strong>) to capture <strong>more nuanced subtopics</strong>.</li>
+  <li><strong>For benchmarking:</strong> Compare different <strong>K values</strong> using topic coherence scores and human interpretability.</li>
+  </ul>
 
-        <p><strong>Arun, R., Suresh, V., Veni Madhavan, C.E., & Narasimha Murthy, M.N.</strong></p>
-        <p><i>On finding the natural number of topics with latent Dirichlet allocation: Some observations.</i> In Zaki, M.J., Yu, J.X., Ravindran, B., & Pudi, V. (Eds.),
-        <br><strong>Advances in Knowledge Discovery and Data Mining</strong> (pp. 391-402). Berlin, Heidelberg: Springer.</p>
+  <hr>
+  <div class='references'>
+    <h4><strong>References</strong></h4>
+
+    <p><strong>Blei, D. M., Ng, A. Y., & Jordan, M. I.</strong> (2003) <i>Latent Dirichlet Allocation.</i> <strong>Journal of Machine Learning Research</strong>, 3, 993–1022.</p>
+
+    <p><strong>Deveaud, R., Sanjuan, E., & Bellot, P.</strong> (2014) <i>Accurate and effective latent concept modeling for ad hoc information retrieval.</i> <strong>Document Numérique</strong>, 17, 61–84.</p>
+
+    <p><strong>Cao, J., Xia, T., Li, J., Zhang, Y., & Tang, S.</strong> (2009) <i>A density-based method for adaptive LDA model selection.</i> <strong>Neurocomputing</strong>, 72(7), 1775–1781.</p>
+
+    <p><strong>Arun, R., Suresh, V., Veni Madhavan, C.E., & Narasimha Murthy, M.N.</strong> (2010) <i>On finding the natural number of topics with latent Dirichlet allocation: Some observations.</i> In Zaki, M.J., Yu, J.X., Ravindran, B., & Pudi, V. (Eds.), <strong>Advances in Knowledge Discovery and Data Mining</strong> (pp. 391–402). Berlin, Heidelberg: Springer.</p>
     </div>
 
-</body>"
+    </body>"
 
   tmmodelestimation <- "<body>
 

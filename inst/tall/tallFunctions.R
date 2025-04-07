@@ -3249,8 +3249,141 @@ grako2vis <- function(nodes, edges) {
 #### TOPIC MODELING ----
 
 ### model tuning
+
+CaoJuan2009 <- function(models) {
+  metrics <- sapply(models, function(model) {
+    # topic-word matrix
+    m1 <- exp(model@beta)
+    # pair-wise cosine distance
+    pairs <- utils::combn(nrow(m1), 2)
+    cos.dist <- apply(pairs, 2, function(pair) {
+      x <- m1[pair[1], ]
+      y <- m1[pair[2], ]
+      # dist <- lsa::cosine(x, y)
+      dist <- crossprod(x, y) / sqrt(crossprod(x) * crossprod(y))
+      return(dist)
+    })
+    # metric
+    metric <- sum(cos.dist) / (model@k*(model@k-1)/2)
+    return(metric)
+  })
+  return(metrics)
+}
+
+Arun2010 <- function(models, dtm) {
+  # length of documents (count of words)
+  len <- slam::row_sums(dtm)
+  # evaluate metrics
+  metrics <- sapply(models, FUN = function(model) {
+    # matrix M1 topic-word
+    m1 <- exp(model@beta) # rowSums(m1) == 1
+    m1.svd <- svd(m1)
+    cm1 <- as.matrix(m1.svd$d)
+    # matrix M2 document-topic
+    m2   <- model@gamma   # rowSums(m2) == 1
+    cm2  <- len %*% m2    # crossprod(len, m2)
+    norm <- norm(as.matrix(len), type="m")
+    cm2  <- as.vector(cm2 / norm)
+    # symmetric Kullback-Leibler divergence
+    divergence <- sum(cm1*log(cm1/cm2)) + sum(cm2*log(cm2/cm1))
+    return ( divergence )
+  })
+  return(metrics)
+}
+
+Deveaud2014 <- function(models) {
+  metrics <- sapply(models, function(model) {
+    # topic-word matrix
+    m1 <- exp(model@beta)
+    # prevent NaN
+    if (any(m1 == 0)) { m1 <- m1 + .Machine$double.xmin }
+    # pair-wise Jensen-Shannon divergence
+    pairs  <- utils::combn(nrow(m1), 2)
+    jsd <- apply(pairs, 2, function(pair) {
+      x <- m1[pair[1], ]
+      y <- m1[pair[2], ]
+      ### divergence by Deveaud2014
+      jsd <- 0.5 * sum(x*log(x/y)) + 0.5 * sum(y*log(y/x))
+      return(jsd)
+    })
+
+    # metric
+    metric <- sum(jsd) / (model@k*(model@k-1))
+    return(metric)
+  })
+  return(metrics)
+}
+
+# Funzione per valutare un singolo modello
+evaluate_single_k <- function(k, dtm, seed = 1234) {
+  model <- LDA(dtm, k = k, method = "VEM", control = list(seed = seed))
+  log_lik <- logLik(model)
+  perp <- perplexity(model, newdata = dtm)
+  return(list(k = k, logLik = log_lik, Perplexity = perp, model = model))
+}
+
+# Funzione parallela completa
+evaluate_lda_parallel <- function(dtm, k_seq = 2:20, seed = 1234, n_cores = detectCores() - 1) {
+
+  cl <- parallel::makeCluster(n_cores)
+  parallel::clusterEvalQ(cl, {
+    library(topicmodels)
+  })
+  parallel::clusterExport(cl, varlist = c("dtm", "seed", "evaluate_single_k"), envir = environment())
+
+  results <- parallel::parLapply(cl, k_seq, function(k) evaluate_single_k(k, dtm, seed))
+  parallel::stopCluster(cl)
+
+  # Estrai metriche e modelli
+  metrics <- do.call(rbind, lapply(results, function(l) {
+    data.frame(k = l$k, logLik = as.numeric(l$logLik), Perplexity = l$Perplexity)
+  }))
+  models <- setNames(lapply(results, function(x) x$model), paste0("k_", k_seq))
+
+  metrics$CaoJuan2009 <- CaoJuan2009(models)
+  metrics$Arun2010 <- Arun2010(models, dtm)
+  metrics$Deveaud2014 <- Deveaud2014(models)
+
+  return(list(metrics = metrics, models = models))
+}
+
+find_elbow <- function(k, metric, decreasing = TRUE, plot = TRUE) {
+  # Normalizza i dati
+  x <- as.numeric(scale(k))
+  y <- as.numeric(scale(if (decreasing) -metric else metric))
+
+  # Calcola distanza punto-linea per ogni punto
+  point1 <- c(x[1], y[1])
+  point2 <- c(x[length(x)], y[length(y)])
+  line_vec <- point2 - point1
+  line_vec_norm <- line_vec / sqrt(sum(line_vec^2))
+
+  distances <- sapply(1:length(x), function(i) {
+    p <- c(x[i], y[i])
+    vec_from_line <- p - point1
+    proj_len <- sum(vec_from_line * line_vec_norm)
+    proj_point <- point1 + proj_len * line_vec_norm
+    dist <- sqrt(sum((p - proj_point)^2))
+    return(dist)
+  })
+
+  # Trova il massimo della distanza: è il gomito
+  elbow_idx <- which.max(distances)
+  elbow_k <- k[elbow_idx]
+
+  if (plot) {
+    plot(k, metric, type = "b", pch = 16,
+         xlab = "Number of Topics (k)", ylab = "Metric",
+         main = "Elbow Method")
+    points(k[elbow_idx], metric[elbow_idx], col = "red", pch = 19, cex = 1.5)
+    legend("topright", legend = paste("k =", elbow_k), col = "red", pch = 19)
+  }
+
+  return(elbow_k)
+}
+
 tmTuning <- function(x, group = c("doc_id", "sentence_id"), term = "lemma",
-                     metric = c("CaoJuan2009", "Deveaud2014", "Arun2010", "Griffiths2004"),
+                     metric = c("CaoJuan2009", "Deveaud2014", "Arun2010", "Perplexity"),
                      n = 100, top_by = c("freq", "tfidf"), minK = 2, maxK = 20, Kby = 1) {
   ## check min and max K
   ClusterRange <- sort(c(minK, maxK))
@@ -3270,44 +3403,47 @@ tmTuning <- function(x, group = c("doc_id", "sentence_id"), term = "lemma",
   switch(top_by,
          freq = {
            dtm <- dtm_remove_lowfreq(dtm, minfreq = 1, maxterms = n)
+           dtm <- tm::as.DocumentTermMatrix(dtm, weighting = tm::weightTf)
          },
          tfidf = {
            dtm <- dtm_remove_tfidf(dtm, top = n)
+           dtm <- tm::as.DocumentTermMatrix(dtm, weighting = tm::weightTfIdf)
          }
   )
 
   ## find optimal number of topics K using the librare ldatuning
-  result <- ldatuning::FindTopicsNumber(
-    dtm,
-    topics = seq(from = minK, to = maxK, by = Kby),
-    metrics = metric,
-    method = "Gibbs",
-    control = list(seed = 77),
-    verbose = TRUE
-  )
+  result <- evaluate_lda_parallel(dtm, k_seq = seq(from = minK, to = maxK, by = Kby),
+                                    seed = 1234, n_cores = coresCPU())
+
   return(result)
 }
 
 tmTuningPlot <- function(result, metric) {
-  df <- result
+  df <- result$metrics %>%
+    rename(topics = k)
 
   switch(metric,
          CaoJuan2009 = {
-           bestT <- df$topics[which.min(df[, 2])][1]
+           bestT <- find_elbow(df$topics, df$CaoJuan2009, decreasing = TRUE, plot = FALSE)
          },
          Arun2010 = {
-           bestT <- df$topics[which.min(df[, 2])][1]
-         },
-         Griffiths2004 = {
-           bestT <- df$topics[which.max(df[, 2])][1]
+           bestT <- find_elbow(df$topics, df$Arun2010, decreasing = FALSE, plot = FALSE)
          },
          Deveaud2014 = {
-           bestT <- df$topics[which.max(df[, 2])][1]
+           bestT <- find_elbow(df$topics, df$Deveaud2014, decreasing = TRUE, plot = FALSE)
+         },
+         Perplexity = {
+           bestT <- find_elbow(df$topics, df$Perplexity, decreasing = TRUE, plot = FALSE)
          }
+
   )
+  df <- df %>%
+    select("topics", any_of(metric))
   names(df) <- c("x", "y")
   df <- df %>%
-    mutate(y = (y - min(y)) / diff(range(y)))
+    mutate(y = (y - min(y)) / diff(range(y)),
+           color = ifelse(x == bestT,"#cb453e" ,"#6CC283"))
+
 
   hoverText <- paste(" <b>Topic ", df$x, "</b>\n ", metric, ": ",
                      round(df$y, 2),
@@ -3319,9 +3455,9 @@ tmTuningPlot <- function(result, metric) {
                  line = list(color = "#6CC28360", width = 2),
                  marker = list(
                    size = 5,
-                   color = "#6CC283",
+                   color = ~color,#"#6CC283",
                    line = list(
-                     color = "#6CC283",
+                     color = ~color,#color = "#6CC283",
                      width = 2
                    )
                  ),
@@ -3330,7 +3466,7 @@ tmTuningPlot <- function(result, metric) {
   ) %>%
     layout(
       annotations = list(
-        text = paste0("K selection by ", metric, " metric: Optimal N. of Topics ", bestT), xref = "paper", x = 0.5,
+        text = paste0("K selection by Elbow Method with ", metric, " metric: Optimal K: ", bestT), xref = "paper", x = 0.5,
         yref = "paper", y = 1, yshift = 30, showarrow = FALSE,
         font = list(size = 24, color = "gray30")
       ),

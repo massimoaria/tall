@@ -3905,30 +3905,25 @@ To ensure the functionality of TALL,
   ## Topic Modeling ----
   ## K choice ----
 
-  output$TMmetric <- renderUI({
-    switch(Sys.info()[["sysname"]],
-           Darwin = {
-             metrics <- c(
-               "CaoJuan-2009" = "CaoJuan2009",
-               "Deveaud-2014" = "Deveaud2014",
-               "Arun-2010" = "Arun2010"
-             )
-           },
-           {
-             metrics <- c(
-               "CaoJuan-2009" = "CaoJuan2009",
-               "Deveaud-2014" = "Deveaud2014",
-               "Arun-2010" = "Arun2010",
-               "Griffiths-2004" = "Griffiths2004"
-             )
-           }
-    )
-
-    selectInput("metric", "Metric for model tuning",
-                choices = metrics,
-                selected = "CaoJuan2009"
-    )
-  })
+  # output$TMmetric <- renderUI({
+  #   metrics <- c(
+  #     "CaoJuan-2009" = "CaoJuan2009",
+  #     "Deveaud-2014" = "Deveaud2014",
+  #     "Arun-2010" = "Arun2010",
+  #     "Perplexity" = "Perplexity"
+  #   )
+  #   )
+  #
+  #   selectInput("metric", "Metric for model tuning",
+  #               choices = c(
+  #                 "CaoJuan-2009" = "CaoJuan2009",
+  #                 "Deveaud-2014" = "Deveaud2014",
+  #                 "Arun-2010" = "Arun2010",
+  #                 "Perplexity" = "Perplexity"
+  #               ),
+  #               selected = "CaoJuan2009"
+  #   )
+  # })
 
   netTMKselect <- eventReactive(
     ignoreNULL = TRUE,
@@ -3956,29 +3951,29 @@ To ensure the functionality of TALL,
                                      metric = input$metric, n = input$nTm, top_by = input$top_by, minK = input$minK, maxK = input$maxK, Kby = input$Kby
         )
       }
-      ## End check ###
 
-      values$TMKplot <- tmTuningPlot(values$TMKresult, metric = input$metric)
+      values$df <- values$TMKresult$metrics %>%
+        arrange(k) %>%
+        rename(topics = k)
 
-      # d_tm_selectTable
-      values$df <- values$TMKresult %>%
-        arrange(topics) %>%
-        rename("N. of Topics" = topics)
-      values$df$Normalized <- (values$df[, 2] - min(values$df[, 2])) / diff(range(values$df[, 2]))
+      values$df <- values$df %>%
+        mutate(across(
+          .cols = -topics,
+          .fns = ~ (. - min(.)) / (max(.) - min(.)),
+          .names = "{.col}_Normalized"
+        ))
+      #values$df$Normalized <- (values$df[, 2] - min(values$df[, 2])) / diff(range(values$df[, 2]))
     }
   )
 
   output$d_tm_selectPlot <- renderPlotly({
     netTMKselect()
+    values$TMKplot <- tmTuningPlot(values$TMKresult, metric = input$metric)
     values$TMKplot
   })
 
   output$d_tm_selectTable <- renderDataTable({
     netTMKselect()
-    # df <- values$TMKresult %>% arrange(topics) %>%
-    #   rename("N. of Topics" = topics)
-    # df$Normalized <- (df[,2]-min(df[,2]))/diff(range(df[,2]))
-
     DTformat(values$df, numeric = c(2, 3), round = 2, nrow = nrow(df), size = "110%")
   })
 
@@ -4043,8 +4038,7 @@ To ensure the functionality of TALL,
                                        metric = "CaoJuan2009", n = input$nTmEstim, top_by = input$top_byEstim,
                                        minK = 2, maxK = 20, Kby = 1
           )
-          K <- values$TMKresult %>% slice_min(CaoJuan2009, n = 1)
-          values$tmK <- K$topics
+          values$tmK <- find_elbow(values$TMKresult$metrics$k, values$TMKresult$metrics$CaoJuan2009, decreasing = TRUE, plot = FALSE)
         } else {
           values$tmK <- input$KEstim
         }
@@ -4060,8 +4054,7 @@ To ensure the functionality of TALL,
                                        term = values$generalTerm, metric = "CaoJuan2009", n = input$nTmEstim,
                                        top_by = input$top_byEstim, minK = 2, maxK = 20, Kby = 1
           )
-          K <- values$TMKresult %>% slice_min(CaoJuan2009, n = 1)
-          values$tmK <- K$topics
+          values$tmK <- find_elbow(values$TMKresult$metrics$k, values$TMKresult$metrics$CaoJuan2009, decreasing = TRUE, plot = FALSE)
         } else {
           values$tmK <- input$KEstim
         }

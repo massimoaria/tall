@@ -3355,17 +3355,17 @@ body <- dashboardBody(
                   ),
                   selected = "doc_id"
                 ),
-                uiOutput("TMmetric"),
+                selectInput("metric", "Metric for model tuning",
+                            choices = c(
+                              "CaoJuan-2009" = "CaoJuan2009",
+                              "Deveaud-2014" = "Deveaud2014",
+                              "Arun-2010" = "Arun2010",
+                              "Perplexity" = "Perplexity"
+                            ),
+                            selected = "CaoJuan2009"
+                ),
                 fluidRow(
-                  column(
-                    6
-                    # ,selectInput("termTm", "Terms:",
-                    #             choices = c(
-                    #               "Tokens"="token",
-                    #               "Lemma"="lemma"),
-                    #             selected = "lemma"
-                    # )
-                  ),
+                  column(6),
                   column(
                     6,
                     numericInput("nTm",
@@ -3489,15 +3489,7 @@ body <- dashboardBody(
                   selected = "doc_id"
                 ),
                 fluidRow(
-                  column(
-                    6
-                    # ,selectInput("termTmEstim", "By:",
-                    #             choices = c(
-                    #               "Tokens"="token",
-                    #               "Lemma"="lemma"),
-                    #             selected = "lemma"
-                    # )
-                  ),
+                  column(6),
                   column(
                     6,
                     numericInput("nTmEstim",
