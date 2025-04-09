@@ -3755,6 +3755,13 @@ To ensure the functionality of TALL,
       visFit(nodes = input$w2v_selected_node)
   })
 
+  observeEvent(eventExpr = {input$w_w2v_Back},
+               handlerExpr = {
+                 visNetworkProxy("w_w2vNetworkplot") %>%
+                   visSelectNodes(id = values$w2vNetwork$top_words) %>%
+                   visFit(nodes = NULL)
+               })
+
   output$w_w2vUMAPplot <- renderPlotly({
     w2vSimilarity()
     values$w2vUMAPplot
