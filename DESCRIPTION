@@ -73,7 +73,6 @@ Imports:
     fontawesome,
     ggraph,
     ca,
-    ldatuning,
     shinycssloaders,
     shinyjs,
     shinyFiles,
