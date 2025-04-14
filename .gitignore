@@ -14,3 +14,5 @@ inst/bbc$
 *.so
 src/tall.so
 CRAN-SUBMISSION
+
+/.quarto/

@@ -21,7 +21,6 @@
 #' @import readtext
 #' @import fontawesome
 #' @import ca
-#' @import ldatuning
 #' @import shinycssloaders
 #' @import curl
 #' @import pagedown

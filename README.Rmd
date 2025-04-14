@@ -31,8 +31,8 @@ You can install the development version of TALL from [GitHub](https://github.com
 
 ``` r
 # Note: If this is your first time installing TALL, run the following code line:
-# install.packages("remotes")
-remotes::install_github("massimoaria/tall")
+# install.packages("pak")
+pak::pkg_install("massimoaria/tall")
 ```
 
 Load the library with:

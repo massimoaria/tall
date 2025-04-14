@@ -3,7 +3,6 @@
 # Libraries ----
 libraries <- function() {
   suppressPackageStartupMessages(require(shiny))
-  suppressPackageStartupMessages(require(ldatuning))
   suppressPackageStartupMessages(require(ca))
   suppressPackageStartupMessages(require(shinydashboard))
   suppressPackageStartupMessages(require(shinydashboardPlus))
