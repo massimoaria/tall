@@ -125,7 +125,11 @@ researchers to conduct thorough the following workflow:
 
 ### Automatic Lemmatization and PoS-Tagging through LLM
 
-![](images/postag.png)
+![](images/Tokenization&PoSTagging.png)
+
+### Language, Model, and Analysis Term Selection
+
+![](images/Language,%20Model,%20and%20Analysis%20Term%20Selection.png)
 
 ### Tagging Special Entities through multiple regex
 
