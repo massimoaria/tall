@@ -65,7 +65,6 @@ x_bttn <- list(
   icon = icon(name = "remove", lib = "glyphicon")
 )
 
-
 ## HEADER ----
 
 title_tall <- tags$link(tags$a(
