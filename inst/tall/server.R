@@ -3734,7 +3734,8 @@ To ensure the functionality of TALL,
 
   output$w_w2v_Selected <- renderUI({
     w2vTrainingFunction()
-    nodesId <- sort(values$w2vNetwork$top_words)
+    #nodesId <- sort(values$w2vNetwork$top_words)
+    nodesId <- sort(values$w2vNetwork$nodes$id)
     selectInput("w2v_selected_node", "Select word to highlight:",
                 choices = c("", nodesId),
                 selected = ""

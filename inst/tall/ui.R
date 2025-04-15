@@ -3047,7 +3047,7 @@ body <- dashboardBody(
                             choices = c("No" = "none",
                                         "Hide" = "hide",
                                         "Transparency" = "transparency"),
-                            selected = "hide"),
+                            selected = "transparency"),
                 tooltip = tooltipOptions(title = "Options"),
                 width = "300px", icon = icon("cog", lib = "glyphicon"),
                 right = TRUE, animate = TRUE,
