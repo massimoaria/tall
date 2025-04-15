@@ -2901,11 +2901,25 @@ body <- dashboardBody(
                 shinycssloaders::withSpinner(plotlyOutput("w_word2vecPCA", width = "auto", height = "50vh"),
                                              color = getOption("spinner.color", default = "#4F7942")
                 )
-              )
+              ),
               # ,tabPanel("Links",
               #          shinycssloaders::withSpinner(DT::DTOutput("w_networkGrakoEdgesTable"),
               #                                       color = getOption("spinner.color", default = "#4F7942"))
               # )
+              tabPanel(
+                "Info & References",
+                fluidPage(
+                  fluidRow(
+                    column(1),
+                    column(
+                      10,
+                      br(),
+                      HTML(infoTexts$embeddingtrain)
+                    ),
+                    column(1)
+                  )
+                )
+              )
             )
           ),
           column(
@@ -3042,6 +3056,7 @@ body <- dashboardBody(
             ),
             style = style_opt
           )
+        )
         ),
         fluidRow(
           tabsetPanel(
@@ -3069,11 +3084,24 @@ body <- dashboardBody(
               shinycssloaders::withSpinner(plotlyOutput("w_w2vUMAPplot", width = "auto", height = "75vh"),
                                            color = getOption("spinner.color", default = "#4F7942")
               )
+            ),
+            tabPanel(
+              "Info & References",
+              fluidPage(
+                fluidRow(
+                  column(1),
+                  column(
+                    10,
+                    br(),
+                    HTML(infoTexts$embeddingsimilarity)
+                  ),
+                  column(1)
+                )
+              )
             )
           )
-        )
-      )
-    ),
+          )
+      ),
 
     ## GRAKO ----
 
