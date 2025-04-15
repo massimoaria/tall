@@ -917,6 +917,127 @@ helpContent <- function() {
 
   "
 
+  embeddingtrain<- "
+
+    <body>
+    <h3><strong>Training Word Embeddings in TALL</strong></h3>
+    <p>
+    The <strong>Training</strong> module in TALL enables users to generate <strong>custom word embeddings</strong> from their own corpus using the <strong>word2vec algorithm</strong>,
+  which includes both the <strong>Continuous Bag-of-Words (CBOW)</strong> and <strong>Skip-gram</strong> architectures.
+  These models create dense vector representations that capture semantic and syntactic relationships among words based on their distributional context.
+  </p>
+
+    <hr>
+    <h4><strong>Available Architectures</strong></h4>
+    <ul>
+    <li><strong>CBOW:</strong> Predicts a word from its surrounding context. It is faster and works well with frequent words.</li>
+    <li><strong>Skip-gram:</strong> Predicts surrounding context words from a target word. It is slower but performs better with infrequent words.</li>
+    </ul>
+
+    <hr>
+    <h4><strong>How It Works</strong></h4>
+    <ul>
+    <li>Text data is lemmatized and filtered to exclude non-informative tokens (e.g., punctuation, auxiliaries, determiners).</li>
+    <li>Training is performed at the sentence level to preserve local context.</li>
+    <li>Stopwords are automatically identified and excluded.</li>
+    <li>Parameters such as <code>dimensionality</code>, <code>number of iterations</code>, and <code>architecture (CBOW/Skip-gram)</code> can be configured.</li>
+    </ul>
+
+    <hr>
+    <h4><strong>Outputs</strong></h4>
+    <ul>
+    <li>Word embedding matrix.</li>
+    <li>Descriptive statistics for each vector dimension (mean, SD, skewness, kurtosis).</li>
+    <li>PCA analysis to evaluate variance explained by each component.</li>
+    <li>Cosine similarity and Euclidean distance metrics for quality assessment.</li>
+    </ul>
+
+    <hr>
+    <h4><strong>Example</strong></h4>
+    <p>
+    Training a word2vec model on a corpus of product reviews may reveal that terms like <code>“delivery”</code> and <code>“shipping”</code> appear close in vector space,
+  indicating their semantic similarity within that context.
+  </p>
+
+    <hr>
+    <h4><strong>References</strong></h4>
+    <ul>
+    <li>
+    Mikolov, T., Chen, K., Corrado, G., & Dean, J. (2013).
+  <i>Efficient Estimation of Word Representations in Vector Space</i>.
+  <a href='https://arxiv.org/abs/1301.3781' target='_blank'>arXiv:1301.3781</a>
+    </li>
+    <li>
+    Mikolov, T., Sutskever, I., Chen, K., Corrado, G., & Dean, J. (2013).
+  <i>Distributed Representations of Words and Phrases and their Compositionality</i>.
+  <a href='https://arxiv.org/abs/1310.4546' target='_blank'>arXiv:1310.4546</a>
+    </li>
+    </ul>
+    </body>
+  "
+
+  embeddingsimilarity<- "<body>
+    <h3><strong>Word Similarity Network in TALL</strong></h3>
+    <p>
+    The <strong>Similarity</strong> module in TALL allows users to explore semantic relationships between words through an interactive <strong>similarity network</strong> generated from word embeddings trained in the <strong>Training</strong> tab. These embeddings are built using the <strong>word2vec</strong> algorithm (either CBOW or Skip-gram).
+  </p>
+
+    <hr>
+    <h4><strong>How It Works</strong></h4>
+    <ul>
+    <li>
+    TALL selects the <strong>top 100 most frequent content words</strong> in the corpus (restricted to POS: NOUN, PROPN, ADJ).
+  </li>
+    <li>
+    For each of these 100 terms, the system computes the <strong>10 most similar words</strong> based on <strong>cosine similarity</strong> in the embedding space.
+  </li>
+    <li>
+    The resulting network is composed of:
+    <ul>
+    <li><strong>Nodes:</strong> the 100 target words (triangles) and their similar terms (dots).</li>
+    <li><strong>Edges:</strong> connections representing semantic similarity scores (cosine similarity ≥ 0.5), with width proportional to similarity.</li>
+    </ul>
+    </li>
+    <li>
+    The network also undergoes <strong>community detection</strong> using the Walktrap algorithm to highlight thematic clusters.
+  </li>
+    </ul>
+
+    <hr>
+    <h4><strong>Visualization Tools</strong></h4>
+    <ul>
+    <li><strong>UMAP projection:</strong> two-dimensional semantic mapping of all words in the embedding matrix.</li>
+    <li><strong>Overlap reduction:</strong> improves readability by adjusting label positions and opacity in dense areas.</li>
+    <li><strong>Interactive display:</strong> with zoom, node highlighting, and draggable layout via <code>visNetwork</code>.</li>
+    </ul>
+
+    <hr>
+    <h4><strong>Example</strong></h4>
+    <p>
+    After training on a corpus of scientific publications, the similarity network might display <code>“method”</code>, <code>“approach”</code>, and <code>“model”</code> as top frequent terms, each connected to semantically related concepts such as <code>“algorithm”</code>, <code>“technique”</code>, or <code>“framework”</code>.
+  </p>
+
+    <hr>
+<h4><strong>References</strong></h4>
+<ul>
+  <li>
+    Mikolov, T., Sutskever, I., Chen, K., Corrado, G. S., & Dean, J. (2013).
+    <i>Distributed Representations of Words and Phrases and their Compositionality.</i>
+    In *Advances in Neural Information Processing Systems* (NeurIPS 2013), 26, 3111–3119.
+    <a href='https://papers.nips.cc/paper_files/paper/2013/file/9aa42b31882ec039965f3c4923ce901b-Paper.pdf' target='_blank'>
+      [View PDF]
+    </a>
+  </li>
+  <li>
+    Mikolov, T., Chen, K., Corrado, G., & Dean, J. (2013).
+    <i>Efficient Estimation of Word Representations in Vector Space.</i>
+    <a href='https://arxiv.org/abs/1301.3781' target='_blank'>arXiv:1301.3781</a>
+  </li>
+</ul>
+    </body>
+
+    "
+
   tmkchoice <- "<body>
 
   <h3><strong>Topic Modeling in TALL: K Selection</strong></h3>
@@ -1197,6 +1318,8 @@ helpContent <- function() {
     correspondenceanalysis = correspondenceanalysis,
     cowordanalysis = cowordanalysis,
     thematicmap = thematicmap,
+    embeddingtrain = embeddingtrain,
+    embeddingsimilarity = embeddingsimilarity,
     tmkchoice = tmkchoice,
     tmmodelestimation = tmmodelestimation,
     polaritydetection = polaritydetection,
