@@ -6,6 +6,7 @@
 <img src="images/tall_logo.jpg" width="685" />
 
 <!-- badges: start -->
+
 <!-- badges: end -->
 
 TALL - Text Analysis for ALL, an R Shiny app that includes a wide set of
@@ -24,20 +25,30 @@ in a more efficient and accessible manner.
 TALL can be installed in two ways, depending on whether you want the
 stable version or the latest development version.
 
+### Official release
+
 You can install the **official release** of TALL from the Comprehensive
 R Archive Network
 [CRAN](https://cran.r-project.org/web/packages/tall/index.html) and
 updated monthly.
+
+``` r
+if (!require("pak", quietly=TRUE)) install.packages("pak")
+pak::pkg_install("tall")
+```
+
+### Development release
 
 If you want access to the most recent features and updates not yet
 available on CRAN, you can install the **development version** directly
 from [GitHub](https://github.com/) with:
 
 ``` r
-# Note: If this is your first time installing TALL, run the following code line:
-# install.packages("pak")
+if (!require("pak", quietly=TRUE)) install.packages("pak")
 pak::pkg_install("massimoaria/tall")
 ```
+
+### Run Tall
 
 Load the library with:
 
@@ -45,7 +56,7 @@ Load the library with:
 library("tall")
 ```
 
-and then start TALL shiny app with:
+and then run TALL shiny app with:
 
 ``` r
 tall()
