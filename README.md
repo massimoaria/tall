@@ -28,8 +28,7 @@ stable version or the latest development version.
 ### Official release
 
 You can install the **official release** of TALL from the Comprehensive
-R Archive Network
-[CRAN](https://cran.r-project.org/web/packages/tall/index.html) and
+R Archive Network [CRAN](https://CRAN.R-project.org/package=tall) and
 updated monthly.
 
 ``` r
@@ -41,7 +40,7 @@ pak::pkg_install("tall")
 
 If you want access to the most recent features and updates not yet
 available on CRAN, you can install the **development version** directly
-from [GitHub](https://github.com/) with:
+from [our GitHub repository](https://github.com/massimoaria/tall) with:
 
 ``` r
 if (!require("pak", quietly=TRUE)) install.packages("pak")
