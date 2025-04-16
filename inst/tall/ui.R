@@ -1764,7 +1764,7 @@ body <- dashboardBody(
                   ),
                   column(6,
                          br(),
-                         shinycssloaders::withSpinner(DT::DTOutput("wFreqTable", width = 700),
+                         shinycssloaders::withSpinner(DT::DTOutput("wFreqTable", width = "90.0%"),
                                                       color = getOption("spinner.color", default = "#4F7942")
                          ),
                          align = "center"
