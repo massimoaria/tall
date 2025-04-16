@@ -1620,7 +1620,7 @@ To ensure the functionality of TALL,
 
   observeEvent(
     eventExpr = {
-      input$multiwordCreatSave
+      input$multiwordListSave
     },
     handlerExpr = {
       file <- paste("Tall-Export-File-", sys.time(), ".tall", sep = "")
