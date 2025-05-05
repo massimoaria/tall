@@ -3,6 +3,8 @@
 #' @import shinydashboardPlus
 
 # Pacchetti in Imports (funzioni disponibili solo se esplicitamente chiamate)
+#' @import base64enc
+#' @import httr2
 #' @import dplyr
 #' @import tidyr
 #' @import purrr

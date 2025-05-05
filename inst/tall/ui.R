@@ -3936,7 +3936,16 @@ body <- dashboardBody(
           actionButton(
             inputId = "cache",
             label = "Clean temporary folder"
-          )
+          ),
+          hr(),
+          h3("Set a valid API Key to use Google Gemini features"),
+          br(),
+          passwordInput("api_key", "Enter your Gemini API Key:", ""),
+          actionButton("set_key", "Set API Key"),
+          br(),
+          uiOutput("apiStatus"),
+          #textOutput("status", )
+
           # sliderTextInput(
           #   inputId = "dpi",
           #   label = "Please select the desired DPI",

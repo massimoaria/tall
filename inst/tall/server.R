@@ -178,54 +178,6 @@ To ensure the functionality of TALL,
   #   updateTabItems(session, "sidebarmenu", "w_word2vec")
   # })
 
-  ## Choose Working folder in Setting Menu
-  roots <- c(home = homeFolder())
-
-  observe({
-    shinyDirChoose(input, "workingfolder", roots = roots, filetypes = c(""))
-  })
-
-  observeEvent(
-    eventExpr = input$workingfolder,
-    handlerExpr = {
-      wdTall <- parseDirPath(roots = roots, input$workingfolder)
-
-      if (length(wdTall) == 0 || is.null(wdTall)) {
-        if (is.null(wdFolder())) {
-          values$menu <- -2
-          # output$wdFolder <- renderText({
-          #   "No folder selected."
-          # })
-        }
-      } else {
-        # setting up the main directory
-        home <- homeFolder()
-        path_tall <- file.path(home, "tall")
-        # check if sub directory exists
-        if (!file.exists(path_tall)) {
-          dir.create(path_tall)
-        }
-        writeLines(wdTall, con = paste0(path_tall, "/tallWD.tall"))
-        if (values$menu == -2) values$menu <- -1
-        values$wdTall <- wdTall
-        # output$wdFolder <- renderText({
-        #     values$wdTall
-        # })
-      }
-
-      # if (nc>0){
-      #   writeLines(values$wdTall, con = paste0(homeFolder(),"/tall/tallWD.tall"))
-      #   values$menu <-  -1
-      #   output$wdFolder <- renderText({
-      #       values$wdTall
-      #   })
-      # }
-    }, ignoreNULL = TRUE
-  )
-
-  output$wdFolder <- renderText({
-    values$wdTall
-  })
 
 
   output$runButton <- renderUI({
@@ -4720,4 +4672,69 @@ To ensure the functionality of TALL,
   observeEvent(input$cache, {
     deleteCache()
   })
+
+  ## Choose Working folder in Setting Menu
+  roots <- c(home = homeFolder())
+
+  observe({
+    shinyDirChoose(input, "workingfolder", roots = roots, filetypes = c(""))
+  })
+
+  observeEvent(
+    eventExpr = input$workingfolder,
+    handlerExpr = {
+      wdTall <- parseDirPath(roots = roots, input$workingfolder)
+
+      if (length(wdTall) == 0 || is.null(wdTall)) {
+        if (is.null(wdFolder())) {
+          values$menu <- -2
+        }
+      } else {
+        # setting up the main directory
+        home <- homeFolder()
+        path_tall <- file.path(home, "tall")
+        # check if sub directory exists
+        if (!file.exists(path_tall)) {
+          dir.create(path_tall)
+        }
+        writeLines(wdTall, con = paste0(path_tall, "/tallWD.tall"))
+        if (values$menu == -2) values$menu <- -1
+        values$wdTall <- wdTall
+      }
+    }, ignoreNULL = TRUE
+  )
+
+  output$wdFolder <- renderText({
+    values$wdTall
+  })
+
+  output$apiStatus <- renderUI({
+    if (values$geminiAPI){
+      last <- showGeminiAPI()
+      output$status <- renderText(paste0("✅ API key has been set: ",last))
+    }
+
+  })
+
+  observeEvent(input$set_key, {
+    key <- input$api_key
+    last <- setGeminiAPI(key)
+
+    if (is.na(last)){
+      output$apiStatus <- renderUI({
+        output$status <- renderText(paste0("❌ API key seems tto be not valid"))
+      })
+      values$geminiAPI <- FALSE
+    } else {
+      output$apiStatus <- renderUI({
+        output$status <- renderText(paste0("✅ API key has been set: ",last))
+      })
+      values$geminiAPI <- TRUE
+      home <- homeFolder()
+      path_gemini_key <- paste0(file.path(home, "tall"),"/.gemini_key.txt", collapse="")
+      writeLines(Sys.getenv("GEMINI_API_KEY"), path_gemini_key)
+    }
+
+  })
+
 } # END SERVER

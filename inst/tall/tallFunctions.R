@@ -4596,7 +4596,12 @@ resetValues <- function() {
   } else {
     values$menu <- -1
   }
-  # values$embedding <- FALSE
+
+  ## gemini api
+  home <- homeFolder()
+  path_gemini_key <- paste0(file.path(home, "tall"),"/.gemini_key.txt", collapse="")
+  # check if sub directory exists
+  values$geminiAPI <- load_api_key(path_gemini_key)
 
   return(values)
 }
@@ -5733,4 +5738,107 @@ model_accuracy <- function() {
   )
 
   return(df)
+}
+
+
+#### Google GEMINI API ####
+gemini_ai <- function(image = NULL,
+                      prompt = "Explain this image",
+                      model = "2.0-flash",
+                      type = "png") {
+
+  if (!file.exists(image)) {
+    message("❌ Image file does not exist: {image}")
+    return(NULL)
+  }
+
+  # 4. Costruzione URL e MIME
+  model_query <- paste0("gemini-", model, ":generateContent")
+  url <- paste0("https://generativelanguage.googleapis.com/v1beta/models/", model_query)
+  api_key <- Sys.getenv("GEMINI_API_KEY")
+  mime_type <- paste0("image/", type)
+
+  # 5. Codifica immagine in base64
+  image_data <- tryCatch(
+    base64enc::base64encode(image),
+    error = function(e) {
+      message("❌ Error encoding image: {e$message}")
+      return(NULL)
+    }
+  )
+  if (is.null(image_data)) return(NULL)
+
+  # 6. Configurazione generazione (valori di default interni)
+  generation_config <- list(
+    temperature = 1,
+    maxOutputTokens = 8192,
+    topP = 0.95,
+    topK = 40,
+    seed = 1234
+  )
+
+  # 7. Costruzione corpo della richiesta
+  request_body <- list(
+    contents = list(
+      parts = list(
+        list(text = prompt),
+        list(inline_data = list(
+          mime_type = mime_type,
+          data = image_data
+        ))
+      )
+    ),
+    generationConfig = generation_config
+  )
+
+  # 8. Invio richiesta
+  req <- request(url) |>
+    req_url_query(key = api_key) |>
+    req_headers("Content-Type" = "application/json") |>
+    req_body_json(request_body)
+
+  resp <- req_perform(req)
+
+  # 9. Controllo esito
+  if (resp$status_code != 200) {
+    #cli_status_clear(id = sb)
+    message("❌ Request failed: HTTP {resp$status_code}")
+    return(NULL)
+  }
+
+  # 10. Estrazione output
+  candidates <- resp_body_json(resp)$candidates
+  outputs <- unlist(lapply(candidates, \(c) c$content$parts))
+
+  return(outputs)
+}
+
+setGeminiAPI <- function(api_key) {
+  # 1. Controllo validità dell'API key
+  if (is.null(api_key) || !is.character(api_key) || nchar(api_key) == 0) {
+    message("❌ API key must be a non-empty string.")
+    return(NA)
+  }
+
+  if (nchar(api_key) < 10) {
+    message("❌ API key seems too short. Please verify your key.")
+    return(NA)
+  }
+
+  # 2. Mostra solo gli ultimi 4 caratteri per feedback
+  last_chars <- 4
+  last <- substr(api_key, max(1, nchar(api_key) - last_chars + 1), nchar(api_key))
+
+  # 3. Imposta la variabile d'ambiente
+  Sys.setenv(GEMINI_API_KEY = api_key)
+
+  return(paste0(paste0(rep("*",nchar(api_key)-4), collapse=""),last,collapse=""))
+}
+
+showGeminiAPI <- function(){
+  api_key <- Sys.getenv("GEMINI_API_KEY")
+  last_chars <- 4
+  last <- substr(api_key, max(1, nchar(api_key) - last_chars + 1), nchar(api_key))
+  last <- paste0(paste0(rep("*",nchar(api_key)-4), collapse=""),last,collapse="")
+  return(last)
 }
