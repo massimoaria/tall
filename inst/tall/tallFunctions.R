@@ -254,7 +254,6 @@ loadSampleCollection <- function(sampleName) {
          bibliometrix = {
            # check if the file model already exists
            file_lang <- dir(path_language_model, pattern = "tall_bibliometrix.tall")[1]
-           # url <- paste0("https://www.bibliometrix.org/tall_lexicon/sampleData/tall_bibliometrix.tall")
            url <- paste0("https://raw.githubusercontent.com/massimoaria/tall.language.models/main/sample.data/tall_bibliometrix.tall")
 
            destfile <- paste0(path_language_model, "/tall_bibliometrix.tall")
@@ -4604,6 +4603,7 @@ resetValues <- function() {
   path_gemini_key <- paste0(file.path(home, "tall"),"/.gemini_key.txt", collapse="")
   # check if sub directory exists
   values$geminiAPI <- load_api_key(path_gemini_key)
+  values$corpus_description <- NULL
 
   return(values)
 }
@@ -4778,11 +4778,11 @@ highlight <- function(df, term = "lemma", upos = NULL) {
 
 
 ## saveTall function ----
-saveTall <- function(dfTag, custom_lists, language, treebank, menu, where, file, generalTerm) {
+saveTall <- function(dfTag, custom_lists, language, treebank, menu, where, file, generalTerm, corpus_description) {
   D <- date()
   D <- strsplit(gsub("\\s+", " ", D), " ")
   D <- paste(unlist(D)[c(1, 2, 3, 5)], collapse = " ")
-  save(dfTag, custom_lists, language, treebank, menu, D, where, file = file, generalTerm)
+  save(dfTag, custom_lists, language, treebank, menu, D, where, file = file, generalTerm, corpus_description)
 }
 
 ### Export Tall analysis in .tall file ----
@@ -5857,8 +5857,9 @@ load_api_key <- function(path = path_tall) {
 }
 
 ## gemini prompt for images
-geminiPromptImage <- function(obj, type="vis", prompt="Explain the topics in this map", key){
+geminiPromptImage <- function(obj, type="vis", prompt="Explain the topics in this map", key, desc = NULL){
   if (key){
+    if (!is.null(desc)) prompt <- paste0(prompt,desc,collapse=". ")
     tmpdir <- tempdir()
     owd <- setwd(tmpdir)
     on.exit(setwd(owd))
