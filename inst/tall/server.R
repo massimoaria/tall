@@ -326,6 +326,13 @@ To ensure the functionality of TALL,
       )
     } else {
       list(
+        textAreaInput(
+          inputId = "corpus_description",
+          label = "Please provide a brief description of your corpus (e.g., source, type of content, domain) to improve prompts for the Gemini AI Assistant:",
+          placeholder = "Example: The corpus consists of 150 academic articles from biomedical journals published between 2015 and 2020...",
+          rows = 8,
+          width = "100%"
+        ),
         helpText(em(
           "To load a new text collection,",
           br(), "it is necessary to reset the app."
@@ -444,6 +451,7 @@ To ensure the functionality of TALL,
              values$treebank <- treebank
              values$D <- D
              values$where <- where
+             values$corpus_description <- corpus_description
              if (exists("generalTerm")) values$generalTerm <- generalTerm
              values$resetNeed <- TRUE
              # values$metadata <- metadata
@@ -465,6 +473,7 @@ To ensure the functionality of TALL,
                       values$language <- language
                       values$D <- D
                       values$where <- where
+                      values$corpus_description <- "The dataset is composed of a collection of 444 scientific articles written in English in which the authors used the Bibliometrix R package to perform systematic literature reviews.\n The textual data consists of the article abstracts, while the additional information includes metadata such as the list of co-authors, the first author, the year of publication, and the journal name."
                       values$resetNeed <- TRUE
                       if (values$menu == 1) updateTabItems(session, "sidebarmenu", "custTermList")
                       if (values$menu > 1) updateTabItems(session, "sidebarmenu", "posTagSelect")
@@ -478,6 +487,7 @@ To ensure the functionality of TALL,
                       txt <- read_files(files, ext = "txt", subfolder = FALSE)
                       values$menu <- 0
                       values$custom_lists <- NULL
+                      values$corpus_description <- "A collection of 386 short news published in the entertainment section of the BBC News website."
                       values$resetNeed <- TRUE
                       values$txt <- txt %>%
                         mutate(text_original = text) %>%
@@ -575,6 +585,15 @@ To ensure the functionality of TALL,
       )
     }
   })
+
+  observeEvent(eventExpr = {
+    input$corpus_description},
+               handlerExpr = {
+                 if (input$corpus_description!="" & nchar(input$corpus_description)>1){
+                   values$corpus_description <- input$corpus_description
+                 }
+  },ignoreNULL = TRUE)
+
   ### shortpath for folder path ----
   output$folder <- renderUI({
     path <- shortpath(values$path)
@@ -615,6 +634,9 @@ To ensure the functionality of TALL,
       "<strong>Language:</strong> ", tools::toTitleCase(values$language),
       " - <strong>Treebank:</strong> ", values$treebank
     )
+    txt2c <- paste0(
+      "<strong>Corpus Description:</strong> ", values$corpus_description
+    )
 
     if (!is.null(dim(values$custom_lists))) {
       ncust <- nrow(values$custom_lists)
@@ -653,6 +675,7 @@ To ensure the functionality of TALL,
       "<li style='margin-bottom: 15px;'>", txt1, "</li>",
       "<li style='margin-bottom: 15px;'>", txt2, "</li>",
       "<li style='margin-bottom: 15px;'>", txt2b, "</li>",
+      "<li style='margin-bottom: 15px;'>", txt2c, "</li>",
       "<li style='margin-bottom: 15px;'>", txt3ter, "</li>",
       "<li style='margin-bottom: 15px;'>", txt3bis, "</li>",
       "<li style='margin-bottom: 15px;'>", txt3, "</li>",
@@ -874,7 +897,6 @@ To ensure the functionality of TALL,
   EXTINFOloading <- eventReactive(input$extInfoRun, {
     req(input$extInfoFile)
     file_extinfo <- input$extInfoFile$datapath
-    # print(file_tall)
     values$txt <- loadExtInfo(file_extinfo, values$txt)
   })
 
@@ -1105,7 +1127,8 @@ To ensure the functionality of TALL,
     handlerExpr = {
       file <- paste("Tall-Export-File-", sys.time(), ".tall", sep = "")
       file_path <- destFolder(file, values$wdTall)
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Custom Term Lists", file_path, values$generalTerm)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Custom Term Lists", file_path,
+               values$generalTerm, values$corpus_description)
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -1176,7 +1199,8 @@ To ensure the functionality of TALL,
     handlerExpr = {
       file <- paste("Tall-Export-File-", sys.time(), ".tall", sep = "")
       file_path <- destFolder(file, values$wdTall)
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "POS Tag Selection", file_path, values$generalTerm)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "POS Tag Selection",
+               file_path, values$generalTerm, values$corpus_description)
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -1347,7 +1371,8 @@ To ensure the functionality of TALL,
     handlerExpr = {
       file <- paste("Tall-Export-File-", sys.time(), ".tall", sep = "")
       file_path <- destFolder(file, values$wdTall)
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Custom Term Lists", file_path, values$generalTerm)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Custom Term Lists", file_path,
+               values$generalTerm, values$corpus_description)
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -1487,7 +1512,8 @@ To ensure the functionality of TALL,
     handlerExpr = {
       file <- paste("Tall-Export-File-", sys.time(), ".tall", sep = "")
       file_path <- destFolder(file, values$wdTall)
-      saveTall(values$dfTag, values$stats, values$language, values$treebank, values$menu, "Multi-Word Creation", file_path, values$generalTerm)
+      saveTall(values$dfTag, values$stats, values$language, values$treebank, values$menu, "Multi-Word Creation", file_path,
+               values$generalTerm, values$corpus_description)
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -1577,7 +1603,8 @@ To ensure the functionality of TALL,
     handlerExpr = {
       file <- paste("Tall-Export-File-", sys.time(), ".tall", sep = "")
       file_path <- destFolder(file, values$wdTall)
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Multi-Word by a List", file_path, values$generalTerm)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Multi-Word by a List", file_path,
+               values$generalTerm, values$corpus_description)
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -1652,7 +1679,8 @@ To ensure the functionality of TALL,
     handlerExpr = {
       file <- paste("Tall-Export-File-", sys.time(), ".tall", sep = "")
       file_path <- destFolder(file, values$wdTall)
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "POS Tag Selection", file_path, values$generalTerm)
+      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "POS Tag Selection", file_path,
+               values$generalTerm, values$corpus_description)
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -2642,7 +2670,8 @@ To ensure the functionality of TALL,
     valueExpr = {
       req(values$contextNetwork)
       values$contextGemini <- geminiPromptImage(obj=values$contextNetwork, type="vis",
-                                    prompt="Explain the topics in this 'word in context' network", key=values$geminiAPI)
+                                    prompt="Explain the topics in this 'word in context' network",
+                                    key=values$geminiAPI, desc=values$corpus_description)
     }
   )
 
@@ -2949,7 +2978,8 @@ To ensure the functionality of TALL,
     valueExpr = {
       req(values$plotCA)
       values$caGemini <- geminiPromptImage(obj=values$plotCA, type="plotly",
-                                                prompt="Provide an interpretation of this 'correspondence analysis' map", key=values$geminiAPI)
+                                                prompt="Provide an interpretation of this 'correspondence analysis' map",
+                                           key=values$geminiAPI, desc=values$corpus_description)
     }
   )
 
@@ -3141,7 +3171,8 @@ To ensure the functionality of TALL,
     valueExpr = {
       req(values$netVis)
       values$w_networkGemini <- geminiPromptImage(obj=values$netVis, type="vis",
-                                           prompt="Provide an interpretation of this 'word co-occurrence' network", key=values$geminiAPI)
+                                           prompt="Provide an interpretation of this 'word co-occurrence' network",
+                                           key=values$geminiAPI, desc=values$corpus_description)
     }
   )
 
@@ -3543,7 +3574,8 @@ To ensure the functionality of TALL,
       req(values$TMmap)
       values$w_networkTMGemini <- geminiPromptImage(obj=plotTM(values$TM$df, size = input$labelSizeTM / 10, gemini = TRUE),
                                                     type="plotly",
-                                           prompt="Provide an interpretation of this 'strategic map'", key=values$geminiAPI)
+                                           prompt="Provide an interpretation of this 'strategic map'",
+                                           key=values$geminiAPI, desc=values$corpus_description)
     }
   )
 
@@ -3786,7 +3818,8 @@ To ensure the functionality of TALL,
       req(values$w2vNetworkPlot)
       values$w_w2vGemini <- geminiPromptImage(obj=values$w2vNetworkPlot, type="vis",
                                            prompt="Provide an interpretation of this 'cosine similarity' map.
-                                           The map has been created on a word embedding matrix by word2vec model.", key=values$geminiAPI)
+                                           The map has been created on a word embedding matrix by word2vec model.",
+                                           key=values$geminiAPI, desc=values$corpus_description)
     }
   )
 
