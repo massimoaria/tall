@@ -36,6 +36,7 @@ libraries <- function() {
   suppressPackageStartupMessages(require(chromote))
   suppressPackageStartupMessages(require(word2vec))
   suppressPackageStartupMessages(require(umap))
+  suppressPackageStartupMessages(require(httr2))
 }
 
 messageItem2 <- function(from, message, icon = shiny::icon("user"), time = NULL,
