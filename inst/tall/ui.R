@@ -202,6 +202,7 @@ body <- dashboardBody(
   #### BUTTON STYLE ###############
   tags$style(".glyphicon-refresh {color:#ffffff; font-size: 15px; align: center;}"),
   tags$style(".fa-magnifying-glass {color:#ffffff; font-size: 15px; align: center;}"),
+  tags$style(".fa-microchip {color:#ffffff; font-size: 15px; align: center;}"),
   tags$style(".glyphicon-download-alt {color:#ffffff; font-size: 18px; align: center; margin-left: -3.5px}"),
   tags$style(".glyphicon-play {color:#ffffff; font-size: 18px; align: center;margin-left: -0.5px}"),
   tags$style(".glyphicon-remove {color:#ffffff; font-size: 18px; align: center;margin-left: -0.5px}"),
@@ -1974,6 +1975,30 @@ body <- dashboardBody(
               )
             ),
             tabPanel(
+              "Gemini AI",
+              fluidPage(
+                fluidRow(
+                  column(1),
+                  column(
+                    10,
+                    br(),
+                    shinycssloaders::withSpinner(htmlOutput("ContextGeminiUI"),
+                                                 color = getOption("spinner.color", default = "#4F7942"))
+                  ),
+                  column(1,
+                         #actionButton("wordsContGemini", "Gemini", icon = icon(name = "microchip", lib = "font-awesome"))
+                         do.call("actionButton", c(list(
+                           label = NULL,
+                           style = "display:block; height: 37px; width: 37px; border-radius: 50%;
+                                                 border: 1px; margin-top: 16px;",
+                           icon = icon(name = "microchip", lib = "font-awesome"),
+                           inputId = "wordsContGemini"
+                         ))),
+                         )
+                )
+              )
+            ),
+            tabPanel(
               "Info & References",
               fluidPage(
                 fluidRow(
@@ -2552,6 +2577,30 @@ body <- dashboardBody(
               )
             ),
             tabPanel(
+              "Gemini AI",
+              fluidPage(
+                fluidRow(
+                  column(1),
+                  column(
+                    10,
+                    br(),
+                    shinycssloaders::withSpinner(htmlOutput("caGeminiUI"),
+                                                 color = getOption("spinner.color", default = "#4F7942"))
+                  ),
+                  column(1,
+                         #actionButton("wordsContGemini", "Gemini", icon = icon(name = "microchip", lib = "font-awesome"))
+                         do.call("actionButton", c(list(
+                           label = NULL,
+                           style = "display:block; height: 37px; width: 37px; border-radius: 50%;
+                                                 border: 1px; margin-top: 16px;",
+                           icon = icon(name = "microchip", lib = "font-awesome"),
+                           inputId = "caGeminiStart"
+                         ))),
+                  )
+                )
+              )
+            ),
+            tabPanel(
               "Info & References",
               fluidPage(
                 fluidRow(
@@ -2718,6 +2767,30 @@ body <- dashboardBody(
               )
             ),
             tabPanel(
+              "Gemini AI",
+              fluidPage(
+                fluidRow(
+                  column(1),
+                  column(
+                    10,
+                    br(),
+                    shinycssloaders::withSpinner(htmlOutput("w_networkGeminiUI"),
+                                                 color = getOption("spinner.color", default = "#4F7942"))
+                  ),
+                  column(1,
+                         #actionButton("wordsContGemini", "Gemini", icon = icon(name = "microchip", lib = "font-awesome"))
+                         do.call("actionButton", c(list(
+                           label = NULL,
+                           style = "display:block; height: 37px; width: 37px; border-radius: 50%;
+                                                 border: 1px; margin-top: 16px;",
+                           icon = icon(name = "microchip", lib = "font-awesome"),
+                           inputId = "w_networkGeminiStart"
+                         ))),
+                  )
+                )
+              )
+            ),
+            tabPanel(
               "Info & References",
               fluidPage(
                 fluidRow(
@@ -2858,6 +2931,31 @@ body <- dashboardBody(
                                            color = getOption("spinner.color", default = "#4F7942")
               )
             ),
+            tabPanel(
+              "Gemini AI",
+              fluidPage(
+                fluidRow(
+                  column(1),
+                  column(
+                    10,
+                    br(),
+                    shinycssloaders::withSpinner(htmlOutput("w_networkTMGeminiUI"),
+                                                 color = getOption("spinner.color", default = "#4F7942"))
+                  ),
+                  column(1,
+                         #actionButton("wordsContGemini", "Gemini", icon = icon(name = "microchip", lib = "font-awesome"))
+                         do.call("actionButton", c(list(
+                           label = NULL,
+                           style = "display:block; height: 37px; width: 37px; border-radius: 50%;
+                                                 border: 1px; margin-top: 16px;",
+                           icon = icon(name = "microchip", lib = "font-awesome"),
+                           inputId = "w_networkTMGeminiStart"
+                         ))),
+                  )
+                )
+              )
+            ),
+
             tabPanel(
               "Info & References",
               fluidPage(
@@ -3083,6 +3181,30 @@ body <- dashboardBody(
               "UMAP",
               shinycssloaders::withSpinner(plotlyOutput("w_w2vUMAPplot", width = "auto", height = "75vh"),
                                            color = getOption("spinner.color", default = "#4F7942")
+              )
+            ),
+            tabPanel(
+              "Gemini AI",
+              fluidPage(
+                fluidRow(
+                  column(1),
+                  column(
+                    10,
+                    br(),
+                    shinycssloaders::withSpinner(htmlOutput("w_w2vGeminiUI"),
+                                                 color = getOption("spinner.color", default = "#4F7942"))
+                  ),
+                  column(1,
+                         #actionButton("wordsContGemini", "Gemini", icon = icon(name = "microchip", lib = "font-awesome"))
+                         do.call("actionButton", c(list(
+                           label = NULL,
+                           style = "display:block; height: 37px; width: 37px; border-radius: 50%;
+                                                 border: 1px; margin-top: 16px;",
+                           icon = icon(name = "microchip", lib = "font-awesome"),
+                           inputId = "w_w2vGeminiStart"
+                         ))),
+                  )
+                )
               )
             ),
             tabPanel(

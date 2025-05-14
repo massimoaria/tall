@@ -2633,6 +2633,23 @@ To ensure the functionality of TALL,
     values$contextNetwork
   })
 
+  # gemini button for word in context
+  wordsInContextGeminiApp <- eventReactive(
+    ignoreNULL = TRUE,
+    eventExpr = {
+      input$wordsContGemini
+    },
+    valueExpr = {
+      req(values$contextNetwork)
+      values$contextGemini <- geminiPromptImage(obj=values$contextNetwork, type="vis",
+                                    prompt="Explain the topics in this 'word in context' network", key=values$geminiAPI)
+    }
+  )
+
+  output$ContextGeminiUI <- renderUI({
+    wordsInContextGeminiApp()
+    geminiOutput(title = "Gemini AI", content = values$contextGemini)
+  })
 
   ## Reinert Clustering ----
   dendReinFunction <- eventReactive(
@@ -2923,6 +2940,25 @@ To ensure the functionality of TALL,
     values$CADendrogram
   })
 
+  # gemini button for word in context
+  caGeminiApp <- eventReactive(
+    ignoreNULL = TRUE,
+    eventExpr = {
+      input$caGeminiStart
+    },
+    valueExpr = {
+      req(values$plotCA)
+      values$caGemini <- geminiPromptImage(obj=values$plotCA, type="plotly",
+                                                prompt="Provide an interpretation of this 'correspondence analysis' map", key=values$geminiAPI)
+    }
+  )
+
+  output$caGeminiUI <- renderUI({
+    caGeminiApp()
+    geminiOutput(title = "", content = values$caGemini)
+
+  })
+
 
   # CA Table
   output$caCoordTable <- renderDT(server = FALSE, {
@@ -3094,6 +3130,25 @@ To ensure the functionality of TALL,
   output$w_networkCoocPlot <- renderVisNetwork({
     netFunction()
     values$netVis
+  })
+
+  # gemini button for word in context
+  w_networkGeminiApp <- eventReactive(
+    ignoreNULL = TRUE,
+    eventExpr = {
+      input$w_networkGeminiStart
+    },
+    valueExpr = {
+      req(values$netVis)
+      values$w_networkGemini <- geminiPromptImage(obj=values$netVis, type="vis",
+                                           prompt="Provide an interpretation of this 'word co-occurrence' network", key=values$geminiAPI)
+    }
+  )
+
+  output$w_networkGeminiUI <- renderUI({
+    w_networkGeminiApp()
+    geminiOutput(title = "", content = values$w_networkGemini)
+
   })
 
   output$w_networkCoocNodesTable <- renderDT(server = FALSE, {
@@ -3444,7 +3499,6 @@ To ensure the functionality of TALL,
       )
       ## check to verify if groups exist or not
 
-
       if (input$w_groupTM == "Documents" & "ungroupDoc_id" %in% names(values$dfTag)) {
         values$TM <- tallThematicmap(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected),
                                      term = values$generalTerm, group = group, n = input$nMaxTM, labelsize = input$labelSizeTM, n.labels = input$n.labelsTM,
@@ -3477,6 +3531,26 @@ To ensure the functionality of TALL,
   output$w_networkTMMapPlot <- renderPlotly({
     TMFunction()
     values$TMmap
+  })
+
+  # gemini button for word in context
+  w_networkTMGeminiApp <- eventReactive(
+    ignoreNULL = TRUE,
+    eventExpr = {
+      input$w_networkTMGeminiStart
+    },
+    valueExpr = {
+      req(values$TMmap)
+      values$w_networkTMGemini <- geminiPromptImage(obj=plotTM(values$TM$df, size = input$labelSizeTM / 10, gemini = TRUE),
+                                                    type="plotly",
+                                           prompt="Provide an interpretation of this 'strategic map'", key=values$geminiAPI)
+    }
+  )
+
+  output$w_networkTMGeminiUI <- renderUI({
+    w_networkTMGeminiApp()
+    geminiOutput(title = "", content = values$w_networkTMGemini)
+
   })
 
   output$w_networkTMNetPlot <- renderVisNetwork({
@@ -3700,6 +3774,26 @@ To ensure the functionality of TALL,
                                      labelsize = input$w_w2v_font_size,
                                      overlap = input$w_w2v_overlap)
     values$w2vNetworkPlot
+  })
+
+  # gemini button for word in context
+  w_w2vGeminiApp <- eventReactive(
+    ignoreNULL = TRUE,
+    eventExpr = {
+      input$w_w2vGeminiStart
+    },
+    valueExpr = {
+      req(values$w2vNetworkPlot)
+      values$w_w2vGemini <- geminiPromptImage(obj=values$w2vNetworkPlot, type="vis",
+                                           prompt="Provide an interpretation of this 'cosine similarity' map.
+                                           The map has been created on a word embedding matrix by word2vec model.", key=values$geminiAPI)
+    }
+  )
+
+  output$w_w2vGeminiUI <- renderUI({
+    w_w2vGeminiApp()
+    geminiOutput(title = "", content = values$w_w2vGemini)
+
   })
 
   observe({

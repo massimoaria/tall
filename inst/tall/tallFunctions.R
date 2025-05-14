@@ -2567,6 +2567,7 @@ tallThematicmap <- function(dfTag, term = "lemma", group = "doc_id", n = 100, la
     reframe(
       wordlist = paste(label, value, collapse = "\n"),
       name_full = paste(label[1:min(n.labels, n())], collapse = "\n"),
+      name_full_gemini = paste(label[1:min(10, n())], collapse = "\n"),
       color = color[1],
       freq = max(freq)
     ) %>%
@@ -2597,7 +2598,8 @@ tallThematicmap <- function(dfTag, term = "lemma", group = "doc_id", n = 100, la
   return(list(net = net, df = df, df_lab = df_lab))
 }
 
-plotTM <- function(df, size = 0.5) {
+plotTM <- function(df, size = 0.5, gemini = FALSE) {
+  if (gemini) df$name_full <- df$name_full_gemini
   meandens <- mean(df$rdensity)
   meancentr <- mean(df$rcentrality)
   xlimits <- c(0, max(df$rcentrality) + 1)
@@ -5841,4 +5843,45 @@ showGeminiAPI <- function(){
   last <- substr(api_key, max(1, nchar(api_key) - last_chars + 1), nchar(api_key))
   last <- paste0(paste0(rep("*",nchar(api_key)-4), collapse=""),last,collapse="")
   return(last)
+}
+
+load_api_key <- function(path = path_tall) {
+  if (file.exists(path)) {
+    key <- readLines(path, warn = FALSE)
+    if (nchar(key) >= 10) {
+      Sys.setenv(GEMINI_API_KEY = key)
+      return(TRUE)
+    }
+  }
+  return(FALSE)
+}
+
+## gemini prompt for images
+geminiPromptImage <- function(obj, type="vis", prompt="Explain the topics in this map", key){
+  if (key){
+    tmpdir <- tempdir()
+    owd <- setwd(tmpdir)
+    on.exit(setwd(owd))
+    file_path <- paste0(tempfile(),".png",collapse="")
+    suppressWarnings(plot2png(obj, filename = file_path, zoom = 2, type=type))
+    res <- gemini_ai(image = file_path,
+                     prompt = prompt)
+  } else {
+    res <- "Please set a valid Gemini AI Api Key to use this feature"
+  }
+
+  return(res)
+}
+
+geminiOutput <- function(title = "", content = ""){
+  box(
+    title = title,
+    width = 12,
+    status = "info",
+    solidHeader = TRUE,
+    div(
+      style = "white-space: pre-wrap; background-color:#f9f9f9; padding:15px; border:1px solid #ccc; border-radius:5px; max-height:550px; overflow-y: auto;",
+      HTML(content)
+    )
+  )
 }
