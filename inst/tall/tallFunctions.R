@@ -5883,6 +5883,56 @@ geminiOutput <- function(title = "", content = ""){
     div(
       style = "white-space: pre-wrap; background-color:#f9f9f9; padding:15px; border:1px solid #ccc; border-radius:5px; max-height:550px; overflow-y: auto;",
       HTML(content)
-    )
+    ),
+    br(),
+    actionButton("copy_btn", "Copy to Clipboard", style = "color: white;", icon = icon("clipboard"))
+  )
+}
+
+copy_to_clipboard <- function(x) {
+  # Check the operating system
+  sys_info <- Sys.info()
+  os_type <- tolower(sys_info["sysname"])
+
+  # Convert the object to a string if it is not already
+  if (!is.character(x)) {
+    x <- capture.output(print(x))
+  }
+
+  # Copy to clipboard based on the operating system
+  if (os_type == "windows") {
+    writeClipboard(x)
+  } else if (os_type == "darwin") {  # macOS
+    con <- pipe("pbcopy", "w")
+    writeLines(x, con)
+    close(con)
+  } else if (os_type == "linux") {
+    # Use xclip or xsel, if available
+    if (nzchar(Sys.which("xclip"))) {
+      con <- pipe("xclip -selection clipboard", "w")
+      writeLines(x, con)
+      close(con)
+    } else if (nzchar(Sys.which("xsel"))) {
+      con <- pipe("xsel --clipboard --input", "w")
+      writeLines(x, con)
+      close(con)
+    } else {
+      stop("Neither 'xclip' nor 'xsel' are available. Please install one of them to use the clipboard on Linux.")
+    }
+  } else {
+    stop("Unrecognized or unsupported operating system.")
+  }
+}
+
+gemini2clip <- function(values, activeTab){
+  switch(activeTab,
+         "wordCont" = {values$contextGemini},
+         "w_reinclustering" = {"Not yet implemented"},
+         "ca" = {values$caGemini},
+         "w_networkCooc" = {values$w_networkGemini},
+         "w_networkTM" = {values$w_networkTMGemini},
+         "w_w2v_similarity" = {values$w_w2vGemini},
+         "d_tm_estim" = {"Not yet implemented"},
+         "d_polDet" = {"Not yet implemented"}
   )
 }

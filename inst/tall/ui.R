@@ -1986,11 +1986,11 @@ body <- dashboardBody(
                                                  color = getOption("spinner.color", default = "#4F7942"))
                   ),
                   column(1,
-                         #actionButton("wordsContGemini", "Gemini", icon = icon(name = "microchip", lib = "font-awesome"))
                          do.call("actionButton", c(list(
-                           label = NULL,
-                           style = "display:block; height: 37px; width: 37px; border-radius: 50%;
-                                                 border: 1px; margin-top: 16px;",
+                           label = "Gemini",
+                           style = "color: white;",
+                           # style = "display:block; height: 37px; width: 37px; border-radius: 50%;
+                           #                       border: 1px; margin-top: 16px;",
                            icon = icon(name = "microchip", lib = "font-awesome"),
                            inputId = "wordsContGemini"
                          ))),
@@ -2588,11 +2588,11 @@ body <- dashboardBody(
                                                  color = getOption("spinner.color", default = "#4F7942"))
                   ),
                   column(1,
-                         #actionButton("wordsContGemini", "Gemini", icon = icon(name = "microchip", lib = "font-awesome"))
                          do.call("actionButton", c(list(
-                           label = NULL,
-                           style = "display:block; height: 37px; width: 37px; border-radius: 50%;
-                                                 border: 1px; margin-top: 16px;",
+                           label = "Gemini",
+                           style = "color: white;",
+                           # style = "display:block; height: 37px; width: 37px; border-radius: 50%;
+                           #                       border: 1px; margin-top: 16px;",
                            icon = icon(name = "microchip", lib = "font-awesome"),
                            inputId = "caGeminiStart"
                          ))),
@@ -2778,11 +2778,11 @@ body <- dashboardBody(
                                                  color = getOption("spinner.color", default = "#4F7942"))
                   ),
                   column(1,
-                         #actionButton("wordsContGemini", "Gemini", icon = icon(name = "microchip", lib = "font-awesome"))
                          do.call("actionButton", c(list(
-                           label = NULL,
-                           style = "display:block; height: 37px; width: 37px; border-radius: 50%;
-                                                 border: 1px; margin-top: 16px;",
+                           label = "Gemini",
+                           style = "color: white;",
+                           # style = "display:block; height: 37px; width: 37px; border-radius: 50%;
+                           #                       border: 1px; margin-top: 16px;",
                            icon = icon(name = "microchip", lib = "font-awesome"),
                            inputId = "w_networkGeminiStart"
                          ))),
@@ -2943,11 +2943,11 @@ body <- dashboardBody(
                                                  color = getOption("spinner.color", default = "#4F7942"))
                   ),
                   column(1,
-                         #actionButton("wordsContGemini", "Gemini", icon = icon(name = "microchip", lib = "font-awesome"))
                          do.call("actionButton", c(list(
-                           label = NULL,
-                           style = "display:block; height: 37px; width: 37px; border-radius: 50%;
-                                                 border: 1px; margin-top: 16px;",
+                           label = "Gemini",
+                           style = "color: white;",
+                           # style = "display:block; height: 37px; width: 37px; border-radius: 50%;
+                           #                       border: 1px; margin-top: 16px;",
                            icon = icon(name = "microchip", lib = "font-awesome"),
                            inputId = "w_networkTMGeminiStart"
                          ))),
@@ -3195,11 +3195,11 @@ body <- dashboardBody(
                                                  color = getOption("spinner.color", default = "#4F7942"))
                   ),
                   column(1,
-                         #actionButton("wordsContGemini", "Gemini", icon = icon(name = "microchip", lib = "font-awesome"))
                          do.call("actionButton", c(list(
-                           label = NULL,
-                           style = "display:block; height: 37px; width: 37px; border-radius: 50%;
-                                                 border: 1px; margin-top: 16px;",
+                           label = "Gemini",
+                           style = "color: white;",
+                           # style = "display:block; height: 37px; width: 37px; border-radius: 50%;
+                           #                       border: 1px; margin-top: 16px;",
                            icon = icon(name = "microchip", lib = "font-awesome"),
                            inputId = "w_w2vGeminiStart"
                          ))),

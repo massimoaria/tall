@@ -103,6 +103,11 @@ To ensure the functionality of TALL,
     param_stay_page_newPT <<- FALSE
   }
 
+  ## observe Gemini copy2clipboard button
+  observeEvent(input$copy_btn, {
+    content <- gemini2clip(values, input$sidebarmenu)
+    copy_to_clipboard(content)
+  })
 
   ## suppress summarise message
   options(dplyr.summarise.inform = FALSE)
