@@ -103,6 +103,18 @@ To ensure the functionality of TALL,
     param_stay_page_newPT <<- FALSE
   }
 
+  ## observe Gemini copy2clipboard button
+  observeEvent(input$copy_btn, {
+    content <- gemini2clip(values, input$sidebarmenu)
+    copy_to_clipboard(content)
+  })
+
+  ## observe gemini generate button
+  observeEvent(input$gemini_btn, {
+    values$gemini_additional <- input$gemini_additional ## additional info to Gemini prompt
+    values <- geminiWaitingMessage(values, input$sidebarmenu)
+    values <- geminiGenerate(values, input$sidebarmenu, values$gemini_additional)
+  })
 
   ## suppress summarise message
   options(dplyr.summarise.inform = FALSE)
@@ -2661,22 +2673,7 @@ To ensure the functionality of TALL,
     values$contextNetwork
   })
 
-  # gemini button for word in context
-  wordsInContextGeminiApp <- eventReactive(
-    ignoreNULL = TRUE,
-    eventExpr = {
-      input$wordsContGemini
-    },
-    valueExpr = {
-      req(values$contextNetwork)
-      values$contextGemini <- geminiPromptImage(obj=values$contextNetwork, type="vis",
-                                    prompt="Explain the topics in this 'word in context' network",
-                                    key=values$geminiAPI, desc=values$corpus_description)
-    }
-  )
-
   output$ContextGeminiUI <- renderUI({
-    wordsInContextGeminiApp()
     geminiOutput(title = "Gemini AI", content = values$contextGemini)
   })
 
@@ -2969,22 +2966,8 @@ To ensure the functionality of TALL,
     values$CADendrogram
   })
 
-  # gemini button for word in context
-  caGeminiApp <- eventReactive(
-    ignoreNULL = TRUE,
-    eventExpr = {
-      input$caGeminiStart
-    },
-    valueExpr = {
-      req(values$plotCA)
-      values$caGemini <- geminiPromptImage(obj=values$plotCA, type="plotly",
-                                                prompt="Provide an interpretation of this 'correspondence analysis' map",
-                                           key=values$geminiAPI, desc=values$corpus_description)
-    }
-  )
-
+  # gemini button for correspondence analysis
   output$caGeminiUI <- renderUI({
-    caGeminiApp()
     geminiOutput(title = "", content = values$caGemini)
 
   })
@@ -3162,22 +3145,8 @@ To ensure the functionality of TALL,
     values$netVis
   })
 
-  # gemini button for word in context
-  w_networkGeminiApp <- eventReactive(
-    ignoreNULL = TRUE,
-    eventExpr = {
-      input$w_networkGeminiStart
-    },
-    valueExpr = {
-      req(values$netVis)
-      values$w_networkGemini <- geminiPromptImage(obj=values$netVis, type="vis",
-                                           prompt="Provide an interpretation of this 'word co-occurrence' network",
-                                           key=values$geminiAPI, desc=values$corpus_description)
-    }
-  )
-
+  # gemini button for word network
   output$w_networkGeminiUI <- renderUI({
-    w_networkGeminiApp()
     geminiOutput(title = "", content = values$w_networkGemini)
 
   })
@@ -3565,22 +3534,7 @@ To ensure the functionality of TALL,
   })
 
   # gemini button for word in context
-  w_networkTMGeminiApp <- eventReactive(
-    ignoreNULL = TRUE,
-    eventExpr = {
-      input$w_networkTMGeminiStart
-    },
-    valueExpr = {
-      req(values$TMmap)
-      values$w_networkTMGemini <- geminiPromptImage(obj=plotTM(values$TM$df, size = input$labelSizeTM / 10, gemini = TRUE),
-                                                    type="plotly",
-                                           prompt="Provide an interpretation of this 'strategic map'",
-                                           key=values$geminiAPI, desc=values$corpus_description)
-    }
-  )
-
   output$w_networkTMGeminiUI <- renderUI({
-    w_networkTMGeminiApp()
     geminiOutput(title = "", content = values$w_networkTMGemini)
 
   })
@@ -3808,23 +3762,8 @@ To ensure the functionality of TALL,
     values$w2vNetworkPlot
   })
 
-  # gemini button for word in context
-  w_w2vGeminiApp <- eventReactive(
-    ignoreNULL = TRUE,
-    eventExpr = {
-      input$w_w2vGeminiStart
-    },
-    valueExpr = {
-      req(values$w2vNetworkPlot)
-      values$w_w2vGemini <- geminiPromptImage(obj=values$w2vNetworkPlot, type="vis",
-                                           prompt="Provide an interpretation of this 'cosine similarity' map.
-                                           The map has been created on a word embedding matrix by word2vec model.",
-                                           key=values$geminiAPI, desc=values$corpus_description)
-    }
-  )
-
+  # gemini button for word embedding similarity
   output$w_w2vGeminiUI <- renderUI({
-    w_w2vGeminiApp()
     geminiOutput(title = "", content = values$w_w2vGemini)
 
   })
