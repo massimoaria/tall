@@ -5868,7 +5868,7 @@ geminiPromptImage <- function(obj, type="vis", prompt="Explain the topics in thi
     res <- gemini_ai(image = file_path,
                      prompt = prompt)
   } else {
-    res <- "Please set a valid Gemini AI Api Key to use this feature"
+    res <- 'To access this feature, please provide a valid Gemini AI API key. You can obtain your API key by visiting the official <a href="https://aistudio.google.com/" target="_blank">Google AI Studio website</a>.'
   }
 
   return(res)
