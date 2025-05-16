@@ -4604,6 +4604,7 @@ resetValues <- function() {
   # check if sub directory exists
   values$geminiAPI <- load_api_key(path_gemini_key)
   values$corpus_description <- NULL
+  values$gemini_additional <- NULL
 
   return(values)
 }
@@ -5747,30 +5748,29 @@ model_accuracy <- function() {
 gemini_ai <- function(image = NULL,
                       prompt = "Explain this image",
                       model = "2.0-flash",
-                      type = "png") {
+                      type = "png",
+                      retry_503 = 3) {
 
   if (!file.exists(image)) {
-    message("❌ Image file does not exist: {image}")
-    return(NULL)
+    return("❌ Error: Image file does not exist.")
   }
 
-  # 4. Costruzione URL e MIME
+  # Build URL and MIME type
   model_query <- paste0("gemini-", model, ":generateContent")
   url <- paste0("https://generativelanguage.googleapis.com/v1beta/models/", model_query)
   api_key <- Sys.getenv("GEMINI_API_KEY")
   mime_type <- paste0("image/", type)
 
-  # 5. Codifica immagine in base64
+  # Encode image
   image_data <- tryCatch(
     base64enc::base64encode(image),
     error = function(e) {
-      message("❌ Error encoding image: {e$message}")
-      return(NULL)
+      return(paste("❌ Error encoding image:", e$message))
     }
   )
-  if (is.null(image_data)) return(NULL)
+  if (is.null(image_data)) return("❌ Failed to encode image.")
 
-  # 6. Configurazione generazione (valori di default interni)
+  # Default config
   generation_config <- list(
     temperature = 1,
     maxOutputTokens = 8192,
@@ -5779,7 +5779,7 @@ gemini_ai <- function(image = NULL,
     seed = 1234
   )
 
-  # 7. Costruzione corpo della richiesta
+  # Request body
   request_body <- list(
     contents = list(
       parts = list(
@@ -5793,27 +5793,63 @@ gemini_ai <- function(image = NULL,
     generationConfig = generation_config
   )
 
-  # 8. Invio richiesta
-  req <- request(url) |>
-    req_url_query(key = api_key) |>
-    req_headers("Content-Type" = "application/json") |>
-    req_body_json(request_body)
+  # Retry loop
+  for (attempt in seq_len(retry_503)) {
 
-  resp <- req_perform(req)
+    # Build and send request
+    req <- request(url) |>
+      req_url_query(key = api_key) |>
+      req_headers("Content-Type" = "application/json") |>
+      req_body_json(request_body)
 
-  # 9. Controllo esito
-  if (resp$status_code != 200) {
-    #cli_status_clear(id = sb)
-    message("❌ Request failed: HTTP {resp$status_code}")
-    return(NULL)
+    resp <- tryCatch(
+      req_perform(req),
+      error = function(e) {
+        return(list(error = TRUE, message = paste("❌ Request failed with error:", e$message)))
+      }
+    )
+
+    # Handle connection-level error
+    if (is.list(resp) && isTRUE(resp$error)) {
+      return(resp$message)
+    }
+
+    # Retry on HTTP 503
+    if (resp$status_code == 503) {
+      if (attempt < retry_503) {
+        message(paste0("⚠️ HTTP 503 (Service Unavailable) - retrying in 2 seconds (attempt ", attempt, "/", retry_503, ")..."))
+        Sys.sleep(2)
+        next
+      } else {
+        return(
+          paste0(
+            "❌ HTTP 503: Service Unavailable.\n",
+            "The Google Gemini servers are currently overloaded or under maintenance.\n",
+            "All retry attempts failed (", retry_503, "). Please try again later."
+          )
+        )
+      }
+    }
+
+    # Other HTTP errors
+    if (resp$status_code != 200) {
+      msg <- tryCatch({
+        parsed <- jsonlite::fromJSON(httr2::resp_body_string(resp))
+        parsed$error$message
+      }, error = function(e) {
+        "Service unavailable or unexpected error."
+      })
+
+      return(paste0("❌ HTTP ", resp$status_code, ": ", msg))
+    }
+
+    # Successful response
+    candidates <- httr2::resp_body_json(resp)$candidates
+    outputs <- unlist(lapply(candidates, \(c) c$content$parts))
+    return(outputs)
   }
-
-  # 10. Estrazione output
-  candidates <- resp_body_json(resp)$candidates
-  outputs <- unlist(lapply(candidates, \(c) c$content$parts))
-
-  return(outputs)
 }
+
 
 setGeminiAPI <- function(api_key) {
   # 1. Controllo validità dell'API key
@@ -5875,18 +5911,122 @@ geminiPromptImage <- function(obj, type="vis", prompt="Explain the topics in thi
 }
 
 geminiOutput <- function(title = "", content = ""){
+  if (is.null(content)){
+    content <- "Click the Generate button to let TALL AI analyze the visual outputs and provide an automatic interpretation of your results based on the graphs.\n
+This AI-powered feature leverages Google Gemini to help you understand patterns and insights emerging from your contextual analysis.\n\n\n\n\n\n\n"
+  }
   box(
     title = title,
     width = 12,
     status = "info",
     solidHeader = TRUE,
     div(
-      style = "white-space: pre-wrap; background-color:#f9f9f9; padding:15px; border:1px solid #ccc; border-radius:5px; max-height:550px; overflow-y: auto;",
+      style = "white-space: pre-wrap; background-color:#f9f9f9; padding:15px; border:1px solid #ccc; border-radius:5px; max-height:500px; overflow-y: auto;",
       HTML(content)
     ),
     br(),
-    actionButton("copy_btn", "Copy to Clipboard", style = "color: white;", icon = icon("clipboard"))
+    textAreaInput(
+      inputId = "gemini_additional",
+      label = NULL,
+      value = "",
+      placeholder = "You can provide additional context or details about your analysis to help TALL AI generate a more accurate and meaningful interpretation.",
+      rows = 3,
+      width = "100%"
+    ),
+    actionButton("gemini_btn", "Ask TALL AI", style = "color: white;", icon(name = "microchip", lib = "font-awesome")),
+    actionButton("copy_btn", "Copy", style = "color: white;", icon = icon("clipboard"))
   )
+}
+
+gemini2clip <- function(values, activeTab){
+  switch(activeTab,
+         "wordCont" = {values$contextGemini},
+         "w_reinclustering" = {"Not yet implemented"},
+         "ca" = {values$caGemini},
+         "w_networkCooc" = {values$w_networkGemini},
+         "w_networkTM" = {values$w_networkTMGemini},
+         "w_w2v_similarity" = {values$w_w2vGemini},
+         "d_tm_estim" = {"Not yet implemented"},
+         "d_polDet" = {"Not yet implemented"}
+  )
+}
+
+geminiGenerate <- function(values, activeTab, gemini_additional){
+  if (gemini_additional!="") {
+    desc <- paste0(values$corpus_description, gemini_additional, collapse=". ")
+    } else {
+    desc <- values$corpus_description
+    }
+  switch(activeTab,
+         "wordCont" = {
+           req(values$contextNetwork)
+           values$contextGemini <- geminiPromptImage(obj=values$contextNetwork, type="vis",
+                                                     prompt="Explain the topics in this 'word in context' network",
+                                                     key=values$geminiAPI, desc=desc)
+         },
+         "w_reinclustering" = {"Not yet implemented"},
+         "ca" = {
+           req(values$plotCA)
+           values$caGemini <- geminiPromptImage(obj=values$plotCA, type="plotly",
+                                                prompt="Provide an interpretation of this 'correspondence analysis' map",
+                                                key=values$geminiAPI, desc=desc)
+           },
+         "w_networkCooc" = {
+           req(values$netVis)
+           values$w_networkGemini <- geminiPromptImage(obj=values$netVis, type="vis",
+                                                       prompt="Provide an interpretation of this 'word co-occurrence' network",
+                                                       key=values$geminiAPI, desc=desc)
+         },
+         "w_networkTM" = {
+           req(values$TMmap)
+           values$w_networkTMGemini <- geminiPromptImage(obj=plotTM(values$TM$df, size = input$labelSizeTM / 10, gemini = TRUE),
+                                                         type="plotly",
+                                                         prompt="Provide an interpretation of this 'strategic map'",
+                                                         key=values$geminiAPI, desc=desc)
+         },
+         "w_w2v_similarity" = {
+           req(values$w2vNetworkPlot)
+           values$w_w2vGemini <- geminiPromptImage(obj=values$w2vNetworkPlot, type="vis",
+                                                   prompt="Provide an interpretation of this 'cosine similarity' map.
+                                           The map has been created on a word embedding matrix by word2vec model.",
+                                           key=values$geminiAPI, desc=desc)
+         },
+         "d_tm_estim" = {"Not yet implemented"},
+         "d_polDet" = {"Not yet implemented"}
+  )
+  return(values)
+}
+
+geminiWaitingMessage <- function(values, activeTab){
+
+  messageTxt <- "\n\nPlease Wait\n\nThinking.....\n\n"
+
+  switch(activeTab,
+         "wordCont" = {
+           req(values$contextNetwork)
+           values$contextGemini <- messageTxt
+         },
+         "w_reinclustering" = {"Not yet implemented"},
+         "ca" = {
+           req(values$plotCA)
+           values$caGemini <- messageTxt
+         },
+         "w_networkCooc" = {
+           req(values$netVis)
+           values$w_networkGemini <- messageTxt
+         },
+         "w_networkTM" = {
+           req(values$TMmap)
+           values$w_networkTMGemini <- messageTxt
+         },
+         "w_w2v_similarity" = {
+           req(values$w2vNetworkPlot)
+           values$w_w2vGemini <- messageTxt
+         },
+         "d_tm_estim" = {"Not yet implemented"},
+         "d_polDet" = {"Not yet implemented"}
+  )
+  return(values)
 }
 
 copy_to_clipboard <- function(x) {
@@ -5922,17 +6062,4 @@ copy_to_clipboard <- function(x) {
   } else {
     stop("Unrecognized or unsupported operating system.")
   }
-}
-
-gemini2clip <- function(values, activeTab){
-  switch(activeTab,
-         "wordCont" = {values$contextGemini},
-         "w_reinclustering" = {"Not yet implemented"},
-         "ca" = {values$caGemini},
-         "w_networkCooc" = {values$w_networkGemini},
-         "w_networkTM" = {values$w_networkTMGemini},
-         "w_w2v_similarity" = {values$w_w2vGemini},
-         "d_tm_estim" = {"Not yet implemented"},
-         "d_polDet" = {"Not yet implemented"}
-  )
 }
