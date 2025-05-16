@@ -1978,14 +1978,12 @@ body <- dashboardBody(
               "TALL AI",
               fluidPage(
                 fluidRow(
-                  column(1),
                   column(
-                    10,
+                    12,
                     br(),
                     shinycssloaders::withSpinner(htmlOutput("ContextGeminiUI"),
                                                  color = getOption("spinner.color", default = "#4F7942"))
-                  ),
-                  column(1)
+                  )
                 )
               )
             ),
@@ -2571,14 +2569,11 @@ body <- dashboardBody(
               "TALL AI",
               fluidPage(
                 fluidRow(
-                  column(1),
-                  column(
-                    10,
+                  column(12,
                     br(),
                     shinycssloaders::withSpinner(htmlOutput("caGeminiUI"),
                                                  color = getOption("spinner.color", default = "#4F7942"))
-                  ),
-                  column(1)
+                  )
                 )
               )
             ),
@@ -2752,14 +2747,11 @@ body <- dashboardBody(
               "TALL AI",
               fluidPage(
                 fluidRow(
-                  column(1),
-                  column(
-                    10,
+                  column(12,
                     br(),
                     shinycssloaders::withSpinner(htmlOutput("w_networkGeminiUI"),
                                                  color = getOption("spinner.color", default = "#4F7942"))
-                  ),
-                  column(1)
+                  )
                 )
               )
             ),
@@ -2908,14 +2900,11 @@ body <- dashboardBody(
               "TALL AI",
               fluidPage(
                 fluidRow(
-                  column(1),
-                  column(
-                    10,
+                  column(12,
                     br(),
                     shinycssloaders::withSpinner(htmlOutput("w_networkTMGeminiUI"),
                                                  color = getOption("spinner.color", default = "#4F7942"))
-                  ),
-                  column(1)
+                  )
                 )
               )
             ),
@@ -3151,14 +3140,11 @@ body <- dashboardBody(
               "TALL AI",
               fluidPage(
                 fluidRow(
-                  column(1),
-                  column(
-                    10,
+                  column(12,
                     br(),
                     shinycssloaders::withSpinner(htmlOutput("w_w2vGeminiUI"),
                                                  color = getOption("spinner.color", default = "#4F7942"))
-                  ),
-                  column(1)
+                  )
                 )
               )
             ),

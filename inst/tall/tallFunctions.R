@@ -5933,8 +5933,21 @@ This AI-powered feature leverages Google Gemini to help you understand patterns 
       rows = 3,
       width = "100%"
     ),
-    actionButton("gemini_btn", "Ask TALL AI", style = "color: white;", icon(name = "microchip", lib = "font-awesome")),
-    actionButton("copy_btn", "Copy", style = "color: white;", icon = icon("clipboard"))
+    fluidRow(
+      column(4, align = "center",
+             actionButton("gemini_btn", "Ask TALL AI", style = "color: white;",
+                          icon(name = "microchip", lib = "font-awesome"),
+                          width = "80%")
+             ),
+      column(4, align = "center",
+             actionButton("copy_btn", "Copy", style = "color: white;", icon = icon("clipboard"),
+                          width = "80%")
+             ),
+      column(4, align = "center",
+             actionButton("save_btn", "Save", style = "color: white;", icon = icon("download-alt"),
+                          width = "80%")
+             )
+    )
   )
 }
 
