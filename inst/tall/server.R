@@ -112,8 +112,9 @@ To ensure the functionality of TALL,
   ## observe gemini generate button
   observeEvent(input$gemini_btn, {
     values$gemini_additional <- input$gemini_additional ## additional info to Gemini prompt
+    print(values$gemini_model_parameters)
     values <- geminiWaitingMessage(values, input$sidebarmenu)
-    values <- geminiGenerate(values, input$sidebarmenu, values$gemini_additional)
+    values <- geminiGenerate(values, input$sidebarmenu, values$gemini_additional,values$gemini_model_parameters)
   })
 
   ## suppress summarise message
@@ -2674,7 +2675,8 @@ To ensure the functionality of TALL,
   })
 
   output$ContextGeminiUI <- renderUI({
-    geminiOutput(title = "Gemini AI", content = values$contextGemini)
+    values$gemini_model_parameters <- geminiParameterPrompt(values, input$sidebarmenu, input)
+    geminiOutput(title = "Gemini AI", content = values$contextGemini, values)
   })
 
   ## Reinert Clustering ----
@@ -2968,7 +2970,8 @@ To ensure the functionality of TALL,
 
   # gemini button for correspondence analysis
   output$caGeminiUI <- renderUI({
-    geminiOutput(title = "", content = values$caGemini)
+    values$gemini_model_parameters <- geminiParameterPrompt(values, input$sidebarmenu, input)
+    geminiOutput(title = "", content = values$caGemini, values)
 
   })
 
@@ -3136,6 +3139,7 @@ To ensure the functionality of TALL,
             "Group From" = group_from,
             "Group To" = group_to
           )
+        values$gemini_model_parameters <- geminiParameterPrompt(values, input$sidebarmenu, input)
       }
     }
   )
@@ -3147,7 +3151,8 @@ To ensure the functionality of TALL,
 
   # gemini button for word network
   output$w_networkGeminiUI <- renderUI({
-    geminiOutput(title = "", content = values$w_networkGemini)
+    values$gemini_model_parameters <- geminiParameterPrompt(values, input$sidebarmenu, input)
+    geminiOutput(title = "", content = values$w_networkGemini, values)
 
   })
 
@@ -3535,7 +3540,8 @@ To ensure the functionality of TALL,
 
   # gemini button for word in context
   output$w_networkTMGeminiUI <- renderUI({
-    geminiOutput(title = "", content = values$w_networkTMGemini)
+    values$gemini_model_parameters <- geminiParameterPrompt(values, input$sidebarmenu, input)
+    geminiOutput(title = "", content = values$w_networkTMGemini, values)
 
   })
 
@@ -3764,7 +3770,8 @@ To ensure the functionality of TALL,
 
   # gemini button for word embedding similarity
   output$w_w2vGeminiUI <- renderUI({
-    geminiOutput(title = "", content = values$w_w2vGemini)
+    values$gemini_model_parameters <- geminiParameterPrompt(values, input$sidebarmenu, input)
+    geminiOutput(title = "", content = values$w_w2vGemini, values)
 
   })
 
@@ -3934,26 +3941,6 @@ To ensure the functionality of TALL,
   ## Topic Modeling ----
   ## K choice ----
 
-  # output$TMmetric <- renderUI({
-  #   metrics <- c(
-  #     "CaoJuan-2009" = "CaoJuan2009",
-  #     "Deveaud-2014" = "Deveaud2014",
-  #     "Arun-2010" = "Arun2010",
-  #     "Perplexity" = "Perplexity"
-  #   )
-  #   )
-  #
-  #   selectInput("metric", "Metric for model tuning",
-  #               choices = c(
-  #                 "CaoJuan-2009" = "CaoJuan2009",
-  #                 "Deveaud-2014" = "Deveaud2014",
-  #                 "Arun-2010" = "Arun2010",
-  #                 "Perplexity" = "Perplexity"
-  #               ),
-  #               selected = "CaoJuan2009"
-  #   )
-  # })
-
   netTMKselect <- eventReactive(
     ignoreNULL = TRUE,
     eventExpr = {
@@ -4112,12 +4099,7 @@ To ensure the functionality of TALL,
     values$tmHeatmap$Hplot
   })
 
-  # output$d_tm_networkTable <- renderDataTable(server = FALSE,{
-  #   netTMestim()
-  #   DTformat(values$tmHeatmap$H, left=1, numeric=c(2:ncol(values$tmHeatmap$H)), round=4, nrow=10, size="85%", filename = "TopicModel_TopicCorrelations")
-  # })
-
-  observeEvent(input$TMplotRight, {
+ observeEvent(input$TMplotRight, {
     if (values$TMplotIndex < ceiling(req(values$tmK) / 3)) {
       values$TMplotIndex <- values$TMplotIndex + 1
     }
@@ -4197,6 +4179,11 @@ To ensure the functionality of TALL,
   output$d_tm_estimTpTable <- renderDataTable(server = FALSE, {
     netTMestim()
     DTformat(values$theta, left = 1, numeric = c(2:ncol(values$TMestim_result$theta)), round = 4, nrow = 10, size = "85%", filename = "TopicModel_ThetaTable")
+  })
+
+  output$d_tm_GeminiUI <- renderUI({
+    values$gemini_model_parameters <- geminiParameterPrompt(values, input$sidebarmenu, input)
+    geminiOutput(title = "Gemini AI", content = values$tmGemini, values)
   })
 
   observeEvent(
