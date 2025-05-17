@@ -5052,12 +5052,6 @@ DTformat <- function(df, nrow = 10, filename = "Table", pagelength = TRUE, left 
       select("Frequency Distribution", everything())
   }
 
-
-  # if (isTRUE(delete)){
-  #   df <- df %>%
-  #     mutate(Remove = glue::glue('<button id="custom_btn_del" onclick="Shiny.onInputChange(\'button_id_del\', \'{doc_id}\')">Remove</button>')) %>%
-  #     select(Document, Remove, everything())
-  # }
   if (isTRUE(delete)) {
     df <- df %>%
       mutate(Remove = paste0('<button id="custom_btn_del" onclick="Shiny.onInputChange(\'button_id_del\', \'', doc_id, '\')">Remove</button>')) %>%
@@ -5178,31 +5172,44 @@ freqGgplot <- function(df, x = 2, y = 1, n = 20, title = "NOUN Frequency") {
 }
 
 topicGplot <- function(x, nPlot = 10, type = "beta") {
-  beta_long <- x %>%
-    pivot_longer(cols = 2:ncol(.), names_to = "topic", values_to = "probability") %>%
+
+  # Identify ID column based on type
+  id_col <- if (type == "beta") "word" else "doc"
+  topic_names <- setdiff(colnames(x), id_col)
+
+  # Reshape and filter top n per topic
+  long_data <- x %>%
+    pivot_longer(cols = all_of(topic_names), names_to = "topic", values_to = "probability") %>%
     group_by(topic) %>%
     slice_max(order_by = probability, n = nPlot) %>%
-    arrange(desc(probability), .by_group = T) %>%
+    arrange(desc(probability), .by_group = TRUE) %>%
     ungroup() %>%
-    mutate(topic = paste0("topic ", topic))
+    mutate(topic = paste0("Topic ", topic))
 
-  switch(type,
-         beta = {
-           g <- ggplot(beta_long, aes(x = probability, y = word, fill = factor(topic)))
-         },
-         theta = {
-           g <- ggplot(beta_long, aes(x = probability, y = doc, fill = factor(topic)))
-         }
-  )
-  g + geom_col(show.legend = FALSE) +
+  # Reorder factor levels for y-axis
+  long_data <- long_data %>%
+    group_by(topic) %>%
+    mutate(label = factor(.data[[id_col]], levels = rev(unique(.data[[id_col]])))) %>%
+    ungroup()
+
+  # Select the required number of colors
+  unique_topics <- unique(long_data$topic)
+  colors <- colorlist()[seq_along(unique_topics)]
+
+  # Build the plot
+  g <- ggplot(long_data, aes(x = probability, y = label, fill = topic)) +
+    geom_col(show.legend = FALSE) +
     facet_wrap(~topic, scales = "free") +
+    scale_fill_manual(values = setNames(colors, unique_topics)) +
+    theme_minimal(base_size = 11) +
     theme(
-      axis.text.y = element_text(angle = 0, hjust = 0, size = 9),
-      axis.text.x = element_text(size = 10),
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(),
-      panel.background = element_blank()
-    )
+      axis.text.y = element_text(angle = 0, hjust = 0),
+      panel.grid.major.y = element_blank()
+    ) +
+    labs(y = ifelse(type == "beta", "Word", "Document"),
+         x = "Probability")
+
+  return(g)
 }
 
 ### deleteCache ------
@@ -5900,7 +5907,11 @@ geminiPromptImage <- function(obj, type="vis", prompt="Explain the topics in thi
     owd <- setwd(tmpdir)
     on.exit(setwd(owd))
     file_path <- paste0(tempfile(),".png",collapse="")
-    suppressWarnings(plot2png(obj, filename = file_path, zoom = 2, type=type))
+    if (type %in% c("vis","plotly")){
+      suppressWarnings(plot2png(obj, filename = file_path, zoom = 2, type=type))
+    } else {
+      ggsave(filename = file_path, plot = obj, dpi = 72, height = 7, width = 14, bg = "transparent")
+    }
     res <- gemini_ai(image = file_path,
                      prompt = prompt)
   } else {
@@ -5910,9 +5921,9 @@ geminiPromptImage <- function(obj, type="vis", prompt="Explain the topics in thi
   return(res)
 }
 
-geminiOutput <- function(title = "", content = ""){
+geminiOutput <- function(title = "", content = "", values){
   if (is.null(content)){
-    content <- "Click the Generate button to let TALL AI analyze the visual outputs and provide an automatic interpretation of your results based on the graphs.\n
+    content <- "Click the 'Ask TALL AI' button to analyze the visual outputs and provide an automatic interpretation of your results based on the graphs.\n
 This AI-powered feature leverages Google Gemini to help you understand patterns and insights emerging from your contextual analysis.\n\n\n\n\n\n\n"
   }
   box(
@@ -5921,14 +5932,15 @@ This AI-powered feature leverages Google Gemini to help you understand patterns 
     status = "info",
     solidHeader = TRUE,
     div(
-      style = "white-space: pre-wrap; background-color:#f9f9f9; padding:15px; border:1px solid #ccc; border-radius:5px; max-height:500px; overflow-y: auto;",
+      style = "white-space: pre-wrap; background-color:#f9f9f9; padding:15px; border:1px solid #ccc; border-radius:5px; max-height:400px; overflow-y: auto;",
       HTML(content)
     ),
     br(),
+    em("You can modify or enrich the proposed prompt with additional context or details about your analysis to help TALL AI generate a more accurate and meaningful interpretation."),
     textAreaInput(
       inputId = "gemini_additional",
       label = NULL,
-      value = "",
+      value = values$gemini_model_parameters,
       placeholder = "You can provide additional context or details about your analysis to help TALL AI generate a more accurate and meaningful interpretation.",
       rows = 3,
       width = "100%"
@@ -5944,7 +5956,7 @@ This AI-powered feature leverages Google Gemini to help you understand patterns 
                           width = "80%")
              ),
       column(4, align = "center",
-             actionButton("save_btn", "Save", style = "color: white;", icon = icon("download-alt"),
+             actionButton("save_btn", "Save", style = "color: white;", icon = icon("download"),
                           width = "80%")
              )
     )
@@ -5964,9 +5976,9 @@ gemini2clip <- function(values, activeTab){
   )
 }
 
-geminiGenerate <- function(values, activeTab, gemini_additional){
+geminiGenerate <- function(values, activeTab, gemini_additional, gemini_model_parameters){
   if (gemini_additional!="") {
-    desc <- paste0(values$corpus_description, gemini_additional, collapse=". ")
+    desc <- paste0(values$corpus_description, gemini_additional, gemini_model_parameters, collapse=". ")
     } else {
     desc <- values$corpus_description
     }
@@ -6004,10 +6016,61 @@ geminiGenerate <- function(values, activeTab, gemini_additional){
                                            The map has been created on a word embedding matrix by word2vec model.",
                                            key=values$geminiAPI, desc=desc)
          },
-         "d_tm_estim" = {"Not yet implemented"},
+         "d_tm_estim" = {
+           req(values$TMestim_result)
+           tmPlot <- topicGplot(values$TMestim_result$beta, nPlot = 10, type = "beta")
+           values$tmGemini <- geminiPromptImage(obj=tmPlot, type="ggplot2",
+                                                   prompt="Interpret this graph showing the beta probabilities P(word|topic) from a topic modeling analysis.
+                                                Each value represents how strongly a word is associated with a specific topic.
+                                                Focus on identifying which words best characterize each topic and whether topics appear well differentiated.",
+                                           key=values$geminiAPI, desc=desc)
+         },
          "d_polDet" = {"Not yet implemented"}
   )
   return(values)
+}
+
+geminiParameterPrompt <- function(values, activeTab, input){
+
+  txt <- paste0("The analysis was perfomed on ", values$generalTerm, " extracted from the original corpus. ")
+
+  switch(activeTab,
+         "wordCont" = {
+           req(values$contextNetwork)
+           txt <- paste0(txt, "The context windows consists of of the ",
+                         input$wordsContBefore, " words preceding and the ",
+                         input$wordsContAfter, " words following the target word.")
+         },
+         "w_reinclustering" = {"Not yet implemented"},
+         "ca" = {
+           req(values$plotCA)
+           txt <- paste0(txt, "The occurrences of the most ", input$nCA, " frequent words were measured across ",
+                         input$groupCA, ". The words were then grouped into ",
+                         input$nClustersCA, " clusters using hierarchical clustering.")
+         },
+         "w_networkCooc" = {
+           req(values$netVis)
+           txt <- paste0(txt, "The co-occurrences of the most ", input$nMax, " frequent words were measured across ",
+                         input$w_groupNet, ". The co-occurrences were normalized using the ",input$normalizationCooc ,
+                         " index. The words were then grouped using Walktrap community detection algorithm.")
+         },
+         "w_networkTM" = {
+           req(values$TMmap)
+           txt <- paste0(txt, "The co-occurrences of the most ", input$nMaxTM , " frequent words were measured across ",
+                         input$w_groupTM, ". The co-occurrences were normalized using the association index. The words were then grouped using Walktrap community detection algorithm.")
+         },
+         "w_w2v_similarity" = {
+           req(values$w2vNetworkPlot)
+           txt <- paste0(txt, "The ", input$w_w2v_similarityN ," most frequent target words were selected, and for each of them, the 10 words with the highest cosine similarity were identified.")
+         },
+         "d_tm_estim" = {
+           req(values$TMestim_result)
+           txt <- paste0(txt, "The Topic Model was estimated using the ",input$nTmEstim," frequent words identified by ", input$top_byEstim," measure.")
+         },
+         "d_polDet" = {"Not yet implemented"},
+         {""}
+  )
+  return(txt)
 }
 
 geminiWaitingMessage <- function(values, activeTab){
@@ -6036,7 +6099,10 @@ geminiWaitingMessage <- function(values, activeTab){
            req(values$w2vNetworkPlot)
            values$w_w2vGemini <- messageTxt
          },
-         "d_tm_estim" = {"Not yet implemented"},
+         "d_tm_estim" = {
+           req(values$TMestim_result)
+           values$tmGemini <- messageTxt
+         },
          "d_polDet" = {"Not yet implemented"}
   )
   return(values)
