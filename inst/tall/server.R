@@ -112,7 +112,6 @@ To ensure the functionality of TALL,
   ## observe gemini generate button
   observeEvent(input$gemini_btn, {
     values$gemini_additional <- input$gemini_additional ## additional info to Gemini prompt
-    print(values$gemini_model_parameters)
     values <- geminiWaitingMessage(values, input$sidebarmenu)
     values <- geminiGenerate(values, input$sidebarmenu, values$gemini_additional,values$gemini_model_parameters)
   })
