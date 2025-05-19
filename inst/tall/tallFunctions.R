@@ -6004,7 +6004,7 @@ geminiGenerate <- function(values, activeTab, gemini_additional, gemini_model_pa
          },
          "w_networkTM" = {
            req(values$TMmap)
-           values$w_networkTMGemini <- geminiPromptImage(obj=plotTM(values$TM$df, size = input$labelSizeTM / 10, gemini = TRUE),
+           values$w_networkTMGemini <- geminiPromptImage(obj=plotTM(values$TM$df, size = 0.5, gemini = TRUE),
                                                          type="plotly",
                                                          prompt="Provide an interpretation of this 'strategic map'",
                                                          key=values$geminiAPI, desc=desc)
