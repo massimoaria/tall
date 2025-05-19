@@ -4271,9 +4271,9 @@ abstractingDocument <- function(s, n, id) {
 }
 
 ### EXCEL REPORT FUNCTIONS ----
-addDataWb <- function(list_df, wb, sheetname) {
+addDataWb <- function(list_df, wb, sheetname, startRow = 1) {
   l <- length(list_df)
-  startRow <- 1
+  # startRow <- 1
   for (i in 1:l) {
     df <- list_df[[i]]
     n <- nrow(df)
@@ -4290,7 +4290,7 @@ addDataScreenWb <- function(list_df, wb, sheetname) {
   }
   addWorksheet(wb = wb, sheetName = sheetname, gridLines = FALSE)
   if (!is.null(list_df)) {
-    addDataWb(list_df, wb, sheetname)
+    addDataWb(list_df, wb, sheetname, startRow = 1)
     col <- max(unlist(lapply(list_df, ncol))) + 2
   } else {
     col <- 1
@@ -4300,9 +4300,9 @@ addDataScreenWb <- function(list_df, wb, sheetname) {
   return(results)
 }
 
-addGgplotsWb <- function(list_plot, wb, sheetname, col, width = 10, height = 7, dpi = 75) {
+addGgplotsWb <- function(list_plot, wb, sheetname, col, width = 10, height = 7, dpi = 75, startRow = 1) {
   l <- length(list_plot)
-  startRow <- 1
+  # startRow <- 1
   for (i in 1:l) {
     fileName <- tempfile(
       pattern = "figureImage",
@@ -4348,7 +4348,7 @@ addScreenWb <- function(df, wb, width = 14, height = 8, dpi = 75) {
       sh <- sheet[i]
       df_sh <- df %>% dplyr::filter(.data$sheet == sh)
       l <- nrow(df_sh)
-      startRow <- 1
+      startRow <- 30
       for (j in 1:l) {
         fileName <- df_sh$file[j]
         insertImage(
@@ -4363,7 +4363,7 @@ addScreenWb <- function(df, wb, width = 14, height = 8, dpi = 75) {
   return(wb)
 }
 
-addSheetToReport <- function(list_df, list_plot, sheetname, wb, dpi = 75) {
+addSheetToReport <- function(list_df, list_plot, sheetname, wb, dpi = 75, startRow = 1) {
   ind <- which(regexpr(sheetname, wb$sheet_names) > -1)
   if (length(ind) > 0) {
     sheetname <- paste(sheetname, "(", length(ind) + 1, ")", sep = "")
@@ -4372,13 +4372,13 @@ addSheetToReport <- function(list_df, list_plot, sheetname, wb, dpi = 75) {
 
   if (!is.null(list_df)) {
     col <- max(unlist(lapply(list_df, ncol))) + 2
-    wb <- addDataWb(list_df, wb = wb, sheetname = sheetname)
+    wb <- addDataWb(list_df, wb = wb, sheetname = sheetname, startRow = 1)
   } else {
     col <- 1
   }
 
   if (!is.null(list_plot)) {
-    wb <- addGgplotsWb(list_plot, wb = wb, sheetname = sheetname, col = col, dpi = dpi)
+    wb <- addGgplotsWb(list_plot, wb = wb, sheetname = sheetname, col = col, dpi = dpi, startRow = startRow)
   }
   # values$sheet_name <- sheetname
   return(wb)
@@ -5040,11 +5040,6 @@ DTformat <- function(df, nrow = 10, filename = "Table", pagelength = TRUE, left 
       select(Document, everything())
   }
 
-  # if (isTRUE(specialtags)){
-  #   df <- df %>%
-  #     mutate(Table = glue::glue('<button id2="custom_btn" onclick="Shiny.onInputChange(\'button_id2\', \'{UPOS}\')">View</button>')) %>%
-  #     select(Table, everything())
-  # }
   if (isTRUE(specialtags)) {
     df <- df %>%
       rename("Special Entity" = "UPOS") %>%
@@ -5752,30 +5747,7 @@ model_accuracy <- function() {
 
 
 #### Google GEMINI API ####
-gemini_ai <- function(image = NULL,
-                      prompt = "Explain this image",
-                      model = "2.0-flash",
-                      type = "png",
-                      retry_503 = 3) {
-
-  if (!file.exists(image)) {
-    return("❌ Error: Image file does not exist.")
-  }
-
-  # Build URL and MIME type
-  model_query <- paste0("gemini-", model, ":generateContent")
-  url <- paste0("https://generativelanguage.googleapis.com/v1beta/models/", model_query)
-  api_key <- Sys.getenv("GEMINI_API_KEY")
-  mime_type <- paste0("image/", type)
-
-  # Encode image
-  image_data <- tryCatch(
-    base64enc::base64encode(image),
-    error = function(e) {
-      return(paste("❌ Error encoding image:", e$message))
-    }
-  )
-  if (is.null(image_data)) return("❌ Failed to encode image.")
+gemini_ai <- function(image = NULL, prompt = "Explain this image", model = "2.0-flash", type = "png", retry_503 = 3) {
 
   # Default config
   generation_config <- list(
@@ -5786,19 +5758,60 @@ gemini_ai <- function(image = NULL,
     seed = 1234
   )
 
-  # Request body
-  request_body <- list(
-    contents = list(
-      parts = list(
-        list(text = prompt),
-        list(inline_data = list(
-          mime_type = mime_type,
-          data = image_data
-        ))
-      )
-    ),
-    generationConfig = generation_config
-  )
+  # Build URL
+  model_query <- paste0("gemini-", model, ":generateContent")
+  url <- paste0("https://generativelanguage.googleapis.com/v1beta/models/", model_query)
+  api_key <- Sys.getenv("GEMINI_API_KEY")
+
+  if (!is.null(image)){
+    if (!file.exists(image)) {
+      return("❌ Error: Image file does not exist.")
+    }
+
+    # Build MIME type
+    mime_type <- paste0("image/", type)
+
+    # Encode image
+    image_data <- tryCatch(
+      base64enc::base64encode(image),
+      error = function(e) {
+        return(paste("❌ Error encoding image:", e$message))
+      }
+    )
+
+    if (is.null(image_data)) return("❌ Failed to encode image.")
+
+    # Request body
+    request_body <- list(
+      contents = list(
+        parts = list(
+          list(text = prompt),
+          list(inline_data = list(
+            mime_type = mime_type,
+            data = image_data
+          ))
+        )
+      ),
+      generationConfig = generation_config
+    )
+
+  } else {
+    # Request body with only text prompt
+    request_body <- list(
+      contents = list(
+        parts = list(
+          list(text = prompt)
+          # ,list(inline_data = list(
+          #   mime_type = mime_type,
+          #   data = image_data
+          # )
+          # )
+        )
+      ),
+      generationConfig = generation_config
+    )
+  }
+
 
   # Retry loop
   for (attempt in seq_len(retry_503)) {
@@ -5857,7 +5870,6 @@ gemini_ai <- function(image = NULL,
   }
 }
 
-
 setGeminiAPI <- function(api_key) {
   # 1. Controllo validità dell'API key
   if (is.null(api_key) || !is.character(api_key) || nchar(api_key) == 0) {
@@ -5907,11 +5919,22 @@ geminiPromptImage <- function(obj, type="vis", prompt="Explain the topics in thi
     owd <- setwd(tmpdir)
     on.exit(setwd(owd))
     file_path <- paste0(tempfile(),".png",collapse="")
-    if (type %in% c("vis","plotly")){
-      suppressWarnings(plot2png(obj, filename = file_path, zoom = 2, type=type))
-    } else {
-      ggsave(filename = file_path, plot = obj, dpi = 72, height = 7, width = 14, bg = "transparent")
-    }
+    switch(type,
+           "vis"={
+             suppressWarnings(plot2png(obj, filename = file_path, zoom = 2, type="vis"))
+           },
+           "plotly"={
+             suppressWarnings(plot2png(obj, filename = file_path, zoom = 2, type="plotly"))
+           },
+           "html"={
+             html_name <- tempfile(fileext = ".html")
+             htmltools::save_html(obj, html_name)
+             tallShot(html_name, zoom = zoom, file = file_path)
+           },
+           "ggplot2"={
+             ggsave(filename = file_path, plot = obj, dpi = 72, height = 7, width = 14, bg = "transparent")
+           })
+
     res <- gemini_ai(image = file_path,
                      prompt = prompt)
   } else {
@@ -5971,8 +5994,8 @@ gemini2clip <- function(values, activeTab){
          "w_networkCooc" = {values$w_networkGemini},
          "w_networkTM" = {values$w_networkTMGemini},
          "w_w2v_similarity" = {values$w_w2vGemini},
-         "d_tm_estim" = {"Not yet implemented"},
-         "d_polDet" = {"Not yet implemented"}
+         "d_tm_estim" = {values$tmGemini},
+         "d_polDet" = {values$d_polDet_Gemini}
   )
 }
 
@@ -6025,7 +6048,32 @@ geminiGenerate <- function(values, activeTab, gemini_additional, gemini_model_pa
                                                 Focus on identifying which words best characterize each topic and whether topics appear well differentiated.",
                                            key=values$geminiAPI, desc=desc)
          },
-         "d_polDet" = {"Not yet implemented"}
+         "d_polDet" = {
+           req(values$docPolPlots)
+
+           # Posizionamento dei due barplot affiancati in una riga
+           bar_row <- subplot(
+             values$docPolPlots$positive %>% layout(showlegend = FALSE),
+             values$docPolPlots$negative %>% layout(showlegend = FALSE),
+             nrows = 1,
+             margin = 0.04,
+             widths = c(0.5, 0.5)
+           )
+
+           # Composizione finale in due righe tramite tagList
+           p <- htmltools::browsable(
+             tagList(
+               div(style = "height:400px;", values$sentimentPieChart),
+               div(style = "height:400px;", bar_row)
+             )
+           )
+           values$d_polDet_Gemini <- geminiPromptImage(obj=p,
+                                                         type="html",
+                                                         prompt="Provide an interpretation of these three plots generated from a Polarity Detection Analysis.
+                                                       The first plot is a pie chart showing the distribution of documents by polarity label (Very positive, positive, neutral, negative, and very negative).
+                                                       The second and third plots display the frequency distributions of the top words found in positive and negative documents, respectively. Focus on identifying any notable differences in word usage and the overall sentiment trends.",
+                                                         key=values$geminiAPI, desc=desc)
+         }
   )
   return(values)
 }
@@ -6067,7 +6115,10 @@ geminiParameterPrompt <- function(values, activeTab, input){
            req(values$TMestim_result)
            txt <- paste0(txt, "The Topic Model was estimated using the ",input$nTmEstim," frequent words identified by ", input$top_byEstim," measure.")
          },
-         "d_polDet" = {"Not yet implemented"},
+         "d_polDet" = {
+           req(values$docPolPlots)
+           txt
+           },
          {""}
   )
   return(txt)
@@ -6103,9 +6154,48 @@ geminiWaitingMessage <- function(values, activeTab){
            req(values$TMestim_result)
            values$tmGemini <- messageTxt
          },
-         "d_polDet" = {"Not yet implemented"}
+         "d_polDet" = {
+           req(values$docPolPlots)
+           values$d_polDet_Gemini <- messageTxt
+         }
   )
   return(values)
+}
+
+geminiSave <- function(values, activeTab){
+
+  switch(activeTab,
+         "wordCont" = {
+           req(values$contextNetwork)
+           gemini <- values$contextGemini
+         },
+         "w_reinclustering" = {"Not yet implemented"},
+         "ca" = {
+           req(values$plotCA)
+           gemini <- values$caGemini
+         },
+         "w_networkCooc" = {
+           req(values$netVis)
+           gemini <- values$w_networkGemini
+         },
+         "w_networkTM" = {
+           req(values$TMmap)
+           gemini <- values$w_networkTMGemini
+         },
+         "w_w2v_similarity" = {
+           req(values$w2vNetworkPlot)
+           gemini <- values$w_w2vGemini
+         },
+         "d_tm_estim" = {
+           req(values$TMestim_result)
+           gemini <- values$tmGemini
+         },
+         "d_polDet" = {
+           req(values$docPolPlots)
+           gemini <- values$d_polDet_Gemini
+         }
+  )
+  cat(gemini, file=paste0(values$wdTall,"/TallAI_",activeTab,".txt"))
 }
 
 copy_to_clipboard <- function(x) {
@@ -6141,4 +6231,25 @@ copy_to_clipboard <- function(x) {
   } else {
     stop("Unrecognized or unsupported operating system.")
   }
+}
+
+string_to_sentence_df <- function(input_string) {
+  # Validate that the input is a character string of length 1
+  if (!is.character(input_string) || nchar(input_string) < 2) {
+    return(data.frame(TALL_AI = "TALL AI was not performed", stringsAsFactors = FALSE, row.names = NULL))
+  }
+
+  # Split the string by newline character "\n"
+  split_sentences <- unlist(strsplit(input_string, split = "\n", fixed = TRUE))
+
+  # Trim whitespace from each sentence
+  cleaned_sentences <- trimws(split_sentences)
+
+  # Remove empty entries
+  cleaned_sentences <- cleaned_sentences[cleaned_sentences != ""]
+
+  # Convert to data frame
+  sentence_df <- data.frame(TALL_AI = cleaned_sentences, stringsAsFactors = FALSE, row.names = NULL)
+
+  return(sentence_df)
 }

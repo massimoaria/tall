@@ -109,6 +109,11 @@ To ensure the functionality of TALL,
     copy_to_clipboard(content)
   })
 
+  ## observe Gemini Save button
+  observeEvent(input$save_btn, {
+    geminiSave(values, input$sidebarmenu)
+  })
+
   ## observe gemini generate button
   observeEvent(input$gemini_btn, {
     values$gemini_additional <- input$gemini_additional ## additional info to Gemini prompt
@@ -3029,7 +3034,10 @@ To ensure the functionality of TALL,
     if (!is.null(values$CA)) {
       popUp(title = NULL, type = "waiting")
       sheetname <- "CorrespondenceAnalysis"
+
+      Gem <- values$caGemini %>% string_to_sentence_df()
       list_df <- list(
+        Gem,
         values$CA$wordCoordData,
         values$CA$contribData,
         values$CA$cosineData,
@@ -3190,7 +3198,9 @@ To ensure the functionality of TALL,
     if (!is.null(values$network$nodes)) {
       popUp(title = NULL, type = "waiting")
       sheetname <- "CoWord"
+      Gem <-  values$w_networkGemini %>% string_to_sentence_df()
       list_df <- list(
+        Gem,
         values$network$nodesData,
         values$network$edgesData
       )
@@ -3587,7 +3597,9 @@ To ensure the functionality of TALL,
     if (!is.null(values$TM)) {
       popUp(title = NULL, type = "waiting")
       sheetname <- "ThematicMap"
+      Gem <- values$w_networkTMGemini %>% string_to_sentence_df()
       list_df <- list(
+        Gem,
         values$TM$ClusterTable,
         values$TM$df_lab %>% select(-Cluster_Frequency)
       )
@@ -3813,7 +3825,9 @@ To ensure the functionality of TALL,
     if (!is.null(values$umapDf)) {
       popUp(title = NULL, type = "waiting")
       sheetname <- "EmbeddingSimilarity"
+      Gem <- values$w_w2vGemini %>% string_to_sentence_df()
       list_df <- list(
+        Gem,
         values$w2vNetwork$edges,
         values$umapDf
       )
@@ -4212,9 +4226,11 @@ To ensure the functionality of TALL,
       popUp(title = NULL, type = "waiting")
       values$tmGplotBeta <- topicGplot(values$TMestim_result$beta, nPlot = input$nTopicPlot, type = "beta")
       values$tmGplotTheta <- topicGplot(values$TMestim_result$theta, nPlot = input$nTopicPlot, type = "theta")
-      list_df <- list(values$beta, values$theta)
+      Gem <- values$tmGemini %>% string_to_sentence_df()
+      list_df <- list(values$tmGemini %>% string_to_sentence_df(),
+                      values$beta, values$theta)
       list_plot <- list(values$tmGplotBeta, values$tmGplotTheta, values$tmHeatmap$HplotStatic)
-      wb <- addSheetToReport(list_df, list_plot, sheetname = "ModelEstim", wb = values$wb)
+      wb <- addSheetToReport(list_df, list_plot, sheetname = "ModelEstim", wb = values$wb, startRow = nrow(Gem)+1)
       values$wb <- wb
       popUp(title = "Model Estimation Results", type = "success")
       values$myChoices <- sheets(values$wb)
@@ -4278,27 +4294,29 @@ To ensure the functionality of TALL,
           "Positive Words" = terms_positive,
           "Negative Words" = terms_negative
         )
+      # Pie chart
+      values$sentimentPieChart <- sentimentPieChart(values$docPolarity$sent_overall %>%
+                                                      count(doc_pol_clas) %>%
+                                                      rename("Polarity" = doc_pol_clas))
+      # Density plot
+      values$sentimentDensityPlot <- sentimentDensityPlot(values$docPolarity$sent_overall$sentiment_polarity, from = -1, to = 1)
+      # Box plot
+      values$sentimentBoxPlot <- sentimentBoxPlot(values$docPolarity$sent_overall)
     }
   )
 
   output$d_polPiePlot <- renderPlotly({
     docPolarityEstim()
-    df <- values$docPolarity$sent_overall %>%
-      count(doc_pol_clas) %>%
-      rename("Polarity" = doc_pol_clas)
-    values$sentimentPieChart <- sentimentPieChart(df)
     values$sentimentPieChart
   })
 
   output$d_polDensPlot <- renderPlotly({
     docPolarityEstim()
-    values$sentimentDensityPlot <- sentimentDensityPlot(values$docPolarity$sent_overall$sentiment_polarity, from = -1, to = 1)
     values$sentimentDensityPlot
   })
 
   output$d_polBoxPlot <- renderPlotly({
     docPolarityEstim()
-    values$sentimentBoxPlot <- sentimentBoxPlot(values$docPolarity$sent_overall)
     values$sentimentBoxPlot
   })
 
@@ -4309,6 +4327,11 @@ To ensure the functionality of TALL,
   output$d_polDetPlotNeg <- renderPlotly({
     docPolarityEstim()
     values$docPolPlots$negative
+  })
+
+  output$d_polDet_GeminiUI <- renderUI({
+    values$gemini_model_parameters <- geminiParameterPrompt(values, input$sidebarmenu, input)
+    geminiOutput(title = "Gemini AI", content = values$d_polDet_Gemini, values)
   })
 
 
@@ -4349,7 +4372,10 @@ To ensure the functionality of TALL,
     if (!is.null(values$docPolarityOverallData)) {
       popUp(title = NULL, type = "waiting")
       sheetname <- "PolarityDetection"
-      list_df <- list(values$docPolarityOverallData)
+
+      Gem <- values$d_polDet_Gemini %>% string_to_sentence_df()
+
+      list_df <- list(Gem, values$docPolarityOverallData)
       res <- addDataScreenWb(list_df, wb = values$wb, sheetname = sheetname)
       # values$wb <- res$wb
       owd <- setwd(tempdir())
