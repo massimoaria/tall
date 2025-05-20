@@ -1,6 +1,7 @@
 ##  Server ####
 source("tallFunctions.R", local = TRUE)
 source("tallShot.R", local = TRUE)
+source("tallAI.R", local = TRUE)
 
 ## suppress warnings
 # options(warn = -1)
@@ -345,7 +346,7 @@ To ensure the functionality of TALL,
       list(
         textAreaInput(
           inputId = "corpus_description",
-          label = "Please provide a brief description of your corpus (e.g., source, type of content, domain) to improve prompts for the Gemini AI Assistant:",
+          label = "Please provide a brief description of your corpus (e.g., source, type of content, domain) to improve prompts for the TALL AI Assistant:",
           placeholder = "Example: The corpus consists of 150 academic articles from biomedical journals published between 2015 and 2020...",
           rows = 8,
           width = "100%"
