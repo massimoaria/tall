@@ -5929,7 +5929,9 @@ geminiPromptImage <- function(obj, type="vis", prompt="Explain the topics in thi
            "html"={
              html_name <- tempfile(fileext = ".html")
              htmltools::save_html(obj, html_name)
-             tallShot(html_name, zoom = zoom, file = file_path)
+             print(html_name)
+             print
+             tallShot(html_name, zoom = 2, file = file_path)
            },
            "ggplot2"={
              ggsave(filename = file_path, plot = obj, dpi = 72, height = 7, width = 14, bg = "transparent")
