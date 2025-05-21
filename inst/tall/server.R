@@ -106,13 +106,13 @@ To ensure the functionality of TALL,
 
   ## observe Gemini copy2clipboard button
   observeEvent(input$copy_btn, {
-    content <- gemini2clip(values, input$sidebarmenu)
+    content <- geminiSave(values, input$sidebarmenu, type="clip")
     copy_to_clipboard(content)
   })
 
   ## observe Gemini Save button
   observeEvent(input$save_btn, {
-    geminiSave(values, input$sidebarmenu)
+    geminiSave(values, input$sidebarmenu, type="save")
   })
 
   ## observe gemini generate button
