@@ -239,18 +239,18 @@ This AI-powered feature leverages Google Gemini to help you understand patterns 
   )
 }
 
-gemini2clip <- function(values, activeTab){
-  switch(activeTab,
-         "wordCont" = {values$contextGemini},
-         "w_reinclustering" = {"Not yet implemented"},
-         "ca" = {values$caGemini},
-         "w_networkCooc" = {values$w_networkGemini},
-         "w_networkTM" = {values$w_networkTMGemini},
-         "w_w2v_similarity" = {values$w_w2vGemini},
-         "d_tm_estim" = {values$tmGemini},
-         "d_polDet" = {values$d_polDet_Gemini}
-  )
-}
+# gemini2clip <- function(values, activeTab){
+#   switch(activeTab,
+#          "wordCont" = {values$contextGemini},
+#          "w_reinclustering" = {"Not yet implemented"},
+#          "ca" = {values$caGemini},
+#          "w_networkCooc" = {values$w_networkGemini},
+#          "w_networkTM" = {values$w_networkTMGemini},
+#          "w_w2v_similarity" = {values$w_w2vGemini},
+#          "d_tm_estim" = {values$tmGemini},
+#          "d_polDet" = {values$d_polDet_Gemini}
+#   )
+# }
 
 geminiGenerate <- function(values, activeTab, gemini_additional, gemini_model_parameters){
   if (gemini_additional!="") {
@@ -410,7 +410,7 @@ geminiWaitingMessage <- function(values, activeTab){
   return(values)
 }
 
-geminiSave <- function(values, activeTab){
+geminiSave <- function(values, activeTab, type=c("clip","save")){
 
   switch(activeTab,
          "wordCont" = {
@@ -443,7 +443,11 @@ geminiSave <- function(values, activeTab){
            gemini <- values$d_polDet_Gemini
          }
   )
-  cat(gemini, file=paste0(values$wdTall,"/TallAI_",activeTab,".txt"))
+  if (type=="save") {
+    cat(gemini, file=paste0(values$wdTall,"/TallAI_",activeTab,".txt"))
+  } else {
+      return(gemini)
+    }
 }
 
 copy_to_clipboard <- function(x) {

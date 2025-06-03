@@ -264,6 +264,12 @@ loadSampleCollection <- function(sampleName) {
            url <- paste0("https://raw.githubusercontent.com/massimoaria/tall.language.models/main/sample.data/bbc.zip")
            destfile <- paste0(path_language_model, "/bbc.zip")
            file <- paste0(path_language_model, "/bbc.zip")
+         },
+         usairlines = {
+           file_lang <- dir(path_language_model, pattern = "usairlines.zip")[1]
+           url <- paste0("https://raw.githubusercontent.com/massimoaria/tall.language.models/main/sample.data/usairlines.zip")
+           destfile <- paste0(path_language_model, "/usairlines.zip")
+           file <- paste0(path_language_model, "/usairlines.zip")
          }
   )
 
