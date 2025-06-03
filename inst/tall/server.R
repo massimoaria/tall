@@ -287,7 +287,8 @@ To ensure the functionality of TALL,
                       label = "Select sample texts",
                       choices = c(
                         "BBC news" = "bbc",
-                        "Bibliometrix" = "bibliometrix"
+                        "Bibliometrix" = "bibliometrix",
+                        "US Airlines Tweets" = "usairlines"
                       ),
                       selected = "bibliometrix"
           ),
@@ -309,6 +310,15 @@ To ensure the functionality of TALL,
             condition = "input.demo_file=='bbc'",
             helpText(
               em("A collection of 386 short news stories published in the entertainment section of the BBC News website."),
+              br(),
+              br(),
+              em("The texts are in English.")
+            )
+          ),
+          conditionalPanel(
+            condition = "input.demo_file=='usairlines'",
+            helpText(
+              em("The dataset is the 'Twitter US Airline Sentiment' collection, a publicly available and widely used dataset originally hosted on Kaggle. It contains tweets collected during February 2015 that pertain to major U.S.-based airlines."),
               br(),
               br(),
               em("The texts are in English.")
@@ -506,6 +516,25 @@ To ensure the functionality of TALL,
                       values$menu <- 0
                       values$custom_lists <- NULL
                       values$corpus_description <- "A collection of 386 short news published in the entertainment section of the BBC News website."
+                      values$resetNeed <- TRUE
+                      values$txt <- txt %>%
+                        mutate(text_original = text) %>%
+                        arrange(doc_id)
+                    },
+                    usairlines = {
+                      file_tall <- loadSampleCollection("usairlines")
+                      files <- list(name = "usairlines.zip", datapath = file_tall)
+                      txt <- read_files(files, ext = "csv", subfolder = FALSE)
+                      values$menu <- 0
+                      values$custom_lists <- NULL
+                      values$corpus_description <- paste0("The dataset under analysis is the 'Twitter US Airline Sentiment' collection, a publicly available",
+                                                          " and widely used dataset originally hosted on Kaggle. It contains tweets collected during February 2015",
+                                                          " that pertain to major U.S.-based airlines. The primary objective of this dataset is to capture and analyze",
+                                                          " the sentiment expressed by travelers regarding their airline experiences. Each tweet is annotated with ",
+                                                          "a sentiment label—positive, neutral, or negative—based on the emotional tone conveyed in the text. ",
+                                                          "This collection is frequently employed in natural language processing tasks, particularly for training ",
+                                                          "and evaluating sentiment classification models. In this context, the dataset will be used to explore how ",
+                                                          "airline passengers articulated their opinions and emotions on Twitter during the specified period.")
                       values$resetNeed <- TRUE
                       values$txt <- txt %>%
                         mutate(text_original = text) %>%
