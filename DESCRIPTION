@@ -1,6 +1,6 @@
 Package: tall
 Title: Text Analysis for All
-Version: 0.3.0
+Version: 0.3.0.9000
 Authors@R: c(
     person(given = "Massimo", 
            family = "Aria",
