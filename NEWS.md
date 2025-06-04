@@ -1,4 +1,4 @@
-# tall 0.2.0
+# tall 0.3.0
 * Added AI assistant called TALL AI
 
 # tall 0.1.2
