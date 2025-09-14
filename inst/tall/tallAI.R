@@ -3,21 +3,53 @@ gemini_ai <- function(image = NULL,
                       prompt = "Explain these images",
                       model = "2.0-flash",
                       type = "png",
-                      retry_503 = 3) {
+                      retry_503 = 5,
+                      api_key=NULL,
+                      outputSize = "medium"){
 
-  # Default config
-  generation_config <- list(
-    temperature = 1,
-    maxOutputTokens = 8192,
-    topP = 0.95,
-    topK = 40,
-    seed = 1234
+  switch(outputSize,
+         "small" = {
+           generation_config <- list(
+             temperature = 1,
+             maxOutputTokens = 8192,
+             topP = 0.95,
+             topK = 40,
+             seed = 1234
+           )
+         },
+         "medium" = {
+           generation_config <- list(
+             temperature = 1,
+             maxOutputTokens = 16384, #8192,
+             topP = 0.95,
+             topK = 40,
+             seed = 1234
+           )
+         },
+         "large" = {
+           generation_config <- list(
+             temperature = 1,
+             maxOutputTokens = 32768, #8192,
+             topP = 0.95,
+             topK = 40,
+             seed = 1234
+           )
+         }
   )
+
+  # # Default config
+  # generation_config <- list(
+  #   temperature = 1,
+  #   maxOutputTokens = 16384,#8192,
+  #   topP = 0.95,
+  #   topK = 40,
+  #   seed = 1234
+  # )
 
   # Build URL
   model_query <- paste0("gemini-", model, ":generateContent")
   url <- paste0("https://generativelanguage.googleapis.com/v1beta/models/", model_query)
-  api_key <- Sys.getenv("GEMINI_API_KEY")
+  if (is.null(api_key)) api_key <- Sys.getenv("GEMINI_API_KEY")
 
   # Base structure of parts
   parts <- list(list(text = prompt))
@@ -72,17 +104,18 @@ gemini_ai <- function(image = NULL,
     resp <- tryCatch(
       req_perform(req),
       error = function(e) {
-        return(list(error = TRUE, message = paste("❌ Request failed with error:", e$message)))
+        return(list(status_code=stringr::str_extract(e$message, "(?<=HTTP )\\d+")|> as.numeric(),
+                    error = TRUE, message = paste("❌ Request failed with error:", e$message)))
       }
     )
 
-    # Handle connection-level error
+    # # Handle connection-level error
     # if (is.list(resp) && isTRUE(resp$error)) {
     #   return(resp$message)
     # }
 
-    # Retry on HTTP 503
-    if (resp$status_code == 503) {
+    # Retry on HTTP 503 or 429
+    if (resp$status_code %in% c(429,503)) {
       if (attempt < retry_503) {
         message(paste0("⚠️ HTTP 503 (Service Unavailable) - retrying in 2 seconds (attempt ", attempt, "/", retry_503, ")..."))
         Sys.sleep(2)
@@ -92,19 +125,30 @@ gemini_ai <- function(image = NULL,
           paste0(
             "❌ HTTP 503: Service Unavailable.\n",
             "The Google Gemini servers are currently overloaded or under maintenance.\n",
-            "All retry attempts failed (", retry_503, "). Please try again later."
+            "All retry attempts failed (", retry_503, "). Please try again in a few minutes. Alternatively, consider using a different AI model with lower latency."
           )
         )
       }
     }
 
+    # HTTP errors
+    # 400 api key not valid
+    if (resp$status_code == 400) {
+      msg <- tryCatch({
+        parsed <- jsonlite::fromJSON(httr2::resp_body_string(resp))
+        parsed$error$message
+      }, error = function(e) {
+        "Please check your API key. It seems to be not valid!"
+      })
+      return(paste0("❌ HTTP ", resp$status_code, ": ", msg))
+    }
     # Other HTTP errors
     if (resp$status_code != 200) {
       msg <- tryCatch({
         parsed <- jsonlite::fromJSON(httr2::resp_body_string(resp))
         parsed$error$message
       }, error = function(e) {
-        "Service unavailable or unexpected error."
+        "Service unavailable or unexpected error. Please check your API key and usage limit."
       })
 
       return(paste0("❌ HTTP ", resp$status_code, ": ", msg))
@@ -118,15 +162,26 @@ gemini_ai <- function(image = NULL,
 }
 
 setGeminiAPI <- function(api_key) {
+
   # 1. Controllo validità dell'API key
+  apiCheck <- gemini_ai(image = NULL,
+                        prompt = "Hello",
+                        model = "2.0-flash",
+                        type = "png",
+                        retry_503 = 5, api_key=api_key)
+
+  contains_http_error <- grepl("HTTP\\s*[1-5][0-9]{2}", apiCheck)
+
+  if (contains_http_error) {
+    return(list(valid=FALSE, message="❌ API key seems be not valid! Please, check it or your connection."))
+  }
+
   if (is.null(api_key) || !is.character(api_key) || nchar(api_key) == 0) {
-    message("❌ API key must be a non-empty string.")
-    return(NA)
+    return(list(valid=FALSE, message="❌ API key must be a non-empty string."))
   }
 
   if (nchar(api_key) < 10) {
-    message("❌ API key seems too short. Please verify your key.")
-    return(NA)
+    return(list(valid=FALSE, message="❌ API key seems too short. Please verify your key."))
   }
 
   # 2. Mostra solo gli ultimi 4 caratteri per feedback
@@ -136,7 +191,7 @@ setGeminiAPI <- function(api_key) {
   # 3. Imposta la variabile d'ambiente
   Sys.setenv(GEMINI_API_KEY = api_key)
 
-  return(paste0(paste0(rep("*",nchar(api_key)-4), collapse=""),last,collapse=""))
+  return(list(valid=TRUE, message=paste0(paste0(rep("*",nchar(api_key)-4), collapse=""),last,collapse="")))
 }
 
 showGeminiAPI <- function(){
@@ -147,7 +202,7 @@ showGeminiAPI <- function(){
   return(last)
 }
 
-load_api_key <- function(path = path_tall) {
+load_api_key <- function(path = path_gemini_key) {
   if (file.exists(path)) {
     key <- readLines(path, warn = FALSE)
     if (nchar(key) >= 10) {
@@ -158,49 +213,30 @@ load_api_key <- function(path = path_tall) {
   return(FALSE)
 }
 
-## gemini prompt for images
-geminiPromptImage <- function(obj, type="vis", prompt="Explain the topics in this map", key, desc = NULL){
-  if (key){
-    if (!is.null(desc)) prompt <- paste0(prompt,desc,collapse=". ")
-    tmpdir <- tempdir()
-    owd <- setwd(tmpdir)
-    on.exit(setwd(owd))
-    file_path <- paste0(tempfile(),".png",collapse="")
-    switch(type,
-           "vis"={
-             suppressWarnings(plot2png(obj, filename = file_path, zoom = 2, type="vis"))
-           },
-           "plotly"={
-             suppressWarnings(plot2png(obj, filename = file_path, zoom = 2, type="plotly"))
-           },
-           "text"={
-             file_path <- NULL
-           },
-           "multi"={
-             file_path <- obj
-           },
-           "html"={
-             html_name <- tempfile(fileext = ".html")
-             htmltools::save_html(obj, html_name)
-             tallShot(html_name, zoom = 2, file = file_path)
-           },
-           "ggplot2"={
-             ggsave(filename = file_path, plot = obj, dpi = 72, height = 7, width = 14, bg = "transparent")
-           })
-
-    res <- gemini_ai(image = file_path,
-                     prompt = prompt)
+loadGeminiModel = function(file){
+  # load info about model type and output size
+  if (file.exists(file)){
+    model <- readLines(file, warn = FALSE)
   } else {
-    res <- 'To access this feature, please provide a valid Gemini AI API key. You can obtain your API key by visiting the official <a href="https://aistudio.google.com/" target="_blank">Google AI Studio website</a>.'
+    model <- c("2.0-flash","medium")
   }
+  if (length(model== 1)) {
+    model <- c(model,"medium")
+  }
+  return(model)
+}
 
-  return(res)
+saveGeminiModel = function(model, file){
+  if (file.exists(file)) {
+    file.remove(file)
+  }
+  writeLines(model, file)
 }
 
 geminiOutput <- function(title = "", content = "", values){
   if (is.null(content)){
-    content <- "Click the 'Ask TALL AI' button to analyze the visual outputs and provide an automatic interpretation of your results based on the graphs.\n
-This AI-powered feature leverages Google Gemini to help you understand patterns and insights emerging from your contextual analysis.\n\n\n\n\n\n\n"
+    content <- "Click the 'Ask Biblio AI' button to analyze the visual outputs and provide an automatic interpretation of your results based on the graphs.\n
+This AI-powered feature leverages Google Gemini to help you understand patterns and insights emerging from your contextual analysis.\n  \n  \n \n  \n  \n  \n"
   }
   box(
     title = title,
@@ -208,22 +244,23 @@ This AI-powered feature leverages Google Gemini to help you understand patterns 
     status = "info",
     solidHeader = TRUE,
     div(
+      id = "typing-box",
       style = "white-space: pre-wrap; background-color:#f9f9f9; padding:15px; border:1px solid #ccc; border-radius:5px; max-height:400px; overflow-y: auto;",
-      HTML(content)
+      HTML(text_to_html(content))
     ),
     br(),
-    em("You can modify or enrich the proposed prompt with additional context or details about your analysis to help TALL AI generate a more accurate and meaningful interpretation."),
+    em("You can modify or enrich the proposed prompt with additional context or details about your analysis to help 'Tall AI' generate a more accurate and meaningful interpretation."),
     textAreaInput(
       inputId = "gemini_additional",
       label = NULL,
       value = values$gemini_model_parameters,
-      placeholder = "You can provide additional context or details about your analysis to help TALL AI generate a more accurate and meaningful interpretation.",
+      placeholder = "You can provide additional context or details about your analysis to help 'Tall AI' generate a more accurate and meaningful interpretation.",
       rows = 3,
       width = "100%"
     ),
     fluidRow(
       column(4, align = "center",
-             actionButton("gemini_btn", "Ask TALL AI", style = "color: white;",
+             actionButton("gemini_btn", "Ask Tall AI", style = "color: white;",
                           icon(name = "microchip", lib = "font-awesome"),
                           width = "80%")
       ),
@@ -232,74 +269,124 @@ This AI-powered feature leverages Google Gemini to help you understand patterns 
                           width = "80%")
       ),
       column(4, align = "center",
-             actionButton("save_btn", "Save", style = "color: white;", icon = icon("download"),
-                          width = "80%")
+             downloadButton(outputId = "save_btn", label = "Save", icon = icon("download"),
+                            style = "width: 80%;")
       )
     )
   )
 }
 
-# gemini2clip <- function(values, activeTab){
-#   switch(activeTab,
-#          "wordCont" = {values$contextGemini},
-#          "w_reinclustering" = {"Not yet implemented"},
-#          "ca" = {values$caGemini},
-#          "w_networkCooc" = {values$w_networkGemini},
-#          "w_networkTM" = {values$w_networkTMGemini},
-#          "w_w2v_similarity" = {values$w_w2vGemini},
-#          "d_tm_estim" = {values$tmGemini},
-#          "d_polDet" = {values$d_polDet_Gemini}
-#   )
-# }
+tallAiPrompts <- function(values, activeTab){
 
-geminiGenerate <- function(values, activeTab, gemini_additional, gemini_model_parameters){
+  ## Role definition for Gemini as Biblio AI assistant
+  promptInitial <- paste0("You are Tall AI, an AI assistant integrated within TALL. ",
+                          "Your task is to support researchers in interpreting and critically discussing the results of ",
+                          "their quantitative textual analyses, offering insights, contextual explanations, and guidance for data-driven interpretation. ")
+
+  ## Specific prompts for each analysis
+  switch(activeTab,
+         "mainInfo"={
+           Prompt <- paste0("Provide an interpretation of these statistics summarizing the corpus collection. ",
+                            "Focus on key metrics, ",
+                            "and discuss what they reveal about the scope, productivity, and impact of the collection. ",
+                            "This is the list of statistics: ",merge_df_to_string(values$TABvb))
+         },
+         "wordCont" = {
+           prompt <- "Explain the topics in this 'word in context' network."
+         },
+         "ca"={
+           prompt <- paste0("Provide an interpretation of this 'correspondence analysis' map.")
+         },
+         "w_networkCooc"={
+           prompt <- paste0("Provide an interpretation of this 'word co-occurrence' network.")
+         },
+         "w_networkTM" ={
+           prompt <- paste0("Provide an interpretation of this 'strategic map'.")
+         },
+         "w_w2v_similarity"={
+           prompt <- paste0("Provide an interpretation of this 'cosine similarity' map. ",
+                            "The map has been created on a word embedding matrix by word2vec model.")
+         },
+         "d_tm_estim"={
+           prompt <- paste0("Interpret this graph showing the beta probabilities P(word|topic) from a topic modeling analysis. ",
+                            "Each value represents how strongly a word is associated with a specific topic. ",
+                            "Focus on identifying which words best characterize each topic and whether topics appear well differentiated.")
+         },
+         "d_polDet"={
+           prompt <- paste0("Provide an interpretation of these three plots generated from a Polarity Detection Analysis. ",
+                            "The first plot is a pie chart showing the distribution of documents by polarity label (Very positive, positive, neutral, negative, and very negative). ",
+                            "The second and third plots display the frequency distributions of the top words found in positive and negative documents, respectively. ",
+                            "Focus on identifying any notable differences in word usage and the overall sentiment trends.")
+         },
+         {
+           prompt <- paste0("Provide an interpretation of this plot creted with 'TALL R Package'")
+         })
+  prompt <- paste0(promptInitial,prompt)
+#if (!activeTab %in% c("mainInfo", "thematicMap", "trendTopic")) prompt <- paste0(prompt, " Provide also scientific references about the methodological description")
+return(prompt)
+}
+
+
+
+gemini2clip <- function(values, activeTab){
+  switch(activeTab,
+         "wordCont" = {values$contextGemini},
+         "w_reinclustering" = {"Not yet implemented"},
+         "ca" = {values$caGemini},
+         "w_networkCooc" = {values$w_networkGemini},
+         "w_networkTM" = {values$w_networkTMGemini},
+         "w_w2v_similarity" = {values$w_w2vGemini},
+         "d_tm_estim" = {values$tmGemini},
+         "d_polDet" = {values$d_polDet_Gemini}
+  )
+}
+
+geminiGenerate <- function(values, activeTab, gemini_additional, gemini_model_parameters, input){
   if (gemini_additional!="") {
     desc <- paste0(values$corpus_description, gemini_additional, gemini_model_parameters, collapse=". ")
   } else {
-    desc <- values$corpus_description
+    desc <- paste0(values$corpus_description, gemini_model_parameters, collapse=". ")
   }
+  prompt <- tallAiPrompts(values, activeTab)
   switch(activeTab,
          "wordCont" = {
            req(values$contextNetwork)
            values$contextGemini <- geminiPromptImage(obj=values$contextNetwork, type="vis",
-                                                     prompt="Explain the topics in this 'word in context' network",
-                                                     key=values$geminiAPI, desc=desc)
+                                                     prompt=prompt,
+                                                     key=values$geminiAPI, desc=desc, values=values)
          },
          "w_reinclustering" = {"Not yet implemented"},
          "ca" = {
            req(values$plotCA)
            values$caGemini <- geminiPromptImage(obj=values$plotCA, type="plotly",
-                                                prompt="Provide an interpretation of this 'correspondence analysis' map",
-                                                key=values$geminiAPI, desc=desc)
+                                                prompt=prompt,
+                                                key=values$geminiAPI, desc=desc, values=values)
          },
          "w_networkCooc" = {
            req(values$netVis)
            values$w_networkGemini <- geminiPromptImage(obj=values$netVis, type="vis",
-                                                       prompt="Provide an interpretation of this 'word co-occurrence' network",
-                                                       key=values$geminiAPI, desc=desc)
+                                                       prompt=prompt,
+                                                       key=values$geminiAPI, desc=desc, values=values)
          },
          "w_networkTM" = {
            req(values$TMmap)
            values$w_networkTMGemini <- geminiPromptImage(obj=plotTM(values$TM$df, size = 0.5, gemini = TRUE),
                                                          type="plotly",
-                                                         prompt="Provide an interpretation of this 'strategic map'",
-                                                         key=values$geminiAPI, desc=desc)
+                                                         prompt=prompt,
+                                                         key=values$geminiAPI, desc=desc, values=values)
          },
          "w_w2v_similarity" = {
            req(values$w2vNetworkPlot)
            values$w_w2vGemini <- geminiPromptImage(obj=values$w2vNetworkPlot, type="vis",
-                                                   prompt="Provide an interpretation of this 'cosine similarity' map.
-                                           The map has been created on a word embedding matrix by word2vec model.",
-                                                   key=values$geminiAPI, desc=desc)
+                                                   prompt=prompt,
+                                                   key=values$geminiAPI, desc=desc, values=values)
          },
          "d_tm_estim" = {
            req(values$TMestim_result)
            tmPlot <- topicGplot(values$TMestim_result$beta, nPlot = 10, type = "beta")
            values$tmGemini <- geminiPromptImage(obj=tmPlot, type="ggplot2",
-                                                prompt="Interpret this graph showing the beta probabilities P(word|topic) from a topic modeling analysis.
-                                                Each value represents how strongly a word is associated with a specific topic.
-                                                Focus on identifying which words best characterize each topic and whether topics appear well differentiated.",
-                                                key=values$geminiAPI, desc=desc)
+                                                prompt=prompt,
+                                                key=values$geminiAPI, desc=desc, values=values)
          },
          "d_polDet" = {
            req(values$docPolPlots)
@@ -317,10 +404,8 @@ geminiGenerate <- function(values, activeTab, gemini_additional, gemini_model_pa
 
            values$d_polDet_Gemini <- geminiPromptImage(obj=files,
                                                        type="multi",
-                                                       prompt="Provide an interpretation of these three plots generated from a Polarity Detection Analysis.
-                                                       The first plot is a pie chart showing the distribution of documents by polarity label (Very positive, positive, neutral, negative, and very negative).
-                                                       The second and third plots display the frequency distributions of the top words found in positive and negative documents, respectively. Focus on identifying any notable differences in word usage and the overall sentiment trends.",
-                                                       key=values$geminiAPI, desc=desc)
+                                                       prompt=prompt,
+                                                       key=values$geminiAPI, desc=desc, values=values)
          }
   )
   return(values)
@@ -372,9 +457,62 @@ geminiParameterPrompt <- function(values, activeTab, input){
   return(txt)
 }
 
+## gemini prompt for images
+geminiPromptImage <- function(obj, type="vis", prompt="Explain the topics in this map", key, desc = NULL, values){
+  ## Check Computer configuration to work with Biblio AI
+  ### Internet Connection
+  if (!is_online()){
+    res <- '⚠️ **Note**: Tall AI requires an active internet connection to work.'
+    return(res)
+  }
+  ### Chromium Browser
+  if (is.null(values$Chrome_url)) {
+    res <- '⚠️ **Note**: Tall AI requires a **Chrome-based browser** (such as Google Chrome or Microsoft Edge) installed on your computer to work correctly.'
+    return(res)
+  }
+  ### Gemini API key
+  if (key){
+    if (!is.null(desc)) prompt <- paste0(prompt,desc,collapse=". ")
+    tmpdir <- tempdir()
+    owd <- setwd(tmpdir)
+    on.exit(setwd(owd))
+    file_path <- paste0(tempfile(),".png",collapse="")
+    switch(type,
+           "vis"={
+             suppressWarnings(plot2png(obj, filename = file_path, zoom = 2, type="vis"))
+           },
+           "plotly"={
+             suppressWarnings(plot2png(obj, filename = file_path, zoom = 2, type="plotly"))
+           },
+           "text"={
+             file_path <- NULL
+           },
+           "multi"={
+             file_path <- obj
+           },
+           "html"={
+             html_name <- tempfile(fileext = ".html")
+             htmltools::save_html(obj, html_name)
+             tallShot(html_name, zoom = 2, file = file_path)
+           },
+           "ggplot2"={
+             ggsave(filename = file_path, plot = obj, dpi = 72, height = 7, width = 14, bg = "transparent")
+           })
+
+    res <- gemini_ai(image = file_path,
+                     prompt = prompt,
+                     model =  values$gemini_api_model,
+                     outputSize = values$gemini_output_size)
+  } else {
+    res <- 'To access this feature, please provide a valid Gemini AI API key. You can obtain your API key by visiting the official <a href="https://aistudio.google.com/" target="_blank">Google AI Studio website</a>.'
+  }
+
+  return(res)
+}
+
 geminiWaitingMessage <- function(values, activeTab){
 
-  messageTxt <- "\n\nPlease Wait\n\nThinking.....\n\n"
+  messageTxt <- "⌛ Thinking..."
 
   switch(activeTab,
          "wordCont" = {
@@ -410,7 +548,7 @@ geminiWaitingMessage <- function(values, activeTab){
   return(values)
 }
 
-geminiSave <- function(values, activeTab, type=c("clip","save")){
+geminiSave <- geminiSave <- function(values, activeTab){
 
   switch(activeTab,
          "wordCont" = {
@@ -443,11 +581,29 @@ geminiSave <- function(values, activeTab, type=c("clip","save")){
            gemini <- values$d_polDet_Gemini
          }
   )
-  if (type=="save") {
-    cat(gemini, file=paste0(values$wdTall,"/TallAI_",activeTab,".txt"))
-  } else {
-      return(gemini)
-    }
+  if (is.null(gemini)) gemini <- "Click 'Ask Tall AI' for help. "
+
+  return(gemini)
+}
+
+merge_df_to_string <- function(df) {
+  # Check if the input has at least two columns
+  if (ncol(df) < 2) {
+    stop("The data frame must have at least two columns.")
+  }
+
+  # Ensure the input is a data frame
+  df <- as.data.frame(df)
+
+  # Convert each row into a "param: value" format
+  row_strings <- apply(df[, 1:2], 1, function(row) {
+    paste0(row[1], ": ", row[2])
+  })
+
+  # Concatenate all row strings using "; " as separator
+  final_string <- paste(row_strings, collapse = "; ")
+
+  return(final_string)
 }
 
 copy_to_clipboard <- function(x) {
@@ -504,4 +660,60 @@ string_to_sentence_df <- function(input_string) {
   sentence_df <- data.frame(TALL_AI = cleaned_sentences, stringsAsFactors = FALSE, row.names = NULL)
 
   return(sentence_df)
+}
+
+# convert gemini output to HTML
+text_to_html <- function(input_text) {
+  input_text <- c(input_text,"\n")
+  # Escape HTML special characters
+  escape_html <- function(text) {
+    text <- gsub("&", "&amp;", text)
+    text <- gsub("<", "&lt;", text)
+    text <- gsub(">", "&gt;", text)
+    text
+  }
+
+  # Convert markdown-style bold (**text**) to <strong>
+  convert_bold <- function(text) {
+    gsub("\\*\\*(.*?)\\*\\*", "<strong>\\1</strong>", text)
+  }
+
+  # Process each paragraph
+  paragraphs <- unlist(strsplit(input_text, "\n\n"))
+  html_paragraphs <- lapply(paragraphs, function(p) {
+    lines <- unlist(strsplit(p, "\n"))
+    lines <- sapply(lines, escape_html) # escape special characters
+    lines <- sapply(lines, convert_bold) # convert **bold**
+
+    if (all(grepl("^\\*\\s+", lines))) {
+      # Convert to unordered list
+      lines <- gsub("^\\*\\s+", "", lines)
+      items <- paste0("<li>", lines, "</li>", collapse = "\n")
+      return(paste0("<ul>\n", items, "\n</ul>"))
+    } else {
+      # Regular paragraph
+      return(paste0("<p>", paste(lines, collapse = "<br/>"), "</p>"))
+    }
+  })
+
+  # Combine all HTML parts
+  html_body <- paste(html_paragraphs, collapse = "\n\n")
+  html <- paste0("<html>\n<body>\n", html_body, "\n</body>\n</html>")
+  html <- gsub("\n","",html)
+  return(html)
+}
+
+# From HTML to text Blocks
+html_to_blocks <- function(raw_html){
+  html_body <- sub(".*<body[^>]*>", "", raw_html)
+  html_body <- sub("</body>.*", "", html_body)
+
+  blocks <- stringr::str_split(
+    html_body,
+    "(?=<p|<ul|<ol|<li|<h[1-6]|<blockquote|<pre|<table|<div)",
+    simplify = FALSE
+  )[[1]]
+
+  blocks <- trimws(blocks)
+  blocks <- blocks[nzchar(blocks)]
 }
