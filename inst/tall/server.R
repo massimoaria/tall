@@ -14,44 +14,9 @@ options(shiny.maxRequestSize = maxUploadSize * 1024^2)
 param_stay_page <- FALSE
 
 server <- function(input, output, session) {
-  if (inherits(try(pagedown::find_chrome(), silent = T), "try-error")) {
-    Chrome_url <- NULL
-  } else {
-    Chrome_url <- pagedown::find_chrome()
-  }
 
-  #  Sys.setenv (CHROMOTE_CHROME = Chrome_url)
-
-  ## chrome configuration for shinyapps server
-
-  if (identical(Sys.getenv("R_CONFIG_ACTIVE"), "shinyapps")) {
-    chromote::set_default_chromote_object(
-      chromote::Chromote$new(chromote::Chrome$new(
-        args = c(
-          "--disable-gpu",
-          "--no-sandbox",
-          "--disable-dev-shm-usage", # required bc the target easily crashes
-          c("--force-color-profile", "srgb")
-        )
-      ))
-    )
-  }
-  ## end configuration
-
-  ## Check if Chrome browser is installed on the computer
-  if (is.null(Chrome_url)) {
-    showModal(modalDialog(
-      title = strong("Warning message!"),
-      HTML("Chrome or a Chromium-based browser is not installed on your computer.<br>
-If you do not have either of these browsers installed, TALL will be unable to export graphs.<br>
-To ensure the functionality of TALL,
-           please download Chrome by <a href='https://www.google.com/chrome/' target='_blank' > <b>clicking here</b></a>."),
-      footer = modalButton("Dismiss"),
-      easyClose = TRUE
-    ))
-  } else {
-    Sys.setenv(CHROMOTE_CHROME = Chrome_url)
-  }
+  ## suppress warnings
+  options(warn = -1)
 
   ## Code to reset shiny app
   reset_rv <- reactiveVal(value = 0L)
@@ -106,7 +71,7 @@ To ensure the functionality of TALL,
 
   ## observe Gemini copy2clipboard button
   observeEvent(input$copy_btn, {
-    content <- geminiSave(values, input$sidebarmenu, type="clip")
+    content <- geminiSave(values, input$sidebarmenu)
     copy_to_clipboard(content)
   })
 
@@ -114,12 +79,22 @@ To ensure the functionality of TALL,
   observeEvent(input$save_btn, {
     geminiSave(values, input$sidebarmenu, type="save")
   })
+  output$save_btn <- downloadHandler(
+    filename = function() {
+      paste0(values$wdTall,"/TallAI_",input$sidebarmenu,".txt")
+    },
+    content <- function(file) {
+      txtOutput <- geminiSave(values, input$sidebarmenu)
+      writeLines(txtOutput, con=file)
+    },
+    contentType = "txt"
+  )
 
   ## observe gemini generate button
   observeEvent(input$gemini_btn, {
     values$gemini_additional <- input$gemini_additional ## additional info to Gemini prompt
     values <- geminiWaitingMessage(values, input$sidebarmenu)
-    values <- geminiGenerate(values, input$sidebarmenu, values$gemini_additional,values$gemini_model_parameters)
+    values <- geminiGenerate(values, input$sidebarmenu, values$gemini_additional,values$gemini_model_parameters, input)
   })
 
   ## suppress summarise message
@@ -503,6 +478,7 @@ To ensure the functionality of TALL,
                       values$where <- where
                       values$corpus_description <- "The dataset is composed of a collection of 444 scientific articles written in English in which the authors used the Bibliometrix R package to perform systematic literature reviews.\n The textual data consists of the article abstracts, while the additional information includes metadata such as the list of co-authors, the first author, the year of publication, and the journal name."
                       values$resetNeed <- TRUE
+                      print(input$sidenbarmenu)
                       if (values$menu == 1) updateTabItems(session, "sidebarmenu", "custTermList")
                       if (values$menu > 1) updateTabItems(session, "sidebarmenu", "posTagSelect")
                       if (ncol(values$dfTag) > 1) {
@@ -621,7 +597,7 @@ To ensure the functionality of TALL,
 
   output$dataImported <- DT::renderDT({
     DATAloading()
-    if (values$menu == 0) {
+    # if (values$menu == 0) {
       DTformat(
         values$txt %>%
           filter(doc_selected) %>%
@@ -630,7 +606,7 @@ To ensure the functionality of TALL,
           select(-doc_selected, -text_original),
         left = 3, nrow = 5, filter = "none", button = TRUE, delete = TRUE
       )
-    }
+    # }
   })
 
   observeEvent(eventExpr = {
@@ -4816,33 +4792,172 @@ To ensure the functionality of TALL,
     values$wdTall
   })
 
+  # output$apiStatus <- renderUI({
+  #   if (values$geminiAPI){
+  #     last <- showGeminiAPI()
+  #     output$status <- renderText(paste0("✅ API key has been set: ",last))
+  #   }
+  #
+  # })
+
+  # observeEvent(input$set_key, {
+  #   key <- input$api_key
+  #   last <- setGeminiAPI(key)
+  #
+  #   if (is.na(last)){
+  #     output$apiStatus <- renderUI({
+  #       output$status <- renderText(paste0("❌ API key seems tto be not valid"))
+  #     })
+  #     values$geminiAPI <- FALSE
+  #   } else {
+  #     output$apiStatus <- renderUI({
+  #       output$status <- renderText(paste0("✅ API key has been set: ",last))
+  #     })
+  #     values$geminiAPI <- TRUE
+  #     home <- homeFolder()
+  #     path_gemini_key <- paste0(file.path(home, "tall"),"/.gemini_key.txt", collapse="")
+  #     writeLines(Sys.getenv("GEMINI_API_KEY"), path_gemini_key)
+  #   }
+  #
+  # })
+
   output$apiStatus <- renderUI({
     if (values$geminiAPI){
       last <- showGeminiAPI()
       output$status <- renderText(paste0("✅ API key has been set: ",last))
     }
-
   })
+
+  output$geminiOutputSize <- renderUI({
+    list(
+      selectInput(
+        inputId = "gemini_output_size",
+        label = "Max Output (in tokens)",
+        selected = ifelse(is.null(values$gemini_output_size), "medium", values$gemini_output_size),
+        choices = c("Medium" = "medium", "Large" = "large")
+      ),
+      conditionalPanel(
+        condition = "input.gemini_output_size == 'medium'",
+        helpText(strong("Free Tier Output:")),
+        helpText(em("Medium -> 16384 Tokens"))
+      ),
+      conditionalPanel(
+        condition = "input.gemini_output_size == 'large'",
+        helpText(strong("Free Tier Output:")),
+        helpText(em("Large -> 32768 Tokens"))
+      )
+    )
+  })
+
+  output$geminiModelChoice <- renderUI({
+    list(
+      selectInput(
+        inputId = "gemini_api_model",
+        label = "Select the Gemini Model",
+        choices = c(
+          "Gemini 2.5 Flash" = "2.5-flash",
+          "Gemini 2.5 Flash Lite" = "2.5-flash-lite",
+          "Gemini 2.0 Flash" = "2.0-flash",
+          "Gemini 2.0 Flash Lite" = "2.0-flash-lite",
+          "Gemini 1.5 Flash" = "1.5-flash",
+          "Gemini 1.5 Flash Lite" = "1.5-flash-8b"
+        ),
+        selected = ifelse(is.null(values$gemini_api_model), "2.0-flash", values$gemini_api_model)
+      ),
+      conditionalPanel(
+        condition = "input.gemini_api_model == '2.5-flash'",
+        helpText(strong("Free Tier Rate Limits:")),
+        helpText(em("Request per Minutes: 10", tags$br(),
+                    "Requests per Day: 500", tags$br(),
+                    "Latency time: High"))
+      ),
+      conditionalPanel(
+        condition = "input.gemini_api_model == '2.5-flash-lite'",
+        helpText(strong("Free Tier Rate Limits:")),
+        helpText(em("Request per Minutes: 15", tags$br(),
+                    "Requests per Day: 500", tags$br(),
+                    "Latency time: Low"))
+      ),
+      conditionalPanel(
+        condition = "input.gemini_api_model == '2.0-flash-lite'",
+        helpText(strong("Free Tier Rate Limits:")),
+        helpText(em("Request per Minutes: 30", tags$br(),
+                    "Requests per Day: 1500",tags$br(),
+                    "Latency time: Low"))
+      ),
+      conditionalPanel(
+        condition = "input.gemini_api_model == '2.0-flash'",
+        helpText(strong("Free Tier Rate Limits:")),
+        helpText(em("Request per Minutes: 15", tags$br(),
+                    "Requests per Day: 1500",tags$br(),
+                    "Latency time: Medium"))
+      ),
+      conditionalPanel(
+        condition = "input.gemini_api_model == '1.5-flash'",
+        helpText(strong("Free Tier Rate Limits:")),
+        helpText(em("Request per Minutes: 15", tags$br(),
+                    "Requests per Day: 1500",tags$br(),
+                    "Latency time: Medium"))
+      ),
+      conditionalPanel(
+        condition = "input.gemini_api_model == '1.5-flash-8b'",
+        helpText(strong("Free Tier Rate Limits:")),
+        helpText(em("Request per Minutes: 15", tags$br(),
+                    "Requests per Day: 1500",tags$br(),
+                    "Latency time: Low"))
+      )
+    )
+  })
+
+  observeEvent(input$gemini_api_model, {
+    if (!is.null(input$gemini_api_model)){
+      saveGeminiModel(model=c(input$gemini_api_model,input$gemini_output_model), file=paste0(homeFolder(),"/.tall_gemini_model.txt", collapse=""))
+      values$gemini_api_model <- input$gemini_api_model
+      values$gemini_output_size <- input$gemini_output_size
+    }
+  })
+
+  observeEvent(input$gemini_output_size, {
+    if (!is.null(input$gemini_output_size)){
+      saveGeminiModel(model=c(input$gemini_api_model,input$gemini_output_size), file=paste0(homeFolder(),"/.tall_gemini_model.txt", collapse=""))
+      values$gemini_api_model <- input$gemini_api_model
+      values$gemini_output_size <- input$gemini_output_size
+    }
+  })
+
 
   observeEvent(input$set_key, {
     key <- input$api_key
     last <- setGeminiAPI(key)
 
-    if (is.na(last)){
+    if (!last$valid){
       output$apiStatus <- renderUI({
-        output$status <- renderText(paste0("❌ API key seems tto be not valid"))
+        output$status <- renderText(last$message)
       })
       values$geminiAPI <- FALSE
     } else {
       output$apiStatus <- renderUI({
-        output$status <- renderText(paste0("✅ API key has been set: ",last))
+        output$status <- renderText(paste0("✅ API key has been set: ",last$message))
       })
       values$geminiAPI <- TRUE
       home <- homeFolder()
-      path_gemini_key <- paste0(file.path(home, "tall"),"/.gemini_key.txt", collapse="")
+      path_gemini_key <- paste0(home,"/tall/.tall_gemini_key.txt", collapse="")
       writeLines(Sys.getenv("GEMINI_API_KEY"), path_gemini_key)
     }
 
   })
+
+  observeEvent(input$remove_key, {
+    if (values$geminiAPI){
+      home <- homeFolder()
+      path_gemini_key <- paste0(home,"/tall/.tall_gemini_key.txt", collapse="")
+      file.remove(path_gemini_key)
+      values$geminiAPI <- FALSE
+      output$apiStatus <- renderUI({
+        output$status <- renderText(paste0("❌ API key has been removed"))
+      })
+    }
+  })
+
 
 } # END SERVER

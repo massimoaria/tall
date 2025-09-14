@@ -4565,6 +4565,44 @@ resetValues <- function() {
   ### Initial values ----
   values <- list()
   values <- reactiveValues()
+
+  if (inherits(try(pagedown::find_chrome(), silent=T), "try-error")) {
+    Chrome_url <- NULL
+  }else{
+    Chrome_url <- pagedown::find_chrome()
+  }
+
+  #  Sys.setenv (CHROMOTE_CHROME = Chrome_url)
+
+  ## chrome configuration for shinyapps server
+
+  if (identical(Sys.getenv("R_CONFIG_ACTIVE"), "shinyapps")) {
+    chromote::set_default_chromote_object(
+      chromote::Chromote$new(chromote::Chrome$new(
+        args = c("--disable-gpu",
+                 "--no-sandbox",
+                 "--disable-dev-shm-usage", # required bc the target easily crashes
+                 c("--force-color-profile", "srgb"))
+      ))
+    )
+  }
+  ## end configuration
+
+  ## Check if Chrome browser is installed on the computer
+  if(is.null(Chrome_url)){
+    showModal(modalDialog(
+      title = strong("Warning message!"),
+      HTML("Chrome or a Chromium-based browser is not installed on your computer.<br>
+If you do not have either of these browsers installed, TALL will be unable to export graphs.<br>
+To ensure the functionality of Biblioshiny,
+           please download Chrome by <a href='https://www.google.com/chrome/' target='_blank' > <b>clicking here</b></a>."),
+footer = modalButton("Dismiss"),
+easyClose = TRUE
+    ))
+  } else {
+    Sys.setenv (CHROMOTE_CHROME = Chrome_url)
+  }
+  values$Chrome_url <- Chrome_url
   values$biblioshiny <- NULL
   values$resetNeed <- FALSE
   values$normButton <- FALSE
@@ -4604,13 +4642,18 @@ resetValues <- function() {
     values$menu <- -1
   }
 
-  ## gemini api
+  ## gemini api and model
   home <- homeFolder()
-  path_gemini_key <- paste0(file.path(home, "tall"),"/.gemini_key.txt", collapse="")
+  path_gemini_key <- paste0(file.path(home, "tall"),"/.tall_gemini_key.txt", collapse="")
   # check if sub directory exists
   values$geminiAPI <- load_api_key(path_gemini_key)
   values$corpus_description <- NULL
   values$gemini_additional <- NULL
+
+  path_gemini_model <- path_gemini_key <- paste0(file.path(home, "tall"),"/.tall_gemini_model.txt", collapse="")
+  gemini_api_model <- loadGeminiModel(path_gemini_model)
+  values$gemini_api_model <- gemini_api_model[1]
+  values$gemini_output_size <- gemini_api_model[2]
 
   return(values)
 }

@@ -5,6 +5,8 @@ source("tallFunctions.R", local = TRUE)
 source("helpContent.R", local = TRUE)
 libraries()
 
+htmltools::findDependencies(selectizeInput("dummy", label = NULL, choices = NULL))
+
 ## Language model list
 languages <- langrepo()
 label_lang <- unique(languages$language_name)
@@ -301,7 +303,6 @@ body <- dashboardBody(
         ))
       )
     ),
-
 
     ### IMPORT ----
 
@@ -4010,43 +4011,38 @@ body <- dashboardBody(
             inputId = "cache",
             style = "color:white;",
             label = "Clean model folder"
-          ),
-          hr(),
-          h3("TALL AI Api Key"),
-          h4("Set a valid API Key to use TALL AI features powered by Google Gemini."),
-          h5(HTML(
-            'If you don’t have one yet, you can generate it by logging into <a href="https://aistudio.google.com/app/apikey" target="_blank">https://aistudio.google.com/app/apikey</a> with your Google account and creating a new API Key.'
-          )),
-          br(),
-          passwordInput("api_key", "Enter your Gemini API Key:", ""),
-          actionButton("set_key", "Set API Key",style = "color:white;",),
-          br(),
-          uiOutput("apiStatus"),
-          #textOutput("status", )
-
-          # sliderTextInput(
-          #   inputId = "dpi",
-          #   label = "Please select the desired DPI",
-          #   grid = TRUE,
-          #   force_edges = TRUE,
-          #   choices = c("75", "150", "300", "600"),
-          #   width = "70%",
-          #   selected = "300"
-          # ),
-          # br(),
-          # sliderTextInput(
-          #   inputId = "h",
-          #   label = "Please select the desired heigth in inches",
-          #   grid = TRUE,
-          #   force_edges = TRUE,
-          #   width = "70%",
-          #   choices = seq(5,15),
-          #   selected = "7"
-          # )
-        ), column(
+          )), column(
           6
           ### To insert settings for default path, etc.
-        ))
+        )),
+        hr(),
+        h3("'Tall AI' Api Key"),
+        h4("Set a valid API Key to use 'Tall AI' features powered by Google Gemini."),
+        h5(HTML(
+          'If you don’t have one yet, you can generate it by logging into <a href="https://aistudio.google.com/app/apikey" target="_blank">AI Studio</a> with your Google account and creating a new API Key.'
+        )),
+        br(),
+        fluidRow(
+          column(4,
+                 passwordInput("api_key", "Enter your Gemini API Key:", "", width = "100%"),
+                 uiOutput("apiStatus"),
+                 br(),
+                 fluidRow(
+                   column(6,
+                          actionButton("set_key", "Set API Key",style = "color:white;", width = "90%")
+                   ),
+                   column(6,
+                          actionButton("remove_key", "Remove API Key",style = "color:white;",width = "90%")
+                   )
+                 )),
+          column(1),
+          column(3,
+                 uiOutput("geminiModelChoice")#, style = "color: red; font-weight: bold;")
+          ),
+          column(2,
+                 uiOutput("geminiOutputSize")
+          )
+        )
       )
     )
   )
