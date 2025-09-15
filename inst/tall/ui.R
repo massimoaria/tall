@@ -1775,6 +1775,19 @@ body <- dashboardBody(
               )
             ),
             tabPanel(
+              "TALL AI",
+              fluidPage(
+                fluidRow(
+                  column(
+                    12,
+                    br(),
+                    shinycssloaders::withSpinner(htmlOutput("OverviewGeminiUI"),
+                                                 color = getOption("spinner.color", default = "#4F7942"))
+                  )
+                )
+              )
+            ),
+            tabPanel(
               "Info & References",
               fluidPage(
                 fluidRow(

@@ -279,44 +279,108 @@ This AI-powered feature leverages Google Gemini to help you understand patterns 
 tallAiPrompts <- function(values, activeTab){
 
   ## Role definition for Gemini as Biblio AI assistant
-  promptInitial <- paste0("You are Tall AI, an AI assistant integrated within TALL. ",
+  promptInitial <- paste0("You are TALL AI, an expert virtual assistant specializing in text analysis and computational linguistics, integrated into the R TALL software. ",
                           "Your task is to support researchers in interpreting and critically discussing the results of ",
                           "their quantitative textual analyses, offering insights, contextual explanations, and guidance for data-driven interpretation. ")
 
   ## Specific prompts for each analysis
   switch(activeTab,
-         "mainInfo"={
-           Prompt <- paste0("Provide an interpretation of these statistics summarizing the corpus collection. ",
-                            "Focus on key metrics, ",
-                            "and discuss what they reveal about the scope, productivity, and impact of the collection. ",
-                            "This is the list of statistics: ",merge_df_to_string(values$TABvb))
+         "overview"={
+           prompt <- paste0("A user has analyzed a text corpus and obtained the following summary statistics. Provide a detailed interpretation of these results based on the values provided. ",
+           "Corpus metrics: ", merge_df_to_string(values$VbData),
+           "Structure your response in the following way, using Markdown for formatting: ",
+           "1.  **General Summary**: Based on the data provided, start with a paragraph that summarizes the main characteristics of the corpus. ",
+           "2.  **Corpus Size and Structure**: Explain the meaning of `Documents`, `Tokens`, `Types`, `Lemma`, and `Sentences` based on their provided values. Relate the `Tokens` count to the `Types` count to give a first impression of vocabulary size. ",
+           "3.  **Document and Sentence Characteristics**: Interpret the provided averages (`Avg Length`) and standard deviations (`SD Length`) for documents and sentences. Explain what the specific `SD` values imply about the consistency of lengths across the corpus (e.g., a low SD suggests uniform lengths, a high SD suggests high variability). ",
+           "4.  **Lexical Richness and Variety**: Analyze the provided values for the lexical richness indices: `TTR (%)`, `Hapax (%)`, `Guiraud Index`, and `Yule's K`. For each, explain what its value indicates about the richness of the vocabulary. Clarify why multiple indices are useful (e.g., correcting for corpus length). ",
+           "5.  **Stylistic and Distributional Indices**: Explain the meaning of the given values for `Lexical Density`, `Nominal Ratio`, and `Gini Index`. For each metric, interpret what the provided value suggests about the text's nature (e.g., for `Lexical Density`: informational vs. conversational; for `Nominal Ratio`: descriptive vs. narrative style; for `Gini Index`: word distribution). ",
+           "6.  **Conclusion and Potential Next Steps**: End with a summary conclusion and suggest to the user what subsequent analyses might be interesting based on the specific results they obtained.")
          },
          "wordCont" = {
-           prompt <- "Explain the topics in this 'word in context' network."
+           prompt <- paste0("You have to provide an interpratation of a Words in Context (KWIC - Keyword in Context) analysis. ",
+                            "Your expertise covers concordance analysis, semantic usage patterns, contextual meaning interpretation, and discourse structure analysis. ",
+                            "You help users understand: ",
+                            " - Semantic shifts and meaning variations of target words ",
+                            " - Collocational patterns and linguistic relationships ",
+                            " - Contextual distribution and usage frequency ",
+                            " - Thematic contexts and discourse patterns ",
+                            " - Pragmatic and stylistic variations. ",
+                            "Always provide insights that are linguistically grounded, contextually relevant, and actionable for text analysis research.")
          },
          "ca"={
-           prompt <- paste0("Provide an interpretation of this 'correspondence analysis' map.")
+           prompt <- paste0("You have to interpret Correspondence Analysis (CA) results from the TALL software package in R. ",
+                            "Your expertise covers multivariate text analysis, dimensional interpretation, word-document associations, and visualization of textual relationships.",
+                            "You help users understand: ",
+                            "  - Dimensional structure and variance explained",
+                            "  - Word positioning and semantic relationships",
+                            "  - Document clustering and thematic groupings",
+                            "  - Distance interpretation and proximity patterns",
+                            "  - Quality of representation and contribution analysis",
+                            "  - Biplot interpretation and association patterns. ",
+                            "Always provide interpretations that are statistically sound, linguistically meaningful, and practically actionable for text analysis research.")
          },
          "w_networkCooc"={
-           prompt <- paste0("Provide an interpretation of this 'word co-occurrence' network.")
+           prompt <- paste0("You have to provide an interpretation of Word Co-occurrence Analysis results. ",
+                            "Your expertise covers network analysis, semantic relationships, collocational patterns, and lexical association interpretation. ",
+                            "You help users understand: ",
+                            " - Network topology and connectivity patterns ",
+                            " - Semantic clustering and thematic groupings ",
+                            " - Word association strengths and significance ",
+                            " - Community detection and lexical fields ",
+                            " - Centrality measures and influential words ",
+                            " - Network density and structural properties ",
+                            " - Contextual relationships and discourse patterns. ",
+                            "Always provide interpretations that are linguistically informed, statistically grounded, and actionable for text analysis research.")
          },
          "w_networkTM" ={
-           prompt <- paste0("Provide an interpretation of this 'strategic map'.")
+           prompt <- paste0("You have to provide an interpretation of Thematic Map analysis. ",
+                            "Your expertise covers bibliometric-inspired thematic analysis, topic clustering, strategic diagram interpretation, and conceptual structure analysis. ",
+                            "You help users understand: ",
+                            " - Strategic positioning of topics (Hot, Basic, Niche, Peripheral) ",
+                            " - Callon Centrality and Density measures interpretation ",
+                            " - Topic development and maturity assessment ",
+                            " - Conceptual structure and thematic relationships ",
+                            " - Research field evolution and strategic implications ",
+                            " - Community detection and topic clustering ",
+                            " - Comparative thematic analysis across time periods or groups ",
+                            "Always provide interpretations that are methodologically sound, theoretically grounded, and strategically actionable for research and content analysis.")
          },
          "w_w2v_similarity"={
-           prompt <- paste0("Provide an interpretation of this 'cosine similarity' map. ",
-                            "The map has been created on a word embedding matrix by word2vec model.")
+           prompt <- paste0("You have to provide an interpretation of Word Similarity Network analysis results from the TALL software package in R. ",
+                            "Your expertise covers word embedding analysis, semantic similarity interpretation, network topology analysis, and community detection in embedding spaces. ",
+                            "You help users understand: ",
+                            " - Word2vec embedding relationships and semantic similarity patterns ",
+                            " - Network structure and community clusters based on cosine similarity ",
+                            " - Semantic neighborhoods and lexical fields ",
+                            " - Embedding space topology and word positioning ",
+                            " - Community detection results and thematic groupings ",
+                            " - Similarity thresholds and network connectivity patterns ",
+                            " - Comparative analysis of different embedding models (CBOW vs Skip-gram) ",
+                            "Always provide interpretations that are linguistically informed, computationally grounded, and actionable for semantic analysis research. ")
          },
          "d_tm_estim"={
-           prompt <- paste0("Interpret this graph showing the beta probabilities P(word|topic) from a topic modeling analysis. ",
-                            "Each value represents how strongly a word is associated with a specific topic. ",
-                            "Focus on identifying which words best characterize each topic and whether topics appear well differentiated.")
+           prompt <- paste0("You have to provide an interpretation of Topic Modeling analysis results from the TALL software package in R. ",
+                            "Your expertise covers Latent Dirichlet Allocation (LDA), probabilistic topic modeling, beta and theta probability distributions, document-topic associations, and semantic structure discovery. ",
+                            "You help users understand: ",
+                            " - LDA model interpretation and topic coherence assessment ",
+                            " - Beta probabilities (word-topic distributions) and topic characterization ",
+                            " - Theta probabilities (document-topic distributions) and document classification ",
+                            " - Topic quality evaluation and model diagnostics ",
+                            " - Semantic structure discovery and thematic organization ",
+                            " - Model parameter optimization and validation ",
+                            "Always provide interpretations that are statistically sound, linguistically meaningful, and methodologically rigorous for probabilistic text analysis.")
          },
          "d_polDet"={
-           prompt <- paste0("Provide an interpretation of these three plots generated from a Polarity Detection Analysis. ",
-                            "The first plot is a pie chart showing the distribution of documents by polarity label (Very positive, positive, neutral, negative, and very negative). ",
-                            "The second and third plots display the frequency distributions of the top words found in positive and negative documents, respectively. ",
-                            "Focus on identifying any notable differences in word usage and the overall sentiment trends.")
+           prompt <- paste0("You have to provide an interpretation of Topic Modeling analysis results from the TALL software package in R. ",
+                                   "Your expertise covers Latent Dirichlet Allocation (LDA), probabilistic topic modeling, beta and theta probability distributions, document-topic associations, and semantic structure discovery.  ",
+                                   "You help users understand:   ",
+                                   " - LDA model interpretation and topic coherence assessment ",
+                                   " - Beta probabilities (word-topic distributions) and topic characterization ",
+                                   " - Theta probabilities (document-topic distributions) and document classification ",
+                                   " - Topic quality evaluation and model diagnostics ",
+                                   " - Semantic structure discovery and thematic organization ",
+                                   " - Model parameter optimization and validation. ",
+                                   " Always provide interpretations that are statistically sound, linguistically meaningful, and methodologically rigorous for probabilistic text analysis.")
          },
          {
            prompt <- paste0("Provide an interpretation of this plot creted with 'TALL R Package'")
@@ -349,6 +413,12 @@ geminiGenerate <- function(values, activeTab, gemini_additional, gemini_model_pa
   }
   prompt <- tallAiPrompts(values, activeTab)
   switch(activeTab,
+         "overview" ={
+           req(values$VbData)
+           values$overviewGemini <- geminiPromptImage(obj=values$VbData, type="text",
+                                                     prompt=prompt,
+                                                     key=values$geminiAPI, desc=desc, values=values)
+         },
          "wordCont" = {
            req(values$contextNetwork)
            values$contextGemini <- geminiPromptImage(obj=values$contextNetwork, type="vis",
@@ -416,6 +486,10 @@ geminiParameterPrompt <- function(values, activeTab, input){
   txt <- paste0("The analysis was perfomed on ", values$generalTerm, " extracted from the original corpus. ")
 
   switch(activeTab,
+         "overview" ={
+           req(values$VbData)
+           txt <- ""
+         },
          "wordCont" = {
            req(values$contextNetwork)
            txt <- paste0(txt, "The context windows consists of of the ",
@@ -515,6 +589,10 @@ geminiWaitingMessage <- function(values, activeTab){
   messageTxt <- "⌛ Thinking..."
 
   switch(activeTab,
+         "overview" = {
+           req(values$VbData)
+           values$overviewGemini <- messageTxt
+         },
          "wordCont" = {
            req(values$contextNetwork)
            values$contextGemini <- messageTxt
