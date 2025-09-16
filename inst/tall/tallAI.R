@@ -246,21 +246,23 @@ This AI-powered feature leverages Google Gemini to help you understand patterns 
     div(
       id = "typing-box",
       style = "white-space: pre-wrap; background-color:#f9f9f9; padding:15px; border:1px solid #ccc; border-radius:5px; max-height:400px; overflow-y: auto;",
-      HTML(text_to_html(content))
+      #HTML(text_to_html(content))
+      HTML(gemini_to_html(content))
+      #HTML(content)
     ),
     br(),
-    em("You can modify or enrich the proposed prompt with additional context or details about your analysis to help 'Tall AI' generate a more accurate and meaningful interpretation."),
+    em("You can modify or enrich the proposed prompt with additional context or details about your analysis to help 'TALL AI' generate a more accurate and meaningful interpretation."),
     textAreaInput(
       inputId = "gemini_additional",
       label = NULL,
       value = values$gemini_model_parameters,
-      placeholder = "You can provide additional context or details about your analysis to help 'Tall AI' generate a more accurate and meaningful interpretation.",
+      placeholder = "You can provide additional context or details about your analysis to help 'TALL AI' generate a more accurate and meaningful interpretation.",
       rows = 3,
       width = "100%"
     ),
     fluidRow(
       column(4, align = "center",
-             actionButton("gemini_btn", "Ask Tall AI", style = "color: white;",
+             actionButton("gemini_btn", "Ask TALL AI", style = "color: white;",
                           icon(name = "microchip", lib = "font-awesome"),
                           width = "80%")
       ),
@@ -288,7 +290,7 @@ tallAiPrompts <- function(values, activeTab){
          "overview"={
            prompt <- paste0("A user has analyzed a text corpus and obtained the following summary statistics. Provide a detailed interpretation of these results based on the values provided. ",
            "Corpus metrics: ", merge_df_to_string(values$VbData),
-           "Structure your response in the following way, using Markdown for formatting: ",
+           "Structure your response in the following way: ",
            "1.  **General Summary**: Based on the data provided, start with a paragraph that summarizes the main characteristics of the corpus. ",
            "2.  **Corpus Size and Structure**: Explain the meaning of `Documents`, `Tokens`, `Types`, `Lemma`, and `Sentences` based on their provided values. Relate the `Tokens` count to the `Types` count to give a first impression of vocabulary size. ",
            "3.  **Document and Sentence Characteristics**: Interpret the provided averages (`Avg Length`) and standard deviations (`SD Length`) for documents and sentences. Explain what the specific `SD` values imply about the consistency of lengths across the corpus (e.g., a low SD suggests uniform lengths, a high SD suggests high variability). ",
@@ -536,12 +538,12 @@ geminiPromptImage <- function(obj, type="vis", prompt="Explain the topics in thi
   ## Check Computer configuration to work with Biblio AI
   ### Internet Connection
   if (!is_online()){
-    res <- '⚠️ **Note**: Tall AI requires an active internet connection to work.'
+    res <- '⚠️ **Note**: TALL AI requires an active internet connection to work.'
     return(res)
   }
   ### Chromium Browser
   if (is.null(values$Chrome_url)) {
-    res <- '⚠️ **Note**: Tall AI requires a **Chrome-based browser** (such as Google Chrome or Microsoft Edge) installed on your computer to work correctly.'
+    res <- '⚠️ **Note**: TALL AI requires a **Chrome-based browser** (such as Google Chrome or Microsoft Edge) installed on your computer to work correctly.'
     return(res)
   }
   ### Gemini API key
@@ -629,6 +631,10 @@ geminiWaitingMessage <- function(values, activeTab){
 geminiSave <- geminiSave <- function(values, activeTab){
 
   switch(activeTab,
+         "overview" = {
+           req(values$VbData)
+           gemini <- values$overviewGemini
+         },
          "wordCont" = {
            req(values$contextNetwork)
            gemini <- values$contextGemini
@@ -659,7 +665,7 @@ geminiSave <- geminiSave <- function(values, activeTab){
            gemini <- values$d_polDet_Gemini
          }
   )
-  if (is.null(gemini)) gemini <- "Click 'Ask Tall AI' for help. "
+  if (is.null(gemini)) gemini <- "Click 'Ask TALL AI' for help. "
 
   return(gemini)
 }
@@ -740,58 +746,190 @@ string_to_sentence_df <- function(input_string) {
   return(sentence_df)
 }
 
-# convert gemini output to HTML
-text_to_html <- function(input_text) {
-  input_text <- c(input_text,"\n")
-  # Escape HTML special characters
-  escape_html <- function(text) {
-    text <- gsub("&", "&amp;", text)
-    text <- gsub("<", "&lt;", text)
-    text <- gsub(">", "&gt;", text)
-    text
-  }
+# # convert gemini output to HTML
+# text_to_html <- function(input_text) {
+#   input_text <- c(input_text,"\n")
+#   # Escape HTML special characters
+#   escape_html <- function(text) {
+#     text <- gsub("&", "&amp;", text)
+#     text <- gsub("<", "&lt;", text)
+#     text <- gsub(">", "&gt;", text)
+#     text
+#   }
+#
+#   # Convert markdown-style bold (**text**) to <strong>
+#   convert_bold <- function(text) {
+#     gsub("\\*\\*(.*?)\\*\\*", "<strong>\\1</strong>", text)
+#   }
+#
+#   # Process each paragraph
+#   paragraphs <- unlist(strsplit(input_text, "\n\n"))
+#   html_paragraphs <- lapply(paragraphs, function(p) {
+#     lines <- unlist(strsplit(p, "\n"))
+#     lines <- sapply(lines, escape_html) # escape special characters
+#     lines <- sapply(lines, convert_bold) # convert **bold**
+#
+#     if (all(grepl("^\\*\\s+", lines))) {
+#       # Convert to unordered list
+#       lines <- gsub("^\\*\\s+", "", lines)
+#       items <- paste0("<li>", lines, "</li>", collapse = "\n")
+#       return(paste0("<ul>\n", items, "\n</ul>"))
+#     } else {
+#       # Regular paragraph
+#       return(paste0("<p>", paste(lines, collapse = "<br/>"), "</p>"))
+#     }
+#   })
+#
+#   # Combine all HTML parts
+#   html_body <- paste(html_paragraphs, collapse = "\n\n")
+#   html <- paste0("<html>\n<body>\n", html_body, "\n</body>\n</html>")
+#   html <- gsub("\n","",html)
+#   return(html)
+# }
 
-  # Convert markdown-style bold (**text**) to <strong>
-  convert_bold <- function(text) {
-    gsub("\\*\\*(.*?)\\*\\*", "<strong>\\1</strong>", text)
-  }
+# # From HTML to text Blocks
+# html_to_blocks <- function(raw_html){
+#   html_body <- sub(".*<body[^>]*>", "", raw_html)
+#   html_body <- sub("</body>.*", "", html_body)
+#
+#   blocks <- stringr::str_split(
+#     html_body,
+#     "(?=<p|<ul|<ol|<li|<h[1-6]|<blockquote|<pre|<table|<div)",
+#     simplify = FALSE
+#   )[[1]]
+#
+#   blocks <- trimws(blocks)
+#   blocks <- blocks[nzchar(blocks)]
+# }
 
-  # Process each paragraph
-  paragraphs <- unlist(strsplit(input_text, "\n\n"))
-  html_paragraphs <- lapply(paragraphs, function(p) {
-    lines <- unlist(strsplit(p, "\n"))
-    lines <- sapply(lines, escape_html) # escape special characters
-    lines <- sapply(lines, convert_bold) # convert **bold**
+## New function to convert gemini output as HTML blocks
+gemini_to_html <- function(text) {
+  # Remove original leading/trailing whitespace
+  text <- trimws(text)
 
-    if (all(grepl("^\\*\\s+", lines))) {
-      # Convert to unordered list
-      lines <- gsub("^\\*\\s+", "", lines)
-      items <- paste0("<li>", lines, "</li>", collapse = "\n")
-      return(paste0("<ul>\n", items, "\n</ul>"))
-    } else {
-      # Regular paragraph
-      return(paste0("<p>", paste(lines, collapse = "<br/>"), "</p>"))
+  # Divide text into lines
+  lines <- unlist(strsplit(text, "\n", fixed = TRUE))
+
+  # Remove rows
+  lines <- lines[lines != ""]
+
+  # Initialize HTML output with CSS styles
+  html_lines <- c(
+    "<div style='font-family: Arial, sans-serif; line-height: 1.3; margin: 0 auto; padding: 20px;" # max-width: 800px; '>"
+  )
+  in_list <- FALSE
+  list_type <- ""
+
+  for (i in 1:length(lines)) {
+    line <- trimws(lines[i])
+
+    # jump empty lines
+    if (line == "") {
+      next
     }
-  })
 
-  # Combine all HTML parts
-  html_body <- paste(html_paragraphs, collapse = "\n\n")
-  html <- paste0("<html>\n<body>\n", html_body, "\n</body>\n</html>")
-  html <- gsub("\n","",html)
-  return(html)
+    # Title management (lines enclosed in **)
+    if (stringr::str_detect(line, "^\\*\\*[^*]+\\*\\*$")) {
+      # Chiudi eventuali liste aperte
+      if (in_list) {
+        if (list_type == "ul") {
+          html_lines <- c(html_lines, "</ul>")
+        } else {
+          html_lines <- c(html_lines, "</ol>")
+        }
+        in_list <- FALSE
+      }
+
+      # Convert titles
+      title_text <- stringr::str_replace_all(line, "^\\*\\*(.+)\\*\\*$", "\\1")
+      html_lines <- c(html_lines, paste0("<h3 style='color: #333; border-bottom: 2px solid #6CC283; padding-bottom: 5px; margin-bottom: 10px; margin-top: 20px;'>", title_text, "</h3>"))
+      next
+    }
+
+    # Managing bulleted lists (starting with *)
+    if (stringr::str_detect(line, "^\\s*\\*\\s+")) {
+      # Se non siamo già in una lista puntata, iniziala
+      if (!in_list || list_type != "ul") {
+        if (in_list && list_type == "ol") {
+          html_lines <- c(html_lines, "</ol>")
+        }
+        html_lines <- c(html_lines, "<ul style='margin-bottom: 10px; margin-top: 5px;'>")
+        in_list <- TRUE
+        list_type <- "ul"
+      }
+
+      # Remove the asterisk and format the content
+      item_text <- stringr::str_replace(line, "^\\s*\\*\\s+", "")
+      item_text <- format_inline_text(item_text)
+      html_lines <- c(html_lines, paste0("<li style='margin-bottom: 3px;'>", item_text, "</li>"))
+      next
+    }
+
+    # Managing numbered lists (starting with a number followed by a period)
+    if (stringr::str_detect(line, "^\\s*\\d+\\.\\s+")) {
+      # Se non siamo già in una lista numerata, iniziala
+      if (!in_list || list_type != "ol") {
+        if (in_list && list_type == "ul") {
+          html_lines <- c(html_lines, "</ul>")
+        }
+        html_lines <- c(html_lines, "<ol style='margin-bottom: 10px; margin-top: 5px;'>")
+        in_list <- TRUE
+        list_type <- "ol"
+      }
+
+      # Remove the number and format the content
+      item_text <- stringr::str_replace(line, "^\\s*\\d+\\.\\s+", "")
+      item_text <- format_inline_text(item_text)
+      html_lines <- c(html_lines, paste0("<li style='margin-bottom: 3px;'>", item_text, "</li>"))
+      next
+    }
+
+    # If we get here and we're on a list, let's close it.
+    if (in_list) {
+      if (list_type == "ul") {
+        html_lines <- c(html_lines, "</ul>")
+      } else {
+        html_lines <- c(html_lines, "</ol>")
+      }
+      in_list <- FALSE
+    }
+
+    # Normal paragraph management
+    formatted_line <- format_inline_text(line)
+    html_lines <- c(html_lines, paste0("<p style='margin-bottom: 8px;'>", formatted_line, "</p>"))
+  }
+
+  # Close any lists that remain open
+  if (in_list) {
+    if (list_type == "ul") {
+      html_lines <- c(html_lines, "</ul>")
+    } else {
+      html_lines <- c(html_lines, "</ol>")
+    }
+  }
+
+  # Close the container div
+  html_lines <- c(html_lines, "</div>")
+
+  # Merge all rows
+  html_result <- paste(html_lines, collapse = "\n")
+
+  return(html_result)
 }
 
-# From HTML to text Blocks
-html_to_blocks <- function(raw_html){
-  html_body <- sub(".*<body[^>]*>", "", raw_html)
-  html_body <- sub("</body>.*", "", html_body)
+# Auxiliary function for formatting inline text
+format_inline_text <- function(text) {
+  # Bold management (**text**)
+  text <- stringr::str_replace_all(text, "\\*\\*([^*]+)\\*\\*", "<strong>\\1</strong>")
 
-  blocks <- stringr::str_split(
-    html_body,
-    "(?=<p|<ul|<ol|<li|<h[1-6]|<blockquote|<pre|<table|<div)",
-    simplify = FALSE
-  )[[1]]
+  # Cursive management (*text*) - only if it is not already in bold
+  text <- stringr::str_replace_all(text, "(?<!\\*)\\*([^*]+)\\*(?!\\*)", "<em>\\1</em>")
 
-  blocks <- trimws(blocks)
-  blocks <- blocks[nzchar(blocks)]
+  # Handling text in quotation marks as inline code (“text”)
+  text <- stringr::str_replace_all(text, '"([^"]+)"', '<code style="background-color: #f4f4f4; padding: 2px 4px; border-radius: 3px; font-family: \'Courier New\', monospace;">\\1</code>')
+
+  # Handling parentheses with percentages or numerical values
+  text <- stringr::str_replace_all(text, "\\(([^)]*%[^)]*)\\)", "<span style='color: #6CC283; font-weight: bold;'>(\\1)</span>")
+
+  return(text)
 }
