@@ -2168,6 +2168,11 @@ server <- function(input, output, session) {
     DTformat(values$VbData, nrow = nrow(values$VbData), left = 1, right = 2, numeric = 2, pagelength = FALSE, dom = FALSE, size = "110%", filename = "Overview")
   })
 
+  output$OverviewGeminiUI <- renderUI({
+    values$gemini_model_parameters <- geminiParameterPrompt(values, input$sidebarmenu, input)
+    geminiOutput(title = "Gemini AI", content = values$overviewGemini, values)
+  })
+
   ## Report
 
   observeEvent(input$overviewReport, {

@@ -1775,6 +1775,19 @@ body <- dashboardBody(
               )
             ),
             tabPanel(
+              "TALL AI",
+              fluidPage(
+                fluidRow(
+                  column(
+                    12,
+                    br(),
+                    shinycssloaders::withSpinner(htmlOutput("OverviewGeminiUI"), caption = HTML("<br><strong>Thinking...</strong>"),
+                                                 image = "ai_small2.gif", color = "#4F7942")
+                  )
+                )
+              )
+            ),
+            tabPanel(
               "Info & References",
               fluidPage(
                 fluidRow(
@@ -1996,8 +2009,8 @@ body <- dashboardBody(
                   column(
                     12,
                     br(),
-                    shinycssloaders::withSpinner(htmlOutput("ContextGeminiUI"),
-                                                 color = getOption("spinner.color", default = "#4F7942"))
+                    shinycssloaders::withSpinner(htmlOutput("ContextGeminiUI"), caption = HTML("<br><strong>Thinking...</strong>"),
+                                                 image = "ai_small2.gif", color = "#4F7942")
                   )
                 )
               )
@@ -2579,8 +2592,8 @@ body <- dashboardBody(
                 fluidRow(
                   column(12,
                          br(),
-                         shinycssloaders::withSpinner(htmlOutput("caGeminiUI"),
-                                                      color = getOption("spinner.color", default = "#4F7942"))
+                         shinycssloaders::withSpinner(htmlOutput("caGeminiUI"), caption = HTML("<br><strong>Thinking...</strong>"),
+                                                      image = "ai_small2.gif", color = "#4F7942")
                   )
                 )
               )
@@ -2749,8 +2762,8 @@ body <- dashboardBody(
                 fluidRow(
                   column(12,
                          br(),
-                         shinycssloaders::withSpinner(htmlOutput("w_networkGeminiUI"),
-                                                      color = getOption("spinner.color", default = "#4F7942"))
+                         shinycssloaders::withSpinner(htmlOutput("w_networkGeminiUI"), caption = HTML("<br><strong>Thinking...</strong>"),
+                                                      image = "ai_small2.gif", color = "#4F7942")
                   )
                 )
               )
@@ -2902,8 +2915,8 @@ body <- dashboardBody(
                 fluidRow(
                   column(12,
                          br(),
-                         shinycssloaders::withSpinner(htmlOutput("w_networkTMGeminiUI"),
-                                                      color = getOption("spinner.color", default = "#4F7942"))
+                         shinycssloaders::withSpinner(htmlOutput("w_networkTMGeminiUI"), caption = HTML("<br><strong>Thinking...</strong>"),
+                                                      image = "ai_small2.gif", color = "#4F7942")
                   )
                 )
               )
@@ -3141,8 +3154,8 @@ body <- dashboardBody(
                 fluidRow(
                   column(12,
                          br(),
-                         shinycssloaders::withSpinner(htmlOutput("w_w2vGeminiUI"),
-                                                      color = getOption("spinner.color", default = "#4F7942"))
+                         shinycssloaders::withSpinner(htmlOutput("w_w2vGeminiUI"), caption = HTML("<br><strong>Thinking...</strong>"),
+                                                      image = "ai_small2.gif", color = "#4F7942")
                   )
                 )
               )
@@ -3641,8 +3654,8 @@ body <- dashboardBody(
               fluidRow(
                 column(12,
                        br(),
-                       shinycssloaders::withSpinner(htmlOutput("d_tm_GeminiUI"),
-                                                    color = getOption("spinner.color", default = "#4F7942"))
+                       shinycssloaders::withSpinner(htmlOutput("d_tm_GeminiUI"), caption = HTML("<br><strong>Thinking...</strong>"),
+                                                    image = "ai_small2.gif", color = "#4F7942")
                 )
               )
             )
@@ -3781,8 +3794,8 @@ body <- dashboardBody(
                 fluidRow(
                   column(12,
                          br(),
-                         shinycssloaders::withSpinner(htmlOutput("d_polDet_GeminiUI"),
-                                                      color = getOption("spinner.color", default = "#4F7942"))
+                         shinycssloaders::withSpinner(htmlOutput("d_polDet_GeminiUI"), caption = HTML("<br><strong>Thinking...</strong>"),
+                                                      image = "ai_small2.gif", color = "#4F7942")
                   )
                 )
               )
