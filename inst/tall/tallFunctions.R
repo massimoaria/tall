@@ -533,6 +533,115 @@ tall_download_model <- function(
 
 ## Tagging Special Entites ----
 
+# TaggingCorpusElements <- function(x) {
+#   if ("upos_specialentities" %in% names(x)) {
+#     x <- resetSpecialEntities(x)
+#   } else {
+#     x$upos_specialentities <- x$upos
+#   }
+#
+#   regexList <- c(
+#     EMAIL = "(?i)([_+a-z0-9-]+(\\.[_+a-z0-9-]+)*@[a-z0-9-]+(\\.[a-z0-9-]+)*(\\.[a-z]{2,14}))",
+#     URL = "(?<!@)\\b(https?://[\\w.-]+\\.[a-z]{2,6}(/[\\S]*)?|[\\w.-]+\\.(com|org|net|edu|gov|it|uk)\\b)",
+#     HASH = "^#",
+#     EMOJI = "[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F700-\U0001F77F\U0001F780-\U0001F7FF\U0001F800-\U0001F8FF\U0001F900-\U0001F9FF\U0001FA00-\U0001FA6F\U0001FA70-\U0001FAFF\U00002702-\U000027B0\U000024C2-\U0001F251]",
+#     IP_ADDRESS = "\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b",
+#     MENTION = "^@"
+#   )
+#   items <- names(regexList)
+#
+#   resList <- list()
+#   j <- 0
+#
+#   for (i in 1:length(items)) {
+#     item <- items[i]
+#     results <- stringi::stri_detect_regex(x$token, regexList[[item]])
+#     if (sum(results) > 0) {
+#       j <- j + 1
+#       resList[[j]] <- data.frame(doc_id = x$doc_id[results], item = x$token[results], tag = item)
+#       x$upos[results] <- toupper(item)
+#       x$POSSelected[results] <- ifelse(x$upos[results] %in% c("HASH", "MENTION", "EMOJI"), TRUE, FALSE)
+#     }
+#   }
+#
+#   if (length(resList) > 0) {
+#     resList <- dplyr::bind_rows(resList) %>%
+#       dplyr::filter(!is.na(item))
+#   } else {
+#     resList <- tibble::tibble(doc_id = 0, item = NA, tag = "email") %>% dplyr::filter(!is.na(item))
+#   }
+#
+#   # normalize hash and email
+#   x <- x %>%
+#     mutate(
+#       lemma = case_when(
+#         upos %in% c("HASH", "EMAIL") ~ tolower(lemma),
+#         upos == "EMOJI" ~ trimws(lemma),
+#         TRUE ~ lemma
+#       ),
+#       token = case_when(
+#         upos %in% c("HASH", "EMAIL") ~ tolower(token),
+#         upos == "EMOJI" ~ trimws(token),
+#         TRUE ~ token
+#       )
+#     )
+#
+#   if (nrow(resList) > 0) {
+#     resList <- resList %>%
+#       mutate(item = case_when(
+#         tag %in% c("HASH", "EMAIL") ~ tolower(item),
+#         tag == "EMOJI" ~ trimws(item),
+#         TRUE ~ item
+#       ))
+#   }
+#
+#   return(list(resList = resList, x = x))
+# }
+#
+# resetSpecialEntities <- function(x) {
+#   if ("upos_specialentities" %in% names(x)) {
+#     items <- toupper(c("email", "url", "hash", "emoji", "ip_address", "mention"))
+#     x <- x %>%
+#       mutate(upos = ifelse(upos %in% items, upos_specialentities, upos))
+#   } else {
+#     x$upos_specialentities <- x$upos
+#   }
+#   return(x)
+# }
+#
+# summarySpecialEntities <- function(resList, type = "all") {
+#   data.frame(UPOS = toupper(c("email", "url", "hash", "emoji", "ip_address", "mention")), "N. of Items" = rep(0, 6), "N. of Docs" = rep(0, 6))
+#
+#   switch(type,
+#          "all" = {
+#            resList %>%
+#              group_by(tag) %>%
+#              summarise(items = length(unique(item))) %>%
+#              rename(
+#                UPOS = tag,
+#                "Frequency" = items
+#              ) %>%
+#              ungroup() %>%
+#              bind_rows(tibble(
+#                UPOS = toupper(c("email", "url", "hash", "emoji", "ip_address", "mention")),
+#                "Frequency" = rep(0, 6)
+#              )) %>%
+#              group_by(UPOS) %>%
+#              summarize_all(sum)
+#          },
+#          {
+#            label <- toupper(type)
+#            resList %>%
+#              rename(UPOS = tag) %>%
+#              filter(UPOS == label) %>%
+#              count(item) %>%
+#              arrange(desc(n))
+#          }
+#   )
+# }
+
+## Tagging Special Entites ----
+
 TaggingCorpusElements <- function(x) {
   if ("upos_specialentities" %in% names(x)) {
     x <- resetSpecialEntities(x)
@@ -544,7 +653,8 @@ TaggingCorpusElements <- function(x) {
     EMAIL = "(?i)([_+a-z0-9-]+(\\.[_+a-z0-9-]+)*@[a-z0-9-]+(\\.[a-z0-9-]+)*(\\.[a-z]{2,14}))",
     URL = "(?<!@)\\b(https?://[\\w.-]+\\.[a-z]{2,6}(/[\\S]*)?|[\\w.-]+\\.(com|org|net|edu|gov|it|uk)\\b)",
     HASH = "^#",
-    EMOJI = "[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F700-\U0001F77F\U0001F780-\U0001F7FF\U0001F800-\U0001F8FF\U0001F900-\U0001F9FF\U0001FA00-\U0001FA6F\U0001FA70-\U0001FAFF\U00002702-\U000027B0\U000024C2-\U0001F251]",
+    # Regex più preciso per gli emoji - esclude i caratteri CJK
+    EMOJI = "[\U0001F600-\U0001F64F]|[\U0001F300-\U0001F5FF]|[\U0001F680-\U0001F6FF]|[\U0001F1E0-\U0001F1FF]|[\U00002600-\U000026FF]|[\U00002700-\U000027BF]|[\U0001F900-\U0001F9FF]|[\U0001FA70-\U0001FAFF]|[\U00002B00-\U00002BFF]|[\U00003030\U0000303D\U00003297\U00003299]",
     IP_ADDRESS = "\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b",
     MENTION = "^@"
   )
@@ -640,6 +750,53 @@ summarySpecialEntities <- function(resList, type = "all") {
   )
 }
 
+## Custom Lists merging
+mergeCustomLists <- function(df, custom_lists, term = "lemma") {
+  if (!is.null(custom_lists)) {
+    switch(term,
+           "lemma" = {
+             df <- df %>%
+               customListsReset() %>%
+               left_join(custom_lists, by = c("lemma" = "lemma")) %>%
+               mutate(
+                 upos.x = ifelse(!is.na(upos.y), toupper(upos.y), upos.x),
+                 POSSelected = ifelse(upos.x %in% c("ADJ", "NOUN", "PROPN", "VERB", "HASH", "EMOJI", "MENTION"), TRUE, FALSE)
+               ) %>%
+               select(-upos.y) %>%
+               rename(upos = upos.x) %>%
+               highlight()
+           },
+           "token" = {
+             df <- df %>%
+               customListsReset() %>%
+               left_join(custom_lists, by = c("token" = "token")) %>%
+               mutate(
+                 upos.x = ifelse(!is.na(upos.y), toupper(upos.y), upos.x),
+                 POSSelected = ifelse(upos.x %in% c("ADJ", "NOUN", "PROPN", "VERB"), TRUE, FALSE)
+               ) %>%
+               select(-upos.y) %>%
+               rename(upos = upos.x) %>%
+               highlight()
+           }
+    )
+  } else {
+    print("RESET")
+    df <- df %>% customListsReset()
+  }
+  return(df)
+}
+
+customListsReset <- function(df) {
+  if ("upos_original_custom" %in% names(df)) {
+    df <- df %>%
+      mutate(upos = upos_original_custom)
+  } else {
+    df <- df %>%
+      mutate(upos_original_custom = upos)
+  }
+
+  return(df)
+}
 
 ## Custom Lists merging
 mergeCustomLists <- function(df, custom_lists, term = "lemma") {
