@@ -3834,12 +3834,9 @@ body <- dashboardBody(
               type = "tabs",
               tabPanel(
                 "Abstract",
-                fluidRow(
-                  style = "height:65vh",
                   shinycssloaders::withSpinner(uiOutput("summaryData"),
                                                color = getOption("spinner.color", default = "#4F7942")
                   )
-                )
               ),
               tabPanel(
                 "Full Document",
