@@ -37,15 +37,6 @@ gemini_ai <- function(image = NULL,
          }
   )
 
-  # # Default config
-  # generation_config <- list(
-  #   temperature = 1,
-  #   maxOutputTokens = 16384,#8192,
-  #   topP = 0.95,
-  #   topK = 40,
-  #   seed = 1234
-  # )
-
   # Build URL
   model_query <- paste0("gemini-", model, ":generateContent")
   url <- paste0("https://generativelanguage.googleapis.com/v1beta/models/", model_query)
@@ -746,61 +737,6 @@ string_to_sentence_df <- function(input_string) {
   return(sentence_df)
 }
 
-# # convert gemini output to HTML
-# text_to_html <- function(input_text) {
-#   input_text <- c(input_text,"\n")
-#   # Escape HTML special characters
-#   escape_html <- function(text) {
-#     text <- gsub("&", "&amp;", text)
-#     text <- gsub("<", "&lt;", text)
-#     text <- gsub(">", "&gt;", text)
-#     text
-#   }
-#
-#   # Convert markdown-style bold (**text**) to <strong>
-#   convert_bold <- function(text) {
-#     gsub("\\*\\*(.*?)\\*\\*", "<strong>\\1</strong>", text)
-#   }
-#
-#   # Process each paragraph
-#   paragraphs <- unlist(strsplit(input_text, "\n\n"))
-#   html_paragraphs <- lapply(paragraphs, function(p) {
-#     lines <- unlist(strsplit(p, "\n"))
-#     lines <- sapply(lines, escape_html) # escape special characters
-#     lines <- sapply(lines, convert_bold) # convert **bold**
-#
-#     if (all(grepl("^\\*\\s+", lines))) {
-#       # Convert to unordered list
-#       lines <- gsub("^\\*\\s+", "", lines)
-#       items <- paste0("<li>", lines, "</li>", collapse = "\n")
-#       return(paste0("<ul>\n", items, "\n</ul>"))
-#     } else {
-#       # Regular paragraph
-#       return(paste0("<p>", paste(lines, collapse = "<br/>"), "</p>"))
-#     }
-#   })
-#
-#   # Combine all HTML parts
-#   html_body <- paste(html_paragraphs, collapse = "\n\n")
-#   html <- paste0("<html>\n<body>\n", html_body, "\n</body>\n</html>")
-#   html <- gsub("\n","",html)
-#   return(html)
-# }
-
-# # From HTML to text Blocks
-# html_to_blocks <- function(raw_html){
-#   html_body <- sub(".*<body[^>]*>", "", raw_html)
-#   html_body <- sub("</body>.*", "", html_body)
-#
-#   blocks <- stringr::str_split(
-#     html_body,
-#     "(?=<p|<ul|<ol|<li|<h[1-6]|<blockquote|<pre|<table|<div)",
-#     simplify = FALSE
-#   )[[1]]
-#
-#   blocks <- trimws(blocks)
-#   blocks <- blocks[nzchar(blocks)]
-# }
 
 ## New function to convert gemini output as HTML blocks
 gemini_to_html <- function(text) {
@@ -932,4 +868,141 @@ format_inline_text <- function(text) {
   text <- stringr::str_replace_all(text, "\\(([^)]*%[^)]*)\\)", "<span style='color: #6CC283; font-weight: bold;'>(\\1)</span>")
 
   return(text)
+}
+
+### token counter for gemini
+estimate_gemini_tokens <- function(text) {
+  # Function to estimate the number of tokens for Gemini API
+  # Parameter: text - text string to analyze
+
+  if (!is.character(text) || length(text) == 0) {
+    return(0)
+  }
+
+  # Combine everything into a single string if it's a vector
+  if (length(text) > 1) {
+    text <- paste(text, collapse = " ")
+  }
+
+  # Handle empty strings or strings with only whitespace
+  text <- trimws(text)
+  if (nchar(text) == 0) {
+    return(0)
+  }
+
+  # Text preprocessing
+  # Remove multiple spaces
+  text <- gsub("\\s+", " ", text)
+
+  # Count special characters that might be separate tokens
+  special_chars <- length(gregexpr("[{}()\\[\\]<>.,;:!?\"'`@#$%^&\\*\\+=|\\~-]", text)[[1]])
+  if (special_chars == 1 && attr(gregexpr("[{}()\\[\\]<>.,;:!?\"'`@#$%^&\\*\\+=|\\~-]", text)[[1]], "match.length") == -1) {
+    special_chars <- 0
+  }
+
+  # Count numbers (often tokenized separately)
+  numbers <- length(gregexpr("\\b\\d+\\b", text)[[1]])
+  if (numbers == 1 && attr(gregexpr("\\b\\d+\\b", text)[[1]], "match.length") == -1) {
+    numbers <- 0
+  }
+
+  # Split text into words
+  words <- unlist(strsplit(text, "\\s+"))
+  words <- words[words != ""]  # Remove empty strings
+
+  if (length(words) == 0) {
+    return(0)
+  }
+
+  # Estimate tokens based on word length and linguistic characteristics
+  token_count <- 0
+
+  # Detect the main language of the text to apply correction factors
+  is_cjk <- any(grepl("[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]", words))
+  is_arabic <- any(grepl("[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff\ufb50-\ufdff\ufe70-\ufeff]", words))
+  is_cyrillic <- any(grepl("[\u0400-\u04ff]", words))
+  is_devanagari <- any(grepl("[\u0900-\u097f]", words))
+
+  for (word in words) {
+    # Remove punctuation from the word for calculation
+    clean_word <- gsub("[[:punct:]]", "", word)
+    word_length <- nchar(clean_word)
+
+    if (word_length == 0) {
+      next  # Skip if word is only punctuation
+    }
+
+    # Handle languages with special writing systems
+    if (is_cjk) {
+      # Chinese, Japanese, Korean: often 1 character = 1 token
+      cjk_chars <- length(gregexpr("[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]", clean_word)[[1]])
+      if (cjk_chars > 0 && attr(gregexpr("[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]", clean_word)[[1]], "match.length")[1] != -1) {
+        token_count <- token_count + cjk_chars
+      } else {
+        # Non-CJK characters in CJK text
+        token_count <- token_count + max(1, ceiling(word_length / 4))
+      }
+    } else if (is_arabic) {
+      # Arabic: words may be tokenized differently due to complex morphology
+      token_count <- token_count + max(1, ceiling(word_length / 3))
+    } else if (is_devanagari) {
+      # Hindi/Sanskrit: tokenization based on morphemes
+      token_count <- token_count + max(1, ceiling(word_length / 3.5))
+    } else {
+      # Languages with Latin, Cyrillic, and other alphabets
+      if (word_length <= 2) {
+        # Very short words (articles, short prepositions)
+        token_count <- token_count + 1
+      } else if (word_length <= 4) {
+        # Short words
+        token_count <- token_count + 1
+      } else if (word_length <= 7) {
+        # Medium words
+        token_count <- token_count + 1
+      } else if (word_length <= 12) {
+        # Long words
+        token_count <- token_count + ceiling(word_length / 5)
+      } else {
+        # Very long words (German compounds, technical terms, etc.)
+        if (is_cyrillic) {
+          token_count <- token_count + ceiling(word_length / 4)
+        } else {
+          token_count <- token_count + ceiling(word_length / 4.5)
+        }
+      }
+    }
+  }
+
+  # Add tokens for special characters and numbers
+  # Special characters are often separate tokens
+  token_count <- token_count + ceiling(special_chars * 0.8)
+
+  # Numbers may be tokenized in a special way
+  token_count <- token_count + ceiling(numbers * 0.5)
+
+  # Apply language-specific correction factors
+  if (is_cjk) {
+    # CJK languages might have more efficient tokenization
+    token_count <- token_count * 0.9
+  } else if (is_arabic) {
+    # Arabic has complex morphology that can increase tokens
+    token_count <- token_count * 1.15
+  } else if (is_devanagari) {
+    # Hindi and related languages
+    token_count <- token_count * 1.1
+  } else if (is_cyrillic) {
+    # Russian and other Cyrillic languages
+    token_count <- token_count * 1.05
+  } else {
+    # Languages with Latin alphabet (including accented characters)
+    has_accents <- any(grepl("[\u00c0-\u017f\u1ea0-\u1ef9]", text, ignore.case = TRUE))
+    if (has_accents) {
+      token_count <- token_count * 1.08
+    }
+  }
+
+  # Round and ensure it's at least 1 if there's any text
+  token_count <- max(1, round(token_count))
+
+  return(token_count)
 }

@@ -28,6 +28,8 @@ is_online <- function() {
 }
 
 ## clean raw text before apply tokenization ----
+
+
 clean_text <- function(df, text_column = "text",
                        add_space = TRUE,
                        remove_quotes = TRUE,
@@ -38,13 +40,10 @@ clean_text <- function(df, text_column = "text",
                        )) {
   # Improved emoji regex pattern to capture Unicode emojis
   EMOJI <- "[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F700-\U0001F77F\U0001F780-\U0001F7FF\U0001F800-\U0001F8FF\U0001F900-\U0001F9FF\U0001FA00-\U0001FA6F\U0001FA70-\U0001FAFF\U00002702-\U000027B0\U000024C2-\U0001F251]"
-
   # Sort punctuation marks by length (longest first) to prioritize sequences
   punctuation_marks <- punctuation_marks[order(nchar(punctuation_marks), decreasing = TRUE)]
-
   # Escape special regex characters
   punctuation_marks <- sapply(punctuation_marks, function(x) gsub("([\\^$.|?*+(){}])", "\\\\\\1", x))
-
   # Create a regex pattern for punctuation sequences
   punctuation_regex <- paste0("(", paste0(punctuation_marks, collapse = "|"), ")")
 
@@ -54,12 +53,16 @@ clean_text <- function(df, text_column = "text",
         text_cleaned <- stringr::str_replace_all(.data[[text_column]], '[\"]', "") # Remove quotes
         text_cleaned <- stringr::str_replace_all(text_cleaned, punctuation_regex, " \\1 ") # Add spaces around punctuation
         text_cleaned <- stringr::str_replace_all(text_cleaned, EMOJI, " \\0 ") # Add spaces around emojis
-        stringr::str_squish(text_cleaned) # Remove extra spaces
+        # Remove extra spaces but preserve newlines
+        text_cleaned <- stringr::str_replace_all(text_cleaned, "[ \t]+", " ") # Replace multiple spaces/tabs with single space
+        stringr::str_replace_all(text_cleaned, "[ \t]*\n[ \t]*", "\n") # Clean spaces around newlines
       },
       add_space ~ {
         text_cleaned <- stringr::str_replace_all(.data[[text_column]], punctuation_regex, " \\1 ")
         text_cleaned <- stringr::str_replace_all(text_cleaned, EMOJI, " \\0 ")
-        stringr::str_squish(text_cleaned)
+        # Remove extra spaces but preserve newlines
+        text_cleaned <- stringr::str_replace_all(text_cleaned, "[ \t]+", " ") # Replace multiple spaces/tabs with single space
+        stringr::str_replace_all(text_cleaned, "[ \t]*\n[ \t]*", "\n") # Clean spaces around newlines
       },
       remove_quotes ~ {
         stringr::str_replace_all(.data[[text_column]], '[\"|\']', "")
@@ -138,7 +141,7 @@ read_files <- function(files, ext = c("txt", "csv", "xlsx", "pdf"), subfolder = 
          txt = {
            ## detect text encoding for each file
            df <- readtext(file)
-           encod <- suppressMessages(encoding(df, verbose = FALSE)$all)
+           encod <- suppressMessages(readtext::encoding(df, verbose = FALSE)$all)
            ## read txt files using the right encoding
            df <- data.frame(doc_id = doc_id, text = NA, folder = folder, file = file, encod = encod) %>%
              group_by(doc_id) %>%
@@ -4433,6 +4436,112 @@ abstractingDocument <- function(s, n, id) {
   return(results)
 }
 
+### ABSTRACTIVE TEXT SUMMARIZATION: ----
+
+abstractive_summary <- function(values,
+                                id,
+                                nL = 250,
+                                maxTokens = 16384,
+                                api_key = NULL,
+                                model = "2.0-flash",
+                                retry_attempts = 5) {
+
+  # Input validation
+  if (missing(values) || missing(id)) {
+    stop("Both 'values' and 'id' parameters are required")
+  }
+
+  if (!is.data.frame(values$dfTag)) {
+    stop("values$txt must be a data frame")
+  }
+
+  # Validate numeric parameters
+  if (!is.numeric(nL) || nL <= 0) {
+    stop("nL must be a positive number")
+  }
+
+  if (!is.numeric(maxTokens) || maxTokens <= 0) {
+    stop("maxTokens must be a positive number")
+  }
+
+  # Extract document text based on provided ID
+  doc_data <- values$dfTag %>%
+    filter(doc_id == !!id) %>%
+    rebuild_documents()
+
+  # doc_data <- values$txt %>%
+  #   filter(doc_id == !!id)
+
+  # Check if document exists
+  if (nrow(doc_data) == 0) {
+    warning(paste("Document with ID", id, "not found"))
+    return(NA)
+  }
+
+  # Extract text content
+  doc <- doc_data %>%
+    pull(text)
+
+  # Handle case where multiple documents have same ID (take first one)
+  if (length(doc) > 1) {
+    warning(paste("Multiple documents found for ID", id, "- using first occurrence"))
+    doc <- doc[1]
+  }
+
+  # Check for empty or missing text
+  if (is.na(doc) || nchar(trimws(doc)) == 0) {
+    warning(paste("Document", id, "contains no text content"))
+    return(NA)
+  }
+
+  # Estimate token count for the document
+  tryCatch({
+    n_tokens <- estimate_gemini_tokens(doc)
+  }, error = function(e) {
+    warning(paste("Token estimation failed for document", id, ":", e$message))
+    return(NA)
+  })
+
+  # Check if document exceeds token limit
+  if (n_tokens > maxTokens) {
+    return(paste("Document", id, "too long (", n_tokens, "tokens >", maxTokens,
+                 "limit), skipping summarization"))
+  }
+
+  # Construct detailed prompt for summarization
+  prompt <- paste0(
+    "Create a comprehensive abstractive summary of the following text. ",
+    "Requirements:\n",
+    "- Capture all main points and key details\n",
+    "- Maintain clarity and readability\n",
+    "- Preserve important context and nuances\n",
+    "- Target length: approximately ", nL, " words\n",
+    "- Use clear, concise language\n",
+    "- Maintain the original tone when appropriate\n\n",
+    "Text to summarize:\n\n", doc
+  )
+
+  # Handle API key configuration
+  if (is.null(api_key)) {
+    # Try to get from environment variable
+    api_key <- Sys.getenv("GEMINI_API_KEY", unset = NA)
+    if (is.na(api_key)) {
+      stop("API key must be provided either as parameter or GEMINI_API_KEY environment variable")
+    }
+  }
+
+  res <- gemini_ai(
+    image = NULL,
+    prompt = prompt,
+    model = model,
+    type = "text",
+    retry_503 = retry_attempts,
+    api_key = api_key,
+    outputSize = "medium"
+  )
+  return(res)
+}
+
 ### EXCEL REPORT FUNCTIONS ----
 addDataWb <- function(list_df, wb, sheetname, startRow = 1) {
   l <- length(list_df)
@@ -5097,7 +5206,10 @@ menuList <- function(menu) {
                                menuSubItem("Model Estimation", tabName = "d_tm_estim", icon = icon("chevron-right"))
                       ),
                       menuSubItem("Polarity Detection", tabName = "d_polDet", icon = icon("chevron-right")),
-                      menuSubItem("Summarization", tabName = "d_summarization", icon = icon("chevron-right"))
+                      menuItem("Summarization", tabName ="summarization", icon = icon("chevron-right"),
+                               menuSubItem("Abstractive", tabName = "d_astractive", icon = icon("chevron-right")),
+                               menuSubItem("Extractive", tabName = "d_summarization", icon = icon("chevron-right"))
+                      )
              ),
              menuItem("Report", tabName = "report", icon = icon("list-alt")),
              menuItem("Settings", tabName = "settings", icon = icon("tasks"))
@@ -5157,7 +5269,10 @@ menuList <- function(menu) {
                                menuSubItem("Model Estimation", tabName = "d_tm_estim", icon = icon("chevron-right"))
                       ),
                       menuSubItem("Polarity Detection", tabName = "d_polDet", icon = icon("chevron-right")),
-                      menuSubItem("Summarization", tabName = "d_summarization", icon = icon("chevron-right"))
+                      menuItem("Summarization", tabName ="summarization", icon = icon("chevron-right"),
+                               menuSubItem("Abstractive", tabName = "d_astractive", icon = icon("chevron-right")),
+                               menuSubItem("Extractive", tabName = "d_summarization", icon = icon("chevron-right"))
+                      )
              ),
              menuItem("Report", tabName = "report", icon = icon("list-alt")),
              menuItem("Settings", tabName = "settings", icon = icon("tasks"))

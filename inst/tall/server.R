@@ -1646,7 +1646,6 @@ server <- function(input, output, session) {
   })
 
   ## PoS Tag Selection ----
-
   observe({
     output$posTagListsUI <- renderUI({
       checkboxGroupInput("posTagLists",
@@ -4412,8 +4411,55 @@ server <- function(input, output, session) {
     }
   })
 
+  ## Abstractive Summarization ----
 
-  ## Summarization ----
+  output$optionsAbstractive <- renderUI({
+    selectizeInput(
+      inputId = "Abst_document_selection",
+      label = "Select Document",
+      choices = values$dfTag %>% dplyr::filter(docSelected) %>% select(doc_id) %>% unique() %>% pull(doc_id),
+      multiple = FALSE,
+      width = "100%"
+    )
+  })
+
+  abstractiveSummarization <- eventReactive(
+    ignoreNULL = TRUE,
+    eventExpr = {
+      input$d_abstractiveApply
+    },
+    valueExpr = {
+      values$abstractiveSumm <- abstractive_summary(values,
+                                                    id = input$Abst_document_selection,
+                                                    nL = input$summaryLength,
+                                                    api_key=NULL,
+                                                    model = values$gemini_api_model)
+    }
+  )
+
+  output$summaryData <- renderUI({
+    abstractiveSummarization()
+    div(
+      id = "typing-box",
+      style = "white-space: pre-wrap; background-color:#f9f9f9; padding:15px; border:1px solid #ccc; border-radius:5px; max-height:700px; overflow-y: auto;",
+      HTML(values$abstractiveSumm)
+    )
+
+  })
+
+  output$documentData2 <- renderUI({
+    abstractiveSummarization()
+    div(
+      id = "typing-box",
+      style = "white-space: pre-wrap; background-color:#f9f9f9; padding:15px; border:1px solid #ccc; border-radius:5px; max-height:700px; overflow-y: auto;",
+      HTML(values$dfTag %>%
+             filter(doc_id == !!input$Abst_document_selection) %>%
+             rebuild_documents() %>% pull(text) %>% paste(collapse = "<br>")
+      )
+    )
+  })
+
+  ## Extractive Summarization ----
 
   output$optionsUnitSummarization <- renderUI({
     selectInput(

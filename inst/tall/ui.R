@@ -3805,7 +3805,122 @@ body <- dashboardBody(
       )
     ),
 
-    ### Summarization ----
+    ### Abstractive Summarization ----
+
+    tabItem(
+      tabName = "d_astractive",
+      fluidPage(
+        fluidRow(
+          column(
+            11,
+            h3(strong("Abstractive Summarization"), align = "center")
+          ),
+          div(
+            title = t_report,
+            column(
+              1,
+              do.call("actionButton", c(report_bttn, list(
+                inputId = "d_astractiveReport"
+              )))
+            )
+          )
+        ),
+        br(),
+        br(),
+        fluidRow(
+          column(
+            9,
+            tabsetPanel(
+              type = "tabs",
+              tabPanel(
+                "Abstract",
+                fluidRow(
+                  style = "height:65vh",
+                  shinycssloaders::withSpinner(uiOutput("summaryData"),
+                                               color = getOption("spinner.color", default = "#4F7942")
+                  )
+                )
+              ),
+              tabPanel(
+                "Full Document",
+                shinycssloaders::withSpinner(uiOutput("documentData2"),
+                                             color = getOption("spinner.color", default = "#4F7942")
+                )
+              ),
+              tabPanel(
+                "Info & References",
+                fluidPage(
+                  fluidRow(
+                    column(1),
+                    column(
+                      10,
+                      br(),
+                      HTML(infoTexts$summarization)
+                    ),
+                    column(1)
+                  )
+                )
+              )
+            )
+          ),
+          column(
+            3,
+            div(
+              box(
+                width = 12,
+                div(h3(strong(em("Abstractive Summarization"))), style = "margin-top:-57px"),
+                h5(("TALL generates a coherent and concise summary by interpreting and paraphrasing the main ideas from the original text"),
+                   style = "text-align: left; text-color: #989898"
+                ),
+                tags$hr(),
+                fluidRow(column(
+                  12,
+                  uiOutput("optionsUnitAbstractive"),
+                  uiOutput("optionsAbstractive"),
+                  numericInput("summaryLength",
+                               label = "Summary Length (in words)",
+                               value = 250,
+                               min = 10,
+                               step = 10,
+                               max = 16384
+                  ),
+                )),
+                hr(),
+                div(
+                  fluidRow(
+                    column(
+                      4,
+                      div(
+                        align = "center",
+                        title = t_run,
+                        do.call("actionButton", c(run_bttn, list(
+                          inputId = "d_abstractiveApply"
+                        )))
+                      )
+                    ),
+                    column(
+                      4,
+                      div(
+                        align = "center",
+                        title = t_view,
+                        do.call("actionButton", c(view_bttn, list(
+                          inputId = "d_abstractingView"
+                        )))
+                      )
+                    ),
+                    column(4)
+                  ),
+                  style = "margin-top:-15px"
+                )
+              ),
+              style = "margin-top:40px"
+            )
+          )
+        )
+      )
+    ),
+
+    ### Extractive Summarization ----
 
     tabItem(
       tabName = "d_summarization",
@@ -3813,7 +3928,7 @@ body <- dashboardBody(
         fluidRow(
           column(
             11,
-            h3(strong("Summarization"), align = "center")
+            h3(strong("Extractive Summarization"), align = "center")
           ),
           div(
             title = t_report,
