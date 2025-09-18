@@ -2692,7 +2692,7 @@ avoidNetOverlaps <- function(w, threshold = 0.10) {
 tallThematicmap <- function(dfTag, term = "lemma", group = "doc_id", n = 100, labelsize = 10, n.labels = 1, opacity = 0.8) {
   net <- network(LemmaSelection(dfTag) %>% filter(docSelected),
                  term = term, group = group,
-                 n = n, minEdges = 100, labelsize = labelsize, opacity = opacity,
+                 n = n, minEdges = "Auto", labelsize = labelsize, opacity = opacity,
                  interLinks = FALSE, normalization = "association",
                  remove.isolated = FALSE, community.repulsion = 0
   )
