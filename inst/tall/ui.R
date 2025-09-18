@@ -3881,6 +3881,7 @@ body <- dashboardBody(
                                step = 10,
                                max = 16384
                   ),
+                  uiOutput("abstractivePromptUI"),
                 )),
                 hr(),
                 div(
@@ -3901,7 +3902,7 @@ body <- dashboardBody(
                         align = "center",
                         title = t_view,
                         do.call("actionButton", c(view_bttn, list(
-                          inputId = "d_abstractingView"
+                          inputId = "d_abstractiveView"
                         )))
                       )
                     ),

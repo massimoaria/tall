@@ -4439,6 +4439,7 @@ abstractingDocument <- function(s, n, id) {
 ### ABSTRACTIVE TEXT SUMMARIZATION: ----
 
 abstractive_summary <- function(values,
+                                input,
                                 id,
                                 nL = 250,
                                 maxTokens = 16384,
@@ -4520,6 +4521,10 @@ abstractive_summary <- function(values,
     "- Maintain the original tone when appropriate\n\n",
     "Text to summarize:\n\n", doc
   )
+
+  if (!is.null(input$abstractivePrompt)){
+    prompt <- paste(input$abstractivePrompt, prompt, sep = "\n\n")
+  }
 
   # Handle API key configuration
   if (is.null(api_key)) {
@@ -4683,7 +4688,8 @@ dfLabel <- function() {
     "KChoice",
     "ModelEstim",
     "PolarityDetection",
-    "Summarization"
+    "AbstractiveSummarization",
+    "ExtractiveSummarization"
   )
 
   long <- c(
@@ -4701,7 +4707,8 @@ dfLabel <- function() {
     "TM-K choice",
     "TM-Model Estimation",
     "Polarity Detection",
-    "Summarization"
+    "Abstractive Summarization",
+    "Extractive Summarization"
   )
 
   data.frame(short = short, long = long)
@@ -4921,6 +4928,8 @@ easyClose = TRUE
   values$gemini_api_model <- gemini_api_model[1]
   values$gemini_output_size <- gemini_api_model[2]
 
+  values$abstractivePrompt <- NULL
+
   return(values)
 }
 
@@ -5009,27 +5018,6 @@ highlight_segments <- function(tc, n) {
   tc$segments <- segments
   return(tc)
 }
-
-# Define the function
-# highlight_word <- function(input_string, target_word, upos) {
-#   # Check if the target word is valid
-#
-#   if (is.na(target_word) || target_word == "" | upos %in% c("DET","PART","PUNCT","X","SYM","INTJ", "NUM", "NGRAM_MERGED")) {
-#     return(input_string)
-#   }
-#
-#   # Escape special characters in the target word for regex
-#   target_word_escaped <- gsub("([\\.\\^\\$\\*\\+\\?\\(\\)\\[\\]\\{\\}\\|\\\\])", "\\\\\\1", target_word)
-#
-#   # Replace occurrences of the target word with highlighted HTML markup
-#   highlighted_string <- gsub(
-#     paste0("\\b", target_word_escaped, "\\b"), # Match whole words
-#     paste0("<mark><strong>", target_word, "</strong></mark>"),
-#     input_string
-#   )
-#
-#   return(highlighted_string)
-# }
 
 highlight_word <- function(input_string, target_word, upos) {
   # Controllo della validità della parola target

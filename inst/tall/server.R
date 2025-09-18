@@ -333,6 +333,7 @@ server <- function(input, output, session) {
           inputId = "corpus_description",
           label = "Please provide a brief description of your corpus (e.g., source, type of content, domain) to improve prompts for the TALL AI Assistant:",
           placeholder = "Example: The corpus consists of 150 academic articles from biomedical journals published between 2015 and 2020...",
+          value = values$corpus_description,
           rows = 8,
           width = "100%"
         ),
@@ -357,6 +358,10 @@ server <- function(input, output, session) {
     }
   })
 
+
+  observeEvent(input$corpus_description,{
+    values$corpus_description <- input$corpus_description
+  })
 
   observeEvent(input$runReset2, {
     ask_confirmation(
@@ -478,7 +483,6 @@ server <- function(input, output, session) {
                       values$where <- where
                       values$corpus_description <- "The dataset is composed of a collection of 444 scientific articles written in English in which the authors used the Bibliometrix R package to perform systematic literature reviews.\n The textual data consists of the article abstracts, while the additional information includes metadata such as the list of co-authors, the first author, the year of publication, and the journal name."
                       values$resetNeed <- TRUE
-                      print(input$sidenbarmenu)
                       if (values$menu == 1) updateTabItems(session, "sidebarmenu", "custTermList")
                       if (values$menu > 1) updateTabItems(session, "sidebarmenu", "posTagSelect")
                       if (ncol(values$dfTag) > 1) {
@@ -4423,6 +4427,21 @@ server <- function(input, output, session) {
     )
   })
 
+  output$abstractivePromptUI <- renderUI({
+    textAreaInput(
+      inputId = "abstractivePrompt",
+      label = "Provide any additional prompts for the AI Assistant:",
+      placeholder = "Example: Provide the summary in bullet points; or Provide the summary in Italian language; etc.",
+      value = values$abstractivePrompt,
+      rows = 8,
+      width = "100%"
+    )
+  })
+
+  observeEvent(input$abstractivePrompt,{
+    values$abstractivePrompt <- input$abstractivePrompt
+  })
+
   abstractiveSummarization <- eventReactive(
     ignoreNULL = TRUE,
     eventExpr = {
@@ -4430,6 +4449,7 @@ server <- function(input, output, session) {
     },
     valueExpr = {
       values$abstractiveSumm <- abstractive_summary(values,
+                                                    input = input,
                                                     id = input$Abst_document_selection,
                                                     nL = input$summaryLength,
                                                     api_key=NULL,
@@ -4457,6 +4477,26 @@ server <- function(input, output, session) {
              rebuild_documents() %>% pull(text) %>% paste(collapse = "<br>")
       )
     )
+  })
+
+  ## Report
+
+  observeEvent(input$d_astractiveReport, {
+    if (!is.null(values$abstractiveSumm)) {
+      popUp(title = NULL, type = "waiting")
+      sheetname <- "AbstractiveSummarization"
+
+      list_df <- list(
+        data.frame(Abstract = paste0("Document: ",input$Abst_document_selection,
+                                     "\n\n Abstract:\n\n",values$abstractiveSumm))
+      )
+      res <- addDataScreenWb(list_df, wb = values$wb, sheetname = sheetname)
+      # values$wb <- res$wb
+      popUp(title = "Summarization Results", type = "success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type = "error")
+    }
   })
 
   ## Extractive Summarization ----
@@ -4544,7 +4584,7 @@ server <- function(input, output, session) {
   observeEvent(input$d_summarizationReport, {
     if (!is.null(values$docExtraction$sentences)) {
       popUp(title = NULL, type = "waiting")
-      sheetname <- "Summarization"
+      sheetname <- "ExtractiveSummarization"
 
       values$docExtraction$abstractData <- data.frame("Abstract" = values$docExtraction$abstract)
       values$docExtraction$abstractData <- values$docExtraction$abstractData %>%
@@ -4661,6 +4701,30 @@ server <- function(input, output, session) {
   ## SETTINGS ----
 
   ## UTILITY ----
+
+  observeEvent(input$d_abstractiveView, {
+    showModal(showDocumentAbstractiveModal(session))
+  })
+
+  showDocumentAbstractiveModal <- function(session) {
+    ns <- session$ns
+    modalDialog(
+      div(
+        style = "height: 550px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;",
+        h3(strong(("Document corpus"))),
+        br(),
+        HTML(values$dfTag %>%
+               filter(doc_id == !!input$Abst_document_selection) %>%
+               rebuild_documents() %>% pull(text) %>% paste(collapse = "<br>")
+        ),
+        size = "l",
+        easyClose = TRUE,
+        footer = tagList(
+          modalButton("Close")
+        )
+      )
+    )
+  }
 
   observeEvent(input$d_summarizationView, {
     showModal(showDocumentSummarizationModal(session))
@@ -4842,35 +4906,6 @@ server <- function(input, output, session) {
   output$wdFolder <- renderText({
     values$wdTall
   })
-
-  # output$apiStatus <- renderUI({
-  #   if (values$geminiAPI){
-  #     last <- showGeminiAPI()
-  #     output$status <- renderText(paste0("✅ API key has been set: ",last))
-  #   }
-  #
-  # })
-
-  # observeEvent(input$set_key, {
-  #   key <- input$api_key
-  #   last <- setGeminiAPI(key)
-  #
-  #   if (is.na(last)){
-  #     output$apiStatus <- renderUI({
-  #       output$status <- renderText(paste0("❌ API key seems tto be not valid"))
-  #     })
-  #     values$geminiAPI <- FALSE
-  #   } else {
-  #     output$apiStatus <- renderUI({
-  #       output$status <- renderText(paste0("✅ API key has been set: ",last))
-  #     })
-  #     values$geminiAPI <- TRUE
-  #     home <- homeFolder()
-  #     path_gemini_key <- paste0(file.path(home, "tall"),"/.gemini_key.txt", collapse="")
-  #     writeLines(Sys.getenv("GEMINI_API_KEY"), path_gemini_key)
-  #   }
-  #
-  # })
 
   output$apiStatus <- renderUI({
     if (values$geminiAPI){
