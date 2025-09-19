@@ -77,21 +77,10 @@ server <- function(input, output, session) {
 
   # ## observe Gemini Save button
   observeEvent(input$save_btn, {
-    # geminiSave(values, input$sidebarmenu, type="save")
     filename <- paste0(values$wdTall,"/TallAI_",input$sidebarmenu,".txt")
     txtOutput <- geminiSave(values, input$sidebarmenu)
     readr::write_lines(txtOutput, file=filename)
   })
-
-  # output$save_btn <- downloadHandler(
-  #   filename = function() {
-  #     paste0(values$wdTall,"/TallAI_",input$sidebarmenu,".txt")
-  #   },
-  #   content <- function(file) {
-  #
-  #   },
-  #   contentType = "txt"
-  # )
 
   ## observe gemini generate button
   observeEvent(input$gemini_btn, {
