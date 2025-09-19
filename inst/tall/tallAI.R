@@ -262,8 +262,8 @@ This AI-powered feature leverages Google Gemini to help you understand patterns 
                           width = "80%")
       ),
       column(4, align = "center",
-             downloadButton(outputId = "save_btn", label = "Save", icon = icon("download"),
-                            style = "width: 80%;")
+             actionButton("save_btn", "Save", style = "color: white;", icon = icon("download"),
+                          width = "80%")
       )
     )
   )
@@ -339,17 +339,27 @@ tallAiPrompts <- function(values, activeTab){
                             "Always provide interpretations that are methodologically sound, theoretically grounded, and strategically actionable for research and content analysis.")
          },
          "w_w2v_similarity"={
-           prompt <- paste0("You have to provide an interpretation of Word Similarity Network analysis results from the TALL software package in R. ",
+           prompt <- paste0("You have to provide an interpretation of both Word Similarity Network analysis and UMAP results from the TALL software package in R. ",
                             "Your expertise covers word embedding analysis, semantic similarity interpretation, network topology analysis, and community detection in embedding spaces. ",
+                            "Provide analysis in TWO distinct sections: ",
+                            "  Section: SIMILARITY NETWORK ANALYSIS ",
                             "You help users understand: ",
                             " - Word2vec embedding relationships and semantic similarity patterns ",
                             " - Network structure and community clusters based on cosine similarity ",
                             " - Semantic neighborhoods and lexical fields ",
                             " - Embedding space topology and word positioning ",
-                            " - Community detection results and thematic groupings ",
-                            " - Similarity thresholds and network connectivity patterns ",
-                            " - Comparative analysis of different embedding models (CBOW vs Skip-gram) ",
+                            " - Community detection results and thematic groupings. ",
+                            " Section 2: UMAP PROJECTION ANALYSIS ",
+                            "You help users understand: ",
+                            "  - UMAP Dimension 1 Interpretation of what semantic gradient or contrast the vertical axis represents ",
+                            "  - UMAP Dimension 2 Interpretation of what semantic gradient or contrast the vertical axis represents ",
+                            "  - Characterize the semantic themes in each quadrant of the UMAP space ",
+                            "  - How semantic clusters distribute across the 2D projection ",
+                            "  - What distances in UMAP space reveal about semantic relationships ",
+                            "  - Words at the edges or boundaries of the semantic space ",
+                            "  - What areas of high/low density indicate about vocabulary structure ",
                             "Always provide interpretations that are linguistically informed, computationally grounded, and actionable for semantic analysis research. ")
+
          },
          "d_tm_estim"={
            prompt <- paste0("You have to provide an interpretation of Topic Modeling analysis results from the TALL software package in R. ",
@@ -440,7 +450,14 @@ geminiGenerate <- function(values, activeTab, gemini_additional, gemini_model_pa
          },
          "w_w2v_similarity" = {
            req(values$w2vNetworkPlot)
-           values$w_w2vGemini <- geminiPromptImage(obj=values$w2vNetworkPlot, type="vis",
+           p1 <- values$w2vNetworkPlot
+           p2 <- values$w2vUMAPplot
+           files <- unlist(lapply(c("similarity","umqp"), function(x){
+             paste0(tempdir(),"/",x,".png")
+           }))
+           suppressWarnings(plot2png(p1, filename = files[1], zoom = 2, type="vis"))
+           suppressWarnings(plot2png(p2, filename = files[2], zoom = 2, type="plotly"))
+           values$w_w2vGemini <- geminiPromptImage(obj=files, type="multi",
                                                    prompt=prompt,
                                                    key=values$geminiAPI, desc=desc, values=values)
          },
