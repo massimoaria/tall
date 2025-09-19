@@ -359,8 +359,9 @@ server <- function(input, output, session) {
   })
 
 
-  observeEvent(input$corpus_description,{
+  observeEvent(input$runImport,{
     values$corpus_description <- input$corpus_description
+    updateTextAreaInput(session, "corpus_description", value = values$corpus_description)
   })
 
   observeEvent(input$runReset2, {
@@ -4438,7 +4439,7 @@ server <- function(input, output, session) {
     )
   })
 
-  observeEvent(input$abstractivePrompt,{
+  observeEvent(input$d_abstractiveApply,{
     values$abstractivePrompt <- input$abstractivePrompt
   })
 
