@@ -59,7 +59,7 @@ Imports:
     openxlsx,
     pagedown,
     parallel,
-    pdftools,
+    pdftools (>=3.6.0),
     plotly,
     promises,
     purrr, 
