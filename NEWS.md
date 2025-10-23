@@ -1,4 +1,8 @@
-# tall (development version)
+# tall 0.4.0
+* Added support to multicolumn pdf
+* Added Abstractive summarization
+* Improved performance of TALL AI
+* Improved performance of Thematic Mapping
 
 # tall 0.3.0
 * Added AI assistant called TALL AI
