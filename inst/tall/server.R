@@ -120,6 +120,20 @@ server <- function(input, output, session) {
 
   ### SIDEBARMENU ----
   output$rest_of_sidebar <- renderMenu({
+    if (values$menu == -2) {
+      # popup to inform user that at first run you have to set the working folder
+      popUpGeneric(
+        title = "Welcome to <strong>TALL</strong>!",
+        type = "warning",
+        color = c("#FFA800"),
+        subtitle = HTML(
+          "Please go to the <b>Settings</b> menu<br>and set a working folder.<br><br>This is where all your analyses will be saved."
+        ),
+        btn_labels = "OK",
+        html = TRUE
+      )
+      updateTabItems(session, "sidebarmenu", "settings")
+    }
     if (values$menu == 2) {
       if (length(noGroupLabels(names(values$dfTag))) > 0) {
         values$menu <- 3
