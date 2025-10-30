@@ -374,14 +374,26 @@ server <- function(input, output, session) {
           rows = 8,
           width = "100%"
         ),
-        helpText(
-          em(
-            "To load a new text collection,",
-            br(),
-            "it is necessary to reset the app."
-          ),
+        div(
+          align = "center",
+          width = 12,
+          actionButton(
+            inputId = "applyCorpusDescription",
+            label = div(
+              icon(name = "check", lib = "glyphicon"),
+              strong("Update")
+            ),
+            icon = NULL,
+            style = "border-radius: 20px; border-width: 1px;
+                                                                    font-size: 17px; color: #ffff;"
+          )
         ),
         br(),
+        helpText(
+          em(
+            "To load a new text collection, it is necessary to reset the app."
+          )
+        ),
         br(),
         div(
           align = "center",
@@ -407,6 +419,15 @@ server <- function(input, output, session) {
       session,
       "corpus_description",
       value = values$corpus_description
+    )
+  })
+
+  observeEvent(input$applyCorpusDescription, {
+    values$corpus_description <- input$corpus_description
+    show_alert(
+      title = "Corpus description updated",
+      text = "The corpus description has been successfully updated.",
+      type = "success"
     )
   })
 
