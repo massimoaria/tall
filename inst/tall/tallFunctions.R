@@ -16,7 +16,10 @@ coresCPU <- function() {
 ## Check Internet connection ----
 is_online <- function() {
   # Attempt to connect to a known online resource (e.g., Google's DNS server)
-  result <- try(suppressWarnings(system("ping -c 1 8.8.8.8", intern = TRUE)), silent = TRUE)
+  result <- try(
+    suppressWarnings(system("ping -c 1 8.8.8.8", intern = TRUE)),
+    silent = TRUE
+  )
 
   # Check if the ping command was successful
   if (inherits(result, "try-error")) {
@@ -29,46 +32,109 @@ is_online <- function() {
 
 ## clean raw text before apply tokenization ----
 
-
-clean_text <- function(df, text_column = "text",
-                       add_space = TRUE,
-                       remove_quotes = TRUE,
-                       punctuation_marks = c(
-                         ",", ";", "!", "_", "»", "«", "&", "(", ")", "--",
-                         "..", "...", "....", "--", "---", ".#", "“", "‘",
-                         "”", "’", "??", "???"
-                       )) {
+clean_text <- function(
+  df,
+  text_column = "text",
+  add_space = TRUE,
+  remove_quotes = TRUE,
+  punctuation_marks = c(
+    ",",
+    ";",
+    "!",
+    "_",
+    "»",
+    "«",
+    "&",
+    "(",
+    ")",
+    "--",
+    "..",
+    "...",
+    "....",
+    "--",
+    "---",
+    ".#",
+    "“",
+    "‘",
+    "”",
+    "’",
+    "??",
+    "???"
+  )
+) {
   # Improved emoji regex pattern to capture Unicode emojis
   EMOJI <- "[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F700-\U0001F77F\U0001F780-\U0001F7FF\U0001F800-\U0001F8FF\U0001F900-\U0001F9FF\U0001FA00-\U0001FA6F\U0001FA70-\U0001FAFF\U00002702-\U000027B0\U000024C2-\U0001F251]"
   # Sort punctuation marks by length (longest first) to prioritize sequences
-  punctuation_marks <- punctuation_marks[order(nchar(punctuation_marks), decreasing = TRUE)]
+  punctuation_marks <- punctuation_marks[order(
+    nchar(punctuation_marks),
+    decreasing = TRUE
+  )]
   # Escape special regex characters
-  punctuation_marks <- sapply(punctuation_marks, function(x) gsub("([\\^$.|?*+(){}])", "\\\\\\1", x))
+  punctuation_marks <- sapply(punctuation_marks, function(x) {
+    gsub("([\\^$.|?*+(){}])", "\\\\\\1", x)
+  })
   # Create a regex pattern for punctuation sequences
-  punctuation_regex <- paste0("(", paste0(punctuation_marks, collapse = "|"), ")")
+  punctuation_regex <- paste0(
+    "(",
+    paste0(punctuation_marks, collapse = "|"),
+    ")"
+  )
 
   df %>%
-    mutate(!!text_column := case_when(
-      add_space & remove_quotes ~ {
-        text_cleaned <- stringr::str_replace_all(.data[[text_column]], '[\"]', "") # Remove quotes
-        text_cleaned <- stringr::str_replace_all(text_cleaned, punctuation_regex, " \\1 ") # Add spaces around punctuation
-        text_cleaned <- stringr::str_replace_all(text_cleaned, EMOJI, " \\0 ") # Add spaces around emojis
-        # Remove extra spaces but preserve newlines
-        text_cleaned <- stringr::str_replace_all(text_cleaned, "[ \t]+", " ") # Replace multiple spaces/tabs with single space
-        stringr::str_replace_all(text_cleaned, "[ \t]*\n[ \t]*", "\n") # Clean spaces around newlines
-      },
-      add_space ~ {
-        text_cleaned <- stringr::str_replace_all(.data[[text_column]], punctuation_regex, " \\1 ")
-        text_cleaned <- stringr::str_replace_all(text_cleaned, EMOJI, " \\0 ")
-        # Remove extra spaces but preserve newlines
-        text_cleaned <- stringr::str_replace_all(text_cleaned, "[ \t]+", " ") # Replace multiple spaces/tabs with single space
-        stringr::str_replace_all(text_cleaned, "[ \t]*\n[ \t]*", "\n") # Clean spaces around newlines
-      },
-      remove_quotes ~ {
-        stringr::str_replace_all(.data[[text_column]], '[\"|\']', "")
-      },
-      TRUE ~ .data[[text_column]]
-    ))
+    mutate(
+      !!text_column := case_when(
+        add_space & remove_quotes ~
+          {
+            text_cleaned <- stringr::str_replace_all(
+              .data[[text_column]],
+              '[\"]',
+              ""
+            ) # Remove quotes
+            text_cleaned <- stringr::str_replace_all(
+              text_cleaned,
+              punctuation_regex,
+              " \\1 "
+            ) # Add spaces around punctuation
+            text_cleaned <- stringr::str_replace_all(
+              text_cleaned,
+              EMOJI,
+              " \\0 "
+            ) # Add spaces around emojis
+            # Remove extra spaces but preserve newlines
+            text_cleaned <- stringr::str_replace_all(
+              text_cleaned,
+              "[ \t]+",
+              " "
+            ) # Replace multiple spaces/tabs with single space
+            stringr::str_replace_all(text_cleaned, "[ \t]*\n[ \t]*", "\n") # Clean spaces around newlines
+          },
+        add_space ~
+          {
+            text_cleaned <- stringr::str_replace_all(
+              .data[[text_column]],
+              punctuation_regex,
+              " \\1 "
+            )
+            text_cleaned <- stringr::str_replace_all(
+              text_cleaned,
+              EMOJI,
+              " \\0 "
+            )
+            # Remove extra spaces but preserve newlines
+            text_cleaned <- stringr::str_replace_all(
+              text_cleaned,
+              "[ \t]+",
+              " "
+            ) # Replace multiple spaces/tabs with single space
+            stringr::str_replace_all(text_cleaned, "[ \t]*\n[ \t]*", "\n") # Clean spaces around newlines
+          },
+        remove_quotes ~
+          {
+            stringr::str_replace_all(.data[[text_column]], '[\"|\']', "")
+          },
+        TRUE ~ .data[[text_column]]
+      )
+    )
 }
 # clean_text <- function(df, text_column = "text",
 #                        add_space = TRUE,
@@ -106,12 +172,19 @@ getFileNameExtension <- function(fn) {
   ext <- ""
   splitted <- strsplit(x = fn, split = "\\.")[[1]]
   l <- length(splitted)
-  if (l > 1 && sum(splitted[1:(l - 1)] != "")) ext <- splitted[l]
+  if (l > 1 && sum(splitted[1:(l - 1)] != "")) {
+    ext <- splitted[l]
+  }
   # the extention must be the suffix of a non-empty name
   ext
 }
 
-read_files <- function(files, ext = c("txt", "csv", "xlsx", "pdf"), subfolder = TRUE, line_sep = ",") {
+read_files <- function(
+  files,
+  ext = c("txt", "csv", "xlsx", "pdf"),
+  subfolder = TRUE,
+  line_sep = ","
+) {
   # files <- list.files(path=path, pattern = paste0(".",ext,"$"), recursive = subfolder)
   if (is.null(files)) {
     return(data.frame(doc_id = NA, text = NA, folder = NA))
@@ -127,7 +200,10 @@ read_files <- function(files, ext = c("txt", "csv", "xlsx", "pdf"), subfolder = 
     owd <- setwd(tempdir())
     on.exit(setwd(owd))
     zip_file <- unzip(file[1])
-    zip_file <- zip_file[(substr(zip_file, nchar(zip_file) - nchar(ext) + 1, nchar(zip_file)) == ext)]
+    zip_file <- zip_file[
+      (substr(zip_file, nchar(zip_file) - nchar(ext) + 1, nchar(zip_file)) ==
+        ext)
+    ]
     file <- zip_file[regexpr("__MACOSX", zip_file) == -1]
     doc_id <- unlist(lapply(strsplit(file, "/"), function(l) {
       l[length(l)]
@@ -137,47 +213,59 @@ read_files <- function(files, ext = c("txt", "csv", "xlsx", "pdf"), subfolder = 
     }))
   }
 
-  switch(ext,
-         txt = {
-           ## detect text encoding for each file
-           df <- readtext(file)
-           encod <- suppressMessages(readtext::encoding(df, verbose = FALSE)$all)
-           ## read txt files using the right encoding
-           df <- data.frame(doc_id = doc_id, text = NA, folder = folder, file = file, encod = encod) %>%
-             group_by(doc_id) %>%
-             mutate(text = readtext::readtext(file, encoding = encod, verbosity = 0)$text) %>%
-             select(-c(file, encod))
-         },
-         csv = {
-           listdf <- list()
-           for (i in seq_len(length(file))) {
-             # listdf[[i]] <- readtext::readtext(file[i], fill=TRUE, text_field="text", quote='"') %>%
-             #   mutate(doc_id = doc_id[i])
-             listdf[[i]] <- read_delim(file[i], delim = line_sep, quote = '"') %>%
-               mutate(filename = doc_id[i])
-           }
+  switch(
+    ext,
+    txt = {
+      ## detect text encoding for each file
+      df <- readtext(file)
+      encod <- suppressMessages(readtext::encoding(df, verbose = FALSE)$all)
+      ## read txt files using the right encoding
+      df <- data.frame(
+        doc_id = doc_id,
+        text = NA,
+        folder = folder,
+        file = file,
+        encod = encod
+      ) %>%
+        group_by(doc_id) %>%
+        mutate(
+          text = readtext::readtext(file, encoding = encod, verbosity = 0)$text
+        ) %>%
+        select(-c(file, encod))
+    },
+    csv = {
+      listdf <- list()
+      for (i in seq_len(length(file))) {
+        # listdf[[i]] <- readtext::readtext(file[i], fill=TRUE, text_field="text", quote='"') %>%
+        #   mutate(doc_id = doc_id[i])
+        listdf[[i]] <- read_delim(file[i], delim = line_sep, quote = '"') %>%
+          mutate(filename = doc_id[i])
+      }
 
-           df <- do.call(rbind, listdf)
-         },
-         xlsx = {
-           listdf <- list()
-           for (i in seq_len(length(file))) {
-             # listdf[[i]] <- readtext::readtext(file[i], fill=TRUE, text_field="text", quote='"') %>%
-             #   mutate(doc_id = doc_id[i])
-             listdf[[i]] <- readxl::read_excel(file[i], col_types = "text") %>%
-               mutate(filename = doc_id[i])
-           }
-           df <- do.call(rbind, listdf)
-         },
-         pdf = {
-           listdf <- list()
-           for (i in seq_len(length(file))) {
-             # listdf[[i]] <- readtext::readtext(file[i], fill=TRUE, text_field="text", quote='"') %>%
-             #   mutate(doc_id = doc_id[i])
-             listdf[[i]] <- data.frame(text = pdf2txt_auto(file[i]), filename = doc_id[i])
-           }
-           df <- do.call(rbind, listdf)
-         }
+      df <- do.call(rbind, listdf)
+    },
+    xlsx = {
+      listdf <- list()
+      for (i in seq_len(length(file))) {
+        # listdf[[i]] <- readtext::readtext(file[i], fill=TRUE, text_field="text", quote='"') %>%
+        #   mutate(doc_id = doc_id[i])
+        listdf[[i]] <- readxl::read_excel(file[i], col_types = "text") %>%
+          mutate(filename = doc_id[i])
+      }
+      df <- do.call(rbind, listdf)
+    },
+    pdf = {
+      listdf <- list()
+      for (i in seq_len(length(file))) {
+        # listdf[[i]] <- readtext::readtext(file[i], fill=TRUE, text_field="text", quote='"') %>%
+        #   mutate(doc_id = doc_id[i])
+        listdf[[i]] <- data.frame(
+          text = pdf2txt_auto(file[i]),
+          filename = doc_id[i]
+        )
+      }
+      df <- do.call(rbind, listdf)
+    }
   )
   if ("doc_id" %in% names(df)) {
     if (sum(duplicated(df$doc_id), na.rm = T) > 0) {
@@ -203,161 +291,198 @@ read_files <- function(files, ext = c("txt", "csv", "xlsx", "pdf"), subfolder = 
 }
 
 ## PDF to TEXT ----
-pdf2txt_multicolumn_safe <- function(file, column_threshold = NULL, preserve_structure = TRUE) {
+pdf2txt_multicolumn_safe <- function(
+  file,
+  column_threshold = NULL,
+  preserve_structure = TRUE
+) {
   # Check compatibility for poppler_config
-  has_poppler_config <- exists("poppler_config", where = asNamespace("pdftools"), mode = "function")
+  has_poppler_config <- exists(
+    "poppler_config",
+    where = asNamespace("pdftools"),
+    mode = "function"
+  )
 
   if (has_poppler_config) {
     if (!pdftools::poppler_config()$has_pdf_data) {
-      message("Pdf import feature requires a recent version of libpoppler. Please install it.")
+      message(
+        "Pdf import feature requires a recent version of libpoppler. Please install it."
+      )
       return(NA)
     }
   }
 
   # Try using pdf_data to handle multi-column documents
-  tryCatch({
-    # Extract data with positions
-    data_list <- pdftools::pdf_data(file)
+  tryCatch(
+    {
+      # Extract data with positions
+      data_list <- pdftools::pdf_data(file)
 
-    all_text <- c()
+      all_text <- c()
 
-    for (page_num in seq_along(data_list)) {
-      page_data <- data_list[[page_num]]
+      for (page_num in seq_along(data_list)) {
+        page_data <- data_list[[page_num]]
 
-      if (nrow(page_data) == 0) next
+        if (nrow(page_data) == 0) {
+          next
+        }
 
-      # Automatically determine column threshold if not specified
-      if (is.null(column_threshold)) {
-        # Analyze distribution of x positions to detect multiple columns
-        x_positions <- page_data$x
+        # Automatically determine column threshold if not specified
+        if (is.null(column_threshold)) {
+          # Analyze distribution of x positions to detect multiple columns
+          x_positions <- page_data$x
 
-        # If there are enough different positions, try to detect multiple columns
-        if (length(unique(x_positions)) > 20) {
-          # Use clustering to identify potential columns
-          tryCatch({
-            clusters <- kmeans(x_positions, centers = 2, nstart = 10)
-            cluster_centers <- sort(clusters$centers[,1])
+          # If there are enough different positions, try to detect multiple columns
+          if (length(unique(x_positions)) > 20) {
+            # Use clustering to identify potential columns
+            tryCatch(
+              {
+                clusters <- kmeans(x_positions, centers = 2, nstart = 10)
+                cluster_centers <- sort(clusters$centers[, 1])
 
-            # Use midpoint between cluster centers as threshold
-            column_threshold <- mean(cluster_centers)
-          }, error = function(e) {
-            # If clustering fails, use page midpoint
+                # Use midpoint between cluster centers as threshold
+                column_threshold <- mean(cluster_centers)
+              },
+              error = function(e) {
+                # If clustering fails, use page midpoint
+                column_threshold <- (max(page_data$x) + min(page_data$x)) / 2
+              }
+            )
+          } else {
+            # For documents with few different x positions, use page midpoint
             column_threshold <- (max(page_data$x) + min(page_data$x)) / 2
-          })
-        } else {
-          # For documents with few different x positions, use page midpoint
-          column_threshold <- (max(page_data$x) + min(page_data$x)) / 2
+          }
         }
+
+        # Separate columns based on x position
+        left_column <- page_data[page_data$x < column_threshold, ]
+        right_column <- page_data[page_data$x >= column_threshold, ]
+
+        # Check if there are actually two significant columns
+        if (nrow(left_column) < 5 || nrow(right_column) < 5) {
+          # Probably single-column document, treat everything together
+          page_data <- page_data[order(page_data$y, page_data$x), ]
+          page_text <- reconstruct_text_structured(
+            page_data,
+            preserve_structure
+          )
+        } else {
+          # Sort by y (top to bottom) and then by x within each column
+          left_column <- left_column[order(left_column$y, left_column$x), ]
+          right_column <- right_column[order(right_column$y, right_column$x), ]
+
+          # Reconstruct text for each column maintaining structure
+          left_text <- reconstruct_text_structured(
+            left_column,
+            preserve_structure
+          )
+          right_text <- reconstruct_text_structured(
+            right_column,
+            preserve_structure
+          )
+
+          # Combine columns
+          if (preserve_structure) {
+            page_text <- paste(left_text, right_text, sep = "\n\n")
+          } else {
+            page_text <- paste(left_text, right_text, sep = " ")
+          }
+        }
+
+        all_text <- c(all_text, page_text)
       }
 
-      # Separate columns based on x position
-      left_column <- page_data[page_data$x < column_threshold, ]
-      right_column <- page_data[page_data$x >= column_threshold, ]
+      # Final post-processing
+      if (preserve_structure) {
+        txt <- paste(all_text, collapse = "\n\n")
 
-      # Check if there are actually two significant columns
-      if (nrow(left_column) < 5 || nrow(right_column) < 5) {
-        # Probably single-column document, treat everything together
-        page_data <- page_data[order(page_data$y, page_data$x), ]
-        page_text <- reconstruct_text_structured(page_data, preserve_structure)
+        # Improve detection of paragraphs and sections
+        # Identify numbered titles like "1. Introduction", "2.1. Internal processing"
+        txt <- gsub(
+          "([0-9]+(?:\\.[0-9]+)*\\.\\s+[A-Z][A-Za-z\\s]{3,50})",
+          "\n\n\\1",
+          txt
+        )
+
+        # Identify isolated uppercase sections
+        txt <- gsub("\\s+([A-Z][A-Z\\s]{10,60})\\s+", "\n\n\\1\n\n", txt)
+
+        # Separate paragraphs after complete sentences
+        txt <- gsub("([.!?])\\s+([A-Z][a-z])", "\\1\n\n\\2", txt)
+
+        # Clean triple \n
+        txt <- gsub("\\n{3,}", "\n\n", txt)
       } else {
-        # Sort by y (top to bottom) and then by x within each column
-        left_column <- left_column[order(left_column$y, left_column$x), ]
-        right_column <- right_column[order(right_column$y, right_column$x), ]
-
-        # Reconstruct text for each column maintaining structure
-        left_text <- reconstruct_text_structured(left_column, preserve_structure)
-        right_text <- reconstruct_text_structured(right_column, preserve_structure)
-
-        # Combine columns
-        if (preserve_structure) {
-          page_text <- paste(left_text, right_text, sep = "\n\n")
-        } else {
-          page_text <- paste(left_text, right_text, sep = " ")
-        }
+        txt <- paste(all_text, collapse = " ")
       }
 
-      all_text <- c(all_text, page_text)
+      # Remove line-ending hyphens but preserve structure
+      txt <- gsub("-\\s*\n", "", txt)
+      txt <- gsub("-\\s+", "", txt)
+
+      # Normalize spaces
+      if (preserve_structure) {
+        txt <- gsub("[ \t]+", " ", txt) # Normalize spaces and tabs
+        txt <- gsub("\\n ", "\n", txt) # Remove spaces after \n
+      } else {
+        txt <- gsub("\\s+", " ", txt)
+      }
+
+      # Remove leading and trailing spaces
+      txt <- trimws(txt)
+
+      return(txt)
+    },
+    error = function(e) {
+      message("pdf_data failed, falling back to pdf_text method: ", e$message)
+
+      # Fallback to original function with structural improvements
+      pages <- pdftools::pdf_length(file)
+      txt <- pdftools::pdf_text(file)
+
+      if (preserve_structure) {
+        # Improve structure preservation in fallback
+        # Identify numbered titles
+        txt <- gsub(
+          "([0-9]+(?:\\.[0-9]+)*\\.\\s+[A-Z][A-Za-z\\s]{3,50})",
+          "\n\n\\1",
+          txt
+        )
+
+        # Preserve existing paragraphs
+        txt <- gsub("\\n\\s*\\n", "\n\n", txt)
+
+        # Separate sentences into new paragraphs when appropriate
+        txt <- gsub("([.!?])\\s*\n\\s*([A-Z])", "\\1\n\n\\2", txt)
+
+        # Remove \n that are not at sentence endings but preserve structure
+        txt <- gsub("(?<![.!?\\n])\\n(?![A-Z0-9\\n])", " ", txt, perl = TRUE)
+
+        # Combine pages
+        txt <- paste(txt, collapse = "\n\n")
+      } else {
+        # Original version
+        txt <- gsub("(?<![\\s\\.])\\n(?!\\s)", " ", txt, perl = TRUE)
+        txt <- gsub("\n  ", "\n\n", txt)
+        txt <- paste(txt, collapse = " ")
+      }
+
+      # Remove word separation hyphens
+      txt <- gsub("-\\s", "", txt)
+
+      return(txt)
     }
-
-    # Final post-processing
-    if (preserve_structure) {
-      txt <- paste(all_text, collapse = "\n\n")
-
-      # Improve detection of paragraphs and sections
-      # Identify numbered titles like "1. Introduction", "2.1. Internal processing"
-      txt <- gsub("([0-9]+(?:\\.[0-9]+)*\\.\\s+[A-Z][A-Za-z\\s]{3,50})", "\n\n\\1", txt)
-
-      # Identify isolated uppercase sections
-      txt <- gsub("\\s+([A-Z][A-Z\\s]{10,60})\\s+", "\n\n\\1\n\n", txt)
-
-      # Separate paragraphs after complete sentences
-      txt <- gsub("([.!?])\\s+([A-Z][a-z])", "\\1\n\n\\2", txt)
-
-      # Clean triple \n
-      txt <- gsub("\\n{3,}", "\n\n", txt)
-
-    } else {
-      txt <- paste(all_text, collapse = " ")
-    }
-
-    # Remove line-ending hyphens but preserve structure
-    txt <- gsub("-\\s*\n", "", txt)
-    txt <- gsub("-\\s+", "", txt)
-
-    # Normalize spaces
-    if (preserve_structure) {
-      txt <- gsub("[ \t]+", " ", txt)      # Normalize spaces and tabs
-      txt <- gsub("\\n ", "\n", txt)       # Remove spaces after \n
-    } else {
-      txt <- gsub("\\s+", " ", txt)
-    }
-
-    # Remove leading and trailing spaces
-    txt <- trimws(txt)
-
-    return(txt)
-
-  }, error = function(e) {
-    message("pdf_data failed, falling back to pdf_text method: ", e$message)
-
-    # Fallback to original function with structural improvements
-    pages <- pdftools::pdf_length(file)
-    txt <- pdftools::pdf_text(file)
-
-    if (preserve_structure) {
-      # Improve structure preservation in fallback
-      # Identify numbered titles
-      txt <- gsub("([0-9]+(?:\\.[0-9]+)*\\.\\s+[A-Z][A-Za-z\\s]{3,50})", "\n\n\\1", txt)
-
-      # Preserve existing paragraphs
-      txt <- gsub("\\n\\s*\\n", "\n\n", txt)
-
-      # Separate sentences into new paragraphs when appropriate
-      txt <- gsub("([.!?])\\s*\n\\s*([A-Z])", "\\1\n\n\\2", txt)
-
-      # Remove \n that are not at sentence endings but preserve structure
-      txt <- gsub("(?<![.!?\\n])\\n(?![A-Z0-9\\n])", " ", txt, perl = TRUE)
-
-      # Combine pages
-      txt <- paste(txt, collapse = "\n\n")
-
-    } else {
-      # Original version
-      txt <- gsub("(?<![\\s\\.])\\n(?!\\s)", " ", txt, perl = TRUE)
-      txt <- gsub("\n  ", "\n\n", txt)
-      txt <- paste(txt, collapse = " ")
-    }
-
-    # Remove word separation hyphens
-    txt <- gsub("-\\s", "", txt)
-
-    return(txt)
-  })
+  )
 }
 
 # Simplified helper function that doesn't use non-existent columns
-reconstruct_text_structured <- function(column_data, preserve_structure = TRUE) {
-  if (nrow(column_data) == 0) return("")
+reconstruct_text_structured <- function(
+  column_data,
+  preserve_structure = TRUE
+) {
+  if (nrow(column_data) == 0) {
+    return("")
+  }
 
   # Group words by line based on similar y positions
   tolerance <- 4
@@ -370,7 +495,7 @@ reconstruct_text_structured <- function(column_data, preserve_structure = TRUE) 
   if ("height" %in% available_cols) {
     column_data$font_size <- column_data$height
   } else {
-    column_data$font_size <- 12  # default
+    column_data$font_size <- 12 # default
   }
 
   # Split data by line
@@ -378,7 +503,7 @@ reconstruct_text_structured <- function(column_data, preserve_structure = TRUE) 
 
   # Reconstruct each line
   line_results <- lapply(lines, function(line) {
-    line <- line[order(line$x), ]  # Sort by x position
+    line <- line[order(line$x), ] # Sort by x position
 
     # Reconstruct line text
     line_text <- paste(line$text, collapse = " ")
@@ -392,7 +517,8 @@ reconstruct_text_structured <- function(column_data, preserve_structure = TRUE) 
     starts_with_section <- grepl("^\\d+\\.\\d+", line_text)
 
     # Identify potential titles or special structures
-    is_title <- (is_short && (is_caps || starts_with_number || starts_with_section))
+    is_title <- (is_short &&
+      (is_caps || starts_with_number || starts_with_section))
 
     return(list(
       text = line_text,
@@ -404,7 +530,9 @@ reconstruct_text_structured <- function(column_data, preserve_structure = TRUE) 
   })
 
   # Remove empty lines
-  line_results <- line_results[sapply(line_results, function(x) nchar(x$text) > 0)]
+  line_results <- line_results[sapply(line_results, function(x) {
+    nchar(x$text) > 0
+  })]
 
   # Sort lines from top to bottom
   line_results <- line_results[order(sapply(line_results, function(x) x$y))]
@@ -420,14 +548,16 @@ reconstruct_text_structured <- function(column_data, preserve_structure = TRUE) 
       current_line <- line_results[[i]]
       line_text <- current_line$text
 
-      if (nchar(line_text) == 0) next
+      if (nchar(line_text) == 0) {
+        next
+      }
 
       # Add appropriate separators
       if (i == 1) {
         # First line
         result_parts <- c(result_parts, line_text)
       } else {
-        prev_line <- line_results[[i-1]]
+        prev_line <- line_results[[i - 1]]
 
         # Determine separator type
         if (current_line$is_title) {
@@ -436,9 +566,11 @@ reconstruct_text_structured <- function(column_data, preserve_structure = TRUE) 
         } else if (prev_line$is_title) {
           # After a title: double \n
           result_parts <- c(result_parts, "\n\n", line_text)
-        } else if (grepl("[.!?]\\s*$", prev_line$text) &&
-                   grepl("^[A-Z]", line_text) &&
-                   !grepl("^[A-Z][a-z]+\\s+[a-z]", line_text)) {
+        } else if (
+          grepl("[.!?]\\s*$", prev_line$text) &&
+            grepl("^[A-Z]", line_text) &&
+            !grepl("^[A-Z][a-z]+\\s+[a-z]", line_text)
+        ) {
           # End of sentence + start with capital (but not normal continuation)
           result_parts <- c(result_parts, "\n\n", line_text)
         } else {
@@ -451,9 +583,9 @@ reconstruct_text_structured <- function(column_data, preserve_structure = TRUE) 
     result <- paste(result_parts, collapse = "")
 
     # Post-processing to improve structure
-    result <- gsub("\\s+", " ", result)              # Normalize spaces
-    result <- gsub("\\n\\s+", "\n", result)          # Remove spaces after \n
-    result <- gsub("\\n{3,}", "\n\n", result)        # Max 2 consecutive \n
+    result <- gsub("\\s+", " ", result) # Normalize spaces
+    result <- gsub("\\n\\s+", "\n", result) # Remove spaces after \n
+    result <- gsub("\\n{3,}", "\n\n", result) # Max 2 consecutive \n
   }
 
   result <- trimws(result)
@@ -463,45 +595,62 @@ reconstruct_text_structured <- function(column_data, preserve_structure = TRUE) 
 # Automatic wrapper function
 pdf2txt_auto <- function(file, preserve_structure = TRUE) {
   # First try multi-column method
-  result <- pdf2txt_multicolumn_safe(file, preserve_structure = preserve_structure)
+  result <- pdf2txt_multicolumn_safe(
+    file,
+    preserve_structure = preserve_structure
+  )
 
   # If result seems malformed, try original method
   if (is.na(result) || nchar(result) < 100) {
-    message("Multi-column method failed or returned short text, trying original method...")
+    message(
+      "Multi-column method failed or returned short text, trying original method..."
+    )
 
     # Complete fallback to original method with improvements
-    tryCatch({
-      pages <- pdftools::pdf_length(file)
-      txt <- pdftools::pdf_text(file)
+    tryCatch(
+      {
+        pages <- pdftools::pdf_length(file)
+        txt <- pdftools::pdf_text(file)
 
-      if (preserve_structure) {
-        # Better structure preservation in fallback
-        # Identify numbered titles
-        txt <- gsub("([0-9]+(?:\\.[0-9]+)*\\.\\s+[A-Za-z][A-Za-z\\s]{3,50})", "\n\n\\1\n\n", txt, perl = TRUE)
+        if (preserve_structure) {
+          # Better structure preservation in fallback
+          # Identify numbered titles
+          txt <- gsub(
+            "([0-9]+(?:\\.[0-9]+)*\\.\\s+[A-Za-z][A-Za-z\\s]{3,50})",
+            "\n\n\\1\n\n",
+            txt,
+            perl = TRUE
+          )
 
-        # Preserve existing paragraphs
-        txt <- gsub("\\n\\s*\\n", "\n\n", txt)
+          # Preserve existing paragraphs
+          txt <- gsub("\\n\\s*\\n", "\n\n", txt)
 
-        # Separate sentences into paragraphs when they start with capital
-        txt <- gsub("([.!?])\\s*\n\\s*([A-Z][a-z])", "\\1\n\n\\2", txt, perl = TRUE)
+          # Separate sentences into paragraphs when they start with capital
+          txt <- gsub(
+            "([.!?])\\s*\n\\s*([A-Z][a-z])",
+            "\\1\n\n\\2",
+            txt,
+            perl = TRUE
+          )
 
-        # Remove internal \n but preserve structure
-        txt <- gsub("(?<![.!?\\n])\\n(?![A-Z0-9\\n])", " ", txt, perl = TRUE)
+          # Remove internal \n but preserve structure
+          txt <- gsub("(?<![.!?\\n])\\n(?![A-Z0-9\\n])", " ", txt, perl = TRUE)
 
-        txt <- paste(txt, collapse = "\n\n")
-      } else {
-        txt <- gsub("(?<![\\s\\.])\\n(?!\\s)", " ", txt, perl = TRUE)
-        txt <- gsub("\n  ", "\n\n", txt)
-        txt <- paste(txt, collapse = " ")
+          txt <- paste(txt, collapse = "\n\n")
+        } else {
+          txt <- gsub("(?<![\\s\\.])\\n(?!\\s)", " ", txt, perl = TRUE)
+          txt <- gsub("\n  ", "\n\n", txt)
+          txt <- paste(txt, collapse = " ")
+        }
+
+        txt <- gsub("-\\s", "", txt)
+        return(txt)
+      },
+      error = function(e) {
+        message("All methods failed: ", e$message)
+        return(NA)
       }
-
-      txt <- gsub("-\\s", "", txt)
-      return(txt)
-
-    }, error = function(e) {
-      message("All methods failed: ", e$message)
-      return(NA)
-    })
+    )
   }
 
   return(result)
@@ -533,38 +682,47 @@ loadSampleCollection <- function(sampleName) {
     dir.create(path_language_model)
   }
 
-  switch(sampleName,
-         bibliometrix = {
-           # check if the file model already exists
-           file_lang <- dir(path_language_model, pattern = "tall_bibliometrix.tall")[1]
-           url <- paste0("https://raw.githubusercontent.com/massimoaria/tall.language.models/main/sample.data/tall_bibliometrix.tall")
+  switch(
+    sampleName,
+    bibliometrix = {
+      # check if the file model already exists
+      file_lang <- dir(path_language_model, pattern = "tall_bibliometrix.tall")[
+        1
+      ]
+      url <- paste0(
+        "https://raw.githubusercontent.com/massimoaria/tall.language.models/main/sample.data/tall_bibliometrix.tall"
+      )
 
-           destfile <- paste0(path_language_model, "/tall_bibliometrix.tall")
-           file <- paste0(path_language_model, "/tall_bibliometrix.tall")
-         },
-         bbc = {
-           file_lang <- dir(path_language_model, pattern = "bbc.zip")[1]
-           url <- paste0("https://raw.githubusercontent.com/massimoaria/tall.language.models/main/sample.data/bbc.zip")
-           destfile <- paste0(path_language_model, "/bbc.zip")
-           file <- paste0(path_language_model, "/bbc.zip")
-         },
-         usairlines = {
-           file_lang <- dir(path_language_model, pattern = "usairlines.zip")[1]
-           url <- paste0("https://raw.githubusercontent.com/massimoaria/tall.language.models/main/sample.data/usairlines.zip")
-           destfile <- paste0(path_language_model, "/usairlines.zip")
-           file <- paste0(path_language_model, "/usairlines.zip")
-         }
+      destfile <- paste0(path_language_model, "/tall_bibliometrix.tall")
+      file <- paste0(path_language_model, "/tall_bibliometrix.tall")
+    },
+    bbc = {
+      file_lang <- dir(path_language_model, pattern = "bbc.zip")[1]
+      url <- paste0(
+        "https://raw.githubusercontent.com/massimoaria/tall.language.models/main/sample.data/bbc.zip"
+      )
+      destfile <- paste0(path_language_model, "/bbc.zip")
+      file <- paste0(path_language_model, "/bbc.zip")
+    },
+    usairlines = {
+      file_lang <- dir(path_language_model, pattern = "usairlines.zip")[1]
+      url <- paste0(
+        "https://raw.githubusercontent.com/massimoaria/tall.language.models/main/sample.data/usairlines.zip"
+      )
+      destfile <- paste0(path_language_model, "/usairlines.zip")
+      file <- paste0(path_language_model, "/usairlines.zip")
+    }
   )
 
-
   if (is.na(file_lang)) {
-    switch(Sys.info()[["sysname"]],
-           Windows = {
-             download.file(url = url, destfile = destfile, mode = "wb")
-           },
-           {
-             download.file(url = url, destfile = destfile)
-           }
+    switch(
+      Sys.info()[["sysname"]],
+      Windows = {
+        download.file(url = url, destfile = destfile, mode = "wb")
+      },
+      {
+        download.file(url = url, destfile = destfile)
+      }
     )
   }
 
@@ -573,10 +731,16 @@ loadSampleCollection <- function(sampleName) {
 
 ## Wikipedia download sample pages ----
 wikiSearch <- function(term, n = 10) {
-  if (!inherits(n, "numeric")) n <- 10
+  if (!inherits(n, "numeric")) {
+    n <- 10
+  }
 
   # select n of results
-  search_url <- paste0("https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrlimit=", n, "&prop=extracts&exintro&explaintext&exlimit=max&format=json&gsrsearch=")
+  search_url <- paste0(
+    "https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrlimit=",
+    n,
+    "&prop=extracts&exintro&explaintext&exlimit=max&format=json&gsrsearch="
+  )
 
   term <- gsub("–", " ", gsub("\\s", "_", term))
 
@@ -600,7 +764,13 @@ wikiSearch <- function(term, n = 10) {
 
     abstract <- append(abstract, page_abstract)
     title <- append(title, wikidata$content$title)
-    url <- append(url, paste0("https://en.wikipedia.org/wiki/", gsub("\\s", "_", wikidata$content$title)))
+    url <- append(
+      url,
+      paste0(
+        "https://en.wikipedia.org/wiki/",
+        gsub("\\s", "_", wikidata$content$title)
+      )
+    )
   }
   url <-
     paste0(
@@ -621,7 +791,11 @@ wikiExtract <- function(df) {
     if (df$selected[i]) {
       title <- items[i]
       # print(title)
-      result <- jsonlite::fromJSON(paste0("https://en.wikipedia.org/w/api.php?action=query&titles=", title, "&prop=extracts&redirects=&format=json"))
+      result <- jsonlite::fromJSON(paste0(
+        "https://en.wikipedia.org/w/api.php?action=query&titles=",
+        title,
+        "&prop=extracts&redirects=&format=json"
+      ))
       names(result$query$pages) <- "content"
       text <- result$query$pages$content$extract
       ## remove Latex equations and textstyle
@@ -636,12 +810,36 @@ wikiExtract <- function(df) {
 ### REBUILD ORIGINAL DOCUMENTS -----
 
 rebuild_documents <- function(df) {
-  columns <- intersect(names(df), c(
-    "start", "end", "term_id", "token", "token_id", "lemma", "token_original_nomultiwords", "upos_original",
-    "feats", "head_token_id", "dep_rel", "deps", "POSSelected", "upos", "ngram", "sentence_hl", "xpos",
-    "noHapax", "noSingleChar", "lemma_original_nomultiwords", "token_hl", "start_hl", "end_hl", "misc",
-    "upos_specialentities"
-  ))
+  columns <- intersect(
+    names(df),
+    c(
+      "start",
+      "end",
+      "term_id",
+      "token",
+      "token_id",
+      "lemma",
+      "token_original_nomultiwords",
+      "upos_original",
+      "feats",
+      "head_token_id",
+      "dep_rel",
+      "deps",
+      "POSSelected",
+      "upos",
+      "ngram",
+      "sentence_hl",
+      "xpos",
+      "noHapax",
+      "noSingleChar",
+      "lemma_original_nomultiwords",
+      "token_hl",
+      "start_hl",
+      "end_hl",
+      "misc",
+      "upos_specialentities"
+    )
+  )
 
   df <- df %>%
     select(!all_of(columns)) %>%
@@ -651,15 +849,26 @@ rebuild_documents <- function(df) {
   paragraphs <- df %>%
     group_by(doc_id, paragraph_id) %>%
     arrange(sentence_id) %>%
-    summarise(paragraph_text = paste(sentence, collapse = " "), .groups = "drop")
+    summarise(
+      paragraph_text = paste(sentence, collapse = " "),
+      .groups = "drop"
+    )
 
   # Combine paragraphs into full documents
   documents <- paragraphs %>%
     group_by(doc_id) %>%
     arrange(paragraph_id) %>%
-    summarise(text = paste(paragraph_text, collapse = "\n\n"), .groups = "drop") %>%
-    left_join(df %>% select(!c("paragraph_id", "sentence_id", "sentence", "doc_selected")) %>% distinct(., doc_id, .keep_all = TRUE),
-              by = c("doc_id")
+    summarise(
+      text = paste(paragraph_text, collapse = "\n\n"),
+      .groups = "drop"
+    ) %>%
+    left_join(
+      df %>%
+        select(
+          !c("paragraph_id", "sentence_id", "sentence", "doc_selected")
+        ) %>%
+        distinct(., doc_id, .keep_all = TRUE),
+      by = c("doc_id")
     ) %>%
     rename("doc_selected" = "docSelected") %>%
     select(!starts_with("upos")) %>%
@@ -685,7 +894,13 @@ splitDoc <- function(df, word) {
   doc_id_old <- rep(df$doc_id, lengths(df_splitted))
 
   df <- data.frame(
-    doc_id = paste0("doc_", sprintf(paste0("%0", nchar(lengths(df_splitted)), "d"), 1:lengths(df_splitted))),
+    doc_id = paste0(
+      "doc_",
+      sprintf(
+        paste0("%0", nchar(lengths(df_splitted)), "d"),
+        1:lengths(df_splitted)
+      )
+    ),
     text = unlist(df_splitted),
     doc_id_old = doc_id_old,
     doc_selected = TRUE
@@ -760,28 +975,39 @@ loadLanguageModel <- function(file, model_repo = "2.15") {
   }
 
   # check if the file model already exists
-  file_model <- dir(path_language_model, pattern = paste0(file, "-ud-", model_repo, ".udpipe"))[1]
+  file_model <- dir(
+    path_language_model,
+    pattern = paste0(file, "-ud-", model_repo, ".udpipe")
+  )[1]
 
   if (is.na(file_model)) {
-    lang_file <- tall_download_model(file = file, model_dir = path_language_model, model_repo = model_repo)
+    lang_file <- tall_download_model(
+      file = file,
+      model_dir = path_language_model,
+      model_repo = model_repo
+    )
     udmodel_lang <- udpipe_load_model(file = lang_file$file_model)
   } else {
-    udmodel_lang <- udpipe_load_model(file = paste0(path_language_model, "/", file_model))
+    udmodel_lang <- udpipe_load_model(
+      file = paste0(path_language_model, "/", file_model)
+    )
   }
 
   return(udmodel_lang)
 }
 
 tall_download_model <- function(
-    file,
-    model_dir = NULL,
-    model_repo = "2.15",
-    overwrite = TRUE) {
+  file,
+  model_dir = NULL,
+  model_repo = "2.15",
+  overwrite = TRUE
+) {
   filename <- paste0(file, "-ud-", model_repo, ".udpipe")
 
   url <- file.path(
     "https://raw.githubusercontent.com/massimoaria/tall.language.models/main",
-    model_repo, filename
+    model_repo,
+    filename
   )
   to <- file.path(model_dir, filename)
   download_failed <- FALSE
@@ -951,9 +1177,17 @@ TaggingCorpusElements <- function(x) {
     results <- stringi::stri_detect_regex(x$token, regexList[[item]])
     if (sum(results) > 0) {
       j <- j + 1
-      resList[[j]] <- data.frame(doc_id = x$doc_id[results], item = x$token[results], tag = item)
+      resList[[j]] <- data.frame(
+        doc_id = x$doc_id[results],
+        item = x$token[results],
+        tag = item
+      )
       x$upos[results] <- toupper(item)
-      x$POSSelected[results] <- ifelse(x$upos[results] %in% c("HASH", "MENTION", "EMOJI"), TRUE, FALSE)
+      x$POSSelected[results] <- ifelse(
+        x$upos[results] %in% c("HASH", "MENTION", "EMOJI"),
+        TRUE,
+        FALSE
+      )
     }
   }
 
@@ -961,7 +1195,8 @@ TaggingCorpusElements <- function(x) {
     resList <- dplyr::bind_rows(resList) %>%
       dplyr::filter(!is.na(item))
   } else {
-    resList <- tibble::tibble(doc_id = 0, item = NA, tag = "email") %>% dplyr::filter(!is.na(item))
+    resList <- tibble::tibble(doc_id = 0, item = NA, tag = "email") %>%
+      dplyr::filter(!is.na(item))
   }
 
   # normalize hash and email
@@ -981,11 +1216,13 @@ TaggingCorpusElements <- function(x) {
 
   if (nrow(resList) > 0) {
     resList <- resList %>%
-      mutate(item = case_when(
-        tag %in% c("HASH", "EMAIL") ~ tolower(item),
-        tag == "EMOJI" ~ trimws(item),
-        TRUE ~ item
-      ))
+      mutate(
+        item = case_when(
+          tag %in% c("HASH", "EMAIL") ~ tolower(item),
+          tag == "EMOJI" ~ trimws(item),
+          TRUE ~ item
+        )
+      )
   }
 
   return(list(resList = resList, x = x))
@@ -993,7 +1230,14 @@ TaggingCorpusElements <- function(x) {
 
 resetSpecialEntities <- function(x) {
   if ("upos_specialentities" %in% names(x)) {
-    items <- toupper(c("email", "url", "hash", "emoji", "ip_address", "mention"))
+    items <- toupper(c(
+      "email",
+      "url",
+      "hash",
+      "emoji",
+      "ip_address",
+      "mention"
+    ))
     x <- x %>%
       mutate(upos = ifelse(upos %in% items, upos_specialentities, upos))
   } else {
@@ -1003,64 +1247,86 @@ resetSpecialEntities <- function(x) {
 }
 
 summarySpecialEntities <- function(resList, type = "all") {
-  data.frame(UPOS = toupper(c("email", "url", "hash", "emoji", "ip_address", "mention")), "N. of Items" = rep(0, 6), "N. of Docs" = rep(0, 6))
+  data.frame(
+    UPOS = toupper(c("email", "url", "hash", "emoji", "ip_address", "mention")),
+    "N. of Items" = rep(0, 6),
+    "N. of Docs" = rep(0, 6)
+  )
 
-  switch(type,
-         "all" = {
-           resList %>%
-             group_by(tag) %>%
-             summarise(items = length(unique(item))) %>%
-             rename(
-               UPOS = tag,
-               "Frequency" = items
-             ) %>%
-             ungroup() %>%
-             bind_rows(tibble(
-               UPOS = toupper(c("email", "url", "hash", "emoji", "ip_address", "mention")),
-               "Frequency" = rep(0, 6)
-             )) %>%
-             group_by(UPOS) %>%
-             summarize_all(sum)
-         },
-         {
-           label <- toupper(type)
-           resList %>%
-             rename(UPOS = tag) %>%
-             filter(UPOS == label) %>%
-             count(item) %>%
-             arrange(desc(n))
-         }
+  switch(
+    type,
+    "all" = {
+      resList %>%
+        group_by(tag) %>%
+        summarise(items = length(unique(item))) %>%
+        rename(
+          UPOS = tag,
+          "Frequency" = items
+        ) %>%
+        ungroup() %>%
+        bind_rows(tibble(
+          UPOS = toupper(c(
+            "email",
+            "url",
+            "hash",
+            "emoji",
+            "ip_address",
+            "mention"
+          )),
+          "Frequency" = rep(0, 6)
+        )) %>%
+        group_by(UPOS) %>%
+        summarize_all(sum)
+    },
+    {
+      label <- toupper(type)
+      resList %>%
+        rename(UPOS = tag) %>%
+        filter(UPOS == label) %>%
+        count(item) %>%
+        arrange(desc(n))
+    }
   )
 }
 
 ## Custom Lists merging
 mergeCustomLists <- function(df, custom_lists, term = "lemma") {
   if (!is.null(custom_lists)) {
-    switch(term,
-           "lemma" = {
-             df <- df %>%
-               customListsReset() %>%
-               left_join(custom_lists, by = c("lemma" = "lemma")) %>%
-               mutate(
-                 upos.x = ifelse(!is.na(upos.y), toupper(upos.y), upos.x),
-                 POSSelected = ifelse(upos.x %in% c("ADJ", "NOUN", "PROPN", "VERB", "HASH", "EMOJI", "MENTION"), TRUE, FALSE)
-               ) %>%
-               select(-upos.y) %>%
-               rename(upos = upos.x) %>%
-               highlight()
-           },
-           "token" = {
-             df <- df %>%
-               customListsReset() %>%
-               left_join(custom_lists, by = c("token" = "token")) %>%
-               mutate(
-                 upos.x = ifelse(!is.na(upos.y), toupper(upos.y), upos.x),
-                 POSSelected = ifelse(upos.x %in% c("ADJ", "NOUN", "PROPN", "VERB"), TRUE, FALSE)
-               ) %>%
-               select(-upos.y) %>%
-               rename(upos = upos.x) %>%
-               highlight()
-           }
+    switch(
+      term,
+      "lemma" = {
+        df <- df %>%
+          customListsReset() %>%
+          left_join(custom_lists, by = c("lemma" = "lemma")) %>%
+          mutate(
+            upos.x = ifelse(!is.na(upos.y), toupper(upos.y), upos.x),
+            POSSelected = ifelse(
+              upos.x %in%
+                c("ADJ", "NOUN", "PROPN", "VERB", "HASH", "EMOJI", "MENTION"),
+              TRUE,
+              FALSE
+            )
+          ) %>%
+          select(-upos.y) %>%
+          rename(upos = upos.x) %>%
+          highlight()
+      },
+      "token" = {
+        df <- df %>%
+          customListsReset() %>%
+          left_join(custom_lists, by = c("token" = "token")) %>%
+          mutate(
+            upos.x = ifelse(!is.na(upos.y), toupper(upos.y), upos.x),
+            POSSelected = ifelse(
+              upos.x %in% c("ADJ", "NOUN", "PROPN", "VERB"),
+              TRUE,
+              FALSE
+            )
+          ) %>%
+          select(-upos.y) %>%
+          rename(upos = upos.x) %>%
+          highlight()
+      }
     )
   } else {
     print("RESET")
@@ -1084,33 +1350,43 @@ customListsReset <- function(df) {
 ## Custom Lists merging
 mergeCustomLists <- function(df, custom_lists, term = "lemma") {
   if (!is.null(custom_lists)) {
-    switch(term,
-           "lemma" = {
-             df <- df %>%
-               customListsReset() %>%
-               # mutate(lemma_norm = ifelse(upos!="PROPN", tolower(lemma), lemma)) %>%
-               left_join(custom_lists, by = c("lemma" = "lemma")) %>%
-               mutate(
-                 upos.x = ifelse(!is.na(upos.y), toupper(upos.y), upos.x),
-                 POSSelected = ifelse(upos.x %in% c("ADJ", "NOUN", "PROPN", "VERB", "HASH", "EMOJI", "MENTION"), TRUE, FALSE)
-               ) %>%
-               select(-upos.y) %>%
-               rename(upos = upos.x) %>%
-               highlight()
-           },
-           "token" = {
-             df <- df %>%
-               customListsReset() %>%
-               # mutate(lemma_norm = ifelse(upos!="PROPN", tolower(lemma), lemma)) %>%
-               left_join(custom_lists, by = c("token" = "token")) %>%
-               mutate(
-                 upos.x = ifelse(!is.na(upos.y), toupper(upos.y), upos.x),
-                 POSSelected = ifelse(upos.x %in% c("ADJ", "NOUN", "PROPN", "VERB"), TRUE, FALSE)
-               ) %>%
-               select(-upos.y) %>%
-               rename(upos = upos.x) %>%
-               highlight()
-           }
+    switch(
+      term,
+      "lemma" = {
+        df <- df %>%
+          customListsReset() %>%
+          # mutate(lemma_norm = ifelse(upos!="PROPN", tolower(lemma), lemma)) %>%
+          left_join(custom_lists, by = c("lemma" = "lemma")) %>%
+          mutate(
+            upos.x = ifelse(!is.na(upos.y), toupper(upos.y), upos.x),
+            POSSelected = ifelse(
+              upos.x %in%
+                c("ADJ", "NOUN", "PROPN", "VERB", "HASH", "EMOJI", "MENTION"),
+              TRUE,
+              FALSE
+            )
+          ) %>%
+          select(-upos.y) %>%
+          rename(upos = upos.x) %>%
+          highlight()
+      },
+      "token" = {
+        df <- df %>%
+          customListsReset() %>%
+          # mutate(lemma_norm = ifelse(upos!="PROPN", tolower(lemma), lemma)) %>%
+          left_join(custom_lists, by = c("token" = "token")) %>%
+          mutate(
+            upos.x = ifelse(!is.na(upos.y), toupper(upos.y), upos.x),
+            POSSelected = ifelse(
+              upos.x %in% c("ADJ", "NOUN", "PROPN", "VERB"),
+              TRUE,
+              FALSE
+            )
+          ) %>%
+          select(-upos.y) %>%
+          rename(upos = upos.x) %>%
+          highlight()
+      }
     )
   } else {
     print("RESET")
@@ -1160,97 +1436,153 @@ rakeReset <- function(x) {
   return(x)
 }
 
-rake <- function(x, group = "doc_id", ngram_max = 5, ngram_min = 2, relevant = c("PROPN", "NOUN", "ADJ", "VERB"), freq.min = 10, term = "lemma", type = "automatic", keywordList = NULL, method = "rake") {
+rake <- function(
+  x,
+  group = "doc_id",
+  ngram_max = 5,
+  ngram_min = 2,
+  relevant = c("PROPN", "NOUN", "ADJ", "VERB"),
+  freq.min = 10,
+  term = "lemma",
+  type = "automatic",
+  keywordList = NULL,
+  method = "rake"
+) {
   # if ("ngram" %in% names(x)){
   #   x <- x %>%
   #     select(-"ngram")
   # }
-  switch(type,
-         automatic = {
-           switch(method,
-                  rake = {
-                    # rake multi-word creation
-                    stats <- keywords_rake(
-                      x = x, term = term, group = group, ngram_max = ngram_max, n_min = freq.min,
-                      relevant = x$upos %in% relevant
-                    )
+  switch(
+    type,
+    automatic = {
+      switch(
+        method,
+        rake = {
+          # rake multi-word creation
+          stats <- keywords_rake(
+            x = x,
+            term = term,
+            group = group,
+            ngram_max = ngram_max,
+            n_min = freq.min,
+            relevant = x$upos %in% relevant
+          )
 
-                    # identify ngrams>1
-                    stats <- stats %>%
-                      dplyr::filter(ngram >= ngram_min)
-                  },
-                  pmi = {
-                    stats <- keywords_collocation(x %>% filter(upos %in% relevant),
-                                                  term = term, group = group, ngram_max = ngram_max, n_min = freq.min, sep = " "
-                    ) %>%
-                      select("keyword", "ngram", "freq", "pmi")
+          # identify ngrams>1
+          stats <- stats %>%
+            dplyr::filter(ngram >= ngram_min)
+        },
+        pmi = {
+          stats <- keywords_collocation(
+            x %>% filter(upos %in% relevant),
+            term = term,
+            group = group,
+            ngram_max = ngram_max,
+            n_min = freq.min,
+            sep = " "
+          ) %>%
+            select("keyword", "ngram", "freq", "pmi")
 
-                    # identify ngrams>1
-                    stats <- stats %>%
-                      dplyr::filter(ngram >= ngram_min)
-                  },
-                  md = {
-                    stats <- keywords_collocation(x %>% filter(upos %in% relevant),
-                                                  term = term, group = group, ngram_max = ngram_max, n_min = freq.min, sep = " "
-                    ) %>%
-                      select("keyword", "ngram", "freq", "md")
+          # identify ngrams>1
+          stats <- stats %>%
+            dplyr::filter(ngram >= ngram_min)
+        },
+        md = {
+          stats <- keywords_collocation(
+            x %>% filter(upos %in% relevant),
+            term = term,
+            group = group,
+            ngram_max = ngram_max,
+            n_min = freq.min,
+            sep = " "
+          ) %>%
+            select("keyword", "ngram", "freq", "md")
 
-                    # identify ngrams>1
-                    stats <- stats %>%
-                      dplyr::filter(ngram >= ngram_min)
-                  },
-                  lfmd = {
-                    stats <- keywords_collocation(x %>% filter(upos %in% relevant),
-                                                  term = term, group = group, ngram_max = ngram_max, n_min = freq.min, sep = " "
-                    ) %>%
-                      select("keyword", "ngram", "freq", "lfmd")
+          # identify ngrams>1
+          stats <- stats %>%
+            dplyr::filter(ngram >= ngram_min)
+        },
+        lfmd = {
+          stats <- keywords_collocation(
+            x %>% filter(upos %in% relevant),
+            term = term,
+            group = group,
+            ngram_max = ngram_max,
+            n_min = freq.min,
+            sep = " "
+          ) %>%
+            select("keyword", "ngram", "freq", "lfmd")
 
-                    # identify ngrams>1 with reka index>reka.min
-                    stats <- stats %>%
-                      dplyr::filter(ngram >= ngram_min)
-                  }
-           )
-         },
-         {
-           stats <- keywordList %>%
-             mutate(
-               keyword = trimws(keyword),
-               ngram = lengths(strsplit(keyword, " "))
-             )
-         }
+          # identify ngrams>1 with reka index>reka.min
+          stats <- stats %>%
+            dplyr::filter(ngram >= ngram_min)
+        }
+      )
+    },
+    {
+      stats <- keywordList %>%
+        mutate(
+          keyword = trimws(keyword),
+          ngram = lengths(strsplit(keyword, " "))
+        )
+    }
   )
-
 
   # filter original token df removing POS excluded in rake
   x2 <- x %>% filter(upos %in% relevant)
 
   # combine lemmas or tokens into multi-words
 
-  switch(term,
-         lemma = {
-           x2$multiword <- txt_recode_ngram(x2$lemma, compound = stats$keyword, ngram = stats$ngram, sep = " ")
+  switch(
+    term,
+    lemma = {
+      x2$multiword <- txt_recode_ngram(
+        x2$lemma,
+        compound = stats$keyword,
+        ngram = stats$ngram,
+        sep = " "
+      )
 
-           # assign new POS tags "MULTIWORD" for combined lemmas and "NGRAM_MERGED" for lemmas to be removed because combined
-           x2 <- x2 %>%
-             mutate(
-               upos_multiword = ifelse(lemma == multiword, upos, "MULTIWORD"),
-               upos_multiword = ifelse(is.na(multiword), "NGRAM_MERGED", upos_multiword)
-             ) %>%
-             left_join(stats %>% select(keyword, ngram), by = c("multiword" = "keyword")) %>%
-             select(doc_id, term_id, multiword, upos_multiword, ngram)
-         },
-         token = {
-           x2$multiword <- txt_recode_ngram(x2$token, compound = stats$keyword, ngram = stats$ngram, sep = " ")
+      # assign new POS tags "MULTIWORD" for combined lemmas and "NGRAM_MERGED" for lemmas to be removed because combined
+      x2 <- x2 %>%
+        mutate(
+          upos_multiword = ifelse(lemma == multiword, upos, "MULTIWORD"),
+          upos_multiword = ifelse(
+            is.na(multiword),
+            "NGRAM_MERGED",
+            upos_multiword
+          )
+        ) %>%
+        left_join(
+          stats %>% select(keyword, ngram),
+          by = c("multiword" = "keyword")
+        ) %>%
+        select(doc_id, term_id, multiword, upos_multiword, ngram)
+    },
+    token = {
+      x2$multiword <- txt_recode_ngram(
+        x2$token,
+        compound = stats$keyword,
+        ngram = stats$ngram,
+        sep = " "
+      )
 
-           # assign new POS tags "MULTIWORD" for combined lemmas and "NGRAM_MERGED" for lemmas to be removed because combined
-           x2 <- x2 %>%
-             mutate(
-               upos_multiword = ifelse(token == multiword, upos, "MULTIWORD"),
-               upos_multiword = ifelse(is.na(multiword), "NGRAM_MERGED", upos_multiword)
-             ) %>%
-             left_join(stats %>% select(keyword, ngram), by = c("multiword" = "keyword")) %>%
-             select(doc_id, term_id, multiword, upos_multiword, ngram)
-         }
+      # assign new POS tags "MULTIWORD" for combined lemmas and "NGRAM_MERGED" for lemmas to be removed because combined
+      x2 <- x2 %>%
+        mutate(
+          upos_multiword = ifelse(token == multiword, upos, "MULTIWORD"),
+          upos_multiword = ifelse(
+            is.na(multiword),
+            "NGRAM_MERGED",
+            upos_multiword
+          )
+        ) %>%
+        left_join(
+          stats %>% select(keyword, ngram),
+          by = c("multiword" = "keyword")
+        ) %>%
+        select(doc_id, term_id, multiword, upos_multiword, ngram)
+    }
   )
 
   stats <- x2 %>%
@@ -1283,54 +1615,78 @@ applyRake <- function(x, rakeResults, row_sel = NULL, term = "lemma") {
   rakeResults$stats <- rakeResults$stats[row_sel, ]
   # filter original token df removing POS excluded in rake
 
-
   # combine lemmas or tokens into multi-words
 
-  switch(term,
-         lemma = {
-           # rebuild the original tokenized df
-           x <- x %>%
-             left_join(rakeResults$dfMW, by = c("doc_id", "term_id")) %>%
-             mutate(
-               multiword = ifelse(is.na(multiword), lemma, multiword),
-               upos_multiword = ifelse(is.na(upos_multiword), upos, upos_multiword),
-               POSSelected = ifelse(upos_multiword == "MULTIWORD", TRUE, POSSelected),
-               POSSelected = ifelse(upos_multiword == "NGRAM_MERGED", FALSE, POSSelected)
-             )
+  switch(
+    term,
+    lemma = {
+      # rebuild the original tokenized df
+      x <- x %>%
+        left_join(rakeResults$dfMW, by = c("doc_id", "term_id")) %>%
+        mutate(
+          multiword = ifelse(is.na(multiword), lemma, multiword),
+          upos_multiword = ifelse(is.na(upos_multiword), upos, upos_multiword),
+          POSSelected = ifelse(
+            upos_multiword == "MULTIWORD",
+            TRUE,
+            POSSelected
+          ),
+          POSSelected = ifelse(
+            upos_multiword == "NGRAM_MERGED",
+            FALSE,
+            POSSelected
+          )
+        )
 
-           if (!"upos_original" %in% names(x)) names(x)[names(x) == "upos"] <- "upos_original"
-           x <- x %>%
-             select(-ends_with("upos")) %>%
-             rename(upos = upos_multiword)
+      if (!"upos_original" %in% names(x)) {
+        names(x)[names(x) == "upos"] <- "upos_original"
+      }
+      x <- x %>%
+        select(-ends_with("upos")) %>%
+        rename(upos = upos_multiword)
 
-           if (!"lemma_original_nomultiwords" %in% names(x)) names(x)[names(x) == "lemma"] <- "lemma_original_nomultiwords"
+      if (!"lemma_original_nomultiwords" %in% names(x)) {
+        names(x)[names(x) == "lemma"] <- "lemma_original_nomultiwords"
+      }
 
-           x <- x %>%
-             select(-ends_with("lemma")) %>%
-             rename(lemma = multiword)
-         },
-         token = {
-           # rebuild the original tokenized df
-           x <- x %>%
-             left_join(rakeResults$dfMW, by = c("doc_id", "term_id")) %>%
-             mutate(
-               multiword = ifelse(is.na(multiword), token, multiword),
-               upos_multiword = ifelse(is.na(upos_multiword), upos, upos_multiword),
-               POSSelected = ifelse(upos_multiword == "MULTIWORD", TRUE, POSSelected),
-               POSSelected = ifelse(upos_multiword == "NGRAM_MERGED", FALSE, POSSelected)
-             )
+      x <- x %>%
+        select(-ends_with("lemma")) %>%
+        rename(lemma = multiword)
+    },
+    token = {
+      # rebuild the original tokenized df
+      x <- x %>%
+        left_join(rakeResults$dfMW, by = c("doc_id", "term_id")) %>%
+        mutate(
+          multiword = ifelse(is.na(multiword), token, multiword),
+          upos_multiword = ifelse(is.na(upos_multiword), upos, upos_multiword),
+          POSSelected = ifelse(
+            upos_multiword == "MULTIWORD",
+            TRUE,
+            POSSelected
+          ),
+          POSSelected = ifelse(
+            upos_multiword == "NGRAM_MERGED",
+            FALSE,
+            POSSelected
+          )
+        )
 
-           if (!"upos_original" %in% names(x)) names(x)[names(x) == "upos"] <- "upos_original"
-           x <- x %>%
-             select(-ends_with("upos")) %>%
-             rename(upos = upos_multiword)
+      if (!"upos_original" %in% names(x)) {
+        names(x)[names(x) == "upos"] <- "upos_original"
+      }
+      x <- x %>%
+        select(-ends_with("upos")) %>%
+        rename(upos = upos_multiword)
 
-           if (!"token_original_nomultiwords" %in% names(x)) names(x)[names(x) == "token"] <- "token_original_nomultiwords"
+      if (!"token_original_nomultiwords" %in% names(x)) {
+        names(x)[names(x) == "token"] <- "token_original_nomultiwords"
+      }
 
-           x <- x %>%
-             select(-ends_with("token")) %>%
-             rename(token = multiword)
-         }
+      x <- x %>%
+        select(-ends_with("token")) %>%
+        rename(token = multiword)
+    }
   )
 
   ## calculate new start end values for multiwords
@@ -1342,7 +1698,13 @@ applyRake <- function(x, rakeResults, row_sel = NULL, term = "lemma") {
   x <- x %>%
     mutate(id = row_number()) %>%
     group_by(id) %>%
-    mutate(ngram = ifelse(upos == "MULTIWORD", max(c(lengths(strsplit(lemma, " "))), lengths(strsplit(token, " "))), NA)) %>%
+    mutate(
+      ngram = ifelse(
+        upos == "MULTIWORD",
+        max(c(lengths(strsplit(lemma, " "))), lengths(strsplit(token, " "))),
+        NA
+      )
+    ) %>%
     ungroup() %>%
     select(-id)
 
@@ -1408,7 +1770,10 @@ posTagAll <- function(df) {
   ordinaryPos <- intersect(posLegend$pos, pos)
   additionalPos <- sort(setdiff(pos, ordinaryPos))
   pos <- c(ordinaryPos, additionalPos)
-  description <- c(posLegend$description[posLegend$pos %in% pos], rep("Custom PoS", length(additionalPos)))
+  description <- c(
+    posLegend$description[posLegend$pos %in% pos],
+    rep("Custom PoS", length(additionalPos))
+  )
   description <- paste(pos, description, sep = ": ")
   obj <- data.frame(pos = pos, description = description) %>%
     filter(!pos == "NGRAM_MERGED")
@@ -1417,15 +1782,53 @@ posTagAll <- function(df) {
 
 ### GROUP MENU FUNCTIONS -----
 noGroupLabels <- function(label) {
-  setdiff(label, c(
-    "doc_id", "paragraph_id", "sentence_id", "sentence", "start", "end", "term_id", "noSingleChar",
-    "token_id", "token", "lemma", "upos", "xpos", "feats", "head_token_id", "dep_rel",
-    "deps", "misc", "original_doc_id", "ungroupDoc_id", "ungroupP_id", "ungroupS_id",
-    "POSSelected", "token_hl", "start_hl", "end_hl", "sentence_hl", "lemma_original_nomultiwords",
-    "filename", "upos_original", "folder", "docSelected", "ngram", "doc_selected", "noHapax",
-    "FrequencyRange", "text_original", "doc_id_old", "split_word", "token_original_nomultiwords",
-    "lemma_original", "upos_specialentities"
-  ))
+  setdiff(
+    label,
+    c(
+      "doc_id",
+      "paragraph_id",
+      "sentence_id",
+      "sentence",
+      "start",
+      "end",
+      "term_id",
+      "noSingleChar",
+      "token_id",
+      "token",
+      "lemma",
+      "upos",
+      "xpos",
+      "feats",
+      "head_token_id",
+      "dep_rel",
+      "deps",
+      "misc",
+      "original_doc_id",
+      "ungroupDoc_id",
+      "ungroupP_id",
+      "ungroupS_id",
+      "POSSelected",
+      "token_hl",
+      "start_hl",
+      "end_hl",
+      "sentence_hl",
+      "lemma_original_nomultiwords",
+      "filename",
+      "upos_original",
+      "folder",
+      "docSelected",
+      "ngram",
+      "doc_selected",
+      "noHapax",
+      "FrequencyRange",
+      "text_original",
+      "doc_id_old",
+      "split_word",
+      "token_original_nomultiwords",
+      "lemma_original",
+      "upos_specialentities"
+    )
+  )
 }
 
 groupByMetadata <- function(dfTag, metadata) {
@@ -1446,7 +1849,11 @@ groupByMetadata <- function(dfTag, metadata) {
     dfTag$sentence_id <- paste0(dfTag$ungroupDoc_id, "_", dfTag$ungroupS_id)
 
     # newDoc_id <-dfTag[[metadata]]
-    newDoc_id <- ifelse(!is.na(dfTag[[metadata]]), dfTag[[metadata]], "Not Available")
+    newDoc_id <- ifelse(
+      !is.na(dfTag[[metadata]]),
+      dfTag[[metadata]],
+      "Not Available"
+    )
 
     dfTag <- dfTag %>%
       mutate(doc_id = newDoc_id) %>%
@@ -1478,7 +1885,6 @@ backToOriginalGroups <- function(dfTag) {
   }
   return(dfTag)
 }
-
 
 
 ### OVERVIEW ----
@@ -1557,22 +1963,34 @@ freqByPos <- function(df, term = "lemma", pos = "NOUN") {
 }
 
 # freqPlotly ----
-freqPlotly <- function(dfPlot, x, y, n = 10, xlabel, ylabel, scale = c("identity", "log"), topicmodel = FALSE, color = "#4F7942", decimal = 0) {
+freqPlotly <- function(
+  dfPlot,
+  x,
+  y,
+  n = 10,
+  xlabel,
+  ylabel,
+  scale = c("identity", "log"),
+  topicmodel = FALSE,
+  color = "#4F7942",
+  decimal = 0
+) {
   # function to build and plot plotly horizontal barplot
   dfPlot <- dfPlot %>% dplyr::slice_head(n = n)
   xmax <- max(dfPlot[[x]])
 
-  switch(scale,
-         log = {
-           dfPlot$n <- log(dfPlot$n)
-         }
-  )
+  switch(scale, log = {
+    dfPlot$n <- log(dfPlot$n)
+  })
 
   if (isTRUE(topicmodel)) {
     fig1 <- plot_ly(
-      data = dfPlot, x = round(dfPlot[[x]], decimal), y = dfPlot[[y]],
+      data = dfPlot,
+      x = round(dfPlot[[x]], decimal),
+      y = dfPlot[[y]],
       source = "A",
-      type = "bar", orientation = "h",
+      type = "bar",
+      orientation = "h",
       marker = list(
         color = paste0(color, "60"),
         line = list(color = color, width = 1)
@@ -1581,9 +1999,12 @@ freqPlotly <- function(dfPlot, x, y, n = 10, xlabel, ylabel, scale = c("identity
     )
   } else {
     fig1 <- plot_ly(
-      data = dfPlot, x = dfPlot[[x]], y = ~ reorder(dfPlot[[y]], dfPlot[[x]]),
+      data = dfPlot,
+      x = dfPlot[[x]],
+      y = ~ reorder(dfPlot[[y]], dfPlot[[x]]),
       source = "A",
-      type = "bar", orientation = "h",
+      type = "bar",
+      orientation = "h",
       marker = list(
         color = paste0(color, "60"),
         line = list(color = color, width = 1)
@@ -1592,12 +2013,25 @@ freqPlotly <- function(dfPlot, x, y, n = 10, xlabel, ylabel, scale = c("identity
     )
   }
 
-  fig1 <- fig1 %>% layout(
-    yaxis = list(title = ylabel, showgrid = FALSE, showline = FALSE, showticklabels = TRUE, domain = c(0, 1)),
-    xaxis = list(title = xlabel, zeroline = FALSE, showline = FALSE, showticklabels = TRUE, showgrid = FALSE),
-    plot_bgcolor = "rgba(0, 0, 0, 0)",
-    paper_bgcolor = "rgba(0, 0, 0, 0)"
-  )
+  fig1 <- fig1 %>%
+    layout(
+      yaxis = list(
+        title = ylabel,
+        showgrid = FALSE,
+        showline = FALSE,
+        showticklabels = TRUE,
+        domain = c(0, 1)
+      ),
+      xaxis = list(
+        title = xlabel,
+        zeroline = FALSE,
+        showline = FALSE,
+        showticklabels = TRUE,
+        showgrid = FALSE
+      ),
+      plot_bgcolor = "rgba(0, 0, 0, 0)",
+      paper_bgcolor = "rgba(0, 0, 0, 0)"
+    )
 
   if (decimal > 0) {
     ann_text <- format(round(dfPlot[[x]], decimal), nsmall = decimal)
@@ -1607,8 +2041,10 @@ freqPlotly <- function(dfPlot, x, y, n = 10, xlabel, ylabel, scale = c("identity
 
   fig1 <- fig1 %>%
     add_annotations(
-      xref = "x1", yref = "y",
-      x = dfPlot[[x]] + xmax * 0.015, y = dfPlot[[y]],
+      xref = "x1",
+      yref = "y",
+      x = dfPlot[[x]] + xmax * 0.015,
+      y = dfPlot[[y]],
       text = ann_text,
       font = list(family = "Arial", size = 12, color = color),
       showarrow = FALSE
@@ -1697,7 +2133,9 @@ valueBoxesIndices <- function(x) {
     filter(n == 1) %>%
     ungroup() %>%
     reframe(n = sum(n)) %>%
-    as.numeric() / nDictionary * 100
+    as.numeric() /
+    nDictionary *
+    100
 
   # 10. Guiraud
   guiraud <- round(nDictionary / sqrt(nTokens), 1)
@@ -1774,7 +2212,6 @@ wordcloud2vis <- function(nodes, labelsize = 7, opacity = 1) {
   scalemax <- 100 * (1 + labelsize / 5)
   N <- nrow(nodes)
 
-
   colorlists <- colorlist()
   colorlists <- sample(colorlists, N, replace = TRUE)
 
@@ -1788,7 +2225,15 @@ wordcloud2vis <- function(nodes, labelsize = 7, opacity = 1) {
       id = row_number(),
       shape = shape,
       color = colorlists,
-      title = paste("<strong>", label, "</strong>", "<br><h5>freq = ", value, "</h5>", sep = "")
+      title = paste(
+        "<strong>",
+        label,
+        "</strong>",
+        "<br><h5>freq = ",
+        value,
+        "</h5>",
+        sep = ""
+      )
     )
 
   nodes$font.size <- log(nodes$value)
@@ -1810,33 +2255,83 @@ wordcloud2vis <- function(nodes, labelsize = 7, opacity = 1) {
   }
 
   ## opacity for label
-  opacity_font <- sqrt((nodes$font.size - min(nodes$font.size)) / diff(range(nodes$font.size))) * opacity + opacity.min + 0.1
-  if (is.nan(opacity_font[1])) opacity_font <- rep(opacity.min, length(opacity_font))
-
+  opacity_font <- sqrt(
+    (nodes$font.size - min(nodes$font.size)) / diff(range(nodes$font.size))
+  ) *
+    opacity +
+    opacity.min +
+    0.1
+  if (is.nan(opacity_font[1])) {
+    opacity_font <- rep(opacity.min, length(opacity_font))
+  }
 
   # node colors
-  nodes$opacity.nodes <- (opacity_font - min(opacity_font)) / (diff(range(opacity_font))) * 0.5 + opacity.min
+  nodes$opacity.nodes <- (opacity_font - min(opacity_font)) /
+    (diff(range(opacity_font))) *
+    0.5 +
+    opacity.min
   nodes$opacity.nodes[is.nan(nodes$opacity.nodes)] <- 0.5
 
-
   VIS <-
-    visNetwork::visNetwork(nodes = nodes, edges = NULL, type = "full", smooth = TRUE, physics = TRUE) %>%
-    visNetwork::visNodes(shadow = FALSE, shape = nodes$shape, font = list(color = nodes$font.color, size = nodes$font.size, vadjust = nodes$font.vadjust)) %>%
-    visNetwork::visOptions(highlightNearest = list(enabled = T, hover = T, degree = 1), nodesIdSelection = T) %>%
-    visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed = 0.2) %>%
-    visEvents(click = "function(nodes){
+    visNetwork::visNetwork(
+      nodes = nodes,
+      edges = NULL,
+      type = "full",
+      smooth = TRUE,
+      physics = TRUE
+    ) %>%
+    visNetwork::visNodes(
+      shadow = FALSE,
+      shape = nodes$shape,
+      font = list(
+        color = nodes$font.color,
+        size = nodes$font.size,
+        vadjust = nodes$font.vadjust
+      )
+    ) %>%
+    visNetwork::visOptions(
+      highlightNearest = list(enabled = T, hover = T, degree = 1),
+      nodesIdSelection = T
+    ) %>%
+    visNetwork::visInteraction(
+      dragNodes = TRUE,
+      navigationButtons = F,
+      hideEdgesOnDrag = TRUE,
+      zoomSpeed = 0.2
+    ) %>%
+    visEvents(
+      click = "function(nodes){
                   Shiny.onInputChange('click', nodes.nodes[0]);
-                  ;}") %>%
-    visNetwork::visOptions(manipulation = FALSE, height = "100%", width = "100%")
+                  ;}"
+    ) %>%
+    visNetwork::visOptions(
+      manipulation = FALSE,
+      height = "100%",
+      width = "100%"
+    )
   return(VIS)
 }
 
 ## wordcloud function
-wordcloud2a <- function(data, size = 1, minSize = 0, gridSize = 0, fontFamily = "Segoe UI",
-                        fontWeight = "bold", color = "random-dark", backgroundColor = "transparent",
-                        minRotation = -pi / 4, maxRotation = pi / 4, shuffle = TRUE,
-                        rotateRatio = 0.4, shape = "circle", ellipticity = 0.65,
-                        widgetsize = NULL, figPath = NULL, hoverFunction = NULL) {
+wordcloud2a <- function(
+  data,
+  size = 1,
+  minSize = 0,
+  gridSize = 0,
+  fontFamily = "Segoe UI",
+  fontWeight = "bold",
+  color = "random-dark",
+  backgroundColor = "transparent",
+  minRotation = -pi / 4,
+  maxRotation = pi / 4,
+  shuffle = TRUE,
+  rotateRatio = 0.4,
+  shape = "circle",
+  ellipticity = 0.65,
+  widgetsize = NULL,
+  figPath = NULL,
+  hoverFunction = NULL
+) {
   if ("table" %in% class(data)) {
     dataOut <- data.frame(name = names(data), freq = as.vector(data))
   } else {
@@ -1856,7 +2351,9 @@ wordcloud2a <- function(data, size = 1, minSize = 0, gridSize = 0, fontFamily = 
     }
     base64 <- base64enc::base64encode(figPath)
     base64 <- paste0(
-      "data:image/", figClass, ";base64,",
+      "data:image/",
+      figClass,
+      ";base64,",
       base64
     )
   } else {
@@ -1864,18 +2361,34 @@ wordcloud2a <- function(data, size = 1, minSize = 0, gridSize = 0, fontFamily = 
   }
   weightFactor <- size * 180 / max(dataOut$freq)
   settings <- list(
-    word = dataOut$name, freq = dataOut$freq,
-    fontFamily = fontFamily, fontWeight = fontWeight, color = color,
-    minSize = minSize, weightFactor = weightFactor, backgroundColor = backgroundColor,
-    gridSize = gridSize, minRotation = minRotation, maxRotation = maxRotation,
-    shuffle = shuffle, rotateRatio = rotateRatio, shape = shape,
-    ellipticity = ellipticity, figBase64 = base64, hover = htmlwidgets::JS(hoverFunction)
+    word = dataOut$name,
+    freq = dataOut$freq,
+    fontFamily = fontFamily,
+    fontWeight = fontWeight,
+    color = color,
+    minSize = minSize,
+    weightFactor = weightFactor,
+    backgroundColor = backgroundColor,
+    gridSize = gridSize,
+    minRotation = minRotation,
+    maxRotation = maxRotation,
+    shuffle = shuffle,
+    rotateRatio = rotateRatio,
+    shape = shape,
+    ellipticity = ellipticity,
+    figBase64 = base64,
+    hover = htmlwidgets::JS(hoverFunction)
   )
-  chart <- htmlwidgets::createWidget("wordcloud2", settings,
-                                     width = widgetsize[1], height = widgetsize[2], sizingPolicy = htmlwidgets::sizingPolicy(
-                                       viewer.padding = 0,
-                                       browser.padding = 0, browser.fill = TRUE
-                                     )
+  chart <- htmlwidgets::createWidget(
+    "wordcloud2",
+    settings,
+    width = widgetsize[1],
+    height = widgetsize[2],
+    sizingPolicy = htmlwidgets::sizingPolicy(
+      viewer.padding = 0,
+      browser.padding = 0,
+      browser.fill = TRUE
+    )
   )
   chart
 }
@@ -1887,18 +2400,35 @@ tfidf <- function(dfTag, term = "lemma", document = "doc_id") {
   dtm <- document_term_frequencies(dtm, document = document, term = term)
   dtm <- document_term_matrix(dtm)
   tfidf <- dtm_tfidf(dtm)
-  tibble(term = names(tfidf), TFIDF = as.numeric(tfidf)) %>% arrange(desc(tfidf))
+  tibble(term = names(tfidf), TFIDF = as.numeric(tfidf)) %>%
+    arrange(desc(tfidf))
 }
 
 ### WORD IN CONTEXT ----
-get_context_window <- function(df, target_word, n_left = 5, n_right = 5, term = "token") {
+get_context_window <- function(
+  df,
+  target_word,
+  n_left = 5,
+  n_right = 5,
+  term = "token"
+) {
   # Ensure term is correctly set
   if (!term %in% c("token", "lemma")) {
     stop("The 'term' argument must be either 'token' or 'lemma'.")
   }
 
   # Exclude irrelevant POS tags
-  no_upos <- c("NGRAM_MERGED", "X", "PUNCT", "SYM", "URL", "IP_ADDRESS", "EMAIL", "DET", "CCONJ")
+  no_upos <- c(
+    "NGRAM_MERGED",
+    "X",
+    "PUNCT",
+    "SYM",
+    "URL",
+    "IP_ADDRESS",
+    "EMAIL",
+    "DET",
+    "CCONJ"
+  )
 
   df <- df %>%
     filter(!upos %in% no_upos) %>%
@@ -1964,7 +2494,11 @@ contextNetwork <- function(df, dfTag, target_word, n = 50) {
     mutate(segment_id = row_number()) %>% # Identificatore univoco del segmento
     rowwise() %>%
     mutate(
-      words = list(c(unlist(context_before), target_word, unlist(context_after))), # Unisce tutto in un'unica lista
+      words = list(c(
+        unlist(context_before),
+        target_word,
+        unlist(context_after)
+      )), # Unisce tutto in un'unica lista
       upos_list = list(unlist(upos)) # Appiattisce la lista dei POS
     ) %>%
     ungroup() %>%
@@ -1974,22 +2508,40 @@ contextNetwork <- function(df, dfTag, target_word, n = 50) {
 
   uposSelected <- unique(LemmaSelection(dfTag) %>% select(upos) %>% pull())
 
-  net <- network(longer_df %>% filter(upos %in% uposSelected),
-                 term = "token", group = c("segment_id"), n = 50, minEdges = 100, labelsize = 3, opacity = 0.6,
-                 interLinks = TRUE, normalization = "association", remove.isolated = FALSE, community.repulsion = 0
+  net <- network(
+    longer_df %>% filter(upos %in% uposSelected),
+    term = "token",
+    group = c("segment_id"),
+    n = 50,
+    minEdges = 100,
+    labelsize = 3,
+    opacity = 0.6,
+    interLinks = TRUE,
+    normalization = "association",
+    remove.isolated = FALSE,
+    community.repulsion = 0
   )
 
   net$edges <- net$edges %>%
-    filter(!(color == "#69696920" &
-               !(term_from == target_word) &
-               !(term_to == target_word)))
+    filter(
+      !(color == "#69696920" &
+        !(term_from == target_word) &
+        !(term_to == target_word))
+    )
 
   vis <- net2vis(net$nodes, net$edges, click = FALSE)
   return(vis)
 }
 
 ### CLUSTERING ----
-clustering <- function(dfTag, n = 50, group = "doc_id", term = "lemma", minEdges = 25, normalization = "association") {
+clustering <- function(
+  dfTag,
+  n = 50,
+  group = "doc_id",
+  term = "lemma",
+  minEdges = 25,
+  normalization = "association"
+) {
   x <- dfTag # %>% dplyr::filter(POSSelected)
 
   cooc <- coocMatrix(x, term = term, group = group, n = n, pos = TRUE)
@@ -2003,19 +2555,20 @@ clustering <- function(dfTag, n = 50, group = "doc_id", term = "lemma", minEdges
       sJ = s / (s_from + s_to - s)
     )
 
-  switch(normalization,
-         none = {
-           edges$value <- edges$s
-         },
-         association = {
-           edges$value <- edges$sA
-         },
-         cosine = {
-           edges$value <- edges$sC
-         },
-         jaccard = {
-           edges$value <- edges$sJ
-         }
+  switch(
+    normalization,
+    none = {
+      edges$value <- edges$s
+    },
+    association = {
+      edges$value <- edges$sA
+    },
+    cosine = {
+      edges$value <- edges$sC
+    },
+    jaccard = {
+      edges$value <- edges$sJ
+    }
   )
 
   tailEdges <- quantile(edges$value, 1 - (minEdges / 100), na.rm = T)
@@ -2029,9 +2582,15 @@ clustering <- function(dfTag, n = 50, group = "doc_id", term = "lemma", minEdges
   # Community detection via optimization of modularity score
   wordnetwork <- as.undirected(wordnetwork) # an undirected graph
   comm <- igraph::cluster_walktrap(wordnetwork, weights = E(wordnetwork)$value)
-  cluster <- data.frame(word = c(cooc$term1, cooc$term2), frequency = c(cooc$s_from, cooc$s_to)) %>%
+  cluster <- data.frame(
+    word = c(cooc$term1, cooc$term2),
+    frequency = c(cooc$s_from, cooc$s_to)
+  ) %>%
     distinct() %>%
-    left_join(data.frame(word = comm$names, group = comm$membership), by = c("word")) %>%
+    left_join(
+      data.frame(word = comm$names, group = comm$membership),
+      by = c("word")
+    ) %>%
     drop_na() %>%
     group_by(word) %>%
     summarize(
@@ -2055,12 +2614,25 @@ dend2vis <- function(hc, labelsize, nclusters = 1, community = TRUE) {
 
   hc$height <- hc$height + h_tail
 
-  if (!"group" %in% names(hc)) hc$group <- nclusters + 1
+  if (!"group" %in% names(hc)) {
+    hc$group <- nclusters + 1
+  }
 
   if (nclusters < max(hc$group, na.rm = T)) {
-    VIS <- visHclust(hc, cutree = nclusters, colorEdges = "grey60", horizontal = TRUE, export = FALSE)
+    VIS <- visHclust(
+      hc,
+      cutree = nclusters,
+      colorEdges = "grey60",
+      horizontal = TRUE,
+      export = FALSE
+    )
   } else {
-    VIS <- visHclust(hc, colorEdges = "grey60", horizontal = TRUE, export = FALSE)
+    VIS <- visHclust(
+      hc,
+      colorEdges = "grey60",
+      horizontal = TRUE,
+      export = FALSE
+    )
   }
 
   VIS$x$edges <- data.frame(color = unique(VIS$x$edges$color)) %>%
@@ -2101,26 +2673,47 @@ dend2vis <- function(hc, labelsize, nclusters = 1, community = TRUE) {
 
   VIS <- VIS %>%
     visGroups(
-      groupname = "group", color = "gray90",
-      shape = "dot", size = 10
+      groupname = "group",
+      color = "gray90",
+      shape = "dot",
+      size = 10
     ) %>%
     visGroups(
       groupname = "word",
       font = list(size = 0),
       color = list(
-        background = "white", border = "#80B1D3",
-        highlight = "#e2e9e9", hover = "orange"
-      ), shape = "box"
+        background = "white",
+        border = "#80B1D3",
+        highlight = "#e2e9e9",
+        hover = "orange"
+      ),
+      shape = "box"
     ) %>%
     visNodes(font = list(align = VIS$x$nodes$font.align)) %>%
     visNetwork::visOptions(
-      highlightNearest = list(enabled = T, hover = T, degree = list(to = 1000, from = 0), algorithm = "hierarchical"), nodesIdSelection = FALSE,
-      manipulation = FALSE, height = "100%", width = "100%"
+      highlightNearest = list(
+        enabled = T,
+        hover = T,
+        degree = list(to = 1000, from = 0),
+        algorithm = "hierarchical"
+      ),
+      nodesIdSelection = FALSE,
+      manipulation = FALSE,
+      height = "100%",
+      width = "100%"
     ) %>%
-    visNetwork::visInteraction(dragNodes = FALSE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed = 0.4) %>%
-    visIgraphLayout(layout = "layout.norm", layoutMatrix = coords, type = "full") %>%
+    visNetwork::visInteraction(
+      dragNodes = FALSE,
+      navigationButtons = F,
+      hideEdgesOnDrag = TRUE,
+      zoomSpeed = 0.4
+    ) %>%
+    visIgraphLayout(
+      layout = "layout.norm",
+      layoutMatrix = coords,
+      type = "full"
+    ) %>%
     visEdges(font = list(align = "top", size = VIS$x$edges$font.size))
-
 
   for (i in 1:nrow(VIS$x$nodes)) {
     if (VIS$x$nodes$group[i] == "group") {
@@ -2139,14 +2732,18 @@ dend2vis <- function(hc, labelsize, nclusters = 1, community = TRUE) {
       }
     }
     VIS <- VIS %>%
-      visEvents(click = "function(nodes){
+      visEvents(
+        click = "function(nodes){
                   Shiny.onInputChange('click_rein', nodes.nodes[0]);
-                  ;}")
+                  ;}"
+      )
   } else {
     VIS <- VIS %>%
-      visEvents(click = "function(nodes){
+      visEvents(
+        click = "function(nodes){
                   Shiny.onInputChange('click_dend', nodes.nodes[0]);
-                  ;}")
+                  ;}"
+      )
   }
 
   return(VIS)
@@ -2156,16 +2753,17 @@ dend2vis <- function(hc, labelsize, nclusters = 1, community = TRUE) {
 
 ## Correspondence Analysis on Words ----
 wordCA <- function(x, n = 50, term = "lemma", group = c("Documents")) {
-  switch(group,
-         Documents = {
-           group <- "doc_id"
-         },
-         Paragraphs = {
-           group <- c("doc_id", "paragraph_id")
-         },
-         Sentences = {
-           group <- c("doc_id", "sentence_id")
-         }
+  switch(
+    group,
+    Documents = {
+      group <- "doc_id"
+    },
+    Paragraphs = {
+      group <- c("doc_id", "paragraph_id")
+    },
+    Sentences = {
+      group <- c("doc_id", "sentence_id")
+    }
   )
 
   # x <- dfTag %>% dplyr::filter(POSSelected)
@@ -2175,7 +2773,10 @@ wordCA <- function(x, n = 50, term = "lemma", group = c("Documents")) {
   } else {
     new_doc_id <- x$doc_id
   }
-  dtm <- document_term_frequencies(x %>% mutate(doc_id = new_doc_id), term = term)
+  dtm <- document_term_frequencies(
+    x %>% mutate(doc_id = new_doc_id),
+    term = term
+  )
 
   # dtm <- document_term_frequencies(x, term=term)
   mat <- document_term_matrix(dtm, weight = "freq")
@@ -2187,7 +2788,6 @@ wordCA <- function(x, n = 50, term = "lemma", group = c("Documents")) {
   Ncol <- min(10, ncol(res$rowcoord))
   contrib <- data.frame((res$colcoord[, 1:Ncol]^2) * res$colmass)
   colnames(contrib) <- paste0("Contrib", 1:ncol(contrib))
-
 
   # Cosines squared
   cosine <- data.frame(((res$colcoord[, 1:Ncol]^2) / (res$coldist)))
@@ -2219,14 +2819,27 @@ wordCA <- function(x, n = 50, term = "lemma", group = c("Documents")) {
   res$eigCorrectedNorm <- res$eigCorrected / sum(res$eigCorrected) * 100
 
   ## result object
-  results <- list(ca = res, wordCoord = wordCoord, contrib = contrib, cosine = cosine, docContrib = docContrib, docCoord = docCoord)
+  results <- list(
+    ca = res,
+    wordCoord = wordCoord,
+    contrib = contrib,
+    cosine = cosine,
+    docContrib = docContrib,
+    docCoord = docCoord
+  )
 
   return(results)
 }
 
 
 ## caClustering ----
-caClustering <- function(results, method = "ward.D2", nDim = 2, nclusters = 1, lim.contr) {
+caClustering <- function(
+  results,
+  method = "ward.D2",
+  nDim = 2,
+  nclusters = 1,
+  lim.contr
+) {
   vars <- "Dim"
 
   # filter by contribution
@@ -2262,7 +2875,17 @@ caClustering <- function(results, method = "ward.D2", nDim = 2, nclusters = 1, l
 
 
 ## CA Plot ----
-ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = Inf, topDocPlot = 20, threshold = 0.03, labelsize = 16, size = 5, lim.contr) {
+ca2plotly <- function(
+  results,
+  dimX = 1,
+  dimY = 2,
+  topWordPlot = Inf,
+  topDocPlot = 20,
+  threshold = 0.03,
+  labelsize = 16,
+  size = 5,
+  lim.contr
+) {
   # filter by contribution
   contr <- results$contrib %>%
     select(c(dimX, dimY)) %>%
@@ -2293,7 +2916,10 @@ ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = Inf, topDocPlot
   dotScale <- ((dotScale[, 1] + dotScale[, 2]) / 2) + size
 
   # Threshold labels to plot
-  thres <- sort(dotScale, decreasing = TRUE)[min(topWordPlot, nrow(results$wordCoord))]
+  thres <- sort(dotScale, decreasing = TRUE)[min(
+    topWordPlot,
+    nrow(results$wordCoord)
+  )]
 
   Ncol <- sum(substr(names(results$wordCoord), 1, 3) == "Dim")
   # coordinates to plot
@@ -2309,14 +2935,20 @@ ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = Inf, topDocPlot
       dotSize = dotScale,
       groups = results$clustering$groups,
       labelToPlot = ifelse(dotSize >= thres, label, ""),
-      font.color = ifelse(labelToPlot == "", NA, adjustcolor(colorlist()[groups], alpha.f = 0.85)),
+      font.color = ifelse(
+        labelToPlot == "",
+        NA,
+        adjustcolor(colorlist()[groups], alpha.f = 0.85)
+      ),
       font.size = round(dotSize * 2, 0)
     )
 
   ## Avoid label overlapping
   labelToRemove <- avoidOverlaps(results$wordCoord, threshold = threshold2)
   results$wordCoord <- results$wordCoord %>%
-    mutate(labelToPlot = ifelse(labelToPlot %in% labelToRemove, "", labelToPlot))
+    mutate(
+      labelToPlot = ifelse(labelToPlot %in% labelToRemove, "", labelToPlot)
+    )
 
   hull_data <-
     results$wordCoord %>%
@@ -2331,19 +2963,31 @@ ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = Inf, topDocPlot
     mutate(id = row_number()) %>%
     arrange(groups, id)
 
-  hoverText <- paste(" <b>", results$wordCoord$label, "</b>\n Inertia: ", round(results$wordCoord$inertia, 3), "\n Mass:   ", round(results$wordCoord$mass, 3), sep = "")
-
+  hoverText <- paste(
+    " <b>",
+    results$wordCoord$label,
+    "</b>\n Inertia: ",
+    round(results$wordCoord$inertia, 3),
+    "\n Mass:   ",
+    round(results$wordCoord$mass, 3),
+    sep = ""
+  )
 
   ## Plot
   fig <- plot_ly(
-    data = results$wordCoord, x = results$wordCoord$Dim1, y = results$wordCoord$Dim2, # customdata=results$wordCoord,
+    data = results$wordCoord,
+    x = results$wordCoord$Dim1,
+    y = results$wordCoord$Dim2, # customdata=results$wordCoord,
     type = "scatter",
     mode = "markers",
     marker = list(
       size = dotScale,
       color = adjustcolor(colorlist()[results$wordCoord$groups], alpha.f = 0.3), #' rgb(79, 121, 66, .5)',
       line = list(
-        color = adjustcolor(colorlist()[results$wordCoord$groups], alpha.f = 0.3), #' rgb(79, 121, 66, .8)',
+        color = adjustcolor(
+          colorlist()[results$wordCoord$groups],
+          alpha.f = 0.3
+        ), #' rgb(79, 121, 66, .8)',
         width = 2
       )
     ),
@@ -2352,19 +2996,38 @@ ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = Inf, topDocPlot
     alpha = .3
   )
 
-  fig <- fig %>% layout(
-    yaxis = list(
-      title = paste0("Dim ", dimY, " (", round(results$ca$eigCorrectedNorm[2], 2), "%)"),
-      showgrid = TRUE, showline = FALSE, showticklabels = TRUE, domain = c(0, 1)
-    ),
-    xaxis = list(
-      title = paste0("Dim ", dimX, " (", round(results$ca$eigCorrectedNorm[1], 2), "%)"),
-      zeroline = TRUE, showgrid = TRUE, showline = FALSE, showticklabels = TRUE
-    ),
-    plot_bgcolor = "rgba(0, 0, 0, 0)",
-    paper_bgcolor = "rgba(0, 0, 0, 0)",
-    showlegend = F
-  )
+  fig <- fig %>%
+    layout(
+      yaxis = list(
+        title = paste0(
+          "Dim ",
+          dimY,
+          " (",
+          round(results$ca$eigCorrectedNorm[2], 2),
+          "%)"
+        ),
+        showgrid = TRUE,
+        showline = FALSE,
+        showticklabels = TRUE,
+        domain = c(0, 1)
+      ),
+      xaxis = list(
+        title = paste0(
+          "Dim ",
+          dimX,
+          " (",
+          round(results$ca$eigCorrectedNorm[1], 2),
+          "%)"
+        ),
+        zeroline = TRUE,
+        showgrid = TRUE,
+        showline = FALSE,
+        showticklabels = TRUE
+      ),
+      plot_bgcolor = "rgba(0, 0, 0, 0)",
+      paper_bgcolor = "rgba(0, 0, 0, 0)",
+      showlegend = F
+    )
 
   for (i in seq_len(max(results$wordCoord$groups))) {
     w <- results$wordCoord %>%
@@ -2378,17 +3041,32 @@ ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = Inf, topDocPlot
       hull_df <- hull_data %>% dplyr::filter(.data$groups == i)
       fig <- fig %>%
         add_polygons(
-          x = hull_df$Dim1, y = hull_df$Dim2, inherit = FALSE, showlegend = FALSE,
-          color = I(hull_df$color[1]), opacity = 0.3, line = list(width = 2),
-          text = paste0("Cluster ", i), hoverinfo = "text", hoveron = "points"
+          x = hull_df$Dim1,
+          y = hull_df$Dim2,
+          inherit = FALSE,
+          showlegend = FALSE,
+          color = I(hull_df$color[1]),
+          opacity = 0.3,
+          line = list(width = 2),
+          text = paste0("Cluster ", i),
+          hoverinfo = "text",
+          hoveron = "points"
         )
     }
 
     fig <- fig %>%
       add_annotations(
-        data = w, x = ~Dim1, y = ~Dim2, xref = "x1", yref = "y",
+        data = w,
+        x = ~Dim1,
+        y = ~Dim2,
+        xref = "x1",
+        yref = "y",
         text = ~labelToPlot,
-        font = list(family = "sans serif", size = labelsize, color = w$font.color[1]),
+        font = list(
+          family = "sans serif",
+          size = labelsize,
+          color = w$font.color[1]
+        ),
         showarrow = FALSE
       )
   }
@@ -2417,7 +3095,11 @@ ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = Inf, topDocPlot
     docCoord <- docCoord %>%
       mutate(
         label = labelToPlot,
-        labelToPlot = ifelse(labelToPlot %in% docLabelToRemove, "", labelToPlot),
+        labelToPlot = ifelse(
+          labelToPlot %in% docLabelToRemove,
+          "",
+          labelToPlot
+        ),
         symbol = "hexagon"
       )
 
@@ -2429,7 +3111,9 @@ ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = Inf, topDocPlot
 
     fig <- fig %>%
       add_markers(
-        data = docCoord, x = ~Dim1, y = ~Dim2,
+        data = docCoord,
+        x = ~Dim1,
+        y = ~Dim2,
         text = ~label,
         # type = "scatter", mode = "markers",
         marker = list(
@@ -2443,9 +3127,17 @@ ca2plotly <- function(results, dimX = 1, dimY = 2, topWordPlot = Inf, topDocPlot
         )
       ) %>%
       add_annotations(
-        data = wDoc, x = ~Dim1, y = ~Dim2, xref = "x1", yref = "y",
+        data = wDoc,
+        x = ~Dim1,
+        y = ~Dim2,
+        xref = "x1",
+        yref = "y",
         text = ~labelToPlot,
-        font = list(family = "sans serif", size = labelsize, color = adjustcolor("#000000", alpha.f = 0.5)), # 4C4E52
+        font = list(
+          family = "sans serif",
+          size = labelsize,
+          color = adjustcolor("#000000", alpha.f = 0.5)
+        ), # 4C4E52
         showarrow = FALSE
       )
   }
@@ -2476,7 +3168,8 @@ avoidOverlaps <- function(w, threshold = 0.10) {
     w %>%
       dplyr::filter(labelToPlot != "") %>%
       select(1:2),
-    method = "manhattan", upper = T
+    method = "manhattan",
+    upper = T
   ) %>%
     dist2df() %>%
     rename(
@@ -2485,14 +3178,12 @@ avoidOverlaps <- function(w, threshold = 0.10) {
       dist = value
     ) %>%
     left_join(
-      w %>% dplyr::filter(labelToPlot != "") %>%
-        select(labelToPlot, dotSize),
+      w %>% dplyr::filter(labelToPlot != "") %>% select(labelToPlot, dotSize),
       by = c("from" = "labelToPlot")
     ) %>%
     rename(w_from = dotSize) %>%
     left_join(
-      w %>% dplyr::filter(labelToPlot != "") %>%
-        select(labelToPlot, dotSize),
+      w %>% dplyr::filter(labelToPlot != "") %>% select(labelToPlot, dotSize),
       by = c("to" = "labelToPlot")
     ) %>%
     rename(w_to = dotSize) %>%
@@ -2513,15 +3204,16 @@ avoidOverlaps <- function(w, threshold = 0.10) {
         lab <- Ds$from[i]
       }
 
-      switch(case,
-             "y" = {
-               Ds <- Ds[Ds$from != lab, ]
-               Ds <- Ds[Ds$to != lab, ]
-               label <- c(label, lab)
-             },
-             "n" = {
-               Ds <- Ds[-1, ]
-             }
+      switch(
+        case,
+        "y" = {
+          Ds <- Ds[Ds$from != lab, ]
+          Ds <- Ds[Ds$to != lab, ]
+          label <- c(label, lab)
+        },
+        "n" = {
+          Ds <- Ds[-1, ]
+        }
       )
 
       if (i >= nrow(Ds)) {
@@ -2539,11 +3231,21 @@ avoidOverlaps <- function(w, threshold = 0.10) {
 
 ## convert a distance object into a data.frame ----
 dist2df <- function(inDist) {
-  if (class(inDist) != "dist") stop("wrong input type")
+  if (class(inDist) != "dist") {
+    stop("wrong input type")
+  }
   A <- attr(inDist, "Size")
-  B <- if (is.null(attr(inDist, "Labels"))) sequence(A) else attr(inDist, "Labels")
-  if (isTRUE(attr(inDist, "Diag"))) attr(inDist, "Diag") <- FALSE
-  if (isTRUE(attr(inDist, "Upper"))) attr(inDist, "Upper") <- FALSE
+  B <- if (is.null(attr(inDist, "Labels"))) {
+    sequence(A)
+  } else {
+    attr(inDist, "Labels")
+  }
+  if (isTRUE(attr(inDist, "Diag"))) {
+    attr(inDist, "Diag") <- FALSE
+  }
+  if (isTRUE(attr(inDist, "Upper"))) {
+    attr(inDist, "Upper") <- FALSE
+  }
   data.frame(
     row = B[unlist(lapply(sequence(A)[-1], function(x) x:A))],
     col = rep(B[-length(B)], (length(B) - 1):1),
@@ -2555,7 +3257,13 @@ dist2df <- function(inDist) {
 ### NETWORK -----
 
 ## cooccurrence matrix
-coocMatrix <- function(x, term = "lemma", group = "doc_id", n = 50, pos = TRUE) {
+coocMatrix <- function(
+  x,
+  term = "lemma",
+  group = "doc_id",
+  n = 50,
+  pos = TRUE
+) {
   term_old <- term
   if (pos) {
     # new_var <- paste0(term,"_upos")
@@ -2566,7 +3274,10 @@ coocMatrix <- function(x, term = "lemma", group = "doc_id", n = 50, pos = TRUE) 
   }
 
   new_doc_id <- unique_identifier(x, fields = group)
-  dtm <- document_term_frequencies(x %>% mutate(doc_id = new_doc_id), term = term)
+  dtm <- document_term_frequencies(
+    x %>% mutate(doc_id = new_doc_id),
+    term = term
+  )
 
   dtm <- dtm %>%
     mutate(binary = 1)
@@ -2630,8 +3341,19 @@ cooc_freq <- function(cooc) {
     ungroup()
 }
 
-network <- function(x, term = "lemma", group = c("doc_id", "sentence_id"), n, minEdges, labelsize = 4, opacity = 0.6,
-                    interLinks = FALSE, normalization = "none", remove.isolated = FALSE, community.repulsion = 0) {
+network <- function(
+  x,
+  term = "lemma",
+  group = c("doc_id", "sentence_id"),
+  n,
+  minEdges,
+  labelsize = 4,
+  opacity = 0.6,
+  interLinks = FALSE,
+  normalization = "none",
+  remove.isolated = FALSE,
+  community.repulsion = 0
+) {
   # size scaling
   scalemin <- 20 * (1 + labelsize / 5)
   scalemax <- 70 * (1 + labelsize / 5)
@@ -2720,22 +3442,21 @@ network <- function(x, term = "lemma", group = c("doc_id", "sentence_id"), n, mi
   # sCNorm = ((sC-min(sC))/diff(range(sC)))*14+1,
   # sJNorm = ((sJ-min(sJ))/diff(range(sJ)))*14+1,
 
-
-  switch(normalization,
-         none = {
-           edges$value <- edges$sNorm
-         },
-         association = {
-           edges$value <- edges$sANorm
-         },
-         cosine = {
-           edges$value <- edges$sCNorm
-         },
-         jaccard = {
-           edges$value <- edges$sJNorm
-         }
+  switch(
+    normalization,
+    none = {
+      edges$value <- edges$sNorm
+    },
+    association = {
+      edges$value <- edges$sANorm
+    },
+    cosine = {
+      edges$value <- edges$sCNorm
+    },
+    jaccard = {
+      edges$value <- edges$sJNorm
+    }
   )
-
 
   if (minEdges == "Auto") {
     y <- quantile(edges$value, seq(1, 0, -0.01), na.rm = T)
@@ -2769,7 +3490,10 @@ network <- function(x, term = "lemma", group = c("doc_id", "sentence_id"), n, mi
   }
 
   ### COMMUNITY DETECTION
-  graph <- igraph::graph_from_data_frame(edges %>% select(-term_from, -term_to), directed = FALSE)
+  graph <- igraph::graph_from_data_frame(
+    edges %>% select(-term_from, -term_to),
+    directed = FALSE
+  )
   cluster <- igraph::cluster_walktrap(graph)
   cluster_df <- data.frame(as.list(igraph::membership(cluster)))
   cluster_df <- as.data.frame(t(cluster_df)) %>%
@@ -2793,26 +3517,39 @@ network <- function(x, term = "lemma", group = c("doc_id", "sentence_id"), n, mi
     # membership <- V(bsk.network)$community
     # names(membership) <- V(bsk.network)$name
     repulsion <- community.repulsion * max(edges$value, na.rm = T)
-    edges$value <- edges$value + apply(row, 1, weight.community, membership, repulsion, 1)
+    edges$value <- edges$value +
+      apply(row, 1, weight.community, membership, repulsion, 1)
   }
 
-
-
-
   ## opacity for label
-  opacity_font <- sqrt((nodes$font.size - min(nodes$font.size)) / diff(range(nodes$font.size))) * opacity + opacity.min + 0.1
-  if (is.nan(opacity_font[1])) opacity_font <- rep(opacity.min, length(opacity_font))
+  opacity_font <- sqrt(
+    (nodes$font.size - min(nodes$font.size)) / diff(range(nodes$font.size))
+  ) *
+    opacity +
+    opacity.min +
+    0.1
+  if (is.nan(opacity_font[1])) {
+    opacity_font <- rep(opacity.min, length(opacity_font))
+  }
 
   if (labelsize > 0) {
-    nodes$font.color <- unlist(lapply(opacity_font, function(x) adjustcolor("black", alpha.f = x)))
+    nodes$font.color <- unlist(lapply(opacity_font, function(x) {
+      adjustcolor("black", alpha.f = x)
+    }))
   } else {
     nodes$font.color <- adjustcolor("black", alpha.f = 0)
   }
 
   # node colors
-  nodes$opacity.nodes <- (opacity_font - min(opacity_font)) / (diff(range(opacity_font))) * 0.5 + opacity.min
+  nodes$opacity.nodes <- (opacity_font - min(opacity_font)) /
+    (diff(range(opacity_font))) *
+    0.5 +
+    opacity.min
   nodes$opacity.nodes[is.nan(nodes$opacity.nodes)] <- 0.5
-  nodes$color <- paste0(colorlist[nodes$group], round(nodes$opacity.nodes, 2) * 100)
+  nodes$color <- paste0(
+    colorlist[nodes$group],
+    round(nodes$opacity.nodes, 2) * 100
+  )
 
   if (interLinks) {
     interColor <- "#69696920"
@@ -2824,7 +3561,13 @@ network <- function(x, term = "lemma", group = c("doc_id", "sentence_id"), n, mi
     rename(group_from = group) %>%
     left_join(nodes %>% select(id, group), by = c("to" = "id")) %>%
     rename(group_to = group) %>%
-    mutate(color = ifelse(group_from == group_to, paste0(substr(color, 1, 7), "20"), interColor))
+    mutate(
+      color = ifelse(
+        group_from == group_to,
+        paste0(substr(color, 1, 7), "20"),
+        interColor
+      )
+    )
 
   obj <- list(nodes = nodes, edges = edges)
 }
@@ -2835,22 +3578,48 @@ net2vis <- function(nodes, edges, click = TRUE, noOverlap = FALSE) {
   if ((is.na(nodes))[1]) {
     VIS <- visNetwork::visNetwork(
       nodes = data.frame(
-        id = "Empty Network", label = "No Connections Among Nodes",
-        size = 0, title = "No Connections Among Nodes", font.size = 20
+        id = "Empty Network",
+        label = "No Connections Among Nodes",
+        size = 0,
+        title = "No Connections Among Nodes",
+        font.size = 20
       ),
-      type = "full", smooth = TRUE, physics = FALSE,
-      x = 1, y = 1
+      type = "full",
+      smooth = TRUE,
+      physics = FALSE,
+      x = 1,
+      y = 1
     ) %>%
-      visNetwork::visOptions(highlightNearest = list(enabled = T, hover = T, degree = 1), nodesIdSelection = F) %>%
-      visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed = 0.2)
+      visNetwork::visOptions(
+        highlightNearest = list(enabled = T, hover = T, degree = 1),
+        nodesIdSelection = F
+      ) %>%
+      visNetwork::visInteraction(
+        dragNodes = TRUE,
+        navigationButtons = F,
+        hideEdgesOnDrag = TRUE,
+        zoomSpeed = 0.2
+      )
     return(VIS)
   }
 
-
-
   VIS <-
-    visNetwork::visNetwork(nodes = nodes, edges = edges, type = "full", smooth = TRUE, physics = FALSE) %>%
-    visNetwork::visNodes(shadow = TRUE, shape = nodes$shape, font = list(color = nodes$font.color, size = nodes$font.size, vadjust = nodes$font.vadjust)) %>%
+    visNetwork::visNetwork(
+      nodes = nodes,
+      edges = edges,
+      type = "full",
+      smooth = TRUE,
+      physics = FALSE
+    ) %>%
+    visNetwork::visNodes(
+      shadow = TRUE,
+      shape = nodes$shape,
+      font = list(
+        color = nodes$font.color,
+        size = nodes$font.size,
+        vadjust = nodes$font.vadjust
+      )
+    ) %>%
     visNetwork::visIgraphLayout(layout = layout, type = "full")
 
   # avoid overlaps among node labels
@@ -2863,7 +3632,13 @@ net2vis <- function(nodes, edges, click = TRUE, noOverlap = FALSE) {
     ymax <- diff(range(coords[, 2]))
     xmax <- diff(range(coords[, 1]))
     threshold2 <- threshold * mean(xmax, ymax)
-    w <- data.frame(x = coords[, 1], y = coords[, 2], labelToPlot = VIS$x$nodes$label, dotSize = VIS$x$nodes$font.size, row.names = VIS$x$nodes$label)
+    w <- data.frame(
+      x = coords[, 1],
+      y = coords[, 2],
+      labelToPlot = VIS$x$nodes$label,
+      dotSize = VIS$x$nodes$font.size,
+      row.names = VIS$x$nodes$label
+    )
     labelToRemove <- avoidNetOverlaps(w, threshold = threshold2)
   } else {
     labelToRemove <- ""
@@ -2877,23 +3652,40 @@ net2vis <- function(nodes, edges, click = TRUE, noOverlap = FALSE) {
 
   VIS <- VIS %>%
     visNetwork::visEdges(smooth = list(type = "horizontal")) %>%
-    visNetwork::visOptions(highlightNearest = list(enabled = T, hover = T, degree = 1), nodesIdSelection = T) %>%
-    visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed = 0.2)
+    visNetwork::visOptions(
+      highlightNearest = list(enabled = T, hover = T, degree = 1),
+      nodesIdSelection = T
+    ) %>%
+    visNetwork::visInteraction(
+      dragNodes = TRUE,
+      navigationButtons = F,
+      hideEdgesOnDrag = TRUE,
+      zoomSpeed = 0.2
+    )
 
   if (click) {
     VIS <- VIS %>%
-      visEvents(click = "function(nodes){
+      visEvents(
+        click = "function(nodes){
       Shiny.onInputChange('click', nodes.nodes[0]);
-      ;}")
+      ;}"
+      )
   }
 
   VIS <- VIS %>%
     # visNetwork::visPhysics(barnesHut=list(avoidOverlap=1)) %>%
-    visNetwork::visOptions(manipulation = FALSE, height = "100%", width = "100%")
+    visNetwork::visOptions(
+      manipulation = FALSE,
+      height = "100%",
+      width = "100%"
+    )
 }
 
 weight.community <- function(row, membership, weigth.within, weight.between) {
-  if (as.numeric(membership[which(names(membership) == row[1])]) == as.numeric(membership[which(names(membership) == row[2])])) {
+  if (
+    as.numeric(membership[which(names(membership) == row[1])]) ==
+      as.numeric(membership[which(names(membership) == row[2])])
+  ) {
     weight <- weigth.within
   } else {
     weight <- weight.between
@@ -2909,7 +3701,8 @@ avoidNetOverlaps <- function(w, threshold = 0.10) {
     w %>%
       dplyr::filter(labelToPlot != "") %>%
       select(1:2),
-    method = "manhattan", upper = T
+    method = "manhattan",
+    upper = T
   ) %>%
     dist2df() %>%
     rename(
@@ -2918,14 +3711,12 @@ avoidNetOverlaps <- function(w, threshold = 0.10) {
       dist = value
     ) %>%
     left_join(
-      w %>% dplyr::filter(labelToPlot != "") %>%
-        select(labelToPlot, dotSize),
+      w %>% dplyr::filter(labelToPlot != "") %>% select(labelToPlot, dotSize),
       by = c("from" = "labelToPlot")
     ) %>%
     rename(w_from = dotSize) %>%
     left_join(
-      w %>% dplyr::filter(labelToPlot != "") %>%
-        select(labelToPlot, dotSize),
+      w %>% dplyr::filter(labelToPlot != "") %>% select(labelToPlot, dotSize),
       by = c("to" = "labelToPlot")
     ) %>%
     rename(w_to = dotSize) %>%
@@ -2946,15 +3737,16 @@ avoidNetOverlaps <- function(w, threshold = 0.10) {
         lab <- Ds$from[i]
       }
 
-      switch(case,
-             "y" = {
-               Ds <- Ds[Ds$from != lab, ]
-               Ds <- Ds[Ds$to != lab, ]
-               label <- c(label, lab)
-             },
-             "n" = {
-               Ds <- Ds[-1, ]
-             }
+      switch(
+        case,
+        "y" = {
+          Ds <- Ds[Ds$from != lab, ]
+          Ds <- Ds[Ds$to != lab, ]
+          label <- c(label, lab)
+        },
+        "n" = {
+          Ds <- Ds[-1, ]
+        }
       )
 
       if (i >= nrow(Ds)) {
@@ -2969,12 +3761,27 @@ avoidNetOverlaps <- function(w, threshold = 0.10) {
   label
 }
 ## THEMATIC MAP ----
-tallThematicmap <- function(dfTag, term = "lemma", group = "doc_id", n = 100, labelsize = 10, n.labels = 1, opacity = 0.8) {
-  net <- network(LemmaSelection(dfTag) %>% filter(docSelected),
-                 term = term, group = group,
-                 n = n, minEdges = "Auto", labelsize = labelsize, opacity = opacity,
-                 interLinks = FALSE, normalization = "association",
-                 remove.isolated = FALSE, community.repulsion = 0
+tallThematicmap <- function(
+  dfTag,
+  term = "lemma",
+  group = "doc_id",
+  n = 100,
+  labelsize = 10,
+  n.labels = 1,
+  opacity = 0.8
+) {
+  net <- network(
+    LemmaSelection(dfTag) %>% filter(docSelected),
+    term = term,
+    group = group,
+    n = n,
+    minEdges = "Auto",
+    labelsize = labelsize,
+    opacity = opacity,
+    interLinks = FALSE,
+    normalization = "association",
+    remove.isolated = FALSE,
+    community.repulsion = 0
   )
   nodes <- net$nodes
   edges <- net$edges %>%
@@ -3038,13 +3845,22 @@ tallThematicmap <- function(dfTag, term = "lemma", group = "doc_id", n = 100, la
       Cluster_Frequency = sum(Occurrences)
     ) %>%
     ungroup() %>%
-    select("Occurrences", "Words", "Cluster", "Color", "Cluster_Label", "Cluster_Frequency")
+    select(
+      "Occurrences",
+      "Words",
+      "Cluster",
+      "Color",
+      "Cluster_Label",
+      "Cluster_Frequency"
+    )
 
   return(list(net = net, df = df, df_lab = df_lab))
 }
 
 plotTM <- function(df, size = 0.5, gemini = FALSE) {
-  if (gemini) df$name_full <- df$name_full_gemini
+  if (gemini) {
+    df$name_full <- df$name_full_gemini
+  }
   meandens <- mean(df$rdensity)
   meancentr <- mean(df$rcentrality)
   xlimits <- c(0, max(df$rcentrality) + 1)
@@ -3054,12 +3870,24 @@ plotTM <- function(df, size = 0.5, gemini = FALSE) {
   df_labels <- df_labels %>%
     mutate(size = log(as.numeric(freq)) * (5 + size))
 
-  if (nrow(df_labels)>1) df_labels <- adjust_positions_oblique(df_labels, xvar = "rcentrality", yvar = "rdensity", min_dist = 1)
+  if (nrow(df_labels) > 1) {
+    df_labels <- adjust_positions_oblique(
+      df_labels,
+      xvar = "rcentrality",
+      yvar = "rdensity",
+      min_dist = 1
+    )
+  }
 
   annotations <- data.frame(
     xpos = sort(c(xlimits, xlimits)),
     ypos = c(ylimits, ylimits),
-    words = c("Peripheral Topics", "Niche Topics", "Basic Topics ", "Hot Topics "),
+    words = c(
+      "Peripheral Topics",
+      "Niche Topics",
+      "Basic Topics ",
+      "Hot Topics "
+    ),
     hjustvar = c(0, 0, 1, 1),
     vjustvar = c(0, 1.0, 0, 1)
   )
@@ -3099,7 +3927,6 @@ plotTM <- function(df, size = 0.5, gemini = FALSE) {
       showlegend = FALSE
     )
 
-
   # 3. Aggiungi linee medie
   fig <- fig %>%
     add_trace(
@@ -3131,7 +3958,9 @@ plotTM <- function(df, size = 0.5, gemini = FALSE) {
   if (exists("annotations")) {
     k <- 0
     for (i in 1:nrow(annotations)) {
-      if (i > 2) k <- max(xlimits) * 0.05
+      if (i > 2) {
+        k <- max(xlimits) * 0.05
+      }
       fig <- fig %>%
         add_annotations(
           x = annotations$xpos[i] - k,
@@ -3176,8 +4005,15 @@ plotTM <- function(df, size = 0.5, gemini = FALSE) {
   return(fig)
 }
 
-adjust_positions_oblique <- function(df, xvar = "rcentrality", yvar = "rdensity",
-                                     min_dist = 0.5, max_iter = 100, step_factor = 0.5, jitter_strength = 0.1) {
+adjust_positions_oblique <- function(
+  df,
+  xvar = "rcentrality",
+  yvar = "rdensity",
+  min_dist = 0.5,
+  max_iter = 100,
+  step_factor = 0.5,
+  jitter_strength = 0.1
+) {
   df_adj <- df
 
   for (iter in 1:max_iter) {
@@ -3240,7 +4076,11 @@ w2vTraining <- function(x, term = "lemma", dim = 100, iter = 20) {
   word_list <- split(x %>% select(any_of(term)) %>% pull() %>% tolower(), x$id)
 
   w2v_model <- word2vec(
-    x = word_list, type = "cbow", dim = dim, iter = iter, stopwords = stopwords,
+    x = word_list,
+    type = "cbow",
+    dim = dim,
+    iter = iter,
+    stopwords = stopwords,
     threads = coresCPU()
   )
   return(w2v_model)
@@ -3266,7 +4106,9 @@ summary_stats_embeddings <- function(embedding_matrix, as_tibble = TRUE) {
     if (s == 0) {
       return(0)
     }
-    term1 <- sum(((x - m) / s)^4) * (n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3))
+    term1 <- sum(((x - m) / s)^4) *
+      (n * (n + 1)) /
+      ((n - 1) * (n - 2) * (n - 3))
     term2 <- (3 * (n - 1)^2) / ((n - 2) * (n - 3))
     return(term1 - term2)
   }
@@ -3358,7 +4200,9 @@ w2vNetwork <- function(w2v_model, dfTag, term, n = 100) {
     rename(from = term1, to = term2)
 
   # Nodi unici
-  nodes <- data.frame(id = as.character(unique(c(df_similarity$from, df_similarity$to)))) %>%
+  nodes <- data.frame(
+    id = as.character(unique(c(df_similarity$from, df_similarity$to)))
+  ) %>%
     mutate(
       label = id,
       shape = ifelse(id %in% top_words, "triangle", "dot"),
@@ -3387,8 +4231,13 @@ w2vNetwork <- function(w2v_model, dfTag, term, n = 100) {
   return(list(nodes = nodes, edges = edges, top_words = top_words))
 }
 
-apply_horizontal_transparency <- function(nodes, x_col = "x", y_col = "y", threshold = 30, type = "transparency") {
-
+apply_horizontal_transparency <- function(
+  nodes,
+  x_col = "x",
+  y_col = "y",
+  threshold = 30,
+  type = "transparency"
+) {
   # Check that the specified x and y coordinate columns exist in the data frame
   if (!all(c(x_col, y_col) %in% names(nodes))) {
     stop("The specified coordinate columns are not found in the data frame.")
@@ -3399,49 +4248,75 @@ apply_horizontal_transparency <- function(nodes, x_col = "x", y_col = "y", thres
   y_coords <- nodes[[y_col]]
 
   # Compute the absolute pairwise horizontal (x-axis) distances between all nodes
-  distance_matrix_x <- outer(x_coords, x_coords, FUN = function(a, b) abs(a - b))
+  distance_matrix_x <- outer(x_coords, x_coords, FUN = function(a, b) {
+    abs(a - b)
+  })
 
   # Compute vertical (y-axis) distances, but consider only values below a small threshold (0.05),
   # otherwise assign Inf to ignore vertical mismatches
-  distance_matrix_y <- outer(y_coords, y_coords, FUN = function(a, b) ifelse(abs(a - b) < 0.05, abs(a - b), Inf))
+  distance_matrix_y <- outer(y_coords, y_coords, FUN = function(a, b) {
+    ifelse(abs(a - b) < 0.05, abs(a - b), Inf)
+  })
 
   # Set the diagonal elements to Inf to avoid self-comparisons
   diag(distance_matrix_x) <- Inf
   diag(distance_matrix_y) <- Inf
 
   # Identify nodes whose combined horizontal + (negligible) vertical distance is less than the threshold
-  overlapping_nodes <- apply(distance_matrix_x + distance_matrix_y, 1, function(row) any(row < threshold))
+  overlapping_nodes <- apply(
+    distance_matrix_x + distance_matrix_y,
+    1,
+    function(row) any(row < threshold)
+  )
 
   # Assign font color based on overlap:
   # use semi-transparent black (alpha = 0.3) for overlapping nodes,
   # and fully opaque black (alpha = 0.9) otherwise
-  switch(type,
-         "transparency"={
-           nodes$font.color <- ifelse(overlapping_nodes,
-                                      "rgba(0, 0, 0, 0.3)",  # semi-transparent label
-                                      "rgba(0, 0, 0, 0.9)")  # fully opaque label
-         },
-         hide={
-           nodes <- nodes %>%
-             mutate(overlapping_nodes = overlapping_nodes,
-               label = ifelse(overlapping_nodes, "", label)) %>%
-             select(-overlapping_nodes)
-         })
+  switch(
+    type,
+    "transparency" = {
+      nodes$font.color <- ifelse(
+        overlapping_nodes,
+        "rgba(0, 0, 0, 0.3)", # semi-transparent label
+        "rgba(0, 0, 0, 0.9)"
+      ) # fully opaque label
+    },
+    hide = {
+      nodes <- nodes %>%
+        mutate(
+          overlapping_nodes = overlapping_nodes,
+          label = ifelse(overlapping_nodes, "", label)
+        ) %>%
+        select(-overlapping_nodes)
+    }
+  )
 
   return(nodes)
 }
 
-w2v2Vis <- function(nodes, edges, layout = "layout_nicely", size = 20, labelsize = 35, overlap = "none") {
+w2v2Vis <- function(
+  nodes,
+  edges,
+  layout = "layout_nicely",
+  size = 20,
+  labelsize = 35,
+  overlap = "none"
+) {
   nodes$font.size <- labelsize * 2.5
-  nodes$size <- round(labelsize / 1.2,0)
+  nodes$size <- round(labelsize / 1.2, 0)
   nodes$font.vadjust = -20
   K <- max(nodes$group)
-  colors <- paste0((rep(colorlist(),ceiling(K/35))), "70", sep="")
+  colors <- paste0((rep(colorlist(), ceiling(K / 35))), "70", sep = "")
   nodes$color = colors[nodes$group]
 
-  VIS <- visNetwork(nodes, edges,
-                    type = "full", smooth = TRUE, physics = FALSE,
-                    x = 1, y = 1
+  VIS <- visNetwork(
+    nodes,
+    edges,
+    type = "full",
+    smooth = TRUE,
+    physics = FALSE,
+    x = 1,
+    y = 1
   ) %>%
     visEdges(smooth = TRUE) %>%
     visOptions(
@@ -3449,10 +4324,19 @@ w2v2Vis <- function(nodes, edges, layout = "layout_nicely", size = 20, labelsize
       nodesIdSelection = list(enabled = FALSE)
     ) %>%
     visIgraphLayout(layout = "layout_nicely", type = "full") %>%
-    visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed = 0.2)
+    visNetwork::visInteraction(
+      dragNodes = TRUE,
+      navigationButtons = F,
+      hideEdgesOnDrag = TRUE,
+      zoomSpeed = 0.2
+    )
 
-  if (overlap != "none"){
-    VIS$x$nodes <-apply_horizontal_transparency(VIS$x$nodes, threshold = labelsize*0.0035714, type = overlap)
+  if (overlap != "none") {
+    VIS$x$nodes <- apply_horizontal_transparency(
+      VIS$x$nodes,
+      threshold = labelsize * 0.0035714,
+      type = overlap
+    )
   }
 
   VIS$x$nodes <- VIS$x$nodes %>%
@@ -3467,7 +4351,8 @@ w2vUMAP <- function(w2v_model, top_words) {
 
   df <- data.frame(
     word = rownames(cbow_embedding),
-    x = visualization$layout[, 1], y = visualization$layout[, 2],
+    x = visualization$layout[, 1],
+    y = visualization$layout[, 2],
     stringsAsFactors = FALSE
   ) %>%
     filter(word %in% top_words)
@@ -3489,7 +4374,13 @@ reduce_overlap <- function(df, jitter_amount = 0.05, min_dist = 0.05) {
 }
 
 
-adjust_labels_iterative_with_opacity <- function(df, min_dist = 0.03, max_iter = 50, shift_step = 0.05, alpha_low = 0.4) {
+adjust_labels_iterative_with_opacity <- function(
+  df,
+  min_dist = 0.03,
+  max_iter = 50,
+  shift_step = 0.05,
+  alpha_low = 0.4
+) {
   df$opacity_val <- rep(0.9, nrow(df)) # inizialmente opacità massima
 
   for (iter in seq_len(max_iter)) {
@@ -3522,22 +4413,46 @@ adjust_labels_iterative_with_opacity <- function(df, min_dist = 0.03, max_iter =
 }
 
 
-
 ## GRAKO ----
-grako <- function(dfTag, normalization = "association", n = 50, labelsize = 4, opacity = 0.6, minEdges = 50, singleWords = TRUE, term = "lemma") {
+grako <- function(
+  dfTag,
+  normalization = "association",
+  n = 50,
+  labelsize = 4,
+  opacity = 0.6,
+  minEdges = 50,
+  singleWords = TRUE,
+  term = "lemma"
+) {
   opacity.min <- 0.5
 
   # n is the number of NOUNS AND PROPER NOUNS
   if (singleWords) {
     ngram_min <- 1
-    dfTag <- rake(dfTag, group = "doc_id", ngram_max = 5, ngram_min = ngram_min, relevant = c("PROPN"), rake.min = -Inf, term = term)$dfTag %>%
+    dfTag <- rake(
+      dfTag,
+      group = "doc_id",
+      ngram_max = 5,
+      ngram_min = ngram_min,
+      relevant = c("PROPN"),
+      rake.min = -Inf,
+      term = term
+    )$dfTag %>%
       mutate(
         upos = ifelse(upos == "PROPN", "MULTIWORD", upos),
         ngram = ifelse(upos == "MULTIWORD" & is.na(ngram), 1, ngram)
       )
   } else {
     ngram_min <- 2
-    dfTag <- rake(dfTag, group = "doc_id", ngram_max = 5, ngram_min = ngram_min, relevant = c("PROPN"), rake.min = -Inf, term = term)$dfTag
+    dfTag <- rake(
+      dfTag,
+      group = "doc_id",
+      ngram_max = 5,
+      ngram_min = ngram_min,
+      relevant = c("PROPN"),
+      rake.min = -Inf,
+      term = term
+    )$dfTag
   }
 
   # x <- dfTag %>% highlight() %>% dplyr::filter(upos %in% c("MULTIWORD", "VERB"))
@@ -3545,8 +4460,16 @@ grako <- function(dfTag, normalization = "association", n = 50, labelsize = 4, o
   ### EDGES
   x <- dfTag %>%
     highlight() %>%
-    dplyr::filter(upos %in% c("MULTIWORD", "NOUN", "PROPN", "ADJ", "VERB", "PUNCT"))
-  cooc <- grakoCoocMatrix(x, term = term, group = c("doc_id", "sentence_id"), n = n^2, pos = TRUE)
+    dplyr::filter(
+      upos %in% c("MULTIWORD", "NOUN", "PROPN", "ADJ", "VERB", "PUNCT")
+    )
+  cooc <- grakoCoocMatrix(
+    x,
+    term = term,
+    group = c("doc_id", "sentence_id"),
+    n = n^2,
+    pos = TRUE
+  )
 
   # calculate local occurrences for nodes
 
@@ -3562,14 +4485,26 @@ grako <- function(dfTag, normalization = "association", n = 50, labelsize = 4, o
       color = ifelse(upos == "VERB", "#E41A1C", "#4F7942")
     )
 
-
   edges <- cooc %>%
-    dplyr::filter(upos_from %in% c("VERB", "MULTIWORD") & upos_to %in% c("VERB", "MULTIWORD")) %>%
-    dplyr::filter(!upos_from == upos_to & !(upos_from == "MULTIWORD" & upos_to == "PROPN") &
-                    !(upos_to == "MULTIWORD" & upos_from == "PROPN")) %>%
-    left_join(nodes %>% select(id, label, upos), by = c("term1" = "label", "upos_from" = "upos")) %>%
+    dplyr::filter(
+      upos_from %in%
+        c("VERB", "MULTIWORD") &
+        upos_to %in% c("VERB", "MULTIWORD")
+    ) %>%
+    dplyr::filter(
+      !upos_from == upos_to &
+        !(upos_from == "MULTIWORD" & upos_to == "PROPN") &
+        !(upos_to == "MULTIWORD" & upos_from == "PROPN")
+    ) %>%
+    left_join(
+      nodes %>% select(id, label, upos),
+      by = c("term1" = "label", "upos_from" = "upos")
+    ) %>%
     rename(from = id) %>%
-    left_join(nodes %>% select(id, label, upos), by = c("term2" = "label", "upos_to" = "upos")) %>%
+    left_join(
+      nodes %>% select(id, label, upos),
+      by = c("term2" = "label", "upos_to" = "upos")
+    ) %>%
     rename(
       to = id,
       s = cooc
@@ -3584,19 +4519,20 @@ grako <- function(dfTag, normalization = "association", n = 50, labelsize = 4, o
       role = ifelse(upos_from != "VERB", "active", "passive"),
       color = ifelse(role == "active", "#4F794250", "#E41A1C50")
     )
-  switch(normalization,
-         none = {
-           edges$value <- edges$sNorm * 14 + 1
-         },
-         association = {
-           edges$value <- edges$sA * 14 + 1
-         },
-         cosine = {
-           edges$value <- edges$sC * 14 + 1
-         },
-         jaccard = {
-           edges$value <- edges$sJ * 14 + 1
-         }
+  switch(
+    normalization,
+    none = {
+      edges$value <- edges$sNorm * 14 + 1
+    },
+    association = {
+      edges$value <- edges$sA * 14 + 1
+    },
+    cosine = {
+      edges$value <- edges$sC * 14 + 1
+    },
+    jaccard = {
+      edges$value <- edges$sJ * 14 + 1
+    }
   )
 
   edges <- edges %>%
@@ -3607,7 +4543,21 @@ grako <- function(dfTag, normalization = "association", n = 50, labelsize = 4, o
 
   edges <- edges %>%
     dplyr::filter(value >= tailEdges) %>%
-    select(upos_from, term1, upos_to, term2, from, to, value, s, sA, sC, sJ, role, color) %>%
+    select(
+      upos_from,
+      term1,
+      upos_to,
+      term2,
+      from,
+      to,
+      value,
+      s,
+      sA,
+      sC,
+      sJ,
+      role,
+      color
+    ) %>%
     rename(
       term_from = term1,
       term_to = term2
@@ -3633,12 +4583,26 @@ grako <- function(dfTag, normalization = "association", n = 50, labelsize = 4, o
   nodes$font.vadjust <- ifelse(nodes$shape == "box", -0.7 * nodes$font.size, 0)
 
   ## opacity for label
-  opacity_font <- sqrt((nodes$font.size - min(nodes$font.size)) / diff(range(nodes$font.size))) * opacity + opacity.min + 0.1
+  opacity_font <- sqrt(
+    (nodes$font.size - min(nodes$font.size)) / diff(range(nodes$font.size))
+  ) *
+    opacity +
+    opacity.min +
+    0.1
 
-  if (is.nan(opacity_font[1])) opacity_font <- rep(opacity.min, length(opacity_font))
+  if (is.nan(opacity_font[1])) {
+    opacity_font <- rep(opacity.min, length(opacity_font))
+  }
 
   # node colors
-  nodes$opacity.nodes <- round(((opacity_font - min(opacity_font)) / (diff(range(opacity_font))) * 0.5 + opacity.min) * 100, 0)
+  nodes$opacity.nodes <- round(
+    ((opacity_font - min(opacity_font)) /
+      (diff(range(opacity_font))) *
+      0.5 +
+      opacity.min) *
+      100,
+    0
+  )
 
   if (labelsize > 0) {
     nodes <- nodes %>%
@@ -3650,25 +4614,45 @@ grako <- function(dfTag, normalization = "association", n = 50, labelsize = 4, o
     # nodes$font.color <- unlist(lapply(opacity_font, function(x) adjustcolor("black",alpha.f = x)))
   } else {
     nodes <- nodes %>%
-      mutate(font.color = ifelse(upos == "VERB", adjustcolor("#E41A1C", alpha.f = 0), adjustcolor("#4F7942", alpha.f = 0)))
+      mutate(
+        font.color = ifelse(
+          upos == "VERB",
+          adjustcolor("#E41A1C", alpha.f = 0),
+          adjustcolor("#4F7942", alpha.f = 0)
+        )
+      )
   }
 
   nodes <- nodes %>%
     mutate(
       title = label,
-      label = ifelse(upos == "VERB", paste0("<i>", label, "</i>"), paste0("<b>", label, "</b>")),
+      label = ifelse(
+        upos == "VERB",
+        paste0("<i>", label, "</i>"),
+        paste0("<b>", label, "</b>")
+      ),
       font.multi = "html"
     )
 
   # info for word in context
   x$grako <- paste0(x[[term]], " ", c(x[[term]][-1], ""))
 
-  obj <- list(nodes = nodes, edges = edges, multiwords = x %>%
-                dplyr::filter(upos %in% c("MULTIWORD", "VERB")) %>%
-                select(doc_id, sentence_id, sentence_hl, token, lemma, upos, grako))
+  obj <- list(
+    nodes = nodes,
+    edges = edges,
+    multiwords = x %>%
+      dplyr::filter(upos %in% c("MULTIWORD", "VERB")) %>%
+      select(doc_id, sentence_id, sentence_hl, token, lemma, upos, grako)
+  )
 }
 
-grakoCoocMatrix <- function(x, term = "lemma", group = "doc_id", n = 50, pos = TRUE) {
+grakoCoocMatrix <- function(
+  x,
+  term = "lemma",
+  group = "doc_id",
+  n = 50,
+  pos = TRUE
+) {
   term_old <- term
   if (pos) {
     # new_var <- paste0(term,"_upos")
@@ -3712,39 +4696,73 @@ grako2vis <- function(nodes, edges) {
   # nodes data.frame for legend
   lnodes <- data.frame(
     label = c("<b>Proper Noun</b>", "<i>Verb</i>"),
-    shape = c("text", "text"), font.color = c("#4F794290", "#E41A1C90"),
-    title = " ", id = 1:2, font.multi = "html",
+    shape = c("text", "text"),
+    font.color = c("#4F794290", "#E41A1C90"),
+    title = " ",
+    id = 1:2,
+    font.multi = "html",
     font.size = 14
-  ) %>% mutate(title = c("Proper Noun", "Verb"))
+  ) %>%
+    mutate(title = c("Proper Noun", "Verb"))
   # ,
   #                     font.style="font-weight:bold")
 
   # edges data.frame for legend
   ledges <- data.frame(
     color = c("#4F794270", "#E41A1C90"),
-    label = c("active", "passive"), arrows = c("to", "to"),
+    label = c("active", "passive"),
+    arrows = c("to", "to"),
     font.size = 10,
     font.vadjust = -8
   )
 
   layout <- "layout_nicely"
-  VIS <- visNetwork::visNetwork(nodes = nodes, edges = edges, type = "full", smooth = TRUE, physics = TRUE, export = FALSE) %>%
+  VIS <- visNetwork::visNetwork(
+    nodes = nodes,
+    edges = edges,
+    type = "full",
+    smooth = TRUE,
+    physics = TRUE,
+    export = FALSE
+  ) %>%
     visNetwork::visNodes(
-      shadow = FALSE, shape = nodes$shape,
+      shadow = FALSE,
+      shape = nodes$shape,
       font = list(
-        color = nodes$font.color, size = nodes$font.size, vadjust = nodes$font.vadjust,
+        color = nodes$font.color,
+        size = nodes$font.size,
+        vadjust = nodes$font.vadjust,
         multi = nodes$font.multi
       )
     ) %>%
     visNetwork::visIgraphLayout(layout = layout, type = "full") %>%
     visNetwork::visEdges(smooth = list(type = "horizontal")) %>%
-    visNetwork::visOptions(highlightNearest = list(enabled = T, hover = T, degree = 1), nodesIdSelection = T) %>%
-    visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed = 0.2) %>%
-    visNetwork::visEvents(click = "function(nodes){
+    visNetwork::visOptions(
+      highlightNearest = list(enabled = T, hover = T, degree = 1),
+      nodesIdSelection = T
+    ) %>%
+    visNetwork::visInteraction(
+      dragNodes = TRUE,
+      navigationButtons = F,
+      hideEdgesOnDrag = TRUE,
+      zoomSpeed = 0.2
+    ) %>%
+    visNetwork::visEvents(
+      click = "function(nodes){
                   Shiny.onInputChange('click', nodes.nodes[0]);
-                  ;}") %>%
-    visNetwork::visOptions(manipulation = FALSE, height = "100%", width = "100%") %>%
-    visNetwork::visLegend(addEdges = ledges, addNodes = lnodes, useGroups = FALSE, width = 0.1)
+                  ;}"
+    ) %>%
+    visNetwork::visOptions(
+      manipulation = FALSE,
+      height = "100%",
+      width = "100%"
+    ) %>%
+    visNetwork::visLegend(
+      addEdges = ledges,
+      addNodes = lnodes,
+      useGroups = FALSE,
+      width = 0.1
+    )
 }
 
 
@@ -3766,7 +4784,7 @@ CaoJuan2009 <- function(models) {
       return(dist)
     })
     # metric
-    metric <- sum(cos.dist) / (model@k*(model@k-1)/2)
+    metric <- sum(cos.dist) / (model@k * (model@k - 1) / 2)
     return(metric)
   })
   return(metrics)
@@ -3782,13 +4800,13 @@ Arun2010 <- function(models, dtm) {
     m1.svd <- svd(m1)
     cm1 <- as.matrix(m1.svd$d)
     # matrix M2 document-topic
-    m2   <- model@gamma   # rowSums(m2) == 1
-    cm2  <- len %*% m2    # crossprod(len, m2)
-    norm <- norm(as.matrix(len), type="m")
-    cm2  <- as.vector(cm2 / norm)
+    m2 <- model@gamma # rowSums(m2) == 1
+    cm2 <- len %*% m2 # crossprod(len, m2)
+    norm <- norm(as.matrix(len), type = "m")
+    cm2 <- as.vector(cm2 / norm)
     # symmetric Kullback-Leibler divergence
-    divergence <- sum(cm1*log(cm1/cm2)) + sum(cm2*log(cm2/cm1))
-    return ( divergence )
+    divergence <- sum(cm1 * log(cm1 / cm2)) + sum(cm2 * log(cm2 / cm1))
+    return(divergence)
   })
   return(metrics)
 }
@@ -3798,19 +4816,21 @@ Deveaud2014 <- function(models) {
     # topic-word matrix
     m1 <- exp(model@beta)
     # prevent NaN
-    if (any(m1 == 0)) { m1 <- m1 + .Machine$double.xmin }
+    if (any(m1 == 0)) {
+      m1 <- m1 + .Machine$double.xmin
+    }
     # pair-wise Jensen-Shannon divergence
-    pairs  <- utils::combn(nrow(m1), 2)
+    pairs <- utils::combn(nrow(m1), 2)
     jsd <- apply(pairs, 2, function(pair) {
       x <- m1[pair[1], ]
       y <- m1[pair[2], ]
       ### divergence by Deveaud2014
-      jsd <- 0.5 * sum(x*log(x/y)) + 0.5 * sum(y*log(y/x))
+      jsd <- 0.5 * sum(x * log(x / y)) + 0.5 * sum(y * log(y / x))
       return(jsd)
     })
 
     # metric
-    metric <- sum(jsd) / (model@k*(model@k-1))
+    metric <- sum(jsd) / (model@k * (model@k - 1))
     return(metric)
   })
   return(metrics)
@@ -3825,21 +4845,38 @@ evaluate_single_k <- function(k, dtm, seed = 1234) {
 }
 
 # Funzione parallela completa
-evaluate_lda_parallel <- function(dtm, k_seq = 2:20, seed = 1234, n_cores = detectCores() - 1) {
-
+evaluate_lda_parallel <- function(
+  dtm,
+  k_seq = 2:20,
+  seed = 1234,
+  n_cores = detectCores() - 1
+) {
   cl <- parallel::makeCluster(n_cores)
   parallel::clusterEvalQ(cl, {
     library(topicmodels)
   })
-  parallel::clusterExport(cl, varlist = c("dtm", "seed", "evaluate_single_k"), envir = environment())
+  parallel::clusterExport(
+    cl,
+    varlist = c("dtm", "seed", "evaluate_single_k"),
+    envir = environment()
+  )
 
-  results <- parallel::parLapply(cl, k_seq, function(k) evaluate_single_k(k, dtm, seed))
+  results <- parallel::parLapply(cl, k_seq, function(k) {
+    evaluate_single_k(k, dtm, seed)
+  })
   parallel::stopCluster(cl)
 
   # Estrai metriche e modelli
-  metrics <- do.call(rbind, lapply(results, function(l) {
-    data.frame(k = l$k, logLik = as.numeric(l$logLik), Perplexity = l$Perplexity)
-  }))
+  metrics <- do.call(
+    rbind,
+    lapply(results, function(l) {
+      data.frame(
+        k = l$k,
+        logLik = as.numeric(l$logLik),
+        Perplexity = l$Perplexity
+      )
+    })
+  )
   models <- setNames(lapply(results, function(x) x$model), paste0("k_", k_seq))
 
   metrics$CaoJuan2009 <- CaoJuan2009(models)
@@ -3874,9 +4911,15 @@ find_elbow <- function(k, metric, decreasing = TRUE, plot = TRUE) {
   elbow_k <- k[elbow_idx]
 
   if (plot) {
-    plot(k, metric, type = "b", pch = 16,
-         xlab = "Number of Topics (k)", ylab = "Metric",
-         main = "Elbow Method")
+    plot(
+      k,
+      metric,
+      type = "b",
+      pch = 16,
+      xlab = "Number of Topics (k)",
+      ylab = "Metric",
+      main = "Elbow Method"
+    )
     points(k[elbow_idx], metric[elbow_idx], col = "red", pch = 19, cex = 1.5)
     legend("topright", legend = paste("k =", elbow_k), col = "red", pch = 19)
   }
@@ -3884,9 +4927,17 @@ find_elbow <- function(k, metric, decreasing = TRUE, plot = TRUE) {
   return(elbow_k)
 }
 
-tmTuning <- function(x, group = c("doc_id", "sentence_id"), term = "lemma",
-                     metric = c("CaoJuan2009", "Deveaud2014", "Arun2010", "Perplexity"),
-                     n = 100, top_by = c("freq", "tfidf"), minK = 2, maxK = 20, Kby = 1) {
+tmTuning <- function(
+  x,
+  group = c("doc_id", "sentence_id"),
+  term = "lemma",
+  metric = c("CaoJuan2009", "Deveaud2014", "Arun2010", "Perplexity"),
+  n = 100,
+  top_by = c("freq", "tfidf"),
+  minK = 2,
+  maxK = 20,
+  Kby = 1
+) {
   ## check min and max K
   ClusterRange <- sort(c(minK, maxK))
   minK <- ClusterRange[1]
@@ -3898,24 +4949,33 @@ tmTuning <- function(x, group = c("doc_id", "sentence_id"), term = "lemma",
   # x <- dfTag %>% dplyr::filter(POSSelected)
   x$topic_level_id <- unique_identifier(x, fields = group)
 
-  dtf <- document_term_frequencies(x, document = "topic_level_id", term = "lemma")
+  dtf <- document_term_frequencies(
+    x,
+    document = "topic_level_id",
+    term = "lemma"
+  )
 
   dtm <- document_term_matrix(x = dtf)
 
-  switch(top_by,
-         freq = {
-           dtm <- dtm_remove_lowfreq(dtm, minfreq = 1, maxterms = n)
-           dtm <- tm::as.DocumentTermMatrix(dtm, weighting = tm::weightTf)
-         },
-         tfidf = {
-           dtm <- dtm_remove_tfidf(dtm, top = n)
-           dtm <- tm::as.DocumentTermMatrix(dtm, weighting = tm::weightTfIdf)
-         }
+  switch(
+    top_by,
+    freq = {
+      dtm <- dtm_remove_lowfreq(dtm, minfreq = 1, maxterms = n)
+      dtm <- tm::as.DocumentTermMatrix(dtm, weighting = tm::weightTf)
+    },
+    tfidf = {
+      dtm <- dtm_remove_tfidf(dtm, top = n)
+      dtm <- tm::as.DocumentTermMatrix(dtm, weighting = tm::weightTfIdf)
+    }
   )
 
   ## find optimal number of topics K using the librare ldatuning
-  result <- evaluate_lda_parallel(dtm, k_seq = seq(from = minK, to = maxK, by = Kby),
-                                    seed = 1234, n_cores = coresCPU())
+  result <- evaluate_lda_parallel(
+    dtm,
+    k_seq = seq(from = minK, to = maxK, by = Kby),
+    seed = 1234,
+    n_cores = coresCPU()
+  )
 
   return(result)
 }
@@ -3924,57 +4984,98 @@ tmTuningPlot <- function(result, metric) {
   df <- result$metrics %>%
     rename(topics = k)
 
-  switch(metric,
-         CaoJuan2009 = {
-           bestT <- find_elbow(df$topics, df$CaoJuan2009, decreasing = TRUE, plot = FALSE)
-         },
-         Arun2010 = {
-           bestT <- find_elbow(df$topics, df$Arun2010, decreasing = FALSE, plot = FALSE)
-         },
-         Deveaud2014 = {
-           bestT <- find_elbow(df$topics, df$Deveaud2014, decreasing = TRUE, plot = FALSE)
-         },
-         Perplexity = {
-           bestT <- find_elbow(df$topics, df$Perplexity, decreasing = TRUE, plot = FALSE)
-         }
-
+  switch(
+    metric,
+    CaoJuan2009 = {
+      bestT <- find_elbow(
+        df$topics,
+        df$CaoJuan2009,
+        decreasing = TRUE,
+        plot = FALSE
+      )
+    },
+    Arun2010 = {
+      bestT <- find_elbow(
+        df$topics,
+        df$Arun2010,
+        decreasing = FALSE,
+        plot = FALSE
+      )
+    },
+    Deveaud2014 = {
+      bestT <- find_elbow(
+        df$topics,
+        df$Deveaud2014,
+        decreasing = TRUE,
+        plot = FALSE
+      )
+    },
+    Perplexity = {
+      bestT <- find_elbow(
+        df$topics,
+        df$Perplexity,
+        decreasing = TRUE,
+        plot = FALSE
+      )
+    }
   )
   df <- df %>%
     select("topics", any_of(metric))
   names(df) <- c("x", "y")
   df <- df %>%
-    mutate(y = (y - min(y)) / diff(range(y)),
-           color = ifelse(x == bestT,"#cb453e" ,"#6CC283"),
-           size = ifelse(x == bestT,20 ,10))
+    mutate(
+      y = (y - min(y)) / diff(range(y)),
+      color = ifelse(x == bestT, "#cb453e", "#6CC283"),
+      size = ifelse(x == bestT, 20, 10)
+    )
 
-
-  hoverText <- paste(" <b>Topic ", df$x, "</b>\n ", metric, ": ",
-                     round(df$y, 2),
-                     sep = ""
+  hoverText <- paste(
+    " <b>Topic ",
+    df$x,
+    "</b>\n ",
+    metric,
+    ": ",
+    round(df$y, 2),
+    sep = ""
   )
 
-  fig <- plot_ly(df,
-                 x = ~x, y = ~y, type = "scatter", mode = "markers+lines",
-                 line = list(color = "#6CC28360", width = 2),
-                 marker = list(
-                   size = ~size,
-                   color = ~color,#"#6CC283",
-                   line = list(
-                     color = ~color,#color = "#6CC283",
-                     width = 2
-                   )
-                 ),
-                 text = hoverText,
-                 hoverinfo = "text"
+  fig <- plot_ly(
+    df,
+    x = ~x,
+    y = ~y,
+    type = "scatter",
+    mode = "markers+lines",
+    line = list(color = "#6CC28360", width = 2),
+    marker = list(
+      size = ~size,
+      color = ~color, #"#6CC283",
+      line = list(
+        color = ~color, #color = "#6CC283",
+        width = 2
+      )
+    ),
+    text = hoverText,
+    hoverinfo = "text"
   ) %>%
     layout(
       annotations = list(
-        text = paste0("K selection by Elbow Method with ", metric, " metric: Optimal K: ", bestT), xref = "paper", x = 0.5,
-        yref = "paper", y = 1, yshift = 30, showarrow = FALSE,
+        text = paste0(
+          "K selection by Elbow Method with ",
+          metric,
+          " metric: Optimal K: ",
+          bestT
+        ),
+        xref = "paper",
+        x = 0.5,
+        yref = "paper",
+        y = 1,
+        yshift = 30,
+        showarrow = FALSE,
         font = list(size = 24, color = "gray30")
       ),
       # title = paste0("K selection by ",metric," metric"),
-      paper_bgcolor = "rgb(255,255,255)", plot_bgcolor = "rgb(255,255,255)",
+      paper_bgcolor = "rgb(255,255,255)",
+      plot_bgcolor = "rgb(255,255,255)",
       xaxis = list(
         title = "Topics",
         gridcolor = "rgb(229,229,229)",
@@ -4025,7 +5126,14 @@ tmTuningPlot <- function(result, metric) {
 
 ### model estimation
 
-tmEstimate <- function(x, K, group = c("doc_id", "sentence_id"), term = "lemma", n = 100, top_by = c("freq", "tfidf")) {
+tmEstimate <- function(
+  x,
+  K,
+  group = c("doc_id", "sentence_id"),
+  term = "lemma",
+  n = 100,
+  top_by = c("freq", "tfidf")
+) {
   # x <- dfTag %>% dplyr::filter(POSSelected)
   x$topic_level_id <- unique_identifier(x, fields = group)
 
@@ -4033,13 +5141,14 @@ tmEstimate <- function(x, K, group = c("doc_id", "sentence_id"), term = "lemma",
 
   dtm <- document_term_matrix(x = dtf)
 
-  switch(top_by,
-         freq = {
-           dtm <- dtm_remove_lowfreq(dtm, minfreq = 1, maxterms = n)
-         },
-         tfidf = {
-           dtm <- dtm_remove_tfidf(dtm, top = n)
-         }
+  switch(
+    top_by,
+    freq = {
+      dtm <- dtm_remove_lowfreq(dtm, minfreq = 1, maxterms = n)
+    },
+    tfidf = {
+      dtm <- dtm_remove_tfidf(dtm, top = n)
+    }
   )
 
   # compute the LDA model, inference via 1000 iterations of Gibbs sampling
@@ -4071,7 +5180,13 @@ tmEstimate <- function(x, K, group = c("doc_id", "sentence_id"), term = "lemma",
     mutate(doc = row_label) %>%
     select(doc, all_of(variables))
 
-  results <- list(topicModel = topicModel, tmResult = tmResult, beta = beta, beta_norm = beta_norm, theta = theta)
+  results <- list(
+    topicModel = topicModel,
+    tmResult = tmResult,
+    beta = beta,
+    beta_norm = beta_norm,
+    theta = theta
+  )
 
   return(results)
 }
@@ -4103,7 +5218,11 @@ tmNetwork <- function(beta, minEdge) {
   H$from <- topics
 
   H <- H %>%
-    pivot_longer(cols = 1:length(topics), names_to = "to", values_to = "size") %>%
+    pivot_longer(
+      cols = 1:length(topics),
+      names_to = "to",
+      values_to = "size"
+    ) %>%
     drop_na()
   edges <- H %>%
     mutate(size = size * 10) %>%
@@ -4111,18 +5230,38 @@ tmNetwork <- function(beta, minEdge) {
     drop_na()
 
   nodes <- data.frame(
-    id = topics, size = 10, color = "#4F7942",
+    id = topics,
+    size = 10,
+    color = "#4F7942",
     title = topics,
     label = topics,
     font.color = adjustcolor("black", alpha.f = 0.6)
   )
 
-  VIS <- visNetwork::visNetwork(nodes = nodes, edges = edges, type = "full", smooth = TRUE, physics = FALSE) %>%
+  VIS <- visNetwork::visNetwork(
+    nodes = nodes,
+    edges = edges,
+    type = "full",
+    smooth = TRUE,
+    physics = FALSE
+  ) %>%
     visNetwork::visIgraphLayout(layout = "layout_nicely", type = "full") %>%
     visNetwork::visEdges(smooth = list(type = "horizontal")) %>%
-    visNetwork::visOptions(highlightNearest = list(enabled = T, hover = T, degree = 1), nodesIdSelection = T) %>%
-    visNetwork::visInteraction(dragNodes = TRUE, navigationButtons = F, hideEdgesOnDrag = TRUE, zoomSpeed = 0.2) %>%
-    visNetwork::visOptions(manipulation = FALSE, height = "100%", width = "100%")
+    visNetwork::visOptions(
+      highlightNearest = list(enabled = T, hover = T, degree = 1),
+      nodesIdSelection = T
+    ) %>%
+    visNetwork::visInteraction(
+      dragNodes = TRUE,
+      navigationButtons = F,
+      hideEdgesOnDrag = TRUE,
+      zoomSpeed = 0.2
+    ) %>%
+    visNetwork::visOptions(
+      manipulation = FALSE,
+      height = "100%",
+      width = "100%"
+    )
 
   results <- list(H = H %>% rename(value = size), VIS = VIS)
   return(results)
@@ -4143,7 +5282,11 @@ tmHeatmap <- function(beta) {
 
   df <- df %>%
     rownames_to_column("y") %>%
-    pivot_longer(cols = starts_with("topic "), names_to = "variable", values_to = "value") %>%
+    pivot_longer(
+      cols = starts_with("topic "),
+      names_to = "variable",
+      values_to = "value"
+    ) %>%
     mutate(value = round(value, 3))
 
   pal <- colorRampPalette(RColorBrewer::brewer.pal(9, "RdYlBu"))(30)
@@ -4211,16 +5354,30 @@ tmTopicPlot <- function(beta, topic = 1, nPlot = 10) {
       word = factor(word, levels = unique(word)[order(y, decreasing = FALSE)])
     )
 
-  fig <- freqPlotly(dfPlot,
-                    x = "y", y = "word", n = nPlot, ylabel = "Words", xlabel = "Beta Probability",
-                    scale = "identity", topicmodel = TRUE, colorlist()[topic], decimal = 4
+  fig <- freqPlotly(
+    dfPlot,
+    x = "y",
+    y = "word",
+    n = nPlot,
+    ylabel = "Words",
+    xlabel = "Beta Probability",
+    scale = "identity",
+    topicmodel = TRUE,
+    colorlist()[topic],
+    decimal = 4
   ) %>%
-    layout(annotations = list(
-      text = paste0("Topic ", topic), xref = "paper", x = 0.5,
-      yref = "paper", y = 1, yshift = 30, showarrow = FALSE,
-      font = list(size = 24, color = "gray30")
-    ))
-
+    layout(
+      annotations = list(
+        text = paste0("Topic ", topic),
+        xref = "paper",
+        x = 0.5,
+        yref = "paper",
+        y = 1,
+        yshift = 30,
+        showarrow = FALSE,
+        font = list(size = 24, color = "gray30")
+      )
+    )
 
   fig <- fig %>%
     config(
@@ -4254,16 +5411,30 @@ tmDocPlot <- function(theta, topic = 1, nPlot = 10) {
       doc = factor(doc, levels = unique(doc)[order(y, decreasing = FALSE)])
     )
 
-  fig <- freqPlotly(dfPlot,
-                    x = "y", y = "doc", n = nPlot, ylabel = "Documents", xlabel = "Theta Probability",
-                    scale = "identity", topicmodel = TRUE, colorlist()[topic], decimal = 4
+  fig <- freqPlotly(
+    dfPlot,
+    x = "y",
+    y = "doc",
+    n = nPlot,
+    ylabel = "Documents",
+    xlabel = "Theta Probability",
+    scale = "identity",
+    topicmodel = TRUE,
+    colorlist()[topic],
+    decimal = 4
   ) %>%
-    layout(annotations = list(
-      text = paste0("Topic ", topic), xref = "paper", x = 0.5,
-      yref = "paper", y = 1, yshift = 30, showarrow = FALSE,
-      font = list(size = 24, color = "gray30")
-    ))
-
+    layout(
+      annotations = list(
+        text = paste0("Topic ", topic),
+        xref = "paper",
+        x = 0.5,
+        yref = "paper",
+        y = 1,
+        yshift = 30,
+        showarrow = FALSE,
+        font = list(size = 24, color = "gray30")
+      )
+    )
 
   fig <- fig %>%
     config(
@@ -4302,22 +5473,34 @@ loadSentimentLanguage <- function(language) {
   }
 
   # check if the file model already exists
-  file_lang <- dir(path_language_model, pattern = paste0(language, ".lexicon"))[1]
+  file_lang <- dir(path_language_model, pattern = paste0(language, ".lexicon"))[
+    1
+  ]
 
   if (is.na(file_lang)) {
-    switch(Sys.info()[["sysname"]],
-           Windows = {
-             download.file(
-               url = paste0("https://raw.githubusercontent.com/massimoaria/tall.language.models/main/lexicon.data/", language, ".lexicon"),
-               destfile = paste0(path_language_model, "/", language, ".lexicon"), mode = "wb"
-             )
-           },
-           {
-             download.file(
-               url = paste0("https://raw.githubusercontent.com/massimoaria/tall.language.models/main/lexicon.data/", language, ".lexicon"),
-               destfile = paste0(path_language_model, "/", language, ".lexicon")
-             )
-           }
+    switch(
+      Sys.info()[["sysname"]],
+      Windows = {
+        download.file(
+          url = paste0(
+            "https://raw.githubusercontent.com/massimoaria/tall.language.models/main/lexicon.data/",
+            language,
+            ".lexicon"
+          ),
+          destfile = paste0(path_language_model, "/", language, ".lexicon"),
+          mode = "wb"
+        )
+      },
+      {
+        download.file(
+          url = paste0(
+            "https://raw.githubusercontent.com/massimoaria/tall.language.models/main/lexicon.data/",
+            language,
+            ".lexicon"
+          ),
+          destfile = paste0(path_language_model, "/", language, ".lexicon")
+        )
+      }
     )
   }
 
@@ -4332,14 +5515,24 @@ polarity_colors <- function() {
 
 ## polarity unit choice ###
 ids <- function(dfTag, type) {
-  if (is.null(type)) type <- "Documents"
+  if (is.null(type)) {
+    type <- "Documents"
+  }
   if (type == "Documents" & "ungroupDoc_id" %in% names(dfTag)) {
     dfTag <- backToOriginalGroups(dfTag)
   }
   unique(dfTag$doc_id[dfTag$docSelected])
 }
 
-freqPlotlySentiment <- function(dfPlot, x, y, xlabel, ylabel, scale = c("identity", "log"), decimal = 0) {
+freqPlotlySentiment <- function(
+  dfPlot,
+  x,
+  y,
+  xlabel,
+  ylabel,
+  scale = c("identity", "log"),
+  decimal = 0
+) {
   polarity_colors <- polarity_colors()
 
   # function to build and plot plotly horizontal barplot
@@ -4349,33 +5542,49 @@ freqPlotlySentiment <- function(dfPlot, x, y, xlabel, ylabel, scale = c("identit
     ungroup() %>%
     arrange(tot, lemma, doc_pol_clas)
 
-
   xmax <- max(dfPlot[[x]])
 
-  switch(scale,
-         log = {
-           # dfPlot$scale <- log(obj$n)
-           dfPlot$n <- log(dfPlot$n)
-         }
-  )
+  switch(scale, log = {
+    # dfPlot$scale <- log(obj$n)
+    dfPlot$n <- log(dfPlot$n)
+  })
 
   fig1 <- plot_ly(
-    data = dfPlot, x = dfPlot[[x]], y = ~ reorder(dfPlot[[y]], dfPlot[["tot"]]),
-    type = "bar", orientation = "h",
+    data = dfPlot,
+    x = dfPlot[[x]],
+    y = ~ reorder(dfPlot[[y]], dfPlot[["tot"]]),
+    type = "bar",
+    orientation = "h",
     hovertext = ~doc_pol_clas,
     marker = list(
       color = ~ paste0(polarity_colors[as.numeric(doc_pol_clas)], "60"),
-      line = list(color = ~ polarity_colors[as.numeric(doc_pol_clas)], width = 1)
+      line = list(
+        color = ~ polarity_colors[as.numeric(doc_pol_clas)],
+        width = 1
+      )
     ),
     hovertemplate = "<b><i>Word: %{hovertext}</i></b> <br> <b><i>N. Docs: %{x}</i></b><extra></extra>"
   )
 
-  fig1 <- fig1 %>% layout(
-    yaxis = list(title = ylabel, showgrid = FALSE, showline = FALSE, showticklabels = TRUE, domain = c(0, 1)),
-    xaxis = list(title = xlabel, zeroline = FALSE, showline = FALSE, showticklabels = TRUE, showgrid = FALSE),
-    plot_bgcolor = "rgba(0, 0, 0, 0)",
-    paper_bgcolor = "rgba(0, 0, 0, 0)"
-  )
+  fig1 <- fig1 %>%
+    layout(
+      yaxis = list(
+        title = ylabel,
+        showgrid = FALSE,
+        showline = FALSE,
+        showticklabels = TRUE,
+        domain = c(0, 1)
+      ),
+      xaxis = list(
+        title = xlabel,
+        zeroline = FALSE,
+        showline = FALSE,
+        showticklabels = TRUE,
+        showgrid = FALSE
+      ),
+      plot_bgcolor = "rgba(0, 0, 0, 0)",
+      paper_bgcolor = "rgba(0, 0, 0, 0)"
+    )
 
   fig1 <- fig1 %>%
     # add_annotations(xref = 'x1', yref = 'y',
@@ -4401,9 +5610,27 @@ freqPlotlySentiment <- function(dfPlot, x, y, xlabel, ylabel, scale = c("identit
   fig1
 }
 
-sentimentAnalysis <- function(dfTag, language = "english", lexicon_model = "huliu") {
+sentimentAnalysis <- function(
+  dfTag,
+  language = "english",
+  lexicon_model = "huliu"
+) {
   # lexicon for polarity detection
-  if (!language %in% c("ancient_greek", "classical_chinese", "coptic", "gothic", "north_sami", "old_church_slavonic", "old_french", "old_russian", "scottish_gaelic", "wolof")) {
+  if (
+    !language %in%
+      c(
+        "ancient_greek",
+        "classical_chinese",
+        "coptic",
+        "gothic",
+        "north_sami",
+        "old_church_slavonic",
+        "old_french",
+        "old_russian",
+        "scottish_gaelic",
+        "wolof"
+      )
+  ) {
     sentimentData <- loadSentimentLanguage(language)
   } else {
     return(NA)
@@ -4418,7 +5645,10 @@ sentimentAnalysis <- function(dfTag, language = "english", lexicon_model = "huli
       filter(lexicon == lexicon_model)
   }
 
-  polarity_terms <- data.frame(term = sentimentData$Word, polarity = sentimentData$sentiment)
+  polarity_terms <- data.frame(
+    term = sentimentData$Word,
+    polarity = sentimentData$sentiment
+  )
 
   sentiment <- txt_sentiment(
     dfTag,
@@ -4437,21 +5667,46 @@ sentimentAnalysis <- function(dfTag, language = "english", lexicon_model = "huli
   s_overall <- sentiment$overall
 
   s_data <- s_data %>%
-    left_join(s_overall %>% select(doc_id, sentiment_polarity) %>% rename(doc_polarity = sentiment_polarity), by = "doc_id") %>%
+    left_join(
+      s_overall %>%
+        select(doc_id, sentiment_polarity) %>%
+        rename(doc_polarity = sentiment_polarity),
+      by = "doc_id"
+    ) %>%
     filter(!is.na(polarity)) %>%
-    mutate(doc_pol_clas = cut(.data$doc_polarity,
-                              breaks = c(-1, -0.6, -0.2, 0.2, 0.6, 1),
-                              labels = c("Very Negative", "Negative", "Neutral", "Positive", "Very Positive"),
-                              # labels=c("Very Positive", "Positive", "Neutral", "Negative", "Very Negative"),
-                              include.lowest = T, ordered_result = TRUE
-    ))
+    mutate(
+      doc_pol_clas = cut(
+        .data$doc_polarity,
+        breaks = c(-1, -0.6, -0.2, 0.2, 0.6, 1),
+        labels = c(
+          "Very Negative",
+          "Negative",
+          "Neutral",
+          "Positive",
+          "Very Positive"
+        ),
+        # labels=c("Very Positive", "Positive", "Neutral", "Negative", "Very Negative"),
+        include.lowest = T,
+        ordered_result = TRUE
+      )
+    )
 
   s_overall <- s_overall %>%
-    mutate(doc_pol_clas = cut(.data$sentiment_polarity,
-                              breaks = c(-1, -0.6, -0.2, 0.2, 0.6, 1),
-                              labels = c("Very Negative", "Negative", "Neutral", "Positive", "Very Positive"),
-                              include.lowest = T, ordered_result = TRUE
-    ))
+    mutate(
+      doc_pol_clas = cut(
+        .data$sentiment_polarity,
+        breaks = c(-1, -0.6, -0.2, 0.2, 0.6, 1),
+        labels = c(
+          "Very Negative",
+          "Negative",
+          "Neutral",
+          "Positive",
+          "Very Positive"
+        ),
+        include.lowest = T,
+        ordered_result = TRUE
+      )
+    )
 
   results <- list(sent_data = s_data, sent_overall = s_overall)
   return(results)
@@ -4482,14 +5737,27 @@ sentimentWordPlot <- function(sent_data, n = 10) {
   # left_join(sent_dist, by="doc_pol_clas") %>%
   # mutate(perc = n/doc_N*100)
 
-
   fig_pos <- voc_sent %>%
     dplyr::filter(polarity == 1) %>%
-    freqPlotlySentiment(x = "n", y = "lemma", xlabel = "Polarized words count", ylabel = "word", scale = "identity", decimal = 0)
+    freqPlotlySentiment(
+      x = "n",
+      y = "lemma",
+      xlabel = "Polarized words count",
+      ylabel = "word",
+      scale = "identity",
+      decimal = 0
+    )
 
   fig_neg <- voc_sent %>%
     dplyr::filter(polarity == -1) %>%
-    freqPlotlySentiment(x = "n", y = "lemma", xlabel = "Polarized words count", ylabel = "word", scale = "identity", decimal = 0)
+    freqPlotlySentiment(
+      x = "n",
+      y = "lemma",
+      xlabel = "Polarized words count",
+      ylabel = "word",
+      scale = "identity",
+      decimal = 0
+    )
 
   plots <- list(positive = fig_pos, negative = fig_neg)
   return(plots)
@@ -4497,16 +5765,26 @@ sentimentWordPlot <- function(sent_data, n = 10) {
 
 sentimentPieChart <- function(df) {
   plotly::plot_ly(
-    data = df, values = ~n, labels = ~ factor(Polarity), sort = FALSE,
+    data = df,
+    values = ~n,
+    labels = ~ factor(Polarity),
+    sort = FALSE,
     marker = list(colors = paste0(polarity_colors(), "60")),
     textposition = "outside",
-    type = "pie", hole = 0.4,
+    type = "pie",
+    hole = 0.4,
     domain = list(x = c(0, 1), y = c(0, 1))
   ) %>%
     layout(
       legend = list(x = -0.1, y = 0.9),
       xaxis = list(
-        ticktext = list("Very Negative", "Negative", "Neutral", "Positive", "Very Positive"),
+        ticktext = list(
+          "Very Negative",
+          "Negative",
+          "Neutral",
+          "Positive",
+          "Very Positive"
+        ),
         tickvals = list(-0.8, -0.4, 0, 0.4, 0.8),
         tickmode = "array"
       )
@@ -4531,21 +5809,37 @@ sentimentDensityPlot <- function(x, from = -1, to = 1) {
   fit <- density(x, from = from, to = to)
 
   plot_ly(
-    x = fit$x, y = fit$y, type = "scatter", mode = "lines", color = I("#6CC283"), fill = "tozeroy",
+    x = fit$x,
+    y = fit$y,
+    type = "scatter",
+    mode = "lines",
+    color = I("#6CC283"),
+    fill = "tozeroy",
     text = NULL,
     hoverinfo = "text"
   ) %>%
     layout(
       xaxis = list(
-        ticktext = list("Very Negative", "Negative", "Neutral", "Positive", "Very Positive"),
+        ticktext = list(
+          "Very Negative",
+          "Negative",
+          "Neutral",
+          "Positive",
+          "Very Positive"
+        ),
         tickvals = list(-0.8, -0.4, 0, 0.4, 0.8),
         tickmode = "array",
         zeroline = FALSE
       ),
       yaxis = list(domain = c(0, 0.90)),
       annotations = list(
-        text = "Density Plot", xref = "paper", x = 0.5,
-        yref = "paper", y = 0.95, yshift = 30, showarrow = FALSE,
+        text = "Density Plot",
+        xref = "paper",
+        x = 0.5,
+        yref = "paper",
+        y = 0.95,
+        yshift = 30,
+        showarrow = FALSE,
         font = list(size = 20, color = "gray30")
       )
     ) %>%
@@ -4566,24 +5860,51 @@ sentimentDensityPlot <- function(x, from = -1, to = 1) {
 
 sentimentBoxPlot <- function(sent_overall) {
   plot_ly(
-    data = sent_overall, x = ~ round(sentiment_polarity, 4), y = "", type = "box",
+    data = sent_overall,
+    x = ~ round(sentiment_polarity, 4),
+    y = "",
+    type = "box",
     hoverinfo = "x",
-    boxpoints = "all", jitter = 0.3, color = I("#6CC283"),
+    boxpoints = "all",
+    jitter = 0.3,
+    color = I("#6CC283"),
     pointpos = -1.8
   ) %>%
     layout(
-      yaxis = list(zeroline = FALSE, showgrid = TRUE, showline = FALSE, showticklabels = TRUE, domain = c(0, 0.9)),
+      yaxis = list(
+        zeroline = FALSE,
+        showgrid = TRUE,
+        showline = FALSE,
+        showticklabels = TRUE,
+        domain = c(0, 0.9)
+      ),
       xaxis = list(
-        title = "", zeroline = FALSE, showgrid = TRUE, showline = FALSE, showticklabels = TRUE, range = c(-1, 1),
-        ticktext = list("Very Negative", "Negative", "Neutral", "Positive", "Very Positive"),
+        title = "",
+        zeroline = FALSE,
+        showgrid = TRUE,
+        showline = FALSE,
+        showticklabels = TRUE,
+        range = c(-1, 1),
+        ticktext = list(
+          "Very Negative",
+          "Negative",
+          "Neutral",
+          "Positive",
+          "Very Positive"
+        ),
         tickvals = list(-0.8, -0.4, 0, 0.4, 0.8),
         tickmode = "array"
       ),
       plot_bgcolor = "rgba(0, 0, 0, 0)",
       paper_bgcolor = "rgba(0, 0, 0, 0)",
       annotations = list(
-        text = "Box Plot", xref = "paper", x = 0.5,
-        yref = "paper", y = 0.95, yshift = 30, showarrow = FALSE,
+        text = "Box Plot",
+        xref = "paper",
+        x = 0.5,
+        yref = "paper",
+        y = 0.95,
+        yshift = 30,
+        showarrow = FALSE,
         font = list(size = 20, color = "gray30")
       )
     ) %>%
@@ -4626,8 +5947,17 @@ highlightSentences <- function(dfTag, id) {
 
   s$h <- c(rep(1, n), rep(0, nrow(s) - n))
   s <- s %>%
-    left_join(df %>% select(paragraph_id, sentence_id) %>% distinct(), by = c("textrank_id" = "sentence_id")) %>%
-    mutate(sentence = ifelse(h == 1, paste0("<mark><strong>", sentence, "</strong></mark>"), sentence)) %>%
+    left_join(
+      df %>% select(paragraph_id, sentence_id) %>% distinct(),
+      by = c("textrank_id" = "sentence_id")
+    ) %>%
+    mutate(
+      sentence = ifelse(
+        h == 1,
+        paste0("<mark><strong>", sentence, "</strong></mark>"),
+        sentence
+      )
+    ) %>%
     arrange(textrank_id) %>%
     group_by(paragraph_id) %>%
     summarize(
@@ -4662,22 +5992,30 @@ textrankDocument <- function(dfTag, id) {
     arrange(desc(textrank))
 
   s <- s %>%
-    left_join(df %>% select(paragraph_id, sentence_id, sentence) %>% distinct(), by = c("sentence"))
-  results <- list(s = s, id = id, sentences = tr$sentences %>% arrange(desc(textrank)))
+    left_join(
+      df %>% select(paragraph_id, sentence_id, sentence) %>% distinct(),
+      by = c("sentence")
+    )
+  results <- list(
+    s = s,
+    id = id,
+    sentences = tr$sentences %>% arrange(desc(textrank))
+  )
   return(results)
 }
 
 abstractingDocument <- function(s, n, id) {
-  switch(n,
-         "More Concise" = {
-           n <- "5%"
-         },
-         "Less Concise" = {
-           n <- "100%"
-         },
-         {
-           n <- n
-         }
+  switch(
+    n,
+    "More Concise" = {
+      n <- "5%"
+    },
+    "Less Concise" = {
+      n <- "100%"
+    },
+    {
+      n <- n
+    }
   )
   n <- as.numeric(gsub("%", "", n))
   n <- ceiling(n * nrow(s) / 100) ## calculate n from %
@@ -4693,11 +6031,27 @@ abstractingDocument <- function(s, n, id) {
     arrange(sentence_id, .by_group = TRUE) %>%
     summarize(paragraph = paste(sentence, collapse = " ")) %>%
     ungroup() %>%
-    summarize(text = paste(paragraph, collapse = "<br><br>&nbsp&nbsp&nbsp&nbsp&nbsp")) %>%
-    mutate(text = paste0("<h3>Document: <strong>", id, "</strong></h3><hr><br><em>", text, "</em>"))
+    summarize(
+      text = paste(paragraph, collapse = "<br><br>&nbsp&nbsp&nbsp&nbsp&nbsp")
+    ) %>%
+    mutate(
+      text = paste0(
+        "<h3>Document: <strong>",
+        id,
+        "</strong></h3><hr><br><em>",
+        text,
+        "</em>"
+      )
+    )
 
   s <- s %>%
-    mutate(sentence = ifelse(h == 1, paste0("<mark><strong>", sentence, "</strong></mark>"), sentence)) %>%
+    mutate(
+      sentence = ifelse(
+        h == 1,
+        paste0("<mark><strong>", sentence, "</strong></mark>"),
+        sentence
+      )
+    ) %>%
     arrange(textrank_id) %>%
     group_by(paragraph_id) %>%
     summarize(
@@ -4718,15 +6072,16 @@ abstractingDocument <- function(s, n, id) {
 
 ### ABSTRACTIVE TEXT SUMMARIZATION: ----
 
-abstractive_summary <- function(values,
-                                input,
-                                id,
-                                nL = 250,
-                                maxTokens = 16384,
-                                api_key = NULL,
-                                model = "2.0-flash",
-                                retry_attempts = 5) {
-
+abstractive_summary <- function(
+  values,
+  input,
+  id,
+  nL = 250,
+  maxTokens = 16384,
+  api_key = NULL,
+  model = "2.0-flash",
+  retry_attempts = 5
+) {
   # Input validation
   if (missing(values) || missing(id)) {
     stop("Both 'values' and 'id' parameters are required")
@@ -4765,7 +6120,11 @@ abstractive_summary <- function(values,
 
   # Handle case where multiple documents have same ID (take first one)
   if (length(doc) > 1) {
-    warning(paste("Multiple documents found for ID", id, "- using first occurrence"))
+    warning(paste(
+      "Multiple documents found for ID",
+      id,
+      "- using first occurrence"
+    ))
     doc <- doc[1]
   }
 
@@ -4776,17 +6135,27 @@ abstractive_summary <- function(values,
   }
 
   # Estimate token count for the document
-  tryCatch({
-    n_tokens <- estimate_gemini_tokens(doc)
-  }, error = function(e) {
-    warning(paste("Token estimation failed for document", id, ":", e$message))
-    return(NA)
-  })
+  tryCatch(
+    {
+      n_tokens <- estimate_gemini_tokens(doc)
+    },
+    error = function(e) {
+      warning(paste("Token estimation failed for document", id, ":", e$message))
+      return(NA)
+    }
+  )
 
   # Check if document exceeds token limit
   if (n_tokens > maxTokens) {
-    return(paste("Document", id, "too long (", n_tokens, "tokens >", maxTokens,
-                 "limit), skipping summarization"))
+    return(paste(
+      "Document",
+      id,
+      "too long (",
+      n_tokens,
+      "tokens >",
+      maxTokens,
+      "limit), skipping summarization"
+    ))
   }
 
   # Construct detailed prompt for summarization
@@ -4796,13 +6165,16 @@ abstractive_summary <- function(values,
     "- Capture all main points and key details\n",
     "- Maintain clarity and readability\n",
     "- Preserve important context and nuances\n",
-    "- Target length: approximately ", nL, " words\n",
+    "- Target length: approximately ",
+    nL,
+    " words\n",
     "- Use clear, concise language\n",
     "- Maintain the original tone when appropriate\n\n",
-    "Text to summarize:\n\n", doc
+    "Text to summarize:\n\n",
+    doc
   )
 
-  if (!is.null(input$abstractivePrompt)){
+  if (!is.null(input$abstractivePrompt)) {
     prompt <- paste(input$abstractivePrompt, prompt, sep = "\n\n")
   }
 
@@ -4811,7 +6183,9 @@ abstractive_summary <- function(values,
     # Try to get from environment variable
     api_key <- Sys.getenv("GEMINI_API_KEY", unset = NA)
     if (is.na(api_key)) {
-      stop("API key must be provided either as parameter or GEMINI_API_KEY environment variable")
+      stop(
+        "API key must be provided either as parameter or GEMINI_API_KEY environment variable"
+      )
     }
   }
 
@@ -4834,7 +6208,14 @@ addDataWb <- function(list_df, wb, sheetname, startRow = 1) {
   for (i in 1:l) {
     df <- list_df[[i]]
     n <- nrow(df)
-    writeDataTable(wb, sheetname, df, startRow = startRow, startCol = 1, tableStyle = "TableStyleMedium20")
+    writeDataTable(
+      wb,
+      sheetname,
+      df,
+      startRow = startRow,
+      startCol = 1,
+      tableStyle = "TableStyleMedium20"
+    )
     startRow <- startRow + n + 3
   }
   return(wb)
@@ -4857,7 +6238,16 @@ addDataScreenWb <- function(list_df, wb, sheetname) {
   return(results)
 }
 
-addGgplotsWb <- function(list_plot, wb, sheetname, col, width = 10, height = 7, dpi = 75, startRow = 1) {
+addGgplotsWb <- function(
+  list_plot,
+  wb,
+  sheetname,
+  col,
+  width = 10,
+  height = 7,
+  dpi = 75,
+  startRow = 1
+) {
   l <- length(list_plot)
   # startRow <- 1
   for (i in 1:l) {
@@ -4867,17 +6257,33 @@ addGgplotsWb <- function(list_plot, wb, sheetname, col, width = 10, height = 7, 
     )
     if (inherits(list_plot[[i]], "ggplot")) {
       ggsave(
-        plot = list_plot[[i]], filename = fileName, width = width, height = height,
-        units = "in", dpi = dpi
+        plot = list_plot[[i]],
+        filename = fileName,
+        width = width,
+        height = height,
+        units = "in",
+        dpi = dpi
       )
     }
     if (inherits(list_plot[[i]], "igraph")) {
-      igraph2PNG(x = list_plot[[i]], filename = fileName, width = width, height = height, dpi = dpi)
+      igraph2PNG(
+        x = list_plot[[i]],
+        filename = fileName,
+        width = width,
+        height = height,
+        dpi = dpi
+      )
     }
     insertImage(
-      wb = wb, sheet = sheetname, file = fileName, width = width,
-      height = height, startRow = startRow, startCol = col,
-      units = "in", dpi = dpi
+      wb = wb,
+      sheet = sheetname,
+      file = fileName,
+      width = width,
+      height = height,
+      startRow = startRow,
+      startCol = col,
+      units = "in",
+      dpi = dpi
     )
     startRow <- startRow + (height * 6) + 1
   }
@@ -4887,11 +6293,21 @@ addGgplotsWb <- function(list_plot, wb, sheetname, col, width = 10, height = 7, 
 # from igraph to png file
 igraph2PNG <- function(x, filename, width = 10, height = 7, dpi = 75) {
   V(x)$centr <- centr_betw(x)$res
-  df <- data.frame(name = V(x)$label, cluster = V(x)$color, centr = V(x)$centr) %>%
+  df <- data.frame(
+    name = V(x)$label,
+    cluster = V(x)$color,
+    centr = V(x)$centr
+  ) %>%
     group_by(cluster) %>%
     slice_head(n = 3)
   V(x)$label[!(V(x)$label %in% df$name)] <- ""
-  png(filename = filename, width = width, height = height, unit = "in", res = dpi)
+  png(
+    filename = filename,
+    width = width,
+    height = height,
+    unit = "in",
+    res = dpi
+  )
   grid::grid.draw(plot(x))
   dev.off()
 }
@@ -4909,9 +6325,15 @@ addScreenWb <- function(df, wb, width = 14, height = 8, dpi = 75) {
       for (j in 1:l) {
         fileName <- df_sh$file[j]
         insertImage(
-          wb = wb, sheet = sh, file = fileName, width = width,
-          height = height, startRow = startRow, startCol = df_sh$n[j],
-          units = "in", dpi = dpi
+          wb = wb,
+          sheet = sh,
+          file = fileName,
+          width = width,
+          height = height,
+          startRow = startRow,
+          startCol = df_sh$n[j],
+          units = "in",
+          dpi = dpi
         )
         startRow <- startRow + (height * 10) + 3
       }
@@ -4920,7 +6342,14 @@ addScreenWb <- function(df, wb, width = 14, height = 8, dpi = 75) {
   return(wb)
 }
 
-addSheetToReport <- function(list_df, list_plot, sheetname, wb, dpi = 75, startRow = 1) {
+addSheetToReport <- function(
+  list_df,
+  list_plot,
+  sheetname,
+  wb,
+  dpi = 75,
+  startRow = 1
+) {
   ind <- which(regexpr(sheetname, wb$sheet_names) > -1)
   if (length(ind) > 0) {
     sheetname <- paste(sheetname, "(", length(ind) + 1, ")", sep = "")
@@ -4935,7 +6364,14 @@ addSheetToReport <- function(list_df, list_plot, sheetname, wb, dpi = 75, startR
   }
 
   if (!is.null(list_plot)) {
-    wb <- addGgplotsWb(list_plot, wb = wb, sheetname = sheetname, col = col, dpi = dpi, startRow = startRow)
+    wb <- addGgplotsWb(
+      list_plot,
+      wb = wb,
+      sheetname = sheetname,
+      col = col,
+      dpi = dpi,
+      startRow = startRow
+    )
   }
   # values$sheet_name <- sheetname
   return(wb)
@@ -4996,38 +6432,41 @@ dfLabel <- function() {
 
 ## Add to Report PopUp
 popUp <- function(title = NULL, type = "success", btn_labels = "OK") {
-  switch(type,
-         saved = {
-           title <- title
-           subtitle <- ""
-           btn_colors <- "#1d8fe1"
-           showButton <- TRUE
-           timer <- 3000
-         },
-         success = {
-           title <- paste(title, "\n added to report", sep = "")
-           subtitle <- ""
-           btn_colors <- "#1d8fe1"
-           showButton <- TRUE
-           timer <- 3000
-         },
-         error = {
-           title <- "No results to add to the report "
-           subtitle <- "Please Run the analysis and then Add it to the report"
-           btn_colors <- "#913333"
-           showButton <- TRUE
-           timer <- 3000
-         },
-         waiting = {
-           title <- "Please wait... "
-           subtitle <- "Adding results to report"
-           btn_colors <- "#FFA800"
-           showButton <- FALSE
-           btn_labels <- NA
-           timer <- NA
-         }
+  switch(
+    type,
+    saved = {
+      title <- title
+      subtitle <- ""
+      btn_colors <- "#1d8fe1"
+      showButton <- TRUE
+      timer <- 3000
+    },
+    success = {
+      title <- paste(title, "\n added to report", sep = "")
+      subtitle <- ""
+      btn_colors <- "#1d8fe1"
+      showButton <- TRUE
+      timer <- 3000
+    },
+    error = {
+      title <- "No results to add to the report "
+      subtitle <- "Please Run the analysis and then Add it to the report"
+      btn_colors <- "#913333"
+      showButton <- TRUE
+      timer <- 3000
+    },
+    waiting = {
+      title <- "Please wait... "
+      subtitle <- "Adding results to report"
+      btn_colors <- "#FFA800"
+      showButton <- FALSE
+      btn_labels <- NA
+      timer <- NA
+    }
   )
-  if (type == "saved") type <- "success"
+  if (type == "saved") {
+    type <- "success"
+  }
   show_alert(
     title = title,
     text = subtitle,
@@ -5048,9 +6487,14 @@ popUp <- function(title = NULL, type = "success", btn_labels = "OK") {
 
 ## generic popup ###
 
-popUpGeneric <- function(title = NULL, type = "success", color = c("#1d8fe1", "#913333", "#FFA800"),
-                         subtitle = "",
-                         btn_labels = "OK") {
+popUpGeneric <- function(
+  title = NULL,
+  type = "success",
+  color = c("#1d8fe1", "#913333", "#FFA800"),
+  subtitle = "",
+  btn_labels = "OK",
+  html = FALSE
+) {
   showButton <- TRUE
   timer <- NA
   show_alert(
@@ -5060,7 +6504,7 @@ popUpGeneric <- function(title = NULL, type = "success", color = c("#1d8fe1", "#
     size = "s",
     closeOnEsc = TRUE,
     closeOnClickOutside = TRUE,
-    html = FALSE,
+    html = html,
     showConfirmButton = showButton,
     showCancelButton = FALSE,
     btn_labels = btn_labels,
@@ -5075,16 +6519,17 @@ popUpGeneric <- function(title = NULL, type = "success", color = c("#1d8fe1", "#
 ### UTILITY FUNCTIONS ----
 # find home folder
 homeFolder <- function() {
-  switch(Sys.info()[["sysname"]],
-         Windows = {
-           home <- Sys.getenv("R_USER")
-         },
-         Linux = {
-           home <- Sys.getenv("HOME")
-         },
-         Darwin = {
-           home <- Sys.getenv("HOME")
-         }
+  switch(
+    Sys.info()[["sysname"]],
+    Windows = {
+      home <- Sys.getenv("R_USER")
+    },
+    Linux = {
+      home <- Sys.getenv("HOME")
+    },
+    Darwin = {
+      home <- Sys.getenv("HOME")
+    }
   )
   return(home)
 }
@@ -5119,9 +6564,9 @@ resetValues <- function() {
   values <- list()
   values <- reactiveValues()
 
-  if (inherits(try(pagedown::find_chrome(), silent=T), "try-error")) {
+  if (inherits(try(pagedown::find_chrome(), silent = T), "try-error")) {
     Chrome_url <- NULL
-  }else{
+  } else {
     Chrome_url <- pagedown::find_chrome()
   }
 
@@ -5132,28 +6577,32 @@ resetValues <- function() {
   if (identical(Sys.getenv("R_CONFIG_ACTIVE"), "shinyapps")) {
     chromote::set_default_chromote_object(
       chromote::Chromote$new(chromote::Chrome$new(
-        args = c("--disable-gpu",
-                 "--no-sandbox",
-                 "--disable-dev-shm-usage", # required bc the target easily crashes
-                 c("--force-color-profile", "srgb"))
+        args = c(
+          "--disable-gpu",
+          "--no-sandbox",
+          "--disable-dev-shm-usage", # required bc the target easily crashes
+          c("--force-color-profile", "srgb")
+        )
       ))
     )
   }
   ## end configuration
 
   ## Check if Chrome browser is installed on the computer
-  if(is.null(Chrome_url)){
+  if (is.null(Chrome_url)) {
     showModal(modalDialog(
       title = strong("Warning message!"),
-      HTML("Chrome or a Chromium-based browser is not installed on your computer.<br>
+      HTML(
+        "Chrome or a Chromium-based browser is not installed on your computer.<br>
 If you do not have either of these browsers installed, TALL will be unable to export graphs.<br>
 To ensure the functionality of Biblioshiny,
-           please download Chrome by <a href='https://www.google.com/chrome/' target='_blank' > <b>clicking here</b></a>."),
-footer = modalButton("Dismiss"),
-easyClose = TRUE
+           please download Chrome by <a href='https://www.google.com/chrome/' target='_blank' > <b>clicking here</b></a>."
+      ),
+      footer = modalButton("Dismiss"),
+      easyClose = TRUE
     ))
   } else {
-    Sys.setenv (CHROMOTE_CHROME = Chrome_url)
+    Sys.setenv(CHROMOTE_CHROME = Chrome_url)
   }
   values$Chrome_url <- Chrome_url
   values$biblioshiny <- NULL
@@ -5197,13 +6646,21 @@ easyClose = TRUE
 
   ## gemini api and model
   home <- homeFolder()
-  path_gemini_key <- paste0(file.path(home, "tall"),"/.tall_gemini_key.txt", collapse="")
+  path_gemini_key <- paste0(
+    file.path(home, "tall"),
+    "/.tall_gemini_key.txt",
+    collapse = ""
+  )
   # check if sub directory exists
   values$geminiAPI <- load_api_key(path_gemini_key)
   values$corpus_description <- NULL
   values$gemini_additional <- NULL
 
-  path_gemini_model <- path_gemini_key <- paste0(file.path(home, "tall"),"/.tall_gemini_model.txt", collapse="")
+  path_gemini_model <- path_gemini_key <- paste0(
+    file.path(home, "tall"),
+    "/.tall_gemini_model.txt",
+    collapse = ""
+  )
   gemini_api_model <- loadGeminiModel(path_gemini_model)
   values$gemini_api_model <- gemini_api_model[1]
   values$gemini_output_size <- gemini_api_model[2]
@@ -5222,9 +6679,41 @@ firstUp <- function(x) {
 ## Color palette for plots
 colorlist <- function() {
   c(
-    "#4DAF4A", "#E41A1C", "#377EB8", "#984EA3", "#FF7F00", "#A65628", "#F781BF", "#999999", "#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#A6D854", "#FFD92F",
-    "#B3B3B3", "#A6CEE3", "#1F78B4", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#FDBF6F", "#FF7F00", "#CAB2D6", "#6A3D9A", "#B15928", "#8DD3C7", "#BEBADA",
-    "#FB8072", "#80B1D3", "#FDB462", "#B3DE69", "#D9D9D9", "#BC80BD", "#CCEBC5"
+    "#4DAF4A",
+    "#E41A1C",
+    "#377EB8",
+    "#984EA3",
+    "#FF7F00",
+    "#A65628",
+    "#F781BF",
+    "#999999",
+    "#66C2A5",
+    "#FC8D62",
+    "#8DA0CB",
+    "#E78AC3",
+    "#A6D854",
+    "#FFD92F",
+    "#B3B3B3",
+    "#A6CEE3",
+    "#1F78B4",
+    "#B2DF8A",
+    "#33A02C",
+    "#FB9A99",
+    "#E31A1C",
+    "#FDBF6F",
+    "#FF7F00",
+    "#CAB2D6",
+    "#6A3D9A",
+    "#B15928",
+    "#8DD3C7",
+    "#BEBADA",
+    "#FB8072",
+    "#80B1D3",
+    "#FDB462",
+    "#B3DE69",
+    "#D9D9D9",
+    "#BC80BD",
+    "#CCEBC5"
   )
 }
 
@@ -5259,7 +6748,11 @@ removeHapaxFreq <- function(dfTag, hapax, singleChar) {
     dfTag <- dfTag %>%
       mutate(
         noSingleChar = ifelse(nchar(lemma) > 1, TRUE, FALSE),
-        noSingleChar = ifelse(upos %in% c("EMOJI", "MENTION", "HASH", "IP_ADDRESS", "URL", "EMAIL"), TRUE, noSingleChar)
+        noSingleChar = ifelse(
+          upos %in% c("EMOJI", "MENTION", "HASH", "IP_ADDRESS", "URL", "EMAIL"),
+          TRUE,
+          noSingleChar
+        )
       )
   }
 
@@ -5293,7 +6786,11 @@ highlight_segments <- function(tc, n) {
     slice_max(order_by = chi_square, n = n)
   id <- id$term
   for (i in 1:length(id)) {
-    segments$segment <- stringi::stri_replace_all_fixed(segments$segment, id[i], paste0("<mark><strong>", id[i], "</strong></mark>"))
+    segments$segment <- stringi::stri_replace_all_fixed(
+      segments$segment,
+      id[i],
+      paste0("<mark><strong>", id[i], "</strong></mark>")
+    )
   }
   tc$segments <- segments
   return(tc)
@@ -5301,12 +6798,22 @@ highlight_segments <- function(tc, n) {
 
 highlight_word <- function(input_string, target_word, upos) {
   # Controllo della validità della parola target
-  if (is.na(target_word) || target_word == "" || upos %in% c("DET", "PART", "PUNCT", "X", "SYM", "INTJ", "NUM", "NGRAM_MERGED")) {
+  if (
+    is.na(target_word) ||
+      target_word == "" ||
+      upos %in%
+        c("DET", "PART", "PUNCT", "X", "SYM", "INTJ", "NUM", "NGRAM_MERGED")
+  ) {
     return(input_string)
   }
 
   # Escape dei caratteri speciali
-  target_word_escaped <- gsub("([.\\^$*+?()\\[\\]|\\\\])", "\\\\\\1", target_word, perl = TRUE)
+  target_word_escaped <- gsub(
+    "([.\\^$*+?()\\[\\]|\\\\])",
+    "\\\\\\1",
+    target_word,
+    perl = TRUE
+  )
 
   # Controllo se la parola contiene caratteri non alfanumerici
   if (grepl("\\W", target_word, perl = TRUE)) {
@@ -5347,7 +6854,9 @@ highlight <- function(df, term = "lemma", upos = NULL) {
     dfUpos <- df %>%
       mutate(id = row_number()) %>%
       filter(upos %in% upos) %>%
-      mutate(sentence_hl = mapply(highlight_word, sentence, !!term_col, upos)) %>%
+      mutate(
+        sentence_hl = mapply(highlight_word, sentence, !!term_col, upos)
+      ) %>%
       select("id", "sentence_hl")
 
     df <- df %>%
@@ -5362,202 +6871,510 @@ highlight <- function(df, term = "lemma", upos = NULL) {
 
 
 ## saveTall function ----
-saveTall <- function(dfTag, custom_lists, language, treebank, menu, where, file, generalTerm, corpus_description) {
+saveTall <- function(
+  dfTag,
+  custom_lists,
+  language,
+  treebank,
+  menu,
+  where,
+  file,
+  generalTerm,
+  corpus_description
+) {
   D <- date()
   D <- strsplit(gsub("\\s+", " ", D), " ")
   D <- paste(unlist(D)[c(1, 2, 3, 5)], collapse = " ")
-  save(dfTag, custom_lists, language, treebank, menu, D, where, file = file, generalTerm, corpus_description)
+  save(
+    dfTag,
+    custom_lists,
+    language,
+    treebank,
+    menu,
+    D,
+    where,
+    file = file,
+    generalTerm,
+    corpus_description
+  )
 }
 
 ### Export Tall analysis in .tall file ----
 
-
-
 # SIDEBARMENU DYNAMIC ----
 menuList <- function(menu) {
-  switch(as.character(menu),
-         "-2" = {
-           list(
-             menuItem("Settings", tabName = "settings", icon = icon("tasks"))
-           )
-         },
-         "0" = {
-           list(
-             menuItem("Import", tabName = "import_tx", icon = icon("open-file", lib = "glyphicon")),
-             menuItem("Edit",
-                      tabName = "edit_tx", icon = icon("edit", lib = "glyphicon"),
-                      menuSubItem("Split", tabName = "split_tx", icon = icon("chevron-right")),
-                      menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
-                      menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))
-             ),
-             menuItem("Pre-processing",
-                      tabName = "prePro", icon = icon("indent-right", lib = "glyphicon"), startExpanded = TRUE,
-                      menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos", icon = icon("chevron-right"), selected = TRUE)
-             ),
-             menuItem("Settings", tabName = "settings", icon = icon("tasks"))
-           )
-         },
-         "1" = {
-           list(
-             menuItem("Import", tabName = "import_tx", icon = icon("open-file", lib = "glyphicon")),
-             # menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
-             #          menuSubItem("Split", tabName = "split_tx", icon = icon("chevron-right")),
-             #          menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
-             #          menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
-             menuItem("Pre-processing",
-                      tabName = "prePro", icon = icon("indent-right", lib = "glyphicon"), startExpanded = TRUE,
-                      menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos", icon = icon("chevron-right")),
-                      menuSubItem("Tagging Special Entities", tabName = "posSpecial", icon = icon("chevron-right")),
-                      menuItem("Multi-Word",
-                               tabName = "multiword", icon = icon("chevron-right"), startExpanded = TRUE,
-                               menuSubItem("Automatic", tabName = "multiwordCreat", icon = icon("chevron-right")),
-                               menuSubItem("By a List", tabName = "multiwordByList", icon = icon("chevron-right"))
-                      ),
-                      menuSubItem("Custom Term List", tabName = "custTermList", icon = icon("chevron-right"), selected = TRUE),
-                      menuSubItem("PoS Tag Selection", tabName = "posTagSelect", icon = icon("chevron-right"))
-             ),
-             menuItem("Settings", tabName = "settings", icon = icon("tasks"))
-           )
-         },
-         "2" = {
-           list(
-             menuItem("Import", tabName = "import_tx", icon = icon("open-file", lib = "glyphicon")),
-             # menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
-             #          menuSubItem("Split", tabName = "split_tx", icon = icon("chevron-right")),
-             #          menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
-             #          menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
-             menuItem("Pre-processing",
-                      tabName = "prePro", icon = icon("indent-right", lib = "glyphicon"), startExpanded = TRUE,
-                      menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos", icon = icon("chevron-right")),
-                      menuSubItem("Tagging Special Entities", tabName = "posSpecial", icon = icon("chevron-right")),
-                      menuItem("Multi-Word",
-                               tabName = "multiword", icon = icon("chevron-right"), startExpanded = TRUE,
-                               menuSubItem("Automatic", tabName = "multiwordCreat", icon = icon("chevron-right")),
-                               menuSubItem("By a List", tabName = "multiwordByList", icon = icon("chevron-right"))
-                      ),
-                      menuSubItem("Custom Term List", tabName = "custTermList", icon = icon("chevron-right")),
-                      menuSubItem("PoS Tag Selection", tabName = "posTagSelect", icon = icon("chevron-right")), selected = TRUE
-             ),
-             # menuItem("Filter", tabName = "filter_text", icon = icon("filter")),
-             # menuItem("Groups",tabName = "defineGroups", icon = icon("th", lib="glyphicon")),
-             menuItem("Overview", tabName = "overview", icon = icon("search", lib = "glyphicon")),
-             menuItem("Words",
-                      tabName = "words", icon = icon("font", lib = "glyphicon"),
-                      # menuItem("Frequencies",
-                      #   tabName = "freqList", icon = icon("chevron-right"),
-                      #   menuSubItem("Words", tabName = "w_freq", icon = icon("chevron-right")),
-                      #   menuSubItem("Part of Speech", tabName = "w_pos", icon = icon("chevron-right"))
-                      # ),
-                      menuSubItem("Words in Context", tabName = "wordCont", icon = icon("chevron-right")),
-                      # menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),
-                      menuSubItem("Reinert Clustering", tabName = "w_reinclustering", icon = icon("chevron-right")),
-                      menuSubItem("Correspondence Analysis", tabName = "ca", icon = icon("chevron-right")),
-                      menuItem("Network",
-                               tabName = "w_network", icon = icon("chevron-right"),
-                               menuSubItem("Co-word analysis", tabName = "w_networkCooc", icon = icon("chevron-right")),
-                               menuSubItem("Thematic Map", tabName = "w_networkTM", icon = icon("chevron-right"))
-                               # ,menuSubItem("Grako", tabName = "w_networkGrako", icon = icon("chevron-right"))
-                      ),
-                      menuItem("Word Embeddings",
-                               tabName = "w_embeddings", icon = icon("chevron-right"),
-                               menuSubItem("Training", tabName = "w_word2vec", icon = icon("chevron-right")),
-                               # if (embedding){
-                               menuSubItem("Similarity", tabName = "w_w2v_similarity", icon = icon("chevron-right"))
-                               # }
-                      )
-             ),
-             menuItem("Documents",
-                      tabName = "documents", icon = icon(name = "duplicate", lib = "glyphicon"),
-                      menuItem("Topic Modeling",
-                               tabName = "d_topicMod", icon = icon("chevron-right"),
-                               menuSubItem("K choice", tabName = "d_tm_select", icon = icon("chevron-right")),
-                               menuSubItem("Model Estimation", tabName = "d_tm_estim", icon = icon("chevron-right"))
-                      ),
-                      menuSubItem("Polarity Detection", tabName = "d_polDet", icon = icon("chevron-right")),
-                      menuItem("Summarization", tabName ="summarization", icon = icon("chevron-right"),
-                               menuSubItem("Abstractive", tabName = "d_astractive", icon = icon("chevron-right")),
-                               menuSubItem("Extractive", tabName = "d_summarization", icon = icon("chevron-right"))
-                      )
-             ),
-             menuItem("Report", tabName = "report", icon = icon("list-alt")),
-             menuItem("Settings", tabName = "settings", icon = icon("tasks"))
-           )
-         },
-         "3" = {
-           list(
-             menuItem("Import", tabName = "import_tx", icon = icon("open-file", lib = "glyphicon")),
-             # menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
-             #          menuSubItem("Split", tabName = "split_tx", icon = icon("chevron-right")),
-             #          menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
-             #          menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
-             menuItem("Pre-processing",
-                      tabName = "prePro", icon = icon("indent-right", lib = "glyphicon"), startExpanded = TRUE,
-                      menuSubItem("Tokenization & PoS Tagging", tabName = "tokPos", icon = icon("chevron-right")),
-                      menuSubItem("Tagging Special Entities", tabName = "posSpecial", icon = icon("chevron-right")),
-                      menuItem("Multi-Word",
-                               tabName = "multiword", icon = icon("chevron-right"), startExpanded = TRUE,
-                               menuSubItem("Automatic", tabName = "multiwordCreat", icon = icon("chevron-right")),
-                               menuSubItem("By a List", tabName = "multiwordByList", icon = icon("chevron-right"))
-                      ),
-                      menuSubItem("Custom Term List", tabName = "custTermList", icon = icon("chevron-right")),
-                      menuSubItem("PoS Tag Selection", tabName = "posTagSelect", icon = icon("chevron-right")), selected = TRUE
-             ),
-             menuItem("Filter", tabName = "filter_text", icon = icon("filter")),
-             menuItem("Groups", tabName = "defineGroups", icon = icon("th", lib = "glyphicon")),
-             menuItem("Overview", tabName = "overview", icon = icon("search", lib = "glyphicon")),
-             menuItem("Words",
-                      tabName = "words", icon = icon("font", lib = "glyphicon"),
-                      # menuItem("Frequencies",
-                      #   tabName = "freqList", icon = icon("chevron-right"),
-                      #   menuSubItem("Words", tabName = "w_freq", icon = icon("chevron-right")),
-                      #   menuSubItem("Part of Speech", tabName = "w_pos", icon = icon("chevron-right"))
-                      # ),
-                      menuSubItem("Words in Context", tabName = "wordCont", icon = icon("chevron-right")),
-                      menuSubItem("Reinert Clustering", tabName = "w_reinclustering", icon = icon("chevron-right")),
-                      menuSubItem("Correspondence Analysis", tabName = "ca", icon = icon("chevron-right")),
-                      menuItem("Network",
-                               tabName = "w_network", icon = icon("chevron-right"),
-                               menuSubItem("Co-word analysis", tabName = "w_networkCooc", icon = icon("chevron-right")),
-                               menuSubItem("Thematic Map", tabName = "w_networkTM", icon = icon("chevron-right"))
-                               # ,menuSubItem("Grako", tabName = "w_networkGrako", icon = icon("chevron-right"))
-                      ),
-                      menuItem("Word Embeddings",
-                               tabName = "w_embeddings", icon = icon("chevron-right"),
-                               menuSubItem("Training", tabName = "w_word2vec", icon = icon("chevron-right")),
-                               # if (embedding){
-                               menuSubItem("Similarity", tabName = "w_w2v_similarity", icon = icon("chevron-right"))
-                               # }
-                      )
-             ),
-             menuItem("Documents",
-                      tabName = "documents", icon = icon(name = "duplicate", lib = "glyphicon"),
-                      menuItem("Topic Modeling",
-                               tabName = "d_topicMod", icon = icon("chevron-right"),
-                               menuSubItem("K choice", tabName = "d_tm_select", icon = icon("chevron-right")),
-                               menuSubItem("Model Estimation", tabName = "d_tm_estim", icon = icon("chevron-right"))
-                      ),
-                      menuSubItem("Polarity Detection", tabName = "d_polDet", icon = icon("chevron-right")),
-                      menuItem("Summarization", tabName ="summarization", icon = icon("chevron-right"),
-                               menuSubItem("Abstractive", tabName = "d_astractive", icon = icon("chevron-right")),
-                               menuSubItem("Extractive", tabName = "d_summarization", icon = icon("chevron-right"))
-                      )
-             ),
-             menuItem("Report", tabName = "report", icon = icon("list-alt")),
-             menuItem("Settings", tabName = "settings", icon = icon("tasks"))
-           )
-         },
-         {
-           list(
-             menuItem("Import", tabName = "import_tx", icon = icon("open-file", lib = "glyphicon")),
-             menuItem("Settings", tabName = "settings", icon = icon("tasks"))
-           )
-         }
+  switch(
+    as.character(menu),
+    "-2" = {
+      list(
+        menuItem("Settings", tabName = "settings", icon = icon("tasks"))
+      )
+    },
+    "0" = {
+      list(
+        menuItem(
+          "Import",
+          tabName = "import_tx",
+          icon = icon("open-file", lib = "glyphicon")
+        ),
+        menuItem(
+          "Edit",
+          tabName = "edit_tx",
+          icon = icon("edit", lib = "glyphicon"),
+          menuSubItem(
+            "Split",
+            tabName = "split_tx",
+            icon = icon("chevron-right")
+          ),
+          menuSubItem(
+            "Random Selection",
+            tabName = "randomText",
+            icon = icon("chevron-right")
+          ),
+          menuSubItem(
+            "External Information",
+            tabName = "extInfo",
+            icon = icon("chevron-right")
+          )
+        ),
+        menuItem(
+          "Pre-processing",
+          tabName = "prePro",
+          icon = icon("indent-right", lib = "glyphicon"),
+          startExpanded = TRUE,
+          menuSubItem(
+            "Tokenization & PoS Tagging",
+            tabName = "tokPos",
+            icon = icon("chevron-right"),
+            selected = TRUE
+          )
+        ),
+        menuItem("Settings", tabName = "settings", icon = icon("tasks"))
+      )
+    },
+    "1" = {
+      list(
+        menuItem(
+          "Import",
+          tabName = "import_tx",
+          icon = icon("open-file", lib = "glyphicon")
+        ),
+        # menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
+        #          menuSubItem("Split", tabName = "split_tx", icon = icon("chevron-right")),
+        #          menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
+        #          menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
+        menuItem(
+          "Pre-processing",
+          tabName = "prePro",
+          icon = icon("indent-right", lib = "glyphicon"),
+          startExpanded = TRUE,
+          menuSubItem(
+            "Tokenization & PoS Tagging",
+            tabName = "tokPos",
+            icon = icon("chevron-right")
+          ),
+          menuSubItem(
+            "Tagging Special Entities",
+            tabName = "posSpecial",
+            icon = icon("chevron-right")
+          ),
+          menuItem(
+            "Multi-Word",
+            tabName = "multiword",
+            icon = icon("chevron-right"),
+            startExpanded = TRUE,
+            menuSubItem(
+              "Automatic",
+              tabName = "multiwordCreat",
+              icon = icon("chevron-right")
+            ),
+            menuSubItem(
+              "By a List",
+              tabName = "multiwordByList",
+              icon = icon("chevron-right")
+            )
+          ),
+          menuSubItem(
+            "Custom Term List",
+            tabName = "custTermList",
+            icon = icon("chevron-right"),
+            selected = TRUE
+          ),
+          menuSubItem(
+            "PoS Tag Selection",
+            tabName = "posTagSelect",
+            icon = icon("chevron-right")
+          )
+        ),
+        menuItem("Settings", tabName = "settings", icon = icon("tasks"))
+      )
+    },
+    "2" = {
+      list(
+        menuItem(
+          "Import",
+          tabName = "import_tx",
+          icon = icon("open-file", lib = "glyphicon")
+        ),
+        # menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
+        #          menuSubItem("Split", tabName = "split_tx", icon = icon("chevron-right")),
+        #          menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
+        #          menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
+        menuItem(
+          "Pre-processing",
+          tabName = "prePro",
+          icon = icon("indent-right", lib = "glyphicon"),
+          startExpanded = TRUE,
+          menuSubItem(
+            "Tokenization & PoS Tagging",
+            tabName = "tokPos",
+            icon = icon("chevron-right")
+          ),
+          menuSubItem(
+            "Tagging Special Entities",
+            tabName = "posSpecial",
+            icon = icon("chevron-right")
+          ),
+          menuItem(
+            "Multi-Word",
+            tabName = "multiword",
+            icon = icon("chevron-right"),
+            startExpanded = TRUE,
+            menuSubItem(
+              "Automatic",
+              tabName = "multiwordCreat",
+              icon = icon("chevron-right")
+            ),
+            menuSubItem(
+              "By a List",
+              tabName = "multiwordByList",
+              icon = icon("chevron-right")
+            )
+          ),
+          menuSubItem(
+            "Custom Term List",
+            tabName = "custTermList",
+            icon = icon("chevron-right")
+          ),
+          menuSubItem(
+            "PoS Tag Selection",
+            tabName = "posTagSelect",
+            icon = icon("chevron-right")
+          ),
+          selected = TRUE
+        ),
+        # menuItem("Filter", tabName = "filter_text", icon = icon("filter")),
+        # menuItem("Groups",tabName = "defineGroups", icon = icon("th", lib="glyphicon")),
+        menuItem(
+          "Overview",
+          tabName = "overview",
+          icon = icon("search", lib = "glyphicon")
+        ),
+        menuItem(
+          "Words",
+          tabName = "words",
+          icon = icon("font", lib = "glyphicon"),
+          # menuItem("Frequencies",
+          #   tabName = "freqList", icon = icon("chevron-right"),
+          #   menuSubItem("Words", tabName = "w_freq", icon = icon("chevron-right")),
+          #   menuSubItem("Part of Speech", tabName = "w_pos", icon = icon("chevron-right"))
+          # ),
+          menuSubItem(
+            "Words in Context",
+            tabName = "wordCont",
+            icon = icon("chevron-right")
+          ),
+          # menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),
+          menuSubItem(
+            "Reinert Clustering",
+            tabName = "w_reinclustering",
+            icon = icon("chevron-right")
+          ),
+          menuSubItem(
+            "Correspondence Analysis",
+            tabName = "ca",
+            icon = icon("chevron-right")
+          ),
+          menuItem(
+            "Network",
+            tabName = "w_network",
+            icon = icon("chevron-right"),
+            menuSubItem(
+              "Co-word analysis",
+              tabName = "w_networkCooc",
+              icon = icon("chevron-right")
+            ),
+            menuSubItem(
+              "Thematic Map",
+              tabName = "w_networkTM",
+              icon = icon("chevron-right")
+            )
+            # ,menuSubItem("Grako", tabName = "w_networkGrako", icon = icon("chevron-right"))
+          ),
+          menuItem(
+            "Word Embeddings",
+            tabName = "w_embeddings",
+            icon = icon("chevron-right"),
+            menuSubItem(
+              "Training",
+              tabName = "w_word2vec",
+              icon = icon("chevron-right")
+            ),
+            # if (embedding){
+            menuSubItem(
+              "Similarity",
+              tabName = "w_w2v_similarity",
+              icon = icon("chevron-right")
+            )
+            # }
+          )
+        ),
+        menuItem(
+          "Documents",
+          tabName = "documents",
+          icon = icon(name = "duplicate", lib = "glyphicon"),
+          menuItem(
+            "Topic Modeling",
+            tabName = "d_topicMod",
+            icon = icon("chevron-right"),
+            menuSubItem(
+              "K choice",
+              tabName = "d_tm_select",
+              icon = icon("chevron-right")
+            ),
+            menuSubItem(
+              "Model Estimation",
+              tabName = "d_tm_estim",
+              icon = icon("chevron-right")
+            )
+          ),
+          menuSubItem(
+            "Polarity Detection",
+            tabName = "d_polDet",
+            icon = icon("chevron-right")
+          ),
+          menuItem(
+            "Summarization",
+            tabName = "summarization",
+            icon = icon("chevron-right"),
+            menuSubItem(
+              "Abstractive",
+              tabName = "d_astractive",
+              icon = icon("chevron-right")
+            ),
+            menuSubItem(
+              "Extractive",
+              tabName = "d_summarization",
+              icon = icon("chevron-right")
+            )
+          )
+        ),
+        menuItem("Report", tabName = "report", icon = icon("list-alt")),
+        menuItem("Settings", tabName = "settings", icon = icon("tasks"))
+      )
+    },
+    "3" = {
+      list(
+        menuItem(
+          "Import",
+          tabName = "import_tx",
+          icon = icon("open-file", lib = "glyphicon")
+        ),
+        # menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
+        #          menuSubItem("Split", tabName = "split_tx", icon = icon("chevron-right")),
+        #          menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
+        #          menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
+        menuItem(
+          "Pre-processing",
+          tabName = "prePro",
+          icon = icon("indent-right", lib = "glyphicon"),
+          startExpanded = TRUE,
+          menuSubItem(
+            "Tokenization & PoS Tagging",
+            tabName = "tokPos",
+            icon = icon("chevron-right")
+          ),
+          menuSubItem(
+            "Tagging Special Entities",
+            tabName = "posSpecial",
+            icon = icon("chevron-right")
+          ),
+          menuItem(
+            "Multi-Word",
+            tabName = "multiword",
+            icon = icon("chevron-right"),
+            startExpanded = TRUE,
+            menuSubItem(
+              "Automatic",
+              tabName = "multiwordCreat",
+              icon = icon("chevron-right")
+            ),
+            menuSubItem(
+              "By a List",
+              tabName = "multiwordByList",
+              icon = icon("chevron-right")
+            )
+          ),
+          menuSubItem(
+            "Custom Term List",
+            tabName = "custTermList",
+            icon = icon("chevron-right")
+          ),
+          menuSubItem(
+            "PoS Tag Selection",
+            tabName = "posTagSelect",
+            icon = icon("chevron-right")
+          ),
+          selected = TRUE
+        ),
+        menuItem("Filter", tabName = "filter_text", icon = icon("filter")),
+        menuItem(
+          "Groups",
+          tabName = "defineGroups",
+          icon = icon("th", lib = "glyphicon")
+        ),
+        menuItem(
+          "Overview",
+          tabName = "overview",
+          icon = icon("search", lib = "glyphicon")
+        ),
+        menuItem(
+          "Words",
+          tabName = "words",
+          icon = icon("font", lib = "glyphicon"),
+          # menuItem("Frequencies",
+          #   tabName = "freqList", icon = icon("chevron-right"),
+          #   menuSubItem("Words", tabName = "w_freq", icon = icon("chevron-right")),
+          #   menuSubItem("Part of Speech", tabName = "w_pos", icon = icon("chevron-right"))
+          # ),
+          menuSubItem(
+            "Words in Context",
+            tabName = "wordCont",
+            icon = icon("chevron-right")
+          ),
+          menuSubItem(
+            "Reinert Clustering",
+            tabName = "w_reinclustering",
+            icon = icon("chevron-right")
+          ),
+          menuSubItem(
+            "Correspondence Analysis",
+            tabName = "ca",
+            icon = icon("chevron-right")
+          ),
+          menuItem(
+            "Network",
+            tabName = "w_network",
+            icon = icon("chevron-right"),
+            menuSubItem(
+              "Co-word analysis",
+              tabName = "w_networkCooc",
+              icon = icon("chevron-right")
+            ),
+            menuSubItem(
+              "Thematic Map",
+              tabName = "w_networkTM",
+              icon = icon("chevron-right")
+            )
+            # ,menuSubItem("Grako", tabName = "w_networkGrako", icon = icon("chevron-right"))
+          ),
+          menuItem(
+            "Word Embeddings",
+            tabName = "w_embeddings",
+            icon = icon("chevron-right"),
+            menuSubItem(
+              "Training",
+              tabName = "w_word2vec",
+              icon = icon("chevron-right")
+            ),
+            # if (embedding){
+            menuSubItem(
+              "Similarity",
+              tabName = "w_w2v_similarity",
+              icon = icon("chevron-right")
+            )
+            # }
+          )
+        ),
+        menuItem(
+          "Documents",
+          tabName = "documents",
+          icon = icon(name = "duplicate", lib = "glyphicon"),
+          menuItem(
+            "Topic Modeling",
+            tabName = "d_topicMod",
+            icon = icon("chevron-right"),
+            menuSubItem(
+              "K choice",
+              tabName = "d_tm_select",
+              icon = icon("chevron-right")
+            ),
+            menuSubItem(
+              "Model Estimation",
+              tabName = "d_tm_estim",
+              icon = icon("chevron-right")
+            )
+          ),
+          menuSubItem(
+            "Polarity Detection",
+            tabName = "d_polDet",
+            icon = icon("chevron-right")
+          ),
+          menuItem(
+            "Summarization",
+            tabName = "summarization",
+            icon = icon("chevron-right"),
+            menuSubItem(
+              "Abstractive",
+              tabName = "d_astractive",
+              icon = icon("chevron-right")
+            ),
+            menuSubItem(
+              "Extractive",
+              tabName = "d_summarization",
+              icon = icon("chevron-right")
+            )
+          )
+        ),
+        menuItem("Report", tabName = "report", icon = icon("list-alt")),
+        menuItem("Settings", tabName = "settings", icon = icon("tasks"))
+      )
+    },
+    {
+      list(
+        menuItem(
+          "Import",
+          tabName = "import_tx",
+          icon = icon("open-file", lib = "glyphicon")
+        ),
+        menuItem("Settings", tabName = "settings", icon = icon("tasks"))
+      )
+    }
   )
 }
 
 # DATA TABLE FORMAT ----
-DTformat <- function(df, nrow = 10, filename = "Table", pagelength = TRUE, left = NULL, right = NULL, numeric = NULL, dom = TRUE, size = "85%", filter = "top",
-                     columnShort = NULL, columnSmall = NULL, round = 2, title = "", button = FALSE, delete = FALSE, escape = FALSE, selection = FALSE, specialtags = FALSE) {
+DTformat <- function(
+  df,
+  nrow = 10,
+  filename = "Table",
+  pagelength = TRUE,
+  left = NULL,
+  right = NULL,
+  numeric = NULL,
+  dom = TRUE,
+  size = "85%",
+  filter = "top",
+  columnShort = NULL,
+  columnSmall = NULL,
+  round = 2,
+  title = "",
+  button = FALSE,
+  delete = FALSE,
+  escape = FALSE,
+  selection = FALSE,
+  specialtags = FALSE
+) {
   if ("text" %in% names(df)) {
     df <- df %>%
       mutate(text = gsub("<|>", "", text))
@@ -5566,7 +7383,8 @@ DTformat <- function(df, nrow = 10, filename = "Table", pagelength = TRUE, left 
   if (length(columnShort) > 0) {
     columnDefs <- list(
       list(
-        className = "dt-center", targets = 0:(length(names(df)) - 1)
+        className = "dt-center",
+        targets = 0:(length(names(df)) - 1)
       ),
       list(
         targets = columnShort - 1,
@@ -5580,7 +7398,8 @@ DTformat <- function(df, nrow = 10, filename = "Table", pagelength = TRUE, left 
     )
   } else {
     columnDefs <- list(list(
-      className = "dt-center", targets = 0:(length(names(df)) - 1)
+      className = "dt-center",
+      targets = 0:(length(names(df)) - 1)
     ))
   }
 
@@ -5618,30 +7437,53 @@ DTformat <- function(df, nrow = 10, filename = "Table", pagelength = TRUE, left 
   }
 
   if (nchar(title) > 0) {
-    caption <- htmltools::tags$caption(style = "caption-side: top; text-align: center; color:black;  font-size:140% ;", title)
+    caption <- htmltools::tags$caption(
+      style = "caption-side: top; text-align: center; color:black;  font-size:140% ;",
+      title
+    )
   } else {
-    caption <- htmltools::tags$caption(style = "caption-side: top; text-align: center; color:black;  font-size:140% ;", "")
+    caption <- htmltools::tags$caption(
+      style = "caption-side: top; text-align: center; color:black;  font-size:140% ;",
+      ""
+    )
   }
 
   if (isTRUE(button)) {
     df <- df %>%
-      mutate(Document = paste0('<button id="custom_btn" onclick="Shiny.onInputChange(\'button_id\', \'', doc_id, '\')">View</button>')) %>%
+      mutate(
+        Document = paste0(
+          '<button id="custom_btn" onclick="Shiny.onInputChange(\'button_id\', \'',
+          doc_id,
+          '\')">View</button>'
+        )
+      ) %>%
       select(Document, everything())
   }
 
   if (isTRUE(specialtags)) {
     df <- df %>%
       rename("Special Entity" = "UPOS") %>%
-      mutate("Frequency Distribution" = paste0('<button id2="custom_btn" onclick="Shiny.onInputChange(\'button_id2\', \'', `Special Entity`, '\')">View</button>')) %>%
+      mutate(
+        "Frequency Distribution" = paste0(
+          '<button id2="custom_btn" onclick="Shiny.onInputChange(\'button_id2\', \'',
+          `Special Entity`,
+          '\')">View</button>'
+        )
+      ) %>%
       select("Frequency Distribution", everything())
   }
 
   if (isTRUE(delete)) {
     df <- df %>%
-      mutate(Remove = paste0('<button id="custom_btn_del" onclick="Shiny.onInputChange(\'button_id_del\', \'', doc_id, '\')">Remove</button>')) %>%
+      mutate(
+        Remove = paste0(
+          '<button id="custom_btn_del" onclick="Shiny.onInputChange(\'button_id_del\', \'',
+          doc_id,
+          '\')">Remove</button>'
+        )
+      ) %>%
       select(Document, Remove, everything())
   }
-
 
   if (isTRUE(selection)) {
     extensions <- c("Buttons", "Select", "ColReorder", "FixedHeader")
@@ -5654,27 +7496,30 @@ DTformat <- function(df, nrow = 10, filename = "Table", pagelength = TRUE, left 
     # selection = "none"
   }
 
-  tab <- DT::datatable(df,
-                       escape = escape, rownames = FALSE,
-                       caption = caption,
-                       selection = "none",
-                       extensions = extensions,
-                       filter = filter,
-                       options = list(
-                         colReorder = TRUE,
-                         fixedHeader = TRUE,
-                         pageLength = nrow,
-                         autoWidth = FALSE, scrollX = TRUE,
-                         dom = dom,
-                         buttons = buttons,
-                         select = select,
-                         lengthMenu = list(
-                           c(10, 25, 50, -1),
-                           c("10 rows", "25 rows", "50 rows", "Show all")
-                         ),
-                         columnDefs = columnDefs
-                       ),
-                       class = "cell-border compact stripe"
+  tab <- DT::datatable(
+    df,
+    escape = escape,
+    rownames = FALSE,
+    caption = caption,
+    selection = "none",
+    extensions = extensions,
+    filter = filter,
+    options = list(
+      colReorder = TRUE,
+      fixedHeader = TRUE,
+      pageLength = nrow,
+      autoWidth = FALSE,
+      scrollX = TRUE,
+      dom = dom,
+      buttons = buttons,
+      select = select,
+      lengthMenu = list(
+        c(10, 25, 50, -1),
+        c("10 rows", "25 rows", "50 rows", "Show all")
+      ),
+      columnDefs = columnDefs
+    ),
+    class = "cell-border compact stripe"
   ) %>%
     DT::formatStyle(
       names(df),
@@ -5720,13 +7565,14 @@ DTformat <- function(df, nrow = 10, filename = "Table", pagelength = TRUE, left 
 
 plot2png <- function(p, filename, zoom = 2, type = "vis") {
   html_name <- tempfile(fileext = ".html")
-  switch(type,
-         vis = {
-           visSave(p, html_name)
-         },
-         plotly = {
-           htmlwidgets::saveWidget(p, file = html_name)
-         }
+  switch(
+    type,
+    vis = {
+      visSave(p, html_name)
+    },
+    plotly = {
+      htmlwidgets::saveWidget(p, file = html_name)
+    }
   )
 
   tallShot(html_name, zoom = zoom, file = filename)
@@ -5741,10 +7587,19 @@ freqGgplot <- function(df, x = 2, y = 1, n = 20, title = "NOUN Frequency") {
     data.frame()
   g <- ggplot(df, aes(x = df[, x], y = df[, y], label = df[, x])) +
     geom_col(color = "#c3d1be", fill = "#96af8e") +
-    geom_text(aes(label = df[, x]), position = position_dodge(width = 0.9), hjust = -0.4, color = "#4f7942", size = 3.7) +
+    geom_text(
+      aes(label = df[, x]),
+      position = position_dodge(width = 0.9),
+      hjust = -0.4,
+      color = "#4f7942",
+      size = 3.7
+    ) +
     labs(title = title, y = "", x = "Frequency") +
     scale_y_discrete(limits = rev(df[, y])) +
-    scale_x_continuous(limits = c(0, df[, x] + max(df[, x]) * 0.06), expand = c(0, 0)) +
+    scale_x_continuous(
+      limits = c(0, df[, x] + max(df[, x]) * 0.06),
+      expand = c(0, 0)
+    ) +
     theme(
       axis.text.y = element_text(angle = 0, hjust = 0, size = 9),
       axis.text.x = element_text(size = 10),
@@ -5756,14 +7611,17 @@ freqGgplot <- function(df, x = 2, y = 1, n = 20, title = "NOUN Frequency") {
 }
 
 topicGplot <- function(x, nPlot = 10, type = "beta") {
-
   # Identify ID column based on type
   id_col <- if (type == "beta") "word" else "doc"
   topic_names <- setdiff(colnames(x), id_col)
 
   # Reshape and filter top n per topic
   long_data <- x %>%
-    pivot_longer(cols = all_of(topic_names), names_to = "topic", values_to = "probability") %>%
+    pivot_longer(
+      cols = all_of(topic_names),
+      names_to = "topic",
+      values_to = "probability"
+    ) %>%
     group_by(topic) %>%
     slice_max(order_by = probability, n = nPlot) %>%
     arrange(desc(probability), .by_group = TRUE) %>%
@@ -5773,7 +7631,9 @@ topicGplot <- function(x, nPlot = 10, type = "beta") {
   # Reorder factor levels for y-axis
   long_data <- long_data %>%
     group_by(topic) %>%
-    mutate(label = factor(.data[[id_col]], levels = rev(unique(.data[[id_col]])))) %>%
+    mutate(
+      label = factor(.data[[id_col]], levels = rev(unique(.data[[id_col]])))
+    ) %>%
     ungroup()
 
   # Select the required number of colors
@@ -5790,8 +7650,7 @@ topicGplot <- function(x, nPlot = 10, type = "beta") {
       axis.text.y = element_text(angle = 0, hjust = 0),
       panel.grid.major.y = element_blank()
     ) +
-    labs(y = ifelse(type == "beta", "Word", "Document"),
-         x = "Probability")
+    labs(y = ifelse(type == "beta", "Word", "Document"), x = "Probability")
 
   return(g)
 }
@@ -5805,16 +7664,23 @@ deleteCache <- function() {
   result <- unlink(path_tall, recursive = TRUE)
   btn_labels <- "OK"
 
-
   if (result == 0) {
-    subtitle <- paste0("The folder '", path_tall, "' \nand files contained in it have been correctly deleted")
+    subtitle <- paste0(
+      "The folder '",
+      path_tall,
+      "' \nand files contained in it have been correctly deleted"
+    )
     title <- ""
     btn_colors <- "#1d8fe1"
     showButton <- TRUE
     timer <- 3000
     type <- "success"
   } else {
-    subtitle <- paste0("The folder '", path_tall, "' \ndoes not exist or you don't have permissions to delete it")
+    subtitle <- paste0(
+      "The folder '",
+      path_tall,
+      "' \ndoes not exist or you don't have permissions to delete it"
+    )
     title <- ""
     btn_colors <- "#913333"
     showButton <- TRUE
@@ -5851,9 +7717,189 @@ resetModalButtons <- function(session) {
 #### language models repo ----
 
 langrepo <- function() {
-  language_name <- c("afrikaans", "ancient_greek", "ancient_greek", "arabic", "armenian", "basque", "belarusian", "bulgarian", "catalan", "chinese", "chinese", "classical_chinese", "coptic", "croatian", "czech", "czech", "czech", "czech", "danish", "dutch", "dutch", "english", "english", "english", "english", "estonian", "estonian", "finnish", "finnish", "french", "french", "french", "galician", "galician", "german", "german", "gothic", "greek", "hebrew", "hindi", "hungarian", "indonesian", "irish", "italian", "italian", "italian", "italian", "italian", "japanese", "korean", "korean", "latin", "latin", "latin", "latvian", "lithuanian", "lithuanian", "maltese", "marathi", "norwegian", "norwegian", "old_church_slavonic", "persian", "polish", "polish", "portuguese", "portuguese", "romanian", "romanian", "russian", "russian", "russian", "scottish_gaelic", "serbian", "slovak", "slovenian", "slovenian", "spanish", "spanish", "swedish", "swedish", "tamil", "telugu", "turkish", "ukrainian", "urdu", "uyghur", "vietnamese", "wolof")
+  language_name <- c(
+    "afrikaans",
+    "ancient_greek",
+    "ancient_greek",
+    "arabic",
+    "armenian",
+    "basque",
+    "belarusian",
+    "bulgarian",
+    "catalan",
+    "chinese",
+    "chinese",
+    "classical_chinese",
+    "coptic",
+    "croatian",
+    "czech",
+    "czech",
+    "czech",
+    "czech",
+    "danish",
+    "dutch",
+    "dutch",
+    "english",
+    "english",
+    "english",
+    "english",
+    "estonian",
+    "estonian",
+    "finnish",
+    "finnish",
+    "french",
+    "french",
+    "french",
+    "galician",
+    "galician",
+    "german",
+    "german",
+    "gothic",
+    "greek",
+    "hebrew",
+    "hindi",
+    "hungarian",
+    "indonesian",
+    "irish",
+    "italian",
+    "italian",
+    "italian",
+    "italian",
+    "italian",
+    "japanese",
+    "korean",
+    "korean",
+    "latin",
+    "latin",
+    "latin",
+    "latvian",
+    "lithuanian",
+    "lithuanian",
+    "maltese",
+    "marathi",
+    "norwegian",
+    "norwegian",
+    "old_church_slavonic",
+    "persian",
+    "polish",
+    "polish",
+    "portuguese",
+    "portuguese",
+    "romanian",
+    "romanian",
+    "russian",
+    "russian",
+    "russian",
+    "scottish_gaelic",
+    "serbian",
+    "slovak",
+    "slovenian",
+    "slovenian",
+    "spanish",
+    "spanish",
+    "swedish",
+    "swedish",
+    "tamil",
+    "telugu",
+    "turkish",
+    "ukrainian",
+    "urdu",
+    "uyghur",
+    "vietnamese",
+    "wolof"
+  )
 
-  treebank <- c("AfriBooms", "Perseus", "PROIEL", "PADT", "ArmTDP", "BDT", "HSE", "BTB", "AnCora", "GSD", "GSDSimp", "Kyoto", "Scriptorium", "SET", "CAC", "CLTT", "FicTree", "PDT", "DDT", "Alpino", "LassySmall", "EWT", "GUM", "LinES", "ParTUT", "EDT", "EWT", "FTB", "TDT", "GSD", "ParTUT", "Sequoia", "CTG", "TreeGal", "GSD", "HDT", "PROIEL", "GDT", "HTB", "HDTB", "Szeged", "GSD", "IDT", "ISDT", "ParTUT", "PoSTWITA", "TWITTIRO", "VIT", "GSD", "GSD", "Kaist", "ITTB", "Perseus", "PROIEL", "LVTB", "ALKSNIS", "HSE", "MUDT", "UFAL", "Bokmaal", "Nynorsk", "PROIEL", "Seraji", "LFG", "PDB", "Bosque", "GSD", "Nonstandard", "RRT", "GSD", "SynTagRus", "Taiga", "ARCOSG", "SET", "SNK", "SSJ", "SST", "AnCora", "GSD", "LinES", "Talbanken", "TTB", "MTG", "IMST", "IU", "UDTB", "UDT", "VTB", "WTB")
+  treebank <- c(
+    "AfriBooms",
+    "Perseus",
+    "PROIEL",
+    "PADT",
+    "ArmTDP",
+    "BDT",
+    "HSE",
+    "BTB",
+    "AnCora",
+    "GSD",
+    "GSDSimp",
+    "Kyoto",
+    "Scriptorium",
+    "SET",
+    "CAC",
+    "CLTT",
+    "FicTree",
+    "PDT",
+    "DDT",
+    "Alpino",
+    "LassySmall",
+    "EWT",
+    "GUM",
+    "LinES",
+    "ParTUT",
+    "EDT",
+    "EWT",
+    "FTB",
+    "TDT",
+    "GSD",
+    "ParTUT",
+    "Sequoia",
+    "CTG",
+    "TreeGal",
+    "GSD",
+    "HDT",
+    "PROIEL",
+    "GDT",
+    "HTB",
+    "HDTB",
+    "Szeged",
+    "GSD",
+    "IDT",
+    "ISDT",
+    "ParTUT",
+    "PoSTWITA",
+    "TWITTIRO",
+    "VIT",
+    "GSD",
+    "GSD",
+    "Kaist",
+    "ITTB",
+    "Perseus",
+    "PROIEL",
+    "LVTB",
+    "ALKSNIS",
+    "HSE",
+    "MUDT",
+    "UFAL",
+    "Bokmaal",
+    "Nynorsk",
+    "PROIEL",
+    "Seraji",
+    "LFG",
+    "PDB",
+    "Bosque",
+    "GSD",
+    "Nonstandard",
+    "RRT",
+    "GSD",
+    "SynTagRus",
+    "Taiga",
+    "ARCOSG",
+    "SET",
+    "SNK",
+    "SSJ",
+    "SST",
+    "AnCora",
+    "GSD",
+    "LinES",
+    "Talbanken",
+    "TTB",
+    "MTG",
+    "IMST",
+    "IU",
+    "UDTB",
+    "UDT",
+    "VTB",
+    "WTB"
+  )
 
   description <- c(
     "UD Afrikaans-AfriBooms is a conversion of the AfriBooms Dependency Treebank, originally annotated with a simplified PoS set and dependency relations according to a subset of the Stanford tag set. The corpus consists of public government documents.",
@@ -5947,7 +7993,6 @@ langrepo <- function() {
     "UD_Wolof-WTB is a natively manual developed treebank for Wolof. Sentences were collected from encyclopedic, fictional, biographical, religious texts and news."
   )
 
-
   contributors <- c(
     "Peter Dirix, Liesbeth Augustinus, Daniel van Niekerk",
     "Giuseppe G. A. Celano, Daniel Zeman",
@@ -6040,15 +8085,379 @@ langrepo <- function() {
     "Bamba Dione"
   )
 
-  file <- c("af_afribooms", "grc_perseus", "grc_proiel", "ar_padt", "hy_armtdp", "eu_bdt", "be_hse", "bg_btb", "ca_ancora", "zh_gsd", "zh_gsdsimp", "lzh_kyoto", "cop_scriptorium", "hr_set", "cs_cac", "cs_cltt", "cs_fictree", "cs_pdt", "da_ddt", "nl_alpino", "nl_lassysmall", "en_ewt", "en_gum", "en_lines", "en_partut", "et_edt", "et_ewt", "fi_ftb", "fi_tdt", "fr_gsd", "fr_partut", "fr_sequoia", "gl_ctg", "gl_treegal", "de_gsd", "de_hdt", "got_proiel", "el_gdt", "he_htb", "hi_hdtb", "hu_szeged", "id_gsd", "ga_idt", "it_isdt", "it_partut", "it_postwita", "it_twittiro", "it_vit", "ja_gsd", "ko_gsd", "ko_kaist", "la_ittb", "la_perseus", "la_proiel", "lv_lvtb", "lt_alksnis", "lt_hse", "mt_mudt", "mr_ufal", "no_bokmaal", "no_nynorsk", "cu_proiel", "fa_seraji", "pl_lfg", "pl_pdb", "pt_bosque", "pt_gsd", "ro_nonstandard", "ro_rrt", "ru_gsd", "ru_syntagrus", "ru_taiga", "gd_arcosg", "sr_set", "sk_snk", "sl_ssj", "sl_sst", "es_ancora", "es_gsd", "sv_lines", "sv_talbanken", "ta_ttb", "te_mtg", "tr_imst", "uk_iu", "ur_udtb", "ug_udt", "vi_vtb", "wo_wtb")
+  file <- c(
+    "af_afribooms",
+    "grc_perseus",
+    "grc_proiel",
+    "ar_padt",
+    "hy_armtdp",
+    "eu_bdt",
+    "be_hse",
+    "bg_btb",
+    "ca_ancora",
+    "zh_gsd",
+    "zh_gsdsimp",
+    "lzh_kyoto",
+    "cop_scriptorium",
+    "hr_set",
+    "cs_cac",
+    "cs_cltt",
+    "cs_fictree",
+    "cs_pdt",
+    "da_ddt",
+    "nl_alpino",
+    "nl_lassysmall",
+    "en_ewt",
+    "en_gum",
+    "en_lines",
+    "en_partut",
+    "et_edt",
+    "et_ewt",
+    "fi_ftb",
+    "fi_tdt",
+    "fr_gsd",
+    "fr_partut",
+    "fr_sequoia",
+    "gl_ctg",
+    "gl_treegal",
+    "de_gsd",
+    "de_hdt",
+    "got_proiel",
+    "el_gdt",
+    "he_htb",
+    "hi_hdtb",
+    "hu_szeged",
+    "id_gsd",
+    "ga_idt",
+    "it_isdt",
+    "it_partut",
+    "it_postwita",
+    "it_twittiro",
+    "it_vit",
+    "ja_gsd",
+    "ko_gsd",
+    "ko_kaist",
+    "la_ittb",
+    "la_perseus",
+    "la_proiel",
+    "lv_lvtb",
+    "lt_alksnis",
+    "lt_hse",
+    "mt_mudt",
+    "mr_ufal",
+    "no_bokmaal",
+    "no_nynorsk",
+    "cu_proiel",
+    "fa_seraji",
+    "pl_lfg",
+    "pl_pdb",
+    "pt_bosque",
+    "pt_gsd",
+    "ro_nonstandard",
+    "ro_rrt",
+    "ru_gsd",
+    "ru_syntagrus",
+    "ru_taiga",
+    "gd_arcosg",
+    "sr_set",
+    "sk_snk",
+    "sl_ssj",
+    "sl_sst",
+    "es_ancora",
+    "es_gsd",
+    "sv_lines",
+    "sv_talbanken",
+    "ta_ttb",
+    "te_mtg",
+    "tr_imst",
+    "uk_iu",
+    "ur_udtb",
+    "ug_udt",
+    "vi_vtb",
+    "wo_wtb"
+  )
 
-  hub_link <- paste0("https://universaldependencies.org/treebanks/", file, "/index.html")
+  hub_link <- paste0(
+    "https://universaldependencies.org/treebanks/",
+    file,
+    "/index.html"
+  )
 
-  tokens <- c("22369", "202989", "214005", "93712", "52220", "121443", "305417", "156149", "537767", "123291", "123291", "433168", "26837", "2247925", "494142", "36007", "166602", "1526323", "506231", "208745", "297486", "251536", "208446", "93200", "49601", "438312", "50473", "159314", "202209", "389367", "27638", "68593", "126011", "23479", "287721", "3399390", "87266", "61773", "114648", "351704", "1182501", "119830", "115990", "278461", "51614", "119334", "28384", "259625", "193654", "80322", "350090", "450480", "28868", "328476", "328305", "70049", "5356", "44162", "13089", "310221", "301353", "553686", "151625", "130967", "347319", "210958", "296169", "1896343", "218522", "97994", "1517881", "197001", "86089", "97673", "365490", "267097", "98393", "555670", "423346", "90961", "96859", "8635", "6465", "56422", "122934", "138077", "40236", "58069", "42832")
+  tokens <- c(
+    "22369",
+    "202989",
+    "214005",
+    "93712",
+    "52220",
+    "121443",
+    "305417",
+    "156149",
+    "537767",
+    "123291",
+    "123291",
+    "433168",
+    "26837",
+    "2247925",
+    "494142",
+    "36007",
+    "166602",
+    "1526323",
+    "506231",
+    "208745",
+    "297486",
+    "251536",
+    "208446",
+    "93200",
+    "49601",
+    "438312",
+    "50473",
+    "159314",
+    "202209",
+    "389367",
+    "27638",
+    "68593",
+    "126011",
+    "23479",
+    "287721",
+    "3399390",
+    "87266",
+    "61773",
+    "114648",
+    "351704",
+    "1182501",
+    "119830",
+    "115990",
+    "278461",
+    "51614",
+    "119334",
+    "28384",
+    "259625",
+    "193654",
+    "80322",
+    "350090",
+    "450480",
+    "28868",
+    "328476",
+    "328305",
+    "70049",
+    "5356",
+    "44162",
+    "13089",
+    "310221",
+    "301353",
+    "553686",
+    "151625",
+    "130967",
+    "347319",
+    "210958",
+    "296169",
+    "1896343",
+    "218522",
+    "97994",
+    "1517881",
+    "197001",
+    "86089",
+    "97673",
+    "365490",
+    "267097",
+    "98393",
+    "555670",
+    "423346",
+    "90961",
+    "96859",
+    "8635",
+    "6465",
+    "56422",
+    "122934",
+    "138077",
+    "40236",
+    "58069",
+    "42832"
+  )
 
-  words <- c("25017", "202989", "214005", "94390", "52585", "121443", "305417", "156149", "553638", "123291", "123291", "433168", "57098", "2252453", "495219", "36023", "167226", "1529074", "506232", "208746", "297486", "254865", "212035", "94217", "49632", "438313", "50486", "159612", "202453", "400391", "28576", "70545", "138837", "25548", "292769", "3455580", "88934", "63441", "160195", "351704", "1183884", "122019", "115990", "298375", "55558", "124515", "29602", "280153", "193654", "80322", "350090", "450517", "29221", "328476", "328305", "70049", "5356", "44162", "13089", "310221", "301353", "553686", "152920", "130967", "349978", "227827", "318666", "1896343", "218522", "97994", "1517881", "197001", "89958", "97673", "365490", "267097", "98393", "568249", "431600", "90961", "96859", "9581", "6465", "58096", "122983", "138077", "40236", "58069", "44258")
+  words <- c(
+    "25017",
+    "202989",
+    "214005",
+    "94390",
+    "52585",
+    "121443",
+    "305417",
+    "156149",
+    "553638",
+    "123291",
+    "123291",
+    "433168",
+    "57098",
+    "2252453",
+    "495219",
+    "36023",
+    "167226",
+    "1529074",
+    "506232",
+    "208746",
+    "297486",
+    "254865",
+    "212035",
+    "94217",
+    "49632",
+    "438313",
+    "50486",
+    "159612",
+    "202453",
+    "400391",
+    "28576",
+    "70545",
+    "138837",
+    "25548",
+    "292769",
+    "3455580",
+    "88934",
+    "63441",
+    "160195",
+    "351704",
+    "1183884",
+    "122019",
+    "115990",
+    "298375",
+    "55558",
+    "124515",
+    "29602",
+    "280153",
+    "193654",
+    "80322",
+    "350090",
+    "450517",
+    "29221",
+    "328476",
+    "328305",
+    "70049",
+    "5356",
+    "44162",
+    "13089",
+    "310221",
+    "301353",
+    "553686",
+    "152920",
+    "130967",
+    "349978",
+    "227827",
+    "318666",
+    "1896343",
+    "218522",
+    "97994",
+    "1517881",
+    "197001",
+    "89958",
+    "97673",
+    "365490",
+    "267097",
+    "98393",
+    "568249",
+    "431600",
+    "90961",
+    "96859",
+    "9581",
+    "6465",
+    "58096",
+    "122983",
+    "138077",
+    "40236",
+    "58069",
+    "44258"
+  )
 
-  sentences <- c("1975", "13919", "17082", "4800", "2500", "8993", "25231", "11138", "16678", "4997", "4997", "86239", "2203", "127794", "24709", "1121", "12760", "87907", "30723", "13603", "17120", "16622", "12146", "5243", "2090", "30930", "2829", "18723", "15136", "16342", "1020", "3099", "3993", "1000", "15590", "189928", "4328", "2521", "6143", "16649", "53564", "5598", "4910", "14167", "2090", "6712", "1424", "10087", "8100", "6339", "27363", "26977", "2273", "19387", "19367", "3642", "263", "2074", "1144", "20044", "17575", "40085", "5997", "17246", "22152", "9357", "12020", "116324", "9524", "5030", "87336", "17872", "4741", "4384", "19543", "13435", "6108", "17662", "16014", "5243", "6026", "600", "1328", "5635", "7092", "5130", "3456", "3323", "2107")
+  sentences <- c(
+    "1975",
+    "13919",
+    "17082",
+    "4800",
+    "2500",
+    "8993",
+    "25231",
+    "11138",
+    "16678",
+    "4997",
+    "4997",
+    "86239",
+    "2203",
+    "127794",
+    "24709",
+    "1121",
+    "12760",
+    "87907",
+    "30723",
+    "13603",
+    "17120",
+    "16622",
+    "12146",
+    "5243",
+    "2090",
+    "30930",
+    "2829",
+    "18723",
+    "15136",
+    "16342",
+    "1020",
+    "3099",
+    "3993",
+    "1000",
+    "15590",
+    "189928",
+    "4328",
+    "2521",
+    "6143",
+    "16649",
+    "53564",
+    "5598",
+    "4910",
+    "14167",
+    "2090",
+    "6712",
+    "1424",
+    "10087",
+    "8100",
+    "6339",
+    "27363",
+    "26977",
+    "2273",
+    "19387",
+    "19367",
+    "3642",
+    "263",
+    "2074",
+    "1144",
+    "20044",
+    "17575",
+    "40085",
+    "5997",
+    "17246",
+    "22152",
+    "9357",
+    "12020",
+    "116324",
+    "9524",
+    "5030",
+    "87336",
+    "17872",
+    "4741",
+    "4384",
+    "19543",
+    "13435",
+    "6108",
+    "17662",
+    "16014",
+    "5243",
+    "6026",
+    "600",
+    "1328",
+    "5635",
+    "7092",
+    "5130",
+    "3456",
+    "3323",
+    "2107"
+  )
 
   folder <- paste0("UD_", language_name, "-", treebank) # Generazione dinamica
 
@@ -6145,16 +8554,187 @@ langrepo <- function() {
   )
 
   flag <- c(
-    "AF.svg", "GRC.svg", "GRC.svg", "AR.svg", "HY.svg", "EU.svg", "BE.svg", "BG.svg", "CA.svg", "ZH.svg", "ZH.svg", "LZH.svg", "COP.svg", "HR.svg", "CS.svg", "CS.svg",
-    "CS.svg", "CS.svg", "DA.svg", "NL.svg", "NL.svg", "EN.svg", "EN.svg", "EN.svg", "EN.svg", "ET.svg", "ET.svg", "FI.svg", "FI.svg", "FR.svg", "FR.svg", "FR.svg", "GL.svg", "GL.svg",
-    "DE.svg", "DE.svg", "GOT.svg", "EL.svg", "HE.svg", "HI.svg", "HU.svg", "ID.svg", "GA.svg", "IT.svg", "IT.svg", "IT.svg", "IT.svg", "IT.svg", "JA.svg", "KO.svg", "KO.svg", "LA.svg",
-    "LA.svg", "LA.svg", "LV.svg", "LT.svg", "LT.svg", "MT.svg", "MR.svg", "NO.svg", "NO.svg", "CU.svg", "FA.svg", "PL.svg", "PL.svg", "PT.svg", "PT.svg", "RO.svg", "RO.svg", "RU.svg", "RU.svg", "RU.svg",
-    "GD.svg", "SR.svg", "SK.svg", "SL.svg", "SL.svg", "ES.svg", "ES.svg", "SV.svg", "SV.svg", "TA.svg", "TE.svg", "TR.svg", "UK.svg", "UR.svg", "UG.svg", "VI.svg", "WO.svg"
+    "AF.svg",
+    "GRC.svg",
+    "GRC.svg",
+    "AR.svg",
+    "HY.svg",
+    "EU.svg",
+    "BE.svg",
+    "BG.svg",
+    "CA.svg",
+    "ZH.svg",
+    "ZH.svg",
+    "LZH.svg",
+    "COP.svg",
+    "HR.svg",
+    "CS.svg",
+    "CS.svg",
+    "CS.svg",
+    "CS.svg",
+    "DA.svg",
+    "NL.svg",
+    "NL.svg",
+    "EN.svg",
+    "EN.svg",
+    "EN.svg",
+    "EN.svg",
+    "ET.svg",
+    "ET.svg",
+    "FI.svg",
+    "FI.svg",
+    "FR.svg",
+    "FR.svg",
+    "FR.svg",
+    "GL.svg",
+    "GL.svg",
+    "DE.svg",
+    "DE.svg",
+    "GOT.svg",
+    "EL.svg",
+    "HE.svg",
+    "HI.svg",
+    "HU.svg",
+    "ID.svg",
+    "GA.svg",
+    "IT.svg",
+    "IT.svg",
+    "IT.svg",
+    "IT.svg",
+    "IT.svg",
+    "JA.svg",
+    "KO.svg",
+    "KO.svg",
+    "LA.svg",
+    "LA.svg",
+    "LA.svg",
+    "LV.svg",
+    "LT.svg",
+    "LT.svg",
+    "MT.svg",
+    "MR.svg",
+    "NO.svg",
+    "NO.svg",
+    "CU.svg",
+    "FA.svg",
+    "PL.svg",
+    "PL.svg",
+    "PT.svg",
+    "PT.svg",
+    "RO.svg",
+    "RO.svg",
+    "RU.svg",
+    "RU.svg",
+    "RU.svg",
+    "GD.svg",
+    "SR.svg",
+    "SK.svg",
+    "SL.svg",
+    "SL.svg",
+    "ES.svg",
+    "ES.svg",
+    "SV.svg",
+    "SV.svg",
+    "TA.svg",
+    "TE.svg",
+    "TR.svg",
+    "UK.svg",
+    "UR.svg",
+    "UG.svg",
+    "VI.svg",
+    "WO.svg"
   )
 
   ranking <- c(
-    21, 22, 23, 24, 25, 26, 27, 28, 29, 19, 20, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 2, 1, 3, 4, 40, 41, 42, 43, 10, 11, 12, 44, 45, 16, 15, 46, 47, 48, 49, 50, 51, 52, 5, 6, 7, 8, 9,
-    53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 17, 18, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 13, 14, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    19,
+    20,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    2,
+    1,
+    3,
+    4,
+    40,
+    41,
+    42,
+    43,
+    10,
+    11,
+    12,
+    44,
+    45,
+    16,
+    15,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    5,
+    6,
+    7,
+    8,
+    9,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    17,
+    18,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    13,
+    14,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89
   )
 
   df <- data.frame(
@@ -6184,136 +8764,993 @@ langrepo <- function() {
 model_accuracy <- function() {
   # Creazione dei vettori stringa per ciascuna colonna
   Language <- c(
-    "Afrikaans", "Arabic", "Belarusian", "Bulgarian", "Catalan", "Coptic", "Czech", "Czech", "Czech",
-    "Czech", "Old Church Slavonic", "Danish", "German", "Greek", "English", "English", "English",
-    "English", "Spanish", "Spanish", "Estonian", "Estonian", "Basque", "Persian", "Finnish", "Finnish",
-    "French", "French", "French", "Irish", "Scottish Gaelic", "Galician", "Gothic", "Ancient Greek",
-    "Ancient Greek", "Hebrew", "Hindi", "Croatian", "Hungarian", "Armenian", "Indonesian", "Italian",
-    "Italian", "Italian", "Italian", "Italian", "Japanese", "Korean", "Korean", "Latin", "Latin",
-    "Lithuanian", "Lithuanian", "Latvian", "Classical Chinese", "Marathi", "Maltese", "Dutch", "Dutch",
-    "Norwegian", "Norwegian", "Polish", "Polish", "Portuguese", "Portuguese", "Romanian", "Romanian",
-    "Russian", "Russian", "Russian", "Slovak", "Slovenian", "Slovenian", "Serbian", "Swedish", "Swedish",
-    "Tamil", "Telugu", "Turkish", "Uyghur", "Ukrainian", "Urdu", "Vietnamese", "Wolof", "Chinese",
-    "Chinese", "German"
+    "Afrikaans",
+    "Arabic",
+    "Belarusian",
+    "Bulgarian",
+    "Catalan",
+    "Coptic",
+    "Czech",
+    "Czech",
+    "Czech",
+    "Czech",
+    "Old Church Slavonic",
+    "Danish",
+    "German",
+    "Greek",
+    "English",
+    "English",
+    "English",
+    "English",
+    "Spanish",
+    "Spanish",
+    "Estonian",
+    "Estonian",
+    "Basque",
+    "Persian",
+    "Finnish",
+    "Finnish",
+    "French",
+    "French",
+    "French",
+    "Irish",
+    "Scottish Gaelic",
+    "Galician",
+    "Gothic",
+    "Ancient Greek",
+    "Ancient Greek",
+    "Hebrew",
+    "Hindi",
+    "Croatian",
+    "Hungarian",
+    "Armenian",
+    "Indonesian",
+    "Italian",
+    "Italian",
+    "Italian",
+    "Italian",
+    "Italian",
+    "Japanese",
+    "Korean",
+    "Korean",
+    "Latin",
+    "Latin",
+    "Lithuanian",
+    "Lithuanian",
+    "Latvian",
+    "Classical Chinese",
+    "Marathi",
+    "Maltese",
+    "Dutch",
+    "Dutch",
+    "Norwegian",
+    "Norwegian",
+    "Polish",
+    "Polish",
+    "Portuguese",
+    "Portuguese",
+    "Romanian",
+    "Romanian",
+    "Russian",
+    "Russian",
+    "Russian",
+    "Slovak",
+    "Slovenian",
+    "Slovenian",
+    "Serbian",
+    "Swedish",
+    "Swedish",
+    "Tamil",
+    "Telugu",
+    "Turkish",
+    "Uyghur",
+    "Ukrainian",
+    "Urdu",
+    "Vietnamese",
+    "Wolof",
+    "Chinese",
+    "Chinese",
+    "German"
   )
 
   Treebank <- c(
-    "AfriBooms", "PADT", "HSE", "BTB", "AnCora", "Scriptorium", "CAC", "CLTT", "FicTree", "PDT",
-    "PROIEL", "DDT", "GSD", "GDT", "EWT", "GUM", "LinES", "ParTUT", "AnCora", "GSD", "EDT", "EWT",
-    "BDT", "Seraji", "FTB", "TDT", "GSD", "ParTUT", "Sequoia", "IDT", "ARCOSG", "CTG", "PROIEL",
-    "Perseus", "PROIEL", "HTB", "HDTB", "SET", "Szeged", "ArmTDP", "GSD", "ISDT", "ParTUT",
-    "PoSTWITA", "TWITTIRO", "VIT", "GSD", "GSD", "Kaist", "ITTB", "PROIEL", "ALKSNIS", "HSE", "LVTB",
-    "Kyoto", "UFAL", "MUDT", "Alpino", "LassySmall", "Bokmaal", "Nynorsk", "LFG", "PDB", "Bosque",
-    "GSD", "Nonstandard", "RRT", "GSD", "SynTagRus", "Taiga", "SNK", "SSJ", "SST", "SET", "LinES",
-    "Talbanken", "TTB", "MTG", "IMST", "UDT", "IU", "UDTB", "VTB", "WTB", "GSD", "GSDSimp", "HDT"
+    "AfriBooms",
+    "PADT",
+    "HSE",
+    "BTB",
+    "AnCora",
+    "Scriptorium",
+    "CAC",
+    "CLTT",
+    "FicTree",
+    "PDT",
+    "PROIEL",
+    "DDT",
+    "GSD",
+    "GDT",
+    "EWT",
+    "GUM",
+    "LinES",
+    "ParTUT",
+    "AnCora",
+    "GSD",
+    "EDT",
+    "EWT",
+    "BDT",
+    "Seraji",
+    "FTB",
+    "TDT",
+    "GSD",
+    "ParTUT",
+    "Sequoia",
+    "IDT",
+    "ARCOSG",
+    "CTG",
+    "PROIEL",
+    "Perseus",
+    "PROIEL",
+    "HTB",
+    "HDTB",
+    "SET",
+    "Szeged",
+    "ArmTDP",
+    "GSD",
+    "ISDT",
+    "ParTUT",
+    "PoSTWITA",
+    "TWITTIRO",
+    "VIT",
+    "GSD",
+    "GSD",
+    "Kaist",
+    "ITTB",
+    "PROIEL",
+    "ALKSNIS",
+    "HSE",
+    "LVTB",
+    "Kyoto",
+    "UFAL",
+    "MUDT",
+    "Alpino",
+    "LassySmall",
+    "Bokmaal",
+    "Nynorsk",
+    "LFG",
+    "PDB",
+    "Bosque",
+    "GSD",
+    "Nonstandard",
+    "RRT",
+    "GSD",
+    "SynTagRus",
+    "Taiga",
+    "SNK",
+    "SSJ",
+    "SST",
+    "SET",
+    "LinES",
+    "Talbanken",
+    "TTB",
+    "MTG",
+    "IMST",
+    "UDT",
+    "IU",
+    "UDTB",
+    "VTB",
+    "WTB",
+    "GSD",
+    "GSDSimp",
+    "HDT"
   )
 
   Words <- c(
-    99.93, 94.51, 99.28, 99.92, 99.94, 75.38, 99.96, 99.37, 99.99, 99.91,
-    100.00, 99.93, 99.56, 99.89, 99.14, 99.57, 99.94, 99.78, 99.94, 99.72,
-    99.88, 98.95, 99.98, 99.65, 99.99, 99.68, 98.89, 99.41, 99.09, 99.67,
-    97.39, 99.14, 100.00, 99.98, 100.00, 85.08, 99.99, 99.91, 99.69, 99.38,
-    99.45, 99.80, 99.70, 99.36, 99.02, 99.75, 95.77, 99.85, 99.99, 99.97,
-    99.99, 99.95, 97.65, 99.23, 97.70, 95.27, 99.79, 99.59, 99.83, 99.82,
-    99.90, 99.86, 99.85, 99.67, 99.27, 98.88, 99.68, 99.53, 99.57, 98.74,
-    100.00, 99.89, 100.00, 100.00, 99.96, 99.91, 94.93, 100.00, 97.60, 99.74,
-    99.71, 99.99, 85.11, 99.16, 89.89, 89.05, 99.9
+    99.93,
+    94.51,
+    99.28,
+    99.92,
+    99.94,
+    75.38,
+    99.96,
+    99.37,
+    99.99,
+    99.91,
+    100.00,
+    99.93,
+    99.56,
+    99.89,
+    99.14,
+    99.57,
+    99.94,
+    99.78,
+    99.94,
+    99.72,
+    99.88,
+    98.95,
+    99.98,
+    99.65,
+    99.99,
+    99.68,
+    98.89,
+    99.41,
+    99.09,
+    99.67,
+    97.39,
+    99.14,
+    100.00,
+    99.98,
+    100.00,
+    85.08,
+    99.99,
+    99.91,
+    99.69,
+    99.38,
+    99.45,
+    99.80,
+    99.70,
+    99.36,
+    99.02,
+    99.75,
+    95.77,
+    99.85,
+    99.99,
+    99.97,
+    99.99,
+    99.95,
+    97.65,
+    99.23,
+    97.70,
+    95.27,
+    99.79,
+    99.59,
+    99.83,
+    99.82,
+    99.90,
+    99.86,
+    99.85,
+    99.67,
+    99.27,
+    98.88,
+    99.68,
+    99.53,
+    99.57,
+    98.74,
+    100.00,
+    99.89,
+    100.00,
+    100.00,
+    99.96,
+    99.91,
+    94.93,
+    100.00,
+    97.60,
+    99.74,
+    99.71,
+    99.99,
+    85.11,
+    99.16,
+    89.89,
+    89.05,
+    99.9
   )
 
   Sentences <- c(
-    99.65, 81.43, 84.80, 94.67, 99.08, 30.20, 99.76, 93.79, 97.56, 91.91,
-    34.43, 89.92, 78.69, 89.51, 86.17, 95.07, 87.88, 99.02, 97.92, 94.54,
-    89.81, 75.16, 99.42, 98.00, 86.93, 85.59, 93.45, 98.64, 85.01, 97.57,
-    56.07, 94.80, 28.25, 98.73, 45.89, 99.69, 97.69, 93.54, 94.48, 97.28,
-    90.47, 96.59, 99.02, 24.37, 28.57, 96.73, 99.45, 93.63, 100.00, 92.53,
-    28.48, 87.75, 92.04, 99.06, 42.03, 81.19, 82.32, 89.99, 81.93, 97.34,
-    92.74, 99.83, 96.06, 89.56, 87.99, 96.92, 94.01, 97.41, 97.55, 84.37,
-    77.73, 99.07, 93.73, 93.84, 86.83, 94.20, 95.08, 98.98, 97.51, 82.17,
-    96.71, 97.12, 97.02, 90.27, 98.80, 98.80, 92.6
+    99.65,
+    81.43,
+    84.80,
+    94.67,
+    99.08,
+    30.20,
+    99.76,
+    93.79,
+    97.56,
+    91.91,
+    34.43,
+    89.92,
+    78.69,
+    89.51,
+    86.17,
+    95.07,
+    87.88,
+    99.02,
+    97.92,
+    94.54,
+    89.81,
+    75.16,
+    99.42,
+    98.00,
+    86.93,
+    85.59,
+    93.45,
+    98.64,
+    85.01,
+    97.57,
+    56.07,
+    94.80,
+    28.25,
+    98.73,
+    45.89,
+    99.69,
+    97.69,
+    93.54,
+    94.48,
+    97.28,
+    90.47,
+    96.59,
+    99.02,
+    24.37,
+    28.57,
+    96.73,
+    99.45,
+    93.63,
+    100.00,
+    92.53,
+    28.48,
+    87.75,
+    92.04,
+    99.06,
+    42.03,
+    81.19,
+    82.32,
+    89.99,
+    81.93,
+    97.34,
+    92.74,
+    99.83,
+    96.06,
+    89.56,
+    87.99,
+    96.92,
+    94.01,
+    97.41,
+    97.55,
+    84.37,
+    77.73,
+    99.07,
+    93.73,
+    93.84,
+    86.83,
+    94.20,
+    95.08,
+    98.98,
+    97.51,
+    82.17,
+    96.71,
+    97.12,
+    97.02,
+    90.27,
+    98.80,
+    98.80,
+    92.6
   )
 
   UPOS <- c(
-    95.79, 88.91, 96.07, 98.01, 98.22, 72.69, 98.56, 94.87, 97.60, 98.63,
-    91.36, 95.24, 64.12, 95.13, 94.10, 95.77, 95.07, 94.30, 98.25, 95.49,
-    95.45, 88.85, 92.43, 96.02, 92.01, 94.28, 96.24, 95.26, 96.42, 93.43,
-    91.38, 96.23, 93.73, 81.44, 95.34, 80.84, 95.84, 96.67, 90.96, 92.39,
-    93.22, 97.24, 96.73, 94.25, 90.37, 96.38, 93.50, 91.40, 92.95, 98.42,
-    94.53, 90.37, 71.39, 95.23, 87.70, 78.79, 93.79, 94.18, 94.79, 96.39,
-    95.92, 96.86, 97.30, 96.12, 95.58, 94.94, 96.91, 95.00, 97.42, 93.42,
-    92.98, 96.78, 94.83, 97.36, 94.67, 95.71, 78.41, 90.29, 88.85, 88.80,
-    94.85, 91.53, 76.10, 91.73, 82.84, 82.28, 97.8
+    95.79,
+    88.91,
+    96.07,
+    98.01,
+    98.22,
+    72.69,
+    98.56,
+    94.87,
+    97.60,
+    98.63,
+    91.36,
+    95.24,
+    64.12,
+    95.13,
+    94.10,
+    95.77,
+    95.07,
+    94.30,
+    98.25,
+    95.49,
+    95.45,
+    88.85,
+    92.43,
+    96.02,
+    92.01,
+    94.28,
+    96.24,
+    95.26,
+    96.42,
+    93.43,
+    91.38,
+    96.23,
+    93.73,
+    81.44,
+    95.34,
+    80.84,
+    95.84,
+    96.67,
+    90.96,
+    92.39,
+    93.22,
+    97.24,
+    96.73,
+    94.25,
+    90.37,
+    96.38,
+    93.50,
+    91.40,
+    92.95,
+    98.42,
+    94.53,
+    90.37,
+    71.39,
+    95.23,
+    87.70,
+    78.79,
+    93.79,
+    94.18,
+    94.79,
+    96.39,
+    95.92,
+    96.86,
+    97.30,
+    96.12,
+    95.58,
+    94.94,
+    96.91,
+    95.00,
+    97.42,
+    93.42,
+    92.98,
+    96.78,
+    94.83,
+    97.36,
+    94.67,
+    95.71,
+    78.41,
+    90.29,
+    88.85,
+    88.80,
+    94.85,
+    91.53,
+    76.10,
+    91.73,
+    82.84,
+    82.28,
+    97.8
   )
 
   XPOS <- c(
-    91.39, 82.35, 95.40, 94.72, 95.04, 72.55, 90.88, 82.33, 90.26, 93.12,
-    91.63, 99.92, 64.29, 95.13, 93.23, 95.32, 94.08, 93.86, 94.92, 99.72,
-    96.80, 91.47, 99.98, 95.78, 90.74, 95.43, 98.89, 94.69, 99.09, 92.20,
-    83.27, 95.80, 94.20, 71.34, 95.65, 80.84, 94.91, 89.99, 99.69, 99.38,
-    91.90, 97.11, 96.37, 93.88, 89.60, 95.37, 92.80, 81.07, 80.41, 93.26,
-    94.73, 81.26, 70.36, 87.53, 87.29, 95.27, 93.49, 91.51, 92.21, 97.70,
-    97.30, 87.18, 88.49, 99.67, 82.76, 90.06, 95.94, 94.74, 99.57, 98.74,
-    77.04, 90.26, 88.51, 90.76, 91.95, 93.90, 76.99, 90.29, 88.54, 90.12,
-    84.03, 89.00, 75.07, 91.42, 83.56, 82.98, 97.4
+    91.39,
+    82.35,
+    95.40,
+    94.72,
+    95.04,
+    72.55,
+    90.88,
+    82.33,
+    90.26,
+    93.12,
+    91.63,
+    99.92,
+    64.29,
+    95.13,
+    93.23,
+    95.32,
+    94.08,
+    93.86,
+    94.92,
+    99.72,
+    96.80,
+    91.47,
+    99.98,
+    95.78,
+    90.74,
+    95.43,
+    98.89,
+    94.69,
+    99.09,
+    92.20,
+    83.27,
+    95.80,
+    94.20,
+    71.34,
+    95.65,
+    80.84,
+    94.91,
+    89.99,
+    99.69,
+    99.38,
+    91.90,
+    97.11,
+    96.37,
+    93.88,
+    89.60,
+    95.37,
+    92.80,
+    81.07,
+    80.41,
+    93.26,
+    94.73,
+    81.26,
+    70.36,
+    87.53,
+    87.29,
+    95.27,
+    93.49,
+    91.51,
+    92.21,
+    97.70,
+    97.30,
+    87.18,
+    88.49,
+    99.67,
+    82.76,
+    90.06,
+    95.94,
+    94.74,
+    99.57,
+    98.74,
+    77.04,
+    90.26,
+    88.51,
+    90.76,
+    91.95,
+    93.90,
+    76.99,
+    90.29,
+    88.54,
+    90.12,
+    84.03,
+    89.00,
+    75.07,
+    91.42,
+    83.56,
+    82.98,
+    97.4
   )
 
   UFeats <- c(
-    93.67, 82.44, 88.30, 95.77, 97.68, 72.88, 89.58, 82.64, 90.96, 93.21,
-    82.50, 94.48, 53.65, 89.96, 94.37, 95.10, 94.94, 94.21, 97.94, 95.97,
-    93.71, 86.94, 87.17, 95.92, 92.21, 90.54, 95.34, 92.58, 94.91, 84.15,
-    85.18, 98.92, 86.76, 84.62, 87.71, 78.57, 90.17, 90.59, 87.20, 83.70,
-    94.17, 97.12, 96.40, 94.26, 90.00, 96.33, 95.75, 99.50, 99.99, 93.98,
-    86.89, 82.42, 66.42, 91.82, 88.09, 70.06, 99.79, 93.28, 93.95, 95.06,
-    94.93, 87.48, 88.84, 94.07, 91.78, 88.31, 96.09, 85.57, 90.50, 86.33,
-    79.32, 90.53, 88.67, 91.10, 90.11, 94.18, 79.37, 98.89, 84.31, 83.63,
-    83.67, 80.26, 85.11, 90.89, 88.57, 87.79, 91.4
+    93.67,
+    82.44,
+    88.30,
+    95.77,
+    97.68,
+    72.88,
+    89.58,
+    82.64,
+    90.96,
+    93.21,
+    82.50,
+    94.48,
+    53.65,
+    89.96,
+    94.37,
+    95.10,
+    94.94,
+    94.21,
+    97.94,
+    95.97,
+    93.71,
+    86.94,
+    87.17,
+    95.92,
+    92.21,
+    90.54,
+    95.34,
+    92.58,
+    94.91,
+    84.15,
+    85.18,
+    98.92,
+    86.76,
+    84.62,
+    87.71,
+    78.57,
+    90.17,
+    90.59,
+    87.20,
+    83.70,
+    94.17,
+    97.12,
+    96.40,
+    94.26,
+    90.00,
+    96.33,
+    95.75,
+    99.50,
+    99.99,
+    93.98,
+    86.89,
+    82.42,
+    66.42,
+    91.82,
+    88.09,
+    70.06,
+    99.79,
+    93.28,
+    93.95,
+    95.06,
+    94.93,
+    87.48,
+    88.84,
+    94.07,
+    91.78,
+    88.31,
+    96.09,
+    85.57,
+    90.50,
+    86.33,
+    79.32,
+    90.53,
+    88.67,
+    91.10,
+    90.11,
+    94.18,
+    79.37,
+    98.89,
+    84.31,
+    83.63,
+    83.67,
+    80.26,
+    85.11,
+    90.89,
+    88.57,
+    87.79,
+    91.4
   )
 
   AllTags <- c(
-    91.26, 82.16, 87.69, 94.39, 94.83, 71.87, 89.45, 82.23, 90.14, 92.83,
-    80.73, 93.22, 50.34, 88.75, 91.61, 93.69, 91.84, 92.45, 94.54, 93.55,
-    92.15, 83.72, 84.68, 95.31, 89.00, 89.50, 94.51, 91.12, 94.17, 81.76,
-    82.49, 95.38, 84.55, 71.24, 86.28, 77.75, 87.68, 89.95, 85.84, 82.79,
-    86.65, 96.33, 95.19, 92.50, 87.00, 94.18, 92.30, 78.74, 80.41, 92.63,
-    85.59, 80.88, 60.98, 87.48, 84.79, 67.88, 93.20, 90.78, 91.41, 93.74,
-    93.29, 86.56, 87.88, 92.66, 82.58, 87.67, 95.83, 84.50, 90.11, 85.42,
-    76.77, 89.80, 87.49, 90.73, 86.66, 92.43, 72.93, 90.29, 81.58, 76.78,
-    82.86, 75.43, 75.04, 88.62, 82.30, 81.76, 91.0
+    91.26,
+    82.16,
+    87.69,
+    94.39,
+    94.83,
+    71.87,
+    89.45,
+    82.23,
+    90.14,
+    92.83,
+    80.73,
+    93.22,
+    50.34,
+    88.75,
+    91.61,
+    93.69,
+    91.84,
+    92.45,
+    94.54,
+    93.55,
+    92.15,
+    83.72,
+    84.68,
+    95.31,
+    89.00,
+    89.50,
+    94.51,
+    91.12,
+    94.17,
+    81.76,
+    82.49,
+    95.38,
+    84.55,
+    71.24,
+    86.28,
+    77.75,
+    87.68,
+    89.95,
+    85.84,
+    82.79,
+    86.65,
+    96.33,
+    95.19,
+    92.50,
+    87.00,
+    94.18,
+    92.30,
+    78.74,
+    80.41,
+    92.63,
+    85.59,
+    80.88,
+    60.98,
+    87.48,
+    84.79,
+    67.88,
+    93.20,
+    90.78,
+    91.41,
+    93.74,
+    93.29,
+    86.56,
+    87.88,
+    92.66,
+    82.58,
+    87.67,
+    95.83,
+    84.50,
+    90.11,
+    85.42,
+    76.77,
+    89.80,
+    87.49,
+    90.73,
+    86.66,
+    92.43,
+    72.93,
+    90.29,
+    81.58,
+    76.78,
+    82.86,
+    75.43,
+    75.04,
+    88.62,
+    82.30,
+    81.76,
+    91.0
   )
 
   Lemma <- c(
-    96.40, 87.36, 88.77, 92.88, 98.19, 73.30, 96.24, 92.93, 95.60, 97.50,
-    81.73, 94.46, 86.07, 92.74, 95.15, 96.55, 95.78, 94.76, 98.17, 94.08,
-    87.93, 84.30, 91.09, 92.74, 85.76, 84.52, 96.78, 95.84, 96.60, 91.96,
-    91.33, 95.18, 89.51, 79.90, 90.77, 79.01, 98.05, 93.30, 87.29, 90.83,
-    87.32, 96.98, 96.35, 93.84, 89.43, 96.52, 94.21, 86.96, 88.12, 98.04,
-    91.73, 86.89, 68.95, 93.35, 97.46, 83.15, 99.79, 90.82, 92.16, 96.04,
-    95.47, 92.56, 94.28, 96.50, 91.72, 91.61, 95.16, 89.90, 95.24, 89.54,
-    83.32, 95.04, 94.84, 93.40, 94.50, 95.13, 82.41, 100.00, 85.77, 83.47,
-    91.39, 91.47, 83.66, 92.81, 89.83, 89.00, 92.3
+    96.40,
+    87.36,
+    88.77,
+    92.88,
+    98.19,
+    73.30,
+    96.24,
+    92.93,
+    95.60,
+    97.50,
+    81.73,
+    94.46,
+    86.07,
+    92.74,
+    95.15,
+    96.55,
+    95.78,
+    94.76,
+    98.17,
+    94.08,
+    87.93,
+    84.30,
+    91.09,
+    92.74,
+    85.76,
+    84.52,
+    96.78,
+    95.84,
+    96.60,
+    91.96,
+    91.33,
+    95.18,
+    89.51,
+    79.90,
+    90.77,
+    79.01,
+    98.05,
+    93.30,
+    87.29,
+    90.83,
+    87.32,
+    96.98,
+    96.35,
+    93.84,
+    89.43,
+    96.52,
+    94.21,
+    86.96,
+    88.12,
+    98.04,
+    91.73,
+    86.89,
+    68.95,
+    93.35,
+    97.46,
+    83.15,
+    99.79,
+    90.82,
+    92.16,
+    96.04,
+    95.47,
+    92.56,
+    94.28,
+    96.50,
+    91.72,
+    91.61,
+    95.16,
+    89.90,
+    95.24,
+    89.54,
+    83.32,
+    95.04,
+    94.84,
+    93.40,
+    94.50,
+    95.13,
+    82.41,
+    100.00,
+    85.77,
+    83.47,
+    91.39,
+    91.47,
+    83.66,
+    92.81,
+    89.83,
+    89.00,
+    92.3
   )
 
   UAS <- c(
-    82.55, 67.64, 77.08, 87.98, 86.97, 50.32, 84.81, 72.06, 84.95, 83.49,
-    66.17, 77.57, 71.43, 83.36, 81.03, 81.52, 81.11, 82.15, 85.23, 83.40,
-    77.08, 66.96, 74.57, 79.98, 77.89, 76.79, 86.39, 85.33, 84.69, 80.52,
-    74.56, 75.72, 70.88, 58.70, 68.94, 59.74, 90.44, 82.08, 70.59, 75.17,
-    80.88, 87.46, 86.26, 72.70, 70.77, 81.76, 84.20, 60.94, 72.96, 79.31,
-    63.36, 65.80, 43.34, 78.23, 65.90, 62.55, 75.31, 78.21, 80.11, 85.36,
-    83.85, 90.64, 84.74, 83.83, 82.18, 81.26, 82.69, 81.58, 83.19, 72.77,
-    78.84, 84.17, 70.58, 84.90, 81.31, 81.51, 59.66, 87.93, 61.37, 67.06,
-    77.54, 81.25, 47.83, 75.18, 58.96, 58.27, 77.0
+    82.55,
+    67.64,
+    77.08,
+    87.98,
+    86.97,
+    50.32,
+    84.81,
+    72.06,
+    84.95,
+    83.49,
+    66.17,
+    77.57,
+    71.43,
+    83.36,
+    81.03,
+    81.52,
+    81.11,
+    82.15,
+    85.23,
+    83.40,
+    77.08,
+    66.96,
+    74.57,
+    79.98,
+    77.89,
+    76.79,
+    86.39,
+    85.33,
+    84.69,
+    80.52,
+    74.56,
+    75.72,
+    70.88,
+    58.70,
+    68.94,
+    59.74,
+    90.44,
+    82.08,
+    70.59,
+    75.17,
+    80.88,
+    87.46,
+    86.26,
+    72.70,
+    70.77,
+    81.76,
+    84.20,
+    60.94,
+    72.96,
+    79.31,
+    63.36,
+    65.80,
+    43.34,
+    78.23,
+    65.90,
+    62.55,
+    75.31,
+    78.21,
+    80.11,
+    85.36,
+    83.85,
+    90.64,
+    84.74,
+    83.83,
+    82.18,
+    81.26,
+    82.69,
+    81.58,
+    83.19,
+    72.77,
+    78.84,
+    84.17,
+    70.58,
+    84.90,
+    81.31,
+    81.51,
+    59.66,
+    87.93,
+    61.37,
+    67.06,
+    77.54,
+    81.25,
+    47.83,
+    75.18,
+    58.96,
+    58.27,
+    77.0
   )
 
   LAS <- c(
-    77.97, 62.60, 73.45, 83.52, 83.75, 48.26, 81.13, 67.99, 80.79, 80.18,
-    59.74, 73.77, 65.53, 79.58, 77.64, 78.18, 76.60, 78.75, 81.52, 79.41,
-    73.13, 60.45, 69.35, 75.19, 72.65, 72.74, 83.00, 82.11, 81.63, 72.83,
-    68.31, 72.53, 63.47, 51.74, 63.73, 56.38, 85.86, 77.39, 64.95, 67.58,
-    74.29, 84.47, 83.08, 67.74, 64.11, 77.58, 82.36, 51.64, 61.60, 75.58,
-    57.80, 59.65, 31.05, 73.52, 60.15, 51.15, 68.95, 73.20, 75.79, 82.30,
-    80.62, 86.73, 80.83, 79.97, 78.52, 75.55, 77.96, 76.41, 79.37, 67.12,
-    74.61, 80.51, 65.41, 80.63, 76.54, 77.23, 49.62, 75.45, 52.36, 53.01,
-    72.78, 74.23, 40.71, 69.40, 55.27, 54.47, 81.4
+    77.97,
+    62.60,
+    73.45,
+    83.52,
+    83.75,
+    48.26,
+    81.13,
+    67.99,
+    80.79,
+    80.18,
+    59.74,
+    73.77,
+    65.53,
+    79.58,
+    77.64,
+    78.18,
+    76.60,
+    78.75,
+    81.52,
+    79.41,
+    73.13,
+    60.45,
+    69.35,
+    75.19,
+    72.65,
+    72.74,
+    83.00,
+    82.11,
+    81.63,
+    72.83,
+    68.31,
+    72.53,
+    63.47,
+    51.74,
+    63.73,
+    56.38,
+    85.86,
+    77.39,
+    64.95,
+    67.58,
+    74.29,
+    84.47,
+    83.08,
+    67.74,
+    64.11,
+    77.58,
+    82.36,
+    51.64,
+    61.60,
+    75.58,
+    57.80,
+    59.65,
+    31.05,
+    73.52,
+    60.15,
+    51.15,
+    68.95,
+    73.20,
+    75.79,
+    82.30,
+    80.62,
+    86.73,
+    80.83,
+    79.97,
+    78.52,
+    75.55,
+    77.96,
+    76.41,
+    79.37,
+    67.12,
+    74.61,
+    80.51,
+    65.41,
+    80.63,
+    76.54,
+    77.23,
+    49.62,
+    75.45,
+    52.36,
+    53.01,
+    72.78,
+    74.23,
+    40.71,
+    69.40,
+    55.27,
+    54.47,
+    81.4
   )
 
   df <- data.frame(
@@ -6333,6 +9770,3 @@ model_accuracy <- function() {
 
   return(df)
 }
-
-
-

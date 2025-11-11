@@ -14,7 +14,6 @@ options(shiny.maxRequestSize = maxUploadSize * 1024^2)
 param_stay_page <- FALSE
 
 server <- function(input, output, session) {
-
   ## suppress warnings
   options(warn = -1)
 
@@ -39,17 +38,25 @@ server <- function(input, output, session) {
       # style ="display:block; height: 37px; width: 37px; border-radius: 50%; border: 3px; margin-top: 15px",
       icon = icon(name = "refresh", lib = "glyphicon")
     )
-    do.call("actionButton", c(reset_bttn, list(
-      inputId = "resetApp"
-    )))
+    do.call(
+      "actionButton",
+      c(
+        reset_bttn,
+        list(
+          inputId = "resetApp"
+        )
+      )
+    )
   })
 
   observeEvent(input$resetApp, {
     ask_confirmation(
       inputId = "reset_confirmation",
       title = "Restart TALL",
-      text = HTML("Restarting TAll will result in the loss of all analyses currently in progress<br><br>
-                  <b>Do you want to confirm?</b>"),
+      text = HTML(
+        "Restarting TAll will result in the loss of all analyses currently in progress<br><br>
+                  <b>Do you want to confirm?</b>"
+      ),
       html = TRUE,
       type = "warning",
       btn_labels = c("CANCEL", "CONFIRM")
@@ -77,16 +84,22 @@ server <- function(input, output, session) {
 
   # ## observe Gemini Save button
   observeEvent(input$save_btn, {
-    filename <- paste0(values$wdTall,"/TallAI_",input$sidebarmenu,".txt")
+    filename <- paste0(values$wdTall, "/TallAI_", input$sidebarmenu, ".txt")
     txtOutput <- geminiSave(values, input$sidebarmenu)
-    readr::write_lines(txtOutput, file=filename)
+    readr::write_lines(txtOutput, file = filename)
   })
 
   ## observe gemini generate button
   observeEvent(input$gemini_btn, {
     values$gemini_additional <- input$gemini_additional ## additional info to Gemini prompt
     values <- geminiWaitingMessage(values, input$sidebarmenu)
-    values <- geminiGenerate(values, input$sidebarmenu, values$gemini_additional,values$gemini_model_parameters, input)
+    values <- geminiGenerate(
+      values,
+      input$sidebarmenu,
+      values$gemini_additional,
+      values$gemini_model_parameters,
+      input
+    )
   })
 
   ## suppress summarise message
@@ -107,6 +120,20 @@ server <- function(input, output, session) {
 
   ### SIDEBARMENU ----
   output$rest_of_sidebar <- renderMenu({
+    if (values$menu == -2) {
+      # popup to inform user that at first run you have to set the working folder
+      popUpGeneric(
+        title = "Welcome to <strong>TALL</strong>!",
+        type = "warning",
+        color = c("#FFA800"),
+        subtitle = HTML(
+          "Please go to the <b>Settings</b> menu<br>and set a working folder.<br><br>This is where all your analyses will be saved."
+        ),
+        btn_labels = "OK",
+        html = TRUE
+      )
+      updateTabItems(session, "sidebarmenu", "settings")
+    }
     if (values$menu == 2) {
       if (length(noGroupLabels(names(values$dfTag))) > 0) {
         values$menu <- 3
@@ -163,21 +190,21 @@ server <- function(input, output, session) {
   #   updateTabItems(session, "sidebarmenu", "w_word2vec")
   # })
 
-
-
   output$runButton <- renderUI({
     if (!isTRUE(values$resetNeed)) {
       list(
-        selectInput("load", "Please, choose what to do",
-                    choices = c(
-                      " " = "null",
-                      "Load text files" = "import",
-                      "Load file from Biblioshiny" = "biblioshiny",
-                      "Load Tall structured files" = "load_tall",
-                      "Wikipedia pages" = "wiki",
-                      "Use a sample collection" = "demo"
-                    ),
-                    selected = "null"
+        selectInput(
+          "load",
+          "Please, choose what to do",
+          choices = c(
+            " " = "null",
+            "Load text files" = "import",
+            "Load file from Biblioshiny" = "biblioshiny",
+            "Load Tall structured files" = "load_tall",
+            "Wikipedia pages" = "wiki",
+            "Use a sample collection" = "demo"
+          ),
+          selected = "null"
         ),
         conditionalPanel(
           condition = "input.load == 'wiki'",
@@ -194,12 +221,16 @@ server <- function(input, output, session) {
             animate = TRUE
           ),
           helpText(
-            em("By specifying a search phrase in 'Search Wikipedia',
-                                         the content of up to 20 Wikipedia pages can be downloaded."),
+            em(
+              "By specifying a search phrase in 'Search Wikipedia',
+                                         the content of up to 20 Wikipedia pages can be downloaded."
+            ),
             br(),
             br(),
-            em("The content of each wiki page will be stored in the 'text' column.
-                                         In addition, the page title, abstract and url will also be stored."),
+            em(
+              "The content of each wiki page will be stored in the 'text' column.
+                                         In addition, the page title, abstract and url will also be stored."
+            ),
             br(),
             br(),
             em("The page title will be used as the 'doc_id'.")
@@ -212,7 +243,8 @@ server <- function(input, output, session) {
               6,
               selectizeInput(
                 "ext",
-                label = "File format", choices = c(
+                label = "File format",
+                choices = c(
                   "txt" = "txt",
                   "csv" = "csv",
                   "excel" = "xlsx",
@@ -227,7 +259,8 @@ server <- function(input, output, session) {
                 6,
                 selectizeInput(
                   "line_sep",
-                  label = "CSV Separator", choices = c(
+                  label = "CSV Separator",
+                  choices = c(
                     " , " = ",",
                     " ; " = ";"
                   ),
@@ -250,24 +283,29 @@ server <- function(input, output, session) {
         ),
         conditionalPanel(
           condition = "input.load=='demo'",
-          selectInput("demo_file",
-                      label = "Select sample texts",
-                      choices = c(
-                        "BBC news" = "bbc",
-                        "Bibliometrix" = "bibliometrix",
-                        "US Airlines Tweets" = "usairlines"
-                      ),
-                      selected = "bibliometrix"
+          selectInput(
+            "demo_file",
+            label = "Select sample texts",
+            choices = c(
+              "BBC news" = "bbc",
+              "Bibliometrix" = "bibliometrix",
+              "US Airlines Tweets" = "usairlines"
+            ),
+            selected = "bibliometrix"
           ),
           conditionalPanel(
             condition = "input.demo_file=='bibliometrix'",
             helpText(
-              em("The dataset is composed of a collection of 444 scientific articles written in English
-                                           in which the authors used the Bibliometrix R package to perform systematic literature reviews."),
+              em(
+                "The dataset is composed of a collection of 444 scientific articles written in English
+                                           in which the authors used the Bibliometrix R package to perform systematic literature reviews."
+              ),
               br(),
               br(),
-              em("The textual data consists of the article abstracts, while the additional information includes
-                                           metadata such as the list of co-authors, first author, year of publication, and journal name."),
+              em(
+                "The textual data consists of the article abstracts, while the additional information includes
+                                           metadata such as the list of co-authors, first author, year of publication, and journal name."
+              ),
               br(),
               br(),
               em("The abstracts have already been tokenized and POS tagged.")
@@ -276,7 +314,9 @@ server <- function(input, output, session) {
           conditionalPanel(
             condition = "input.demo_file=='bbc'",
             helpText(
-              em("A collection of 386 short news stories published in the entertainment section of the BBC News website."),
+              em(
+                "A collection of 386 short news stories published in the entertainment section of the BBC News website."
+              ),
               br(),
               br(),
               em("The texts are in English.")
@@ -285,7 +325,9 @@ server <- function(input, output, session) {
           conditionalPanel(
             condition = "input.demo_file=='usairlines'",
             helpText(
-              em("The dataset is the 'Twitter US Airline Sentiment' collection, a publicly available and widely used dataset originally hosted on Kaggle. It contains tweets collected during February 2015 that pertain to major U.S.-based airlines."),
+              em(
+                "The dataset is the 'Twitter US Airline Sentiment' collection, a publicly available and widely used dataset originally hosted on Kaggle. It contains tweets collected during February 2015 that pertain to major U.S.-based airlines."
+              ),
               br(),
               br(),
               em("The texts are in English.")
@@ -311,7 +353,10 @@ server <- function(input, output, session) {
             width = 12,
             actionButton(
               inputId = "runImport",
-              label = div(icon(name = "play", lib = "glyphicon"), strong("START")),
+              label = div(
+                icon(name = "play", lib = "glyphicon"),
+                strong("START")
+              ),
               icon = NULL,
               style = "border-radius: 20px; border-width: 1px;
                                                                     font-size: 17px; color: #ffff;"
@@ -329,18 +374,36 @@ server <- function(input, output, session) {
           rows = 8,
           width = "100%"
         ),
-        helpText(em(
-          "To load a new text collection,",
-          br(), "it is necessary to reset the app."
-        ), ),
+        div(
+          align = "center",
+          width = 12,
+          actionButton(
+            inputId = "applyCorpusDescription",
+            label = div(
+              icon(name = "check", lib = "glyphicon"),
+              strong("Update")
+            ),
+            icon = NULL,
+            style = "border-radius: 20px; border-width: 1px;
+                                                                    font-size: 17px; color: #ffff;"
+          )
+        ),
         br(),
+        helpText(
+          em(
+            "To load a new text collection, it is necessary to reset the app."
+          )
+        ),
         br(),
         div(
           align = "center",
           width = 12,
           actionButton(
             inputId = "runReset2",
-            label = div(icon(name = "refresh", lib = "glyphicon"), strong("RESET")),
+            label = div(
+              icon(name = "refresh", lib = "glyphicon"),
+              strong("RESET")
+            ),
             icon = NULL,
             style = "border-radius: 20px; border-width: 1px;
                                                                     font-size: 17px; color: #ffff;"
@@ -350,17 +413,32 @@ server <- function(input, output, session) {
     }
   })
 
-  observeEvent(input$runImport,{
+  observeEvent(input$runImport, {
     values$corpus_description <- input$corpus_description
-    updateTextAreaInput(session, "corpus_description", value = values$corpus_description)
+    updateTextAreaInput(
+      session,
+      "corpus_description",
+      value = values$corpus_description
+    )
+  })
+
+  observeEvent(input$applyCorpusDescription, {
+    values$corpus_description <- input$corpus_description
+    show_alert(
+      title = "Corpus description updated",
+      text = "The corpus description has been successfully updated.",
+      type = "success"
+    )
   })
 
   observeEvent(input$runReset2, {
     ask_confirmation(
       inputId = "reset_confirmation2",
       title = "Restart TALL",
-      text = HTML("Restarting TAll will result in the loss of all analyses currently in progress<br><br>
-                  <b>Do you want to confirm?</b>"),
+      text = HTML(
+        "Restarting TAll will result in the loss of all analyses currently in progress<br><br>
+                  <b>Do you want to confirm?</b>"
+      ),
       html = TRUE,
       type = "warning",
       btn_labels = c("CANCEL", "CONFIRM")
@@ -377,22 +455,25 @@ server <- function(input, output, session) {
   ### IMPORT ----
 
   output$file_rawUI <- renderUI({
-    switch(input$ext,
-           txt = {
-             ext <- c("text/plain", ".txt", ".zip")
-           },
-           csv = {
-             ext <- c("text/csv", ".csv", ".zip")
-           },
-           xlsx = {
-             ext <- c("excel", ".xlsx", ".xls", ".zip")
-           },
-           pdf = {
-             ext <- c(".pdf", ".zip")
-           }
+    switch(
+      input$ext,
+      txt = {
+        ext <- c("text/plain", ".txt", ".zip")
+      },
+      csv = {
+        ext <- c("text/csv", ".csv", ".zip")
+      },
+      xlsx = {
+        ext <- c("excel", ".xlsx", ".xls", ".zip")
+      },
+      pdf = {
+        ext <- c(".pdf", ".zip")
+      }
     )
 
-    if (input$load == "biblioshiny") ext <- c("text/csv", ".csv", ".zip")
+    if (input$load == "biblioshiny") {
+      ext <- c("text/csv", ".csv", ".zip")
+    }
 
     fileInput(
       "file_raw",
@@ -408,7 +489,9 @@ server <- function(input, output, session) {
       icon("warning"),
       tags$b("Warning!"),
       br(),
-      HTML("The column including text(s) in your CSV or EXCEL file must be named <b>text</b>"),
+      HTML(
+        "The column including text(s) in your CSV or EXCEL file must be named <b>text</b>"
+      ),
       status = "warning"
     )
     # }
@@ -416,126 +499,150 @@ server <- function(input, output, session) {
 
   ### dataImported ----
   DATAloading <- eventReactive(input$runImport, {
-    switch(input$load,
-           import = {
-             if (!is.null(req(input$file_raw))) {
-               file <- input$file_raw
-               txt <- read_files(file, ext = input$ext, subfolder = FALSE, line_sep = input$line_sep)
-               txt <- txt %>% clean_text() ## clean text before tokenization
-               values$menu <- 0
-               values$custom_lists <- NULL
-               values$txt <- txt %>%
-                 mutate(
-                   text = removeHTMLTags(text),
-                   text_original = text
-                 ) %>%
-                 arrange(doc_id)
-               values$resetNeed <- TRUE
-             }
-           },
-           biblioshiny = {
-             if (!is.null(req(input$file_raw))) {
-               file <- input$file_raw
-               values$biblioshiny <- read_files(file, ext = "csv", subfolder = FALSE, line_sep = ",")
-             }
-           },
-           load_tall = {
-             req(input$file1)
-             file_tall <- input$file1$datapath
-             load(file_tall)
-             values$menu <- menu
-             values$dfTag <- dfTag
-             values$txt <- rebuild_documents(dfTag)
-             values$custom_lists <- custom_lists
-             values$language <- language
-             values$treebank <- treebank
-             values$D <- D
-             values$where <- where
-             values$corpus_description <- corpus_description
-             if (exists("generalTerm")) values$generalTerm <- generalTerm
-             values$resetNeed <- TRUE
-             # values$metadata <- metadata
-             if (values$menu == 1) updateTabItems(session, "sidebarmenu", "custTermList")
-             if (values$menu > 1) updateTabItems(session, "sidebarmenu", "posTagSelect")
-             if (ncol(values$dfTag) > 1) {
-               showModal(loadTallgModal(session))
-             }
-           },
-           demo = {
-             switch(input$demo_file,
-                    bibliometrix = {
-                      file_tall <- loadSampleCollection("bibliometrix")
-                      load(file_tall)
-                      values$menu <- menu
-                      values$dfTag <- dfTag
-                      values$txt <- rebuild_documents(dfTag)
-                      values$custom_lists <- custom_lists
-                      values$language <- language
-                      values$D <- D
-                      values$where <- where
-                      values$corpus_description <- "The dataset is composed of a collection of 444 scientific articles written in English in which the authors used the Bibliometrix R package to perform systematic literature reviews.\n The textual data consists of the article abstracts, while the additional information includes metadata such as the list of co-authors, the first author, the year of publication, and the journal name."
-                      values$resetNeed <- TRUE
-                      if (values$menu == 1) updateTabItems(session, "sidebarmenu", "custTermList")
-                      if (values$menu > 1) updateTabItems(session, "sidebarmenu", "posTagSelect")
-                      if (ncol(values$dfTag) > 1) {
-                        showModal(loadTallgModal(session))
-                      }
-                    },
-                    bbc = {
-                      file_tall <- loadSampleCollection("bbc")
-                      files <- list(name = "bbc.zip", datapath = file_tall)
-                      txt <- read_files(files, ext = "txt", subfolder = FALSE)
-                      values$menu <- 0
-                      values$custom_lists <- NULL
-                      values$corpus_description <- "A collection of 386 short news published in the entertainment section of the BBC News website."
-                      values$resetNeed <- TRUE
-                      values$txt <- txt %>%
-                        mutate(text_original = text) %>%
-                        arrange(doc_id)
-                    },
-                    usairlines = {
-                      file_tall <- loadSampleCollection("usairlines")
-                      files <- list(name = "usairlines.zip", datapath = file_tall)
-                      txt <- read_files(files, ext = "csv", subfolder = FALSE)
-                      values$menu <- 0
-                      values$custom_lists <- NULL
-                      values$corpus_description <- paste0("The dataset under analysis is the 'Twitter US Airline Sentiment' collection, a publicly available",
-                                                          " and widely used dataset originally hosted on Kaggle. It contains tweets collected during February 2015",
-                                                          " that pertain to major U.S.-based airlines. The primary objective of this dataset is to capture and analyze",
-                                                          " the sentiment expressed by travelers regarding their airline experiences. Each tweet is annotated with ",
-                                                          "a sentiment label—positive, neutral, or negative—based on the emotional tone conveyed in the text. ",
-                                                          "This collection is frequently employed in natural language processing tasks, particularly for training ",
-                                                          "and evaluating sentiment classification models. In this context, the dataset will be used to explore how ",
-                                                          "airline passengers articulated their opinions and emotions on Twitter during the specified period.")
-                      values$resetNeed <- TRUE
-                      values$txt <- txt %>%
-                        mutate(text_original = text) %>%
-                        arrange(doc_id)
-                    }
-             )
-           },
-           wiki = {
-             df <- wikiSearch(input$wikiWord, n = as.numeric(input$wikiN))
-             if (is.null(df)) {
-               show_alert(
-                 title = "No results found!",
-                 text = "It seems there are no Wikipedia pages matching your search.",
-                 type = "error"
-               )
-               values$resetNeed <- FALSE
-             } else {
-               values$menu <- 0
-               values$custom_lists <- NULL
-               values$txt <- wikiExtract(df) %>%
-                 mutate(text_original = text) %>%
-                 rename(
-                   doc_id = title,
-                   doc_selected = selected
-                 )
+    switch(
+      input$load,
+      import = {
+        if (!is.null(req(input$file_raw))) {
+          file <- input$file_raw
+          txt <- read_files(
+            file,
+            ext = input$ext,
+            subfolder = FALSE,
+            line_sep = input$line_sep
+          )
+          txt <- txt %>% clean_text() ## clean text before tokenization
+          values$menu <- 0
+          values$custom_lists <- NULL
+          values$txt <- txt %>%
+            mutate(
+              text = removeHTMLTags(text),
+              text_original = text
+            ) %>%
+            arrange(doc_id)
+          values$resetNeed <- TRUE
+        }
+      },
+      biblioshiny = {
+        if (!is.null(req(input$file_raw))) {
+          file <- input$file_raw
+          values$biblioshiny <- read_files(
+            file,
+            ext = "csv",
+            subfolder = FALSE,
+            line_sep = ","
+          )
+        }
+      },
+      load_tall = {
+        req(input$file1)
+        file_tall <- input$file1$datapath
+        load(file_tall)
+        values$menu <- menu
+        values$dfTag <- dfTag
+        values$txt <- rebuild_documents(dfTag)
+        values$custom_lists <- custom_lists
+        values$language <- language
+        values$treebank <- treebank
+        values$D <- D
+        values$where <- where
+        values$corpus_description <- corpus_description
+        if (exists("generalTerm")) {
+          values$generalTerm <- generalTerm
+        }
+        values$resetNeed <- TRUE
+        # values$metadata <- metadata
+        if (values$menu == 1) {
+          updateTabItems(session, "sidebarmenu", "custTermList")
+        }
+        if (values$menu > 1) {
+          updateTabItems(session, "sidebarmenu", "posTagSelect")
+        }
+        if (ncol(values$dfTag) > 1) {
+          showModal(loadTallgModal(session))
+        }
+      },
+      demo = {
+        switch(
+          input$demo_file,
+          bibliometrix = {
+            file_tall <- loadSampleCollection("bibliometrix")
+            load(file_tall)
+            values$menu <- menu
+            values$dfTag <- dfTag
+            values$txt <- rebuild_documents(dfTag)
+            values$custom_lists <- custom_lists
+            values$language <- language
+            values$D <- D
+            values$where <- where
+            values$corpus_description <- "The dataset is composed of a collection of 444 scientific articles written in English in which the authors used the Bibliometrix R package to perform systematic literature reviews.\n The textual data consists of the article abstracts, while the additional information includes metadata such as the list of co-authors, the first author, the year of publication, and the journal name."
+            values$resetNeed <- TRUE
+            if (values$menu == 1) {
+              updateTabItems(session, "sidebarmenu", "custTermList")
+            }
+            if (values$menu > 1) {
+              updateTabItems(session, "sidebarmenu", "posTagSelect")
+            }
+            if (ncol(values$dfTag) > 1) {
+              showModal(loadTallgModal(session))
+            }
+          },
+          bbc = {
+            file_tall <- loadSampleCollection("bbc")
+            files <- list(name = "bbc.zip", datapath = file_tall)
+            txt <- read_files(files, ext = "txt", subfolder = FALSE)
+            values$menu <- 0
+            values$custom_lists <- NULL
+            values$corpus_description <- "A collection of 386 short news published in the entertainment section of the BBC News website."
+            values$resetNeed <- TRUE
+            values$txt <- txt %>%
+              mutate(text_original = text) %>%
+              arrange(doc_id)
+          },
+          usairlines = {
+            file_tall <- loadSampleCollection("usairlines")
+            files <- list(name = "usairlines.zip", datapath = file_tall)
+            txt <- read_files(files, ext = "csv", subfolder = FALSE)
+            values$menu <- 0
+            values$custom_lists <- NULL
+            values$corpus_description <- paste0(
+              "The dataset under analysis is the 'Twitter US Airline Sentiment' collection, a publicly available",
+              " and widely used dataset originally hosted on Kaggle. It contains tweets collected during February 2015",
+              " that pertain to major U.S.-based airlines. The primary objective of this dataset is to capture and analyze",
+              " the sentiment expressed by travelers regarding their airline experiences. Each tweet is annotated with ",
+              "a sentiment label—positive, neutral, or negative—based on the emotional tone conveyed in the text. ",
+              "This collection is frequently employed in natural language processing tasks, particularly for training ",
+              "and evaluating sentiment classification models. In this context, the dataset will be used to explore how ",
+              "airline passengers articulated their opinions and emotions on Twitter during the specified period."
+            )
+            values$resetNeed <- TRUE
+            values$txt <- txt %>%
+              mutate(text_original = text) %>%
+              arrange(doc_id)
+          }
+        )
+      },
+      wiki = {
+        df <- wikiSearch(input$wikiWord, n = as.numeric(input$wikiN))
+        if (is.null(df)) {
+          show_alert(
+            title = "No results found!",
+            text = "It seems there are no Wikipedia pages matching your search.",
+            type = "error"
+          )
+          values$resetNeed <- FALSE
+        } else {
+          values$menu <- 0
+          values$custom_lists <- NULL
+          values$txt <- wikiExtract(df) %>%
+            mutate(text_original = text) %>%
+            rename(
+              doc_id = title,
+              doc_selected = selected
+            )
 
-               values$resetNeed <- TRUE
-             }
-           }
+          values$resetNeed <- TRUE
+        }
+      }
     )
   })
 
@@ -562,7 +669,10 @@ server <- function(input, output, session) {
           br(),
           actionButton(
             inputId = "biblioRun",
-            label = div(icon(name = "play", lib = "glyphicon"), strong("Apply")),
+            label = div(
+              icon(name = "play", lib = "glyphicon"),
+              strong("Apply")
+            ),
             icon = NULL,
             style = "border-radius: 20px; border-width: 1px;
                                                                     font-size: 17px; color: #ffff;"
@@ -594,29 +704,35 @@ server <- function(input, output, session) {
   output$dataImported <- DT::renderDT({
     DATAloading()
     # if (values$menu == 0) {
-      DTformat(
-        values$txt %>%
-          filter(doc_selected) %>%
-          mutate(text = paste0(substr(text, 1, 500), "...")) %>%
-          select(doc_id, text, everything()) %>%
-          select(-doc_selected, -text_original),
-        left = 3, nrow = 5, filter = "none", button = TRUE, delete = TRUE
-      )
+    DTformat(
+      values$txt %>%
+        filter(doc_selected) %>%
+        mutate(text = paste0(substr(text, 1, 500), "...")) %>%
+        select(doc_id, text, everything()) %>%
+        select(-doc_selected, -text_original),
+      left = 3,
+      nrow = 5,
+      filter = "none",
+      button = TRUE,
+      delete = TRUE
+    )
     # }
   })
 
-  observeEvent(eventExpr = {
-    input$corpus_description},
-               handlerExpr = {
-                 if (input$corpus_description!="" & nchar(input$corpus_description)>1){
-                   values$corpus_description <- input$corpus_description
-                 }
-  },ignoreNULL = TRUE)
+  # observeEvent(eventExpr = {
+  #   input$corpus_description},
+  #              handlerExpr = {
+  #                if (input$corpus_description!="" & nchar(input$corpus_description)>1){
+  #                  values$corpus_description <- input$corpus_description
+  #                }
+  # },ignoreNULL = TRUE)
 
   ### shortpath for folder path ----
   output$folder <- renderUI({
     path <- shortpath(values$path)
-    if (is.null(path)) path <- " --- "
+    if (is.null(path)) {
+      path <- " --- "
+    }
     HTML(paste("<pre class='tab'>", path, sep = ""))
   })
 
@@ -630,11 +746,15 @@ server <- function(input, output, session) {
       easyClose = TRUE,
       footer = tagList(
         actionButton(
-          label = "Custom Lists", inputId = "modalCustomLists", style = "color: #ffff;",
+          label = "Custom Lists",
+          inputId = "modalCustomLists",
+          style = "color: #ffff;",
           icon = icon("th-list", lib = "glyphicon")
         ),
         actionButton(
-          label = "Close", inputId = "closeModalCustomLists", style = "color: #ffff;",
+          label = "Close",
+          inputId = "closeModalCustomLists",
+          style = "color: #ffff;",
           icon = icon("remove", lib = "glyphicon")
         )
       ),
@@ -650,16 +770,23 @@ server <- function(input, output, session) {
     txt1 <- paste0("<strong>Tall file contains:</strong> ", ndocs, " documents")
     txt2 <- paste0("<strong>Last modified date:</strong> ", values$D)
     txt2b <- paste0(
-      "<strong>Language:</strong> ", tools::toTitleCase(values$language),
-      " - <strong>Treebank:</strong> ", values$treebank
+      "<strong>Language:</strong> ",
+      tools::toTitleCase(values$language),
+      " - <strong>Treebank:</strong> ",
+      values$treebank
     )
     txt2c <- paste0(
-      "<strong>Corpus Description:</strong> ", values$corpus_description
+      "<strong>Corpus Description:</strong> ",
+      values$corpus_description
     )
 
     if (!is.null(dim(values$custom_lists))) {
       ncust <- nrow(values$custom_lists)
-      txt3 <- paste0("<strong>Custom Word List:</strong> Includes ", ncust, " words")
+      txt3 <- paste0(
+        "<strong>Custom Word List:</strong> Includes ",
+        ncust,
+        " words"
+      )
     } else {
       txt3 <- "<strong>Custom Word List:</strong> Not included"
     }
@@ -675,12 +802,22 @@ server <- function(input, output, session) {
       txt3bis <- "<strong>Multi-Words:</strong> Not included"
     }
 
-    items <- toupper(c("email", "url", "hash", "emoji", "ip_address", "mention"))
+    items <- toupper(c(
+      "email",
+      "url",
+      "hash",
+      "emoji",
+      "ip_address",
+      "mention"
+    ))
 
     if (length(intersect(items, upos)) > 0) {
       txt3ter <- paste0(
         "<strong>Special Entities:</strong> ",
-        paste0(tools::toTitleCase(tolower(intersect(items, upos))), collapse = ", ")
+        paste0(
+          tools::toTitleCase(tolower(intersect(items, upos))),
+          collapse = ", "
+        )
       )
     } else {
       txt3ter <- "<strong>Special Entities:</strong> Not included"
@@ -691,14 +828,30 @@ server <- function(input, output, session) {
     # Create a structured list format with added spacing
     text <- paste0(
       "<ul style='list-style-type: none; padding-left: 0;'>",
-      "<li style='margin-bottom: 15px;'>", txt1, "</li>",
-      "<li style='margin-bottom: 15px;'>", txt2, "</li>",
-      "<li style='margin-bottom: 15px;'>", txt2b, "</li>",
-      "<li style='margin-bottom: 15px;'>", txt2c, "</li>",
-      "<li style='margin-bottom: 15px;'>", txt3ter, "</li>",
-      "<li style='margin-bottom: 15px;'>", txt3bis, "</li>",
-      "<li style='margin-bottom: 15px;'>", txt3, "</li>",
-      "<li style='margin-bottom: 15px;'>", txt4, "</li>",
+      "<li style='margin-bottom: 15px;'>",
+      txt1,
+      "</li>",
+      "<li style='margin-bottom: 15px;'>",
+      txt2,
+      "</li>",
+      "<li style='margin-bottom: 15px;'>",
+      txt2b,
+      "</li>",
+      "<li style='margin-bottom: 15px;'>",
+      txt2c,
+      "</li>",
+      "<li style='margin-bottom: 15px;'>",
+      txt3ter,
+      "</li>",
+      "<li style='margin-bottom: 15px;'>",
+      txt3bis,
+      "</li>",
+      "<li style='margin-bottom: 15px;'>",
+      txt3,
+      "</li>",
+      "<li style='margin-bottom: 15px;'>",
+      txt4,
+      "</li>",
       "</ul>"
     )
 
@@ -713,7 +866,11 @@ server <- function(input, output, session) {
   observeEvent(input$modalCustomLists, {
     if (!is.null(values$custom_lists)) {
       text <- tagList(
-        DTformat(values$custom_lists, left = c(1, 2), filename = "Custom_lists_table")
+        DTformat(
+          values$custom_lists,
+          left = c(1, 2),
+          filename = "Custom_lists_table"
+        )
       )
     } else {
       text <- tagList(
@@ -749,7 +906,10 @@ server <- function(input, output, session) {
       input$collection.save
     },
     handlerExpr = {
-      file_path <- destFolder(paste("Tall-Export-File-", sys.time(), ".csv", sep = ""), values$wdTall)
+      file_path <- destFolder(
+        paste("Tall-Export-File-", sys.time(), ".csv", sep = ""),
+        values$wdTall
+      )
       readr::write_csv(
         x = values$txt,
         file = file_path,
@@ -780,7 +940,6 @@ server <- function(input, output, session) {
     }
   })
 
-
   ## EDIT ----
 
   ### SPLIT ----
@@ -789,7 +948,8 @@ server <- function(input, output, session) {
     if (nchar(input$txSplitWord) < 3) {
       popUpGeneric(
         title = "Error",
-        type = "error", color = c("#913333"),
+        type = "error",
+        color = c("#913333"),
         subtitle = "Sequence must be at least 3 characters long",
         btn_labels = "OK"
       )
@@ -797,20 +957,21 @@ server <- function(input, output, session) {
       values$txt <- splitDoc(values$txt, word = input$txSplitWord)
       popUpGeneric(
         title = paste0("Split by: '", input$txSplitWord, "'"),
-        type = "success", color = c("#1d8fe1"),
+        type = "success",
+        color = c("#1d8fe1"),
         subtitle = paste0("Now you have ", nrow(values$txt), " documents"),
         btn_labels = "OK"
       )
     }
   })
 
-
   ## back to the original txt
   observeEvent(input$splitTextBack, {
     values$txt <- unsplitDoc(values$txt)
     popUpGeneric(
       title = "Restored",
-      type = "waiting", color = c("#FFA800"),
+      type = "waiting",
+      color = c("#FFA800"),
       subtitle = paste0("Now you have ", nrow(values$txt), " documents"),
       btn_labels = "OK"
     )
@@ -822,8 +983,13 @@ server <- function(input, output, session) {
       values$txt %>%
         mutate(text = paste0(substr(text, 1, 500), "...")) %>%
         select(-c("text_original", ends_with("id_old"))) %>%
-        filter(doc_selected) %>% select(-"doc_selected"),
-      left = 2, nrow = 5, filter = "none", button = TRUE, delete = TRUE
+        filter(doc_selected) %>%
+        select(-"doc_selected"),
+      left = 2,
+      nrow = 5,
+      filter = "none",
+      button = TRUE,
+      delete = TRUE
     )
   })
 
@@ -832,7 +998,10 @@ server <- function(input, output, session) {
       input$splitTextSave
     },
     handlerExpr = {
-      file_path <- destFolder(paste("Tall-Export-File-", sys.time(), ".csv", sep = ""), values$wdTall)
+      file_path <- destFolder(
+        paste("Tall-Export-File-", sys.time(), ".csv", sep = ""),
+        values$wdTall
+      )
       readr::write_csv(
         x = values$txt %>%
           filter(doc_selected) %>%
@@ -852,7 +1021,6 @@ server <- function(input, output, session) {
       mutate(doc_selected = TRUE)
   })
 
-
   ### RANDOM SELECTION ----
 
   output$randomDescription <- renderUI({
@@ -860,14 +1028,19 @@ server <- function(input, output, session) {
   })
 
   randomTextFunc <- eventReactive(input$randomTextRun, {
-    values$txt <- samplingText(values$txt,
-                               n = as.numeric(round((input$sampleSize / 100) * nrow(values$txt)), 0)
+    values$txt <- samplingText(
+      values$txt,
+      n = as.numeric(round((input$sampleSize / 100) * nrow(values$txt)), 0)
     )
   })
 
   output$sampleSizeUI <- renderUI({
     req(input$sampleSize)
-    HTML(paste0("<br><h5><em>Number of randomly selected texts: </em><b>", as.numeric(round((input$sampleSize / 100) * nrow(values$txt)), 0), "</b></h5>"))
+    HTML(paste0(
+      "<br><h5><em>Number of randomly selected texts: </em><b>",
+      as.numeric(round((input$sampleSize / 100) * nrow(values$txt)), 0),
+      "</b></h5>"
+    ))
   })
 
   output$randomTextData <- DT::renderDT({
@@ -877,10 +1050,12 @@ server <- function(input, output, session) {
         filter(doc_selected) %>%
         select(-c("doc_selected", "text_original")) %>%
         mutate(text = paste0(substr(text, 1, 500), "...")),
-      left = 2, nrow = 5, filter = "none", button = TRUE
+      left = 2,
+      nrow = 5,
+      filter = "none",
+      button = TRUE
     )
   })
-
 
   ## back to the original txt
   observeEvent(input$randomTextBack, {
@@ -897,7 +1072,10 @@ server <- function(input, output, session) {
       input$randomTextSave
     },
     handlerExpr = {
-      file_path <- destFolder(paste("Tall-Export-File-", sys.time(), ".csv", sep = ""), values$wdTall)
+      file_path <- destFolder(
+        paste("Tall-Export-File-", sys.time(), ".csv", sep = ""),
+        values$wdTall
+      )
       readr::write_csv(
         x = values$txt %>%
           filter(doc_selected) %>%
@@ -926,7 +1104,11 @@ server <- function(input, output, session) {
         filter(doc_selected) %>%
         select(-c("text_original", "doc_selected")) %>%
         mutate(text = paste0(substr(text, 1, 250), "...")),
-      left = 4, nrow = 3, filter = "top", button = TRUE, delete = TRUE
+      left = 4,
+      nrow = 3,
+      filter = "top",
+      button = TRUE,
+      delete = TRUE
     )
   })
 
@@ -952,7 +1134,10 @@ server <- function(input, output, session) {
       input$extInfoSave
     },
     handlerExpr = {
-      file_path <- destFolder(paste("Tall-Export-File-", sys.time(), ".csv", sep = ""), values$wdTall)
+      file_path <- destFolder(
+        paste("Tall-Export-File-", sys.time(), ".csv", sep = ""),
+        values$wdTall
+      )
       readr::write_csv(
         x = values$txt %>%
           filter(doc_selected) %>%
@@ -980,12 +1165,19 @@ server <- function(input, output, session) {
   ## Tokenization & PoS Tagging ----
 
   output$flagUI <- renderUI({
-    tags$img(src = values$flag, height = "25px", width = "40px", style = "margin-top:-30px;")
+    tags$img(
+      src = values$flag,
+      height = "25px",
+      width = "40px",
+      style = "margin-top:-30px;"
+    )
   })
 
   output$optionsTokenization <- renderUI({
     selectInput(
-      inputId = "language_model", label = "Language", choices = values$label_lang,
+      inputId = "language_model",
+      label = "Language",
+      choices = values$label_lang,
       multiple = FALSE,
       width = "100%",
       selected = values$language
@@ -993,8 +1185,15 @@ server <- function(input, output, session) {
   })
 
   output$treebankSelect <- renderUI({
-    selected_treebanks <- values$languages$treebank[values$languages$language_name == values$language]
-    selectInput("treebank", "Treebank", choices = selected_treebanks, selected = values$treebank)
+    selected_treebanks <- values$languages$treebank[
+      values$languages$language_name == values$language
+    ]
+    selectInput(
+      "treebank",
+      "Treebank",
+      choices = selected_treebanks,
+      selected = values$treebank
+    )
   })
 
   output$info_treebank <- renderUI({
@@ -1006,15 +1205,30 @@ server <- function(input, output, session) {
       filter(language_name == values$language, treebank == values$treebank) %>%
       select(tokens, words, sentences)
     ud_info <- paste0(
-      "Tokens: ", format(as.numeric(ud_info$tokens), big.mark = ",", scientific = FALSE),
-      " - Words: ", format(as.numeric(ud_info$words), big.mark = ",", scientific = FALSE),
-      " - Sentences: ", format(as.numeric(ud_info$sentences), big.mark = ",", scientific = FALSE)
+      "Tokens: ",
+      format(as.numeric(ud_info$tokens), big.mark = ",", scientific = FALSE),
+      " - Words: ",
+      format(as.numeric(ud_info$words), big.mark = ",", scientific = FALSE),
+      " - Sentences: ",
+      format(as.numeric(ud_info$sentences), big.mark = ",", scientific = FALSE)
     )
     accuracy <- values$accuracy %>%
       filter(language_name == values$language, treebank == values$treebank) %>%
       select(Words, Lemma, Sentences, UPOS)
-    ud_accuracy1 <- paste0("Words: ", accuracy$Words, "% ---  Lemma: ", accuracy$Lemma, "%")
-    ud_accuracy2 <- paste0("Sentences: ", accuracy$Sentences, "%  ---  PoS:   ", accuracy$UPOS, "%")
+    ud_accuracy1 <- paste0(
+      "Words: ",
+      accuracy$Words,
+      "% ---  Lemma: ",
+      accuracy$Lemma,
+      "%"
+    )
+    ud_accuracy2 <- paste0(
+      "Sentences: ",
+      accuracy$Sentences,
+      "%  ---  PoS:   ",
+      accuracy$UPOS,
+      "%"
+    )
     ud_contributors <- values$languages %>%
       filter(language_name == values$language, treebank == values$treebank) %>%
       select(contributors) %>%
@@ -1042,15 +1256,27 @@ server <- function(input, output, session) {
         tags$h4(strong(em("Contributors")), style = "font-size: 12px;"),
         tags$p(ud_contributors, style = "font-size: 10px;"),
         # tags$h4("Hub Page"),
-        tags$a(href = ud_hub_page_link, target = "_blank", "UD Treebank link", style = "font-size: 10px; color: blue; text-decoration: underline;")
+        tags$a(
+          href = ud_hub_page_link,
+          target = "_blank",
+          "UD Treebank link",
+          style = "font-size: 10px; color: blue; text-decoration: underline;"
+        )
       )
     )
   })
 
   observeEvent(input$language_model, {
     values$language <- input$language_model
-    selected_treebanks <- values$languages$treebank[values$languages$language_name == values$language]
-    updateSelectInput(session, "treebank", choices = selected_treebanks, selected = values$treebank)
+    selected_treebanks <- values$languages$treebank[
+      values$languages$language_name == values$language
+    ]
+    updateSelectInput(
+      session,
+      "treebank",
+      choices = selected_treebanks,
+      selected = values$treebank
+    )
   })
 
   observeEvent(input$treebank, {
@@ -1083,14 +1309,18 @@ server <- function(input, output, session) {
 
       # Lemmatization and POS Tagging
       values$dfTag <- udpipe(
-        object = udmodel_lang, x = values$txt %>%
+        object = udmodel_lang,
+        x = values$txt %>%
           filter(doc_selected),
         parallel.cores = ncores
       )
 
       # Merge metadata from the original txt object
       values$dfTag <- values$dfTag %>%
-        left_join(values$txt %>% select(-text, -text_original), by = "doc_id") %>%
+        left_join(
+          values$txt %>% select(-text, -text_original),
+          by = "doc_id"
+        ) %>%
         filter(!is.na(upos)) %>% ##
         posSel(., c("ADJ", "NOUN", "PROPN", "VERB"))
       values$dfTag <- highlight(values$dfTag)
@@ -1118,24 +1348,44 @@ server <- function(input, output, session) {
 
   ## Term selected on the dashboard
   output$termSelected <- renderText({
-    if (!is.null(input$generalTerm)) values$generalTerm <- input$generalTerm
-    if (values$menu >= 1) HTML(paste("Analysis by: <b>", tools::toTitleCase(values$generalTerm), "</b>"))
+    if (!is.null(input$generalTerm)) {
+      values$generalTerm <- input$generalTerm
+    }
+    if (values$menu >= 1) {
+      HTML(paste(
+        "Analysis by: <b>",
+        tools::toTitleCase(values$generalTerm),
+        "</b>"
+      ))
+    }
   })
 
   output$tokPosTagData <- DT::renderDT({
     posTagging()
 
     if (!is.null(values$dfTag)) {
-      DTformat(values$dfTag %>% filter(docSelected) %>% select(doc_id, paragraph_id, sentence_id, sentence, token, lemma, upos) %>%
-                 rename(
-                   D_id = doc_id,
-                   P_id = paragraph_id,
-                   S_id = sentence_id,
-                   Sentence = sentence,
-                   Token = token,
-                   Lemma = lemma,
-                   "Part of Speech" = upos
-                 ))
+      DTformat(
+        values$dfTag %>%
+          filter(docSelected) %>%
+          select(
+            doc_id,
+            paragraph_id,
+            sentence_id,
+            sentence,
+            token,
+            lemma,
+            upos
+          ) %>%
+          rename(
+            D_id = doc_id,
+            P_id = paragraph_id,
+            S_id = sentence_id,
+            Sentence = sentence,
+            Token = token,
+            Lemma = lemma,
+            "Part of Speech" = upos
+          )
+      )
     }
   })
 
@@ -1146,8 +1396,17 @@ server <- function(input, output, session) {
     handlerExpr = {
       file <- paste("Tall-Export-File-", sys.time(), ".tall", sep = "")
       file_path <- destFolder(file, values$wdTall)
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Custom Term Lists", file_path,
-               values$generalTerm, values$corpus_description)
+      saveTall(
+        values$dfTag,
+        values$custom_lists,
+        values$language,
+        values$treebank,
+        values$menu,
+        "Custom Term Lists",
+        file_path,
+        values$generalTerm,
+        values$corpus_description
+      )
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -1167,8 +1426,19 @@ server <- function(input, output, session) {
       values$posSpecialTaggingDT <- DTformat(
         values$posSpecialData %>%
           summarySpecialEntities(type = "all"),
-        nrow = nrow(df), filter = "none", button = F, delete = F, dom = FALSE, pagelength = FALSE, size = "110%",
-        filename = "TaggingSpecialEntities", title = "", specialtags = TRUE, right = 3, numeric = 3, round = 0
+        nrow = nrow(df),
+        filter = "none",
+        button = F,
+        delete = F,
+        dom = FALSE,
+        pagelength = FALSE,
+        size = "110%",
+        filename = "TaggingSpecialEntities",
+        title = "",
+        specialtags = TRUE,
+        right = 3,
+        numeric = 3,
+        round = 0
       )
     },
     ignoreNULL = TRUE
@@ -1183,16 +1453,28 @@ server <- function(input, output, session) {
     posSpecialTagging()
 
     if (!is.null(values$dfTag)) {
-      DTformat(values$dfTag %>% filter(docSelected) %>% select(doc_id, paragraph_id, sentence_id, sentence, token, lemma, upos) %>%
-                 rename(
-                   D_id = doc_id,
-                   P_id = paragraph_id,
-                   S_id = sentence_id,
-                   Sentence = sentence,
-                   Token = token,
-                   Lemma = lemma,
-                   "Part of Speech" = upos
-                 ))
+      DTformat(
+        values$dfTag %>%
+          filter(docSelected) %>%
+          select(
+            doc_id,
+            paragraph_id,
+            sentence_id,
+            sentence,
+            token,
+            lemma,
+            upos
+          ) %>%
+          rename(
+            D_id = doc_id,
+            P_id = paragraph_id,
+            S_id = sentence_id,
+            Sentence = sentence,
+            Token = token,
+            Lemma = lemma,
+            "Part of Speech" = upos
+          )
+      )
     }
   })
 
@@ -1201,12 +1483,30 @@ server <- function(input, output, session) {
   observeEvent(input$posSpecialBack, {
     values$dfTag <- resetSpecialEntities(values$dfTag)
 
-    replaceData(proxy2, data.frame(Table = rep(NA, 6), UPOS = toupper(c("email", "url", "hash", "emoji", "ip_address", "mention")), Frequency = rep(0, 6)), resetPaging = FALSE)
+    replaceData(
+      proxy2,
+      data.frame(
+        Table = rep(NA, 6),
+        UPOS = toupper(c(
+          "email",
+          "url",
+          "hash",
+          "emoji",
+          "ip_address",
+          "mention"
+        )),
+        Frequency = rep(0, 6)
+      ),
+      resetPaging = FALSE
+    )
 
     popUpGeneric(
       title = "Special Entities Tags Removed",
-      type = "waiting", color = c("#FFA800"),
-      subtitle = paste0("Now all Special Entities Tags have been remove from your documents"),
+      type = "waiting",
+      color = c("#FFA800"),
+      subtitle = paste0(
+        "Now all Special Entities Tags have been remove from your documents"
+      ),
       btn_labels = "OK"
     )
   })
@@ -1218,8 +1518,17 @@ server <- function(input, output, session) {
     handlerExpr = {
       file <- paste("Tall-Export-File-", sys.time(), ".tall", sep = "")
       file_path <- destFolder(file, values$wdTall)
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "POS Tag Selection",
-               file_path, values$generalTerm, values$corpus_description)
+      saveTall(
+        values$dfTag,
+        values$custom_lists,
+        values$language,
+        values$treebank,
+        values$menu,
+        "POS Tag Selection",
+        file_path,
+        values$generalTerm,
+        values$corpus_description
+      )
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -1240,13 +1549,19 @@ server <- function(input, output, session) {
   modalSpecialEntities <- function(session) {
     ns <- session$ns
     modalDialog(
-      h3(strong(paste0("Frequency Distribution of ", firstUp(input$button_id2), " Entities"))),
+      h3(strong(paste0(
+        "Frequency Distribution of ",
+        firstUp(input$button_id2),
+        " Entities"
+      ))),
       DTOutput(ns("specialEntityFreq")),
       size = "l",
       easyClose = FALSE,
       footer = tagList(
         actionButton(
-          label = "Close", inputId = "closeModalSpecialEntities", style = "color: #ffff;",
+          label = "Close",
+          inputId = "closeModalSpecialEntities",
+          style = "color: #ffff;",
           icon = icon("remove", lib = "glyphicon")
         )
       ),
@@ -1262,7 +1577,9 @@ server <- function(input, output, session) {
   output$specialEntityFreq <- renderDT(
     server = FALSE,
     {
-      if (!is.null(input$button_id2)) id <- input$button_id2
+      if (!is.null(input$button_id2)) {
+        id <- input$button_id2
+      }
       summarySpecialEntity <- values$posSpecialData %>%
         summarySpecialEntities(type = id) %>%
         rename("Frequency" = "n")
@@ -1281,8 +1598,6 @@ server <- function(input, output, session) {
     },
     escape = FALSE
   )
-
-
 
   ## Custom Term List Merging ----
 
@@ -1329,56 +1644,67 @@ server <- function(input, output, session) {
     },
     {
       # req(input$custom_lists)
-      values$dfTag <- mergeCustomLists(values$dfTag, values$custom_lists, values$generalTerm)
+      values$dfTag <- mergeCustomLists(
+        values$dfTag,
+        values$custom_lists,
+        values$generalTerm
+      )
       # Update the DT proxy
 
       replaceData(proxy1, values$dfTag, resetPaging = FALSE)
     }
   )
 
-
   output$customPosTagData <- DT::renderDT({
     customListMerging()
 
     if (!is.null(values$dfTag)) {
-      DTformat(values$dfTag %>% select(doc_id, sentence_id, sentence, token, lemma, upos) %>%
-                 rename(
-                   D_id = doc_id,
-                   S_id = sentence_id,
-                   Sentence = sentence,
-                   Token = token,
-                   Lemma = lemma,
-                   "Part of Speech" = upos
-                 ))
+      DTformat(
+        values$dfTag %>%
+          select(doc_id, sentence_id, sentence, token, lemma, upos) %>%
+          rename(
+            D_id = doc_id,
+            S_id = sentence_id,
+            Sentence = sentence,
+            Token = token,
+            Lemma = lemma,
+            "Part of Speech" = upos
+          )
+      )
     }
   })
-
-
 
   output$customListData <- DT::renderDT(server = FALSE, {
     # customListMerging()
 
-    switch(values$generalTerm,
-           lemma = {
-             if (is.null(values$custom_lists)) {
-               DTdf <- DTformat(data.frame(Lemma = NULL, POSTag = NULL))
-             } else {
-               DTdf <- DTformat(values$custom_lists %>% rename(
-                 Lemma = lemma,
-                 "Part of Speech" = upos
-               ))
-             }
-           },
-           token = {
-             if (is.null(values$custom_lists)) {
-               DTdf <- DTformat(data.frame(Token = NULL, POSTag = NULL))
-             } else {
-               DTdf <- DTformat(values$custom_lists %>% rename(
-                 Token = token,
-                 "Part of Speech" = upos
-               ))
-             }
-           }
+    switch(
+      values$generalTerm,
+      lemma = {
+        if (is.null(values$custom_lists)) {
+          DTdf <- DTformat(data.frame(Lemma = NULL, POSTag = NULL))
+        } else {
+          DTdf <- DTformat(
+            values$custom_lists %>%
+              rename(
+                Lemma = lemma,
+                "Part of Speech" = upos
+              )
+          )
+        }
+      },
+      token = {
+        if (is.null(values$custom_lists)) {
+          DTdf <- DTformat(data.frame(Token = NULL, POSTag = NULL))
+        } else {
+          DTdf <- DTformat(
+            values$custom_lists %>%
+              rename(
+                Token = token,
+                "Part of Speech" = upos
+              )
+          )
+        }
+      }
     )
     DTdf
   })
@@ -1390,8 +1716,17 @@ server <- function(input, output, session) {
     handlerExpr = {
       file <- paste("Tall-Export-File-", sys.time(), ".tall", sep = "")
       file_path <- destFolder(file, values$wdTall)
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Custom Term Lists", file_path,
-               values$generalTerm, values$corpus_description)
+      saveTall(
+        values$dfTag,
+        values$custom_lists,
+        values$language,
+        values$treebank,
+        values$menu,
+        "Custom Term Lists",
+        file_path,
+        values$generalTerm,
+        values$corpus_description
+      )
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -1403,8 +1738,11 @@ server <- function(input, output, session) {
 
     popUpGeneric(
       title = "Custom List Removed",
-      type = "waiting", color = c("#FFA800"),
-      subtitle = paste0("Now all Custom PoS have been remove from your documents"),
+      type = "waiting",
+      color = c("#FFA800"),
+      subtitle = paste0(
+        "Now all Custom PoS have been remove from your documents"
+      ),
       btn_labels = "OK"
     )
     # Update the DT proxy
@@ -1414,10 +1752,19 @@ server <- function(input, output, session) {
   ## Multi-Word Creation ----
 
   output$multiwordPosSel <- renderUI({
-    checkboxGroupInput("multiwordPosSelGroup",
-                       label = NULL,
-                       choices = posTagAll(values$dfTag %>% dplyr::filter(!upos %in% c("MULTIWORD", "NGRAM_MERGED", "PUNCT", "SYM", "X", "NUM")))$description,
-                       selected = posTagAll(values$dfTag %>% dplyr::filter(upos %in% values$posMwSel))$description
+    checkboxGroupInput(
+      "multiwordPosSelGroup",
+      label = NULL,
+      choices = posTagAll(
+        values$dfTag %>%
+          dplyr::filter(
+            !upos %in%
+              c("MULTIWORD", "NGRAM_MERGED", "PUNCT", "SYM", "X", "NUM")
+          )
+      )$description,
+      selected = posTagAll(
+        values$dfTag %>% dplyr::filter(upos %in% values$posMwSel)
+      )$description
     )
   })
 
@@ -1432,13 +1779,30 @@ server <- function(input, output, session) {
 
       values$dfTag <- rakeReset(values$dfTag) ## reset previous multiword creation steps
 
-      values$posMwSel <- gsub(":", "", gsub(":.*", "", input$multiwordPosSelGroup))
+      values$posMwSel <- gsub(
+        ":",
+        "",
+        gsub(":.*", "", input$multiwordPosSelGroup)
+      )
 
-      values$rakeResults <- rake(values$dfTag, group = "doc_id", ngram_max = input$ngram_max, relevant = values$posMwSel, freq.min = input$freq_minMW, term = values$generalTerm, method = input$MWmethod)
+      values$rakeResults <- rake(
+        values$dfTag,
+        group = "doc_id",
+        ngram_max = input$ngram_max,
+        relevant = values$posMwSel,
+        freq.min = input$freq_minMW,
+        term = values$generalTerm,
+        method = input$MWmethod
+      )
 
       values$stats <- values$rakeResults$stats
 
-      names(values$stats) <- c("Multi-Words", "Freq", "Length", toupper(input$MWmethod))
+      names(values$stats) <- c(
+        "Multi-Words",
+        "Freq",
+        "Length",
+        toupper(input$MWmethod)
+      )
     }
   )
 
@@ -1456,12 +1820,23 @@ server <- function(input, output, session) {
             icon = NULL
           )
           div(
-            align = "center", style = "margin-top:-5px",
+            align = "center",
+            style = "margin-top:-5px",
             width = 12,
-            helpText("Please note", br(), "pressing 'Apply List' will delete previous multiword and custom list entries"),
-            do.call("actionButton", c(run_bttn, list(
-              inputId = "multiwordCreatApply"
-            )))
+            helpText(
+              "Please note",
+              br(),
+              "pressing 'Apply List' will delete previous multiword and custom list entries"
+            ),
+            do.call(
+              "actionButton",
+              c(
+                run_bttn,
+                list(
+                  inputId = "multiwordCreatApply"
+                )
+              )
+            )
           )
         })
       } else {
@@ -1475,13 +1850,15 @@ server <- function(input, output, session) {
       values$stats %>%
         arrange(desc(Freq), .by_group = FALSE),
       numeric = 4,
-      selection = TRUE, nrow = 20
+      selection = TRUE,
+      nrow = 20
     )
   })
 
   output$multiwordData <- renderDT(server = TRUE, {
     DTformat(
-      values$dfTag %>% dplyr::filter(docSelected) %>%
+      values$dfTag %>%
+        dplyr::filter(docSelected) %>%
         select(doc_id, sentence, token, lemma, upos) %>%
         rename(
           D_id = doc_id,
@@ -1497,11 +1874,19 @@ server <- function(input, output, session) {
     row_sel <- input$multiwordList_rows_selected
 
     if (length(row_sel) > 0) {
-      values$dfTag <- applyRake(values$dfTag, rakeResults = values$rakeResults, row_sel = row_sel, term = values$generalTerm)
+      values$dfTag <- applyRake(
+        values$dfTag,
+        rakeResults = values$rakeResults,
+        row_sel = row_sel,
+        term = values$generalTerm
+      )
 
       ## Highlight multiword
-      values$dfTag <- highlight(values$dfTag, term = values$generalTerm, upos = "MULTIWORD")
-
+      values$dfTag <- highlight(
+        values$dfTag,
+        term = values$generalTerm,
+        upos = "MULTIWORD"
+      )
 
       replaceData(proxy4, values$dfTag, resetPaging = FALSE)
 
@@ -1531,8 +1916,17 @@ server <- function(input, output, session) {
     handlerExpr = {
       file <- paste("Tall-Export-File-", sys.time(), ".tall", sep = "")
       file_path <- destFolder(file, values$wdTall)
-      saveTall(values$dfTag, values$stats, values$language, values$treebank, values$menu, "Multi-Word Creation", file_path,
-               values$generalTerm, values$corpus_description)
+      saveTall(
+        values$dfTag,
+        values$stats,
+        values$language,
+        values$treebank,
+        values$menu,
+        "Multi-Word Creation",
+        file_path,
+        values$generalTerm,
+        values$corpus_description
+      )
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -1540,15 +1934,22 @@ server <- function(input, output, session) {
   ## back to the original txt
   observeEvent(input$multiwordCreatBack, {
     values$dfTag <- rakeReset(values$dfTag)
-    values$multiwords <- data.frame(keyword = "", ngram = NA, freq = NA, rake = NA)
+    values$multiwords <- data.frame(
+      keyword = "",
+      ngram = NA,
+      freq = NA,
+      rake = NA
+    )
     popUpGeneric(
       title = "Multiword Removed",
-      type = "waiting", color = c("#FFA800"),
-      subtitle = paste0("Now all multiwords have been remove from your documents"),
+      type = "waiting",
+      color = c("#FFA800"),
+      subtitle = paste0(
+        "Now all multiwords have been remove from your documents"
+      ),
       btn_labels = "OK"
     )
   })
-
 
   ## Multi-Word by a list ----
   observeEvent(
@@ -1580,11 +1981,23 @@ server <- function(input, output, session) {
 
       relevant <- unique(values$dfTag$upos)
 
-      values$rakeResults <- rake(values$dfTag, relevant = relevant, term = term, freq.min = 1, type = "bylist", keywordList = values$keywordList)
+      values$rakeResults <- rake(
+        values$dfTag,
+        relevant = relevant,
+        term = term,
+        freq.min = 1,
+        type = "bylist",
+        keywordList = values$keywordList
+      )
 
       row_sel <- 1:nrow(values$rakeResults$stats)
 
-      values$dfTag <- applyRake(values$dfTag, rakeResults = values$rakeResults, row_sel = row_sel, term = term)
+      values$dfTag <- applyRake(
+        values$dfTag,
+        rakeResults = values$rakeResults,
+        row_sel = row_sel,
+        term = term
+      )
 
       values$dfTag <- highlight(values$dfTag, term = term, upos = "MULTIWORD")
     }
@@ -1592,27 +2005,33 @@ server <- function(input, output, session) {
 
   output$multiwordData2 <- renderDT({
     multiword2()
-    DTformat(values$dfTag %>% dplyr::filter(POSSelected) %>%
-               group_by(doc_id, sentence_id) %>%
-               select(doc_id, sentence_id, sentence, token, lemma, upos) %>%
-               rename(
-                 D_id = doc_id,
-                 S_id = sentence_id,
-                 Sentence = sentence,
-                 Token = token,
-                 Lemma = lemma,
-                 "Part of Speech" = upos
-               ))
+    DTformat(
+      values$dfTag %>%
+        dplyr::filter(POSSelected) %>%
+        group_by(doc_id, sentence_id) %>%
+        select(doc_id, sentence_id, sentence, token, lemma, upos) %>%
+        rename(
+          D_id = doc_id,
+          S_id = sentence_id,
+          Sentence = sentence,
+          Token = token,
+          Lemma = lemma,
+          "Part of Speech" = upos
+        )
+    )
   })
 
   output$multiwordList2 <- renderDT(server = FALSE, {
     multiword2()
-    DTformat(values$rakeResults$stats %>% rename(
-      "Multi-Words" = keyword,
-      "Lenght" = ngram,
-      "Freq" = freq
-    ) %>%
-      arrange(desc(Freq), .by_group = FALSE))
+    DTformat(
+      values$rakeResults$stats %>%
+        rename(
+          "Multi-Words" = keyword,
+          "Lenght" = ngram,
+          "Freq" = freq
+        ) %>%
+        arrange(desc(Freq), .by_group = FALSE)
+    )
   })
 
   observeEvent(
@@ -1622,8 +2041,17 @@ server <- function(input, output, session) {
     handlerExpr = {
       file <- paste("Tall-Export-File-", sys.time(), ".tall", sep = "")
       file_path <- destFolder(file, values$wdTall)
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "Multi-Word by a List", file_path,
-               values$generalTerm, values$corpus_description)
+      saveTall(
+        values$dfTag,
+        values$custom_lists,
+        values$language,
+        values$treebank,
+        values$menu,
+        "Multi-Word by a List",
+        file_path,
+        values$generalTerm,
+        values$corpus_description
+      )
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -1635,8 +2063,11 @@ server <- function(input, output, session) {
 
     popUpGeneric(
       title = "Multiword Removed",
-      type = "waiting", color = c("#FFA800"),
-      subtitle = paste0("Now all multiwords have been remove from your documents"),
+      type = "waiting",
+      color = c("#FFA800"),
+      subtitle = paste0(
+        "Now all multiwords have been remove from your documents"
+      ),
       btn_labels = "OK"
     )
   })
@@ -1644,10 +2075,13 @@ server <- function(input, output, session) {
   ## PoS Tag Selection ----
   observe({
     output$posTagListsUI <- renderUI({
-      checkboxGroupInput("posTagLists",
-                         label = NULL,
-                         choices = posTagAll(values$dfTag)$description,
-                         selected = (posTagAll(values$dfTag %>% dplyr::filter(POSSelected)))$description
+      checkboxGroupInput(
+        "posTagLists",
+        label = NULL,
+        choices = posTagAll(values$dfTag)$description,
+        selected = (posTagAll(
+          values$dfTag %>% dplyr::filter(POSSelected)
+        ))$description
       )
     })
   })
@@ -1657,11 +2091,15 @@ server <- function(input, output, session) {
       input$posTagSelectRun
     },
     {
-      selected <- (posTagAll(values$dfTag) %>% dplyr::filter(description %in% (input$posTagLists)))$pos
-      values$dfTag <- removeHapaxFreq(values$dfTag, input$posTagHapax, input$posTagSingleChar)
+      selected <- (posTagAll(values$dfTag) %>%
+        dplyr::filter(description %in% (input$posTagLists)))$pos
+      values$dfTag <- removeHapaxFreq(
+        values$dfTag,
+        input$posTagHapax,
+        input$posTagSingleChar
+      )
       values$dfTag <- posSel(values$dfTag, pos = selected)
       values$menu <- 2
-
 
       # Update the DT proxy
       proxy <- dataTableProxy("posTagSelectData")
@@ -1672,13 +2110,26 @@ server <- function(input, output, session) {
   output$posTagSelectData <- DT::renderDT({
     PosFilterData()
 
-    if (!"lemma_original_nomultiwords" %in% names(values$dfTag)) values$dfTag <- values$dfTag %>% mutate(lemma_original_nomultiwords = lemma)
+    if (!"lemma_original_nomultiwords" %in% names(values$dfTag)) {
+      values$dfTag <- values$dfTag %>%
+        mutate(lemma_original_nomultiwords = lemma)
+    }
 
     DTformat(
       LemmaSelection(values$dfTag) %>%
         group_by(doc_id, sentence_id) %>%
-        mutate(SentenceByPos = paste(lemma_original_nomultiwords, collapse = " ")) %>%
-        select(doc_id, sentence_id, sentence, SentenceByPos, token, lemma, upos) %>%
+        mutate(
+          SentenceByPos = paste(lemma_original_nomultiwords, collapse = " ")
+        ) %>%
+        select(
+          doc_id,
+          sentence_id,
+          sentence,
+          SentenceByPos,
+          token,
+          lemma,
+          upos
+        ) %>%
         rename(
           D_id = doc_id,
           S_id = sentence_id,
@@ -1686,7 +2137,8 @@ server <- function(input, output, session) {
           Token = token,
           Lemma = lemma,
           "Part of Speech" = upos
-        ) %>% ungroup()
+        ) %>%
+        ungroup()
     )
   })
 
@@ -1697,8 +2149,17 @@ server <- function(input, output, session) {
     handlerExpr = {
       file <- paste("Tall-Export-File-", sys.time(), ".tall", sep = "")
       file_path <- destFolder(file, values$wdTall)
-      saveTall(values$dfTag, values$custom_lists, values$language, values$treebank, values$menu, "POS Tag Selection", file_path,
-               values$generalTerm, values$corpus_description)
+      saveTall(
+        values$dfTag,
+        values$custom_lists,
+        values$language,
+        values$treebank,
+        values$menu,
+        "POS Tag Selection",
+        file_path,
+        values$generalTerm,
+        values$corpus_description
+      )
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -1732,7 +2193,6 @@ server <- function(input, output, session) {
     }
   )
 
-
   output$filterValue <- renderUI({
     req(input$filterList)
 
@@ -1751,7 +2211,9 @@ server <- function(input, output, session) {
           multiple = TRUE
         )
       } else if (is.numeric(values$dfTag[[var]])) {
-        if (sel_value[1] == "") sel_value <- range(values$dfTag[[var]], na.rm = TRUE)
+        if (sel_value[1] == "") {
+          sel_value <- range(values$dfTag[[var]], na.rm = TRUE)
+        }
         sliderInput(
           inputId = paste0("filter_", var),
           label = paste("Filter", var),
@@ -1785,17 +2247,33 @@ server <- function(input, output, session) {
           values[[input_id]] <- filter_value
 
           if (is.factor(values$dfTag[[var]])) {
-            docSelected[[var]] <- ifelse(values$dfTag[[var]] %in% filter_value, TRUE, FALSE)
+            docSelected[[var]] <- ifelse(
+              values$dfTag[[var]] %in% filter_value,
+              TRUE,
+              FALSE
+            )
           } else if (is.character(values$dfTag[[var]])) {
-            docSelected[[var]] <- ifelse(values$dfTag[[var]] %in% filter_value, TRUE, FALSE)
+            docSelected[[var]] <- ifelse(
+              values$dfTag[[var]] %in% filter_value,
+              TRUE,
+              FALSE
+            )
           } else if (is.numeric(values$dfTag[[var]])) {
-            docSelected[[var]] <- ifelse(values$dfTag[[var]] >= filter_value[1] &
-                                           values$dfTag[[var]] <= filter_value[2], TRUE, FALSE)
+            docSelected[[var]] <- ifelse(
+              values$dfTag[[var]] >= filter_value[1] &
+                values$dfTag[[var]] <= filter_value[2],
+              TRUE,
+              FALSE
+            )
           } else {
             docSelected[[var]] <- TRUE
           }
         }
-        values$dfTag$docSelected <- ifelse(rowSums(docSelected) >= ncol(docSelected), TRUE, FALSE)
+        values$dfTag$docSelected <- ifelse(
+          rowSums(docSelected) >= ncol(docSelected),
+          TRUE,
+          FALSE
+        )
       } else {
         values$dfTag$docSelected <- TRUE
       }
@@ -1807,30 +2285,59 @@ server <- function(input, output, session) {
     eventExpr = input$filterRun,
     handlerExpr = {
       output$filterSummary <- renderUI({
-        num_docs <- length(unique(LemmaSelection(values$dfTag) %>% filter(docSelected) %>% pull(doc_id)))
-        num_paragraphs <- sum(LemmaSelection(values$dfTag) %>% filter(docSelected) %>% group_by(doc_id) %>% summarize(sent = max(paragraph_id)) %>% pull())
-        num_sentences <- sum(LemmaSelection(values$dfTag) %>% filter(docSelected) %>% group_by(doc_id) %>% summarize(sent = max(sentence_id)) %>% pull())
+        num_docs <- length(unique(
+          LemmaSelection(values$dfTag) %>% filter(docSelected) %>% pull(doc_id)
+        ))
+        num_paragraphs <- sum(
+          LemmaSelection(values$dfTag) %>%
+            filter(docSelected) %>%
+            group_by(doc_id) %>%
+            summarize(sent = max(paragraph_id)) %>%
+            pull()
+        )
+        num_sentences <- sum(
+          LemmaSelection(values$dfTag) %>%
+            filter(docSelected) %>%
+            group_by(doc_id) %>%
+            summarize(sent = max(sentence_id)) %>%
+            pull()
+        )
         num_tokens <- nrow(LemmaSelection(values$dfTag) %>% filter(docSelected))
 
         HTML(paste(
           "<div style='border: 1px solid #ddd; padding: 10px; border-radius: 5px; background-color: #f9f9f9;'>",
           "<h4><strong>Filter Summary</strong></h4>",
           "<br>",
-          "<p>Number of Documents: <strong>", num_docs, "</strong></p>",
-          "<p>Number of Paragraphs: <strong>", num_paragraphs, "</strong></p>",
-          "<p>Number of Sentences: <strong>", num_sentences, "</strong></p>",
-          "<p>Number of Tokens: <strong>", num_tokens, "</strong></p>",
+          "<p>Number of Documents: <strong>",
+          num_docs,
+          "</strong></p>",
+          "<p>Number of Paragraphs: <strong>",
+          num_paragraphs,
+          "</strong></p>",
+          "<p>Number of Sentences: <strong>",
+          num_sentences,
+          "</strong></p>",
+          "<p>Number of Tokens: <strong>",
+          num_tokens,
+          "</strong></p>",
           "</div>"
         ))
       })
     }
   )
 
-
   output$filterData <- renderDT({
     filterDATA()
-    DTformat(LemmaSelection(values$dfTag) %>%
-               dplyr::filter(docSelected), nrow = 3, size = "100%", title = paste0("Filtered Data by ", paste0(input$filterList, collapse = ", ")))
+    DTformat(
+      LemmaSelection(values$dfTag) %>%
+        dplyr::filter(docSelected),
+      nrow = 3,
+      size = "100%",
+      title = paste0(
+        "Filtered Data by ",
+        paste0(input$filterList, collapse = ", ")
+      )
+    )
   })
 
   ## Data filtered by dynamic text on dashboardHeader
@@ -1838,7 +2345,11 @@ server <- function(input, output, session) {
   output$dataFilteredBy <- renderText({
     if (!is.null(input$filterList)) {
       req(input$filterRun)
-      HTML(paste("Documents filtered by: <b>", paste0(input$filterList, collapse = ", "), "</b>"))
+      HTML(paste(
+        "Documents filtered by: <b>",
+        paste0(input$filterList, collapse = ", "),
+        "</b>"
+      ))
     } else {
       HTML("")
     }
@@ -1856,7 +2367,10 @@ server <- function(input, output, session) {
         if (is.factor(values$dfTag[[var]])) {
           values[[paste0("filter_", var)]] <- NULL
         } else if (is.numeric(values$dfTag[[var]])) {
-          values[[paste0("filter_", var)]] <- range(values$dfTag[[var]], na.rm = TRUE)
+          values[[paste0("filter_", var)]] <- range(
+            values$dfTag[[var]],
+            na.rm = TRUE
+          )
         } else if (is.character(values$dfTag[[var]])) {
           values[[paste0("filter_", var)]] <- NULL
         }
@@ -1868,7 +2382,6 @@ server <- function(input, output, session) {
       )
     }
   )
-
 
   ## GROUPS ----
 
@@ -1902,7 +2415,10 @@ server <- function(input, output, session) {
     },
     valueExpr = {
       values$selectedGroups <- input$defineGroupsList
-      values$dfTag <- groupByMetadata(values$dfTag, metadata = input$defineGroupsList)
+      values$dfTag <- groupByMetadata(
+        values$dfTag,
+        metadata = input$defineGroupsList
+      )
       if (length(input$defineGroupsList) == 1) {
         showModal(groupModal(session))
       } else {
@@ -1910,7 +2426,6 @@ server <- function(input, output, session) {
       }
     }
   )
-
 
   ## Data grouped by dynamic text on dashboardHeader
   output$dataGroupedBy <- renderText({
@@ -1922,10 +2437,14 @@ server <- function(input, output, session) {
     }
   })
 
-
   output$defineGroupsData <- renderDT({
     groupMetadata()
-    DTformat(values$dfTag %>% filter(docSelected), nrow = 3, size = "100%", title = "Data Grouped By External Information")
+    DTformat(
+      values$dfTag %>% filter(docSelected),
+      nrow = 3,
+      size = "100%",
+      title = "Data Grouped By External Information"
+    )
   })
 
   groupModal <- function(session) {
@@ -1937,9 +2456,11 @@ server <- function(input, output, session) {
       count()
     names(values$newGr) <- c(input$defineGroupsList, "N. of Docs")
     txt <- paste0(
-      "<hr><br><br>The original <b>", sum(values$newGr[, 2]),
+      "<hr><br><br>The original <b>",
+      sum(values$newGr[, 2]),
       "</b> documents have been partitioned into <b>",
-      nrow(values$newGr), "</b> groups <br><br>"
+      nrow(values$newGr),
+      "</b> groups <br><br>"
     )
     modalDialog(
       h3(strong(paste0("Documents grouped by ", input$defineGroupsList))),
@@ -1956,7 +2477,9 @@ server <- function(input, output, session) {
 
   ungroupModal <- function(session) {
     ns <- session$ns
-    txt <- paste0("<hr><br><br>The original partitioning<br>into documents has been correctly restored.<br><br><hr>")
+    txt <- paste0(
+      "<hr><br><br>The original partitioning<br>into documents has been correctly restored.<br><br><hr>"
+    )
     modalDialog(
       h3(HTML(txt)),
       size = "m",
@@ -1968,9 +2491,14 @@ server <- function(input, output, session) {
   }
 
   output$groupData <- renderDT(server = FALSE, {
-    DTformat(values$newGr, nrow = 10, size = "100%", title = "Groups By External Information", left = 1)
+    DTformat(
+      values$newGr,
+      nrow = 10,
+      size = "100%",
+      title = "Groups By External Information",
+      left = 1
+    )
   })
-
 
   ## OVERVIEW ----
 
@@ -1982,31 +2510,67 @@ server <- function(input, output, session) {
 
     values$VbData <- data.frame(
       Description = c(
-        "Documents", "Tokens", "Types", "Lemma", "Sentences",
-        "Docs Avg Length in Chars", "Docs SD Length in Chars", "Doc Avg Length in Tokens",
-        "Doc SD Length in Tokens", "Sent Avg Length in Tokens", "Sent SD Length in Tokens",
-        "Sent Avg Length in Chars", "Sent SD Length in Chars",
-        "TTR (%)", "Hapax (%)", "Guiraud Index", "Lexical Density", "Nominal Ratio", "Gini Index", "Yule's K"
+        "Documents",
+        "Tokens",
+        "Types",
+        "Lemma",
+        "Sentences",
+        "Docs Avg Length in Chars",
+        "Docs SD Length in Chars",
+        "Doc Avg Length in Tokens",
+        "Doc SD Length in Tokens",
+        "Sent Avg Length in Tokens",
+        "Sent SD Length in Tokens",
+        "Sent Avg Length in Chars",
+        "Sent SD Length in Chars",
+        "TTR (%)",
+        "Hapax (%)",
+        "Guiraud Index",
+        "Lexical Density",
+        "Nominal Ratio",
+        "Gini Index",
+        "Yule's K"
       ),
       Values = unlist(values$vb)
     )
     valueBox(
-      value = p(ifelse(is.null(input$defineGroupsList), "Documents", paste0("Docs grouped by ", input$defineGroupsList)), style = "font-size:16px;color:white;"),
-      subtitle = p(strong(values$vb$nDoc), style = "font-size:36px;color:white;", align = "center"),
-      icon = icon("duplicate", lib = "glyphicon"), color = "olive",
+      value = p(
+        ifelse(
+          is.null(input$defineGroupsList),
+          "Documents",
+          paste0("Docs grouped by ", input$defineGroupsList)
+        ),
+        style = "font-size:16px;color:white;"
+      ),
+      subtitle = p(
+        strong(values$vb$nDoc),
+        style = "font-size:36px;color:white;",
+        align = "center"
+      ),
+      icon = icon("duplicate", lib = "glyphicon"),
+      color = "olive",
       width = NULL
     )
   })
 
-
   #### box2 ---------------
   output$avgDocLengthChar <- renderValueBox({
     valueBox(
-      value = p("Doc Avg Length in Chars", style = "font-size:16px;color:white;"),
-      subtitle = p(strong(paste0(
-        values$vb$avgDocLengthChars, " ± ", values$vb$avgDocLengthCharsSD
-      )), style = "font-size:36px;color:white;", align = "center"),
-      icon = icon("duplicate", lib = "glyphicon"), color = "olive",
+      value = p(
+        "Doc Avg Length in Chars",
+        style = "font-size:16px;color:white;"
+      ),
+      subtitle = p(
+        strong(paste0(
+          values$vb$avgDocLengthChars,
+          " ± ",
+          values$vb$avgDocLengthCharsSD
+        )),
+        style = "font-size:36px;color:white;",
+        align = "center"
+      ),
+      icon = icon("duplicate", lib = "glyphicon"),
+      color = "olive",
       width = NULL
     )
   })
@@ -2014,11 +2578,23 @@ server <- function(input, output, session) {
   #### box3 ------------
   output$avgDocLengthTokens <- renderValueBox({
     valueBox(
-      value = p("Doc Avg Length in Tokens", style = "font-size:16px;color:white;"),
-      subtitle = p(strong(
-        paste0(values$vb$avgDocLengthTokens, " ± ", values$vb$avgDocLengthTokensSD)
-      ), style = "font-size:36px;color:white;", align = "center"),
-      icon = icon("duplicate", lib = "glyphicon"), color = "olive",
+      value = p(
+        "Doc Avg Length in Tokens",
+        style = "font-size:16px;color:white;"
+      ),
+      subtitle = p(
+        strong(
+          paste0(
+            values$vb$avgDocLengthTokens,
+            " ± ",
+            values$vb$avgDocLengthTokensSD
+          )
+        ),
+        style = "font-size:36px;color:white;",
+        align = "center"
+      ),
+      icon = icon("duplicate", lib = "glyphicon"),
+      color = "olive",
       width = NULL
     )
   })
@@ -2027,8 +2603,13 @@ server <- function(input, output, session) {
   output$nSentences <- renderValueBox({
     valueBox(
       value = p("Sentences", style = "font-size:16px;color:white;"),
-      subtitle = p(strong(values$vb$nSentences), style = "font-size:36px;color:white;", align = "center"),
-      icon = icon(name = "align-left", lib = "glyphicon"), color = "olive",
+      subtitle = p(
+        strong(values$vb$nSentences),
+        style = "font-size:36px;color:white;",
+        align = "center"
+      ),
+      icon = icon(name = "align-left", lib = "glyphicon"),
+      color = "olive",
       width = NULL
     )
   })
@@ -2036,11 +2617,23 @@ server <- function(input, output, session) {
   #### box5 --------------------
   output$avgSentLengthChar <- renderValueBox({
     valueBox(
-      value = p("Sent Avg Length in Chars", style = "font-size:16px;color:white;"),
-      subtitle = p(strong(
-        paste0(values$vb$avgSentLengthChars, " ± ", values$vb$avgSentLengthCharsSD)
-      ), style = "font-size:36px;color:white;", align = "center"),
-      icon = icon(name = "align-left", lib = "glyphicon"), color = "olive",
+      value = p(
+        "Sent Avg Length in Chars",
+        style = "font-size:16px;color:white;"
+      ),
+      subtitle = p(
+        strong(
+          paste0(
+            values$vb$avgSentLengthChars,
+            " ± ",
+            values$vb$avgSentLengthCharsSD
+          )
+        ),
+        style = "font-size:36px;color:white;",
+        align = "center"
+      ),
+      icon = icon(name = "align-left", lib = "glyphicon"),
+      color = "olive",
       width = NULL
     )
   })
@@ -2048,11 +2641,23 @@ server <- function(input, output, session) {
   #### box6 -------------
   output$avgSentLengthTokens <- renderValueBox({
     valueBox(
-      value = p("Sent Avg Length in Tokens", style = "font-size:16px;color:white;"),
-      subtitle = p(strong(
-        paste0(values$vb$avgSentLengthTokens, " ± ", values$vb$avgSentLengthTokensSD)
-      ), style = "font-size:36px;color:white;", align = "center"),
-      icon = icon(name = "align-left", lib = "glyphicon"), color = "olive",
+      value = p(
+        "Sent Avg Length in Tokens",
+        style = "font-size:16px;color:white;"
+      ),
+      subtitle = p(
+        strong(
+          paste0(
+            values$vb$avgSentLengthTokens,
+            " ± ",
+            values$vb$avgSentLengthTokensSD
+          )
+        ),
+        style = "font-size:36px;color:white;",
+        align = "center"
+      ),
+      icon = icon(name = "align-left", lib = "glyphicon"),
+      color = "olive",
       width = NULL
     )
   })
@@ -2061,8 +2666,13 @@ server <- function(input, output, session) {
   output$nDictionary <- renderValueBox({
     valueBox(
       value = p("Types", style = "font-size:16px;color:white;"),
-      subtitle = p(strong(values$vb$nDictionary), style = "font-size:36px;color:white;", align = "center"),
-      icon = icon(name = "font", lib = "glyphicon"), color = "olive",
+      subtitle = p(
+        strong(values$vb$nDictionary),
+        style = "font-size:36px;color:white;",
+        align = "center"
+      ),
+      icon = icon(name = "font", lib = "glyphicon"),
+      color = "olive",
       width = NULL
     )
   })
@@ -2071,8 +2681,13 @@ server <- function(input, output, session) {
   output$nTokens <- renderValueBox({
     valueBox(
       value = p("Tokens", style = "font-size:16px;color:white;"),
-      subtitle = p(strong(values$vb$nTokens), style = "font-size:36px;color:white;", align = "center"),
-      icon = icon(name = "font", lib = "glyphicon"), color = "olive",
+      subtitle = p(
+        strong(values$vb$nTokens),
+        style = "font-size:36px;color:white;",
+        align = "center"
+      ),
+      icon = icon(name = "font", lib = "glyphicon"),
+      color = "olive",
       width = NULL
     )
   })
@@ -2081,8 +2696,13 @@ server <- function(input, output, session) {
   output$nLemmas <- renderValueBox({
     valueBox(
       value = p("Lemma", style = "font-size:16px;color:white;"),
-      subtitle = p(strong(values$vb$nLemmas), style = "font-size:36px;color:white;", align = "center"),
-      icon = icon(name = "font", lib = "glyphicon"), color = "olive",
+      subtitle = p(
+        strong(values$vb$nLemmas),
+        style = "font-size:36px;color:white;",
+        align = "center"
+      ),
+      icon = icon(name = "font", lib = "glyphicon"),
+      color = "olive",
       width = NULL
     )
   })
@@ -2091,8 +2711,13 @@ server <- function(input, output, session) {
   output$TTR <- renderValueBox({
     valueBox(
       value = p("TTR (%)", style = "font-size:16px;color:white;"),
-      subtitle = p(strong(values$vb$TTR), style = "font-size:36px;color:white;", align = "center"),
-      icon = icon(name = "stats", lib = "glyphicon"), color = "olive",
+      subtitle = p(
+        strong(values$vb$TTR),
+        style = "font-size:36px;color:white;",
+        align = "center"
+      ),
+      icon = icon(name = "stats", lib = "glyphicon"),
+      color = "olive",
       width = NULL
     )
   })
@@ -2101,8 +2726,13 @@ server <- function(input, output, session) {
   output$hapax <- renderValueBox({
     valueBox(
       value = p("Hapax (%)", style = "font-size:16px;color:white;"),
-      subtitle = p(strong(values$vb$hapax), style = "font-size:36px;color:white;", align = "center"),
-      icon = icon(name = "stats", lib = "glyphicon"), color = "olive",
+      subtitle = p(
+        strong(values$vb$hapax),
+        style = "font-size:36px;color:white;",
+        align = "center"
+      ),
+      icon = icon(name = "stats", lib = "glyphicon"),
+      color = "olive",
       width = NULL
     )
   })
@@ -2111,8 +2741,13 @@ server <- function(input, output, session) {
   output$guiraud <- renderValueBox({
     valueBox(
       value = p("Guiraud Index", style = "font-size:16px;color:white;"),
-      subtitle = p(strong(values$vb$guiraud), style = "font-size:36px;color:white;", align = "center"),
-      icon = icon(name = "stats", lib = "glyphicon"), color = "olive",
+      subtitle = p(
+        strong(values$vb$guiraud),
+        style = "font-size:36px;color:white;",
+        align = "center"
+      ),
+      icon = icon(name = "stats", lib = "glyphicon"),
+      color = "olive",
       width = NULL
     )
   })
@@ -2121,8 +2756,13 @@ server <- function(input, output, session) {
   output$lexicalDensity <- renderValueBox({
     valueBox(
       value = p("Lexical Density", style = "font-size:16px;color:white;"),
-      subtitle = p(strong(values$vb$lexical_density), style = "font-size:36px;color:white;", align = "center"),
-      icon = icon(name = "stats", lib = "glyphicon"), color = "olive",
+      subtitle = p(
+        strong(values$vb$lexical_density),
+        style = "font-size:36px;color:white;",
+        align = "center"
+      ),
+      icon = icon(name = "stats", lib = "glyphicon"),
+      color = "olive",
       width = NULL
     )
   })
@@ -2131,8 +2771,13 @@ server <- function(input, output, session) {
   output$nominalRatio <- renderValueBox({
     valueBox(
       value = p("Nominal Ratio", style = "font-size:16px;color:white;"),
-      subtitle = p(strong(values$vb$nominal_ratio), style = "font-size:36px;color:white;", align = "center"),
-      icon = icon(name = "stats", lib = "glyphicon"), color = "olive",
+      subtitle = p(
+        strong(values$vb$nominal_ratio),
+        style = "font-size:36px;color:white;",
+        align = "center"
+      ),
+      icon = icon(name = "stats", lib = "glyphicon"),
+      color = "olive",
       width = NULL
     )
   })
@@ -2141,8 +2786,13 @@ server <- function(input, output, session) {
   output$giniIndex <- renderValueBox({
     valueBox(
       value = p("Gini Index", style = "font-size:16px;color:white;"),
-      subtitle = p(strong(values$vb$gini_index), style = "font-size:36px;color:white;", align = "center"),
-      icon = icon(name = "stats", lib = "glyphicon"), color = "olive",
+      subtitle = p(
+        strong(values$vb$gini_index),
+        style = "font-size:36px;color:white;",
+        align = "center"
+      ),
+      icon = icon(name = "stats", lib = "glyphicon"),
+      color = "olive",
       width = NULL
     )
   })
@@ -2151,8 +2801,13 @@ server <- function(input, output, session) {
   output$yuleK <- renderValueBox({
     valueBox(
       value = p("Yule's K", style = "font-size:16px;color:white;"),
-      subtitle = p(strong(values$vb$yule_k), style = "font-size:36px;color:white;", align = "center"),
-      icon = icon(name = "stats", lib = "glyphicon"), color = "olive",
+      subtitle = p(
+        strong(values$vb$yule_k),
+        style = "font-size:36px;color:white;",
+        align = "center"
+      ),
+      icon = icon(name = "stats", lib = "glyphicon"),
+      color = "olive",
       width = NULL
     )
   })
@@ -2160,11 +2815,25 @@ server <- function(input, output, session) {
   ## Overview Table ----
 
   output$overviewData <- renderDT(server = FALSE, {
-    DTformat(values$VbData, nrow = nrow(values$VbData), left = 1, right = 2, numeric = 2, pagelength = FALSE, dom = FALSE, size = "110%", filename = "Overview")
+    DTformat(
+      values$VbData,
+      nrow = nrow(values$VbData),
+      left = 1,
+      right = 2,
+      numeric = 2,
+      pagelength = FALSE,
+      dom = FALSE,
+      size = "110%",
+      filename = "Overview"
+    )
   })
 
   output$OverviewGeminiUI <- renderUI({
-    values$gemini_model_parameters <- geminiParameterPrompt(values, input$sidebarmenu, input)
+    values$gemini_model_parameters <- geminiParameterPrompt(
+      values,
+      input$sidebarmenu,
+      input
+    )
     geminiOutput(title = "Gemini AI", content = values$overviewGemini, values)
   })
 
@@ -2183,7 +2852,6 @@ server <- function(input, output, session) {
     }
   })
 
-
   ## WORDCLOUD ----
 
   wcData <- eventReactive(
@@ -2197,16 +2865,21 @@ server <- function(input, output, session) {
         select(upos)
       pos <- unique(pos$upos)
 
-      values$wcDfPlot <- freqByPos(LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected),
-                                   term = values$generalTerm,
-                                   pos = pos
+      values$wcDfPlot <- freqByPos(
+        LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected),
+        term = values$generalTerm,
+        pos = pos
       ) %>%
         slice_head(n = N) %>%
         rename(
           label = term,
           value = n
         )
-      values$WC2VIS <- wordcloud2vis(values$wcDfPlot, labelsize = input$labelsizeWC, opacity = 1)
+      values$WC2VIS <- wordcloud2vis(
+        values$wcDfPlot,
+        labelsize = input$labelsizeWC,
+        opacity = 1
+      )
     }
   )
 
@@ -2232,20 +2905,22 @@ server <- function(input, output, session) {
   output$dictionaryData <- renderDT(server = FALSE, {
     # dictionary()
     values$dictFreq <- vocabulary(values$dfTag, term = values$generalTerm)
-    DTformat(values$dictFreq,
-             left = c(1, 2), nrow = 15, pagelength = TRUE, filename = "Dictionary", dom = TRUE, size = "110%"
+    DTformat(
+      values$dictFreq,
+      left = c(1, 2),
+      nrow = 15,
+      pagelength = TRUE,
+      filename = "Dictionary",
+      dom = TRUE,
+      size = "110%"
     )
   })
 
   ## TF-IDF Table----
   output$tfidfData <- renderDT(server = FALSE, {
     values$tfidfDATA <- tfidfTable(values$dfTag, term = values$generalTerm)
-    DTformat(values$tfidfDATA,
-             left = 1, numeric = 2, round = 4, size = "110%"
-    )
+    DTformat(values$tfidfDATA, left = 1, numeric = 2, round = 4, size = "110%")
   })
-
-
 
   ### WORDS ----
 
@@ -2254,7 +2929,10 @@ server <- function(input, output, session) {
     d <- event_data("plotly_click")
     elementY <- d$y[1]
     if (!is.null(elementY)) {
-      if (input$sidebarmenu == "d_tm_estim" & elementY %in% unique(values$dfTag$doc_id)) {
+      if (
+        input$sidebarmenu == "d_tm_estim" &
+          elementY %in% unique(values$dfTag$doc_id)
+      ) {
         showModal(plotModalDoc(session))
       } else if (input$sidebarmenu %in% c("w_freq", "ca", "d_tm_estim")) {
         showModal(plotModalTerm(session))
@@ -2271,7 +2949,9 @@ server <- function(input, output, session) {
       easyClose = FALSE,
       footer = tagList(
         actionButton(
-          label = "Close", inputId = "closePlotModalTerm", style = "color: #ffff;",
+          label = "Close",
+          inputId = "closePlotModalTerm",
+          style = "color: #ffff;",
           icon = icon("remove", lib = "glyphicon")
         )
       ),
@@ -2294,7 +2974,11 @@ server <- function(input, output, session) {
       if (!is.null(word)) {
         if (substr(word, 1, 8) == "<a href=") {
           href_regex <- "href=\"(https?://[^\"]+)\""
-          word <- sub(href_regex, "\\1", unlist(regmatches(word, gregexpr(href_regex, word, perl = TRUE))))
+          word <- sub(
+            href_regex,
+            "\\1",
+            unlist(regmatches(word, gregexpr(href_regex, word, perl = TRUE)))
+          )
         }
       }
       ###
@@ -2313,7 +2997,10 @@ server <- function(input, output, session) {
           word <- values$CA$wordCoord %>%
             dplyr::filter(round(.[, 1], 6) == X, round(.[, 2], 6) == Y)
           word <- word$label
-          word_search <- unique(c(word, values$dfTag$token[values$dfTag$lemma == word]))
+          word_search <- unique(c(
+            word,
+            values$dfTag$token[values$dfTag$lemma == word]
+          ))
           sentences <- values$dfTag %>%
             filter(docSelected) %>%
             filter(token %in% word_search) %>%
@@ -2321,7 +3008,10 @@ server <- function(input, output, session) {
             select(doc_id, lemma, token, sentence_hl)
         }
       } else {
-        word_search <- unique(c(word, values$dfTag$token[values$dfTag$lemma == word]))
+        word_search <- unique(c(
+          word,
+          values$dfTag$token[values$dfTag$lemma == word]
+        ))
         sentences <- values$dfTag %>%
           filter(docSelected) %>%
           filter(token %in% word_search) %>%
@@ -2333,7 +3023,6 @@ server <- function(input, output, session) {
     },
     escape = FALSE
   )
-
 
   ## Click on Plotly graphs: DOCS IN CONTEXT ----
   plotModalDoc <- function(session) {
@@ -2351,13 +3040,14 @@ server <- function(input, output, session) {
           style = "border-radius: 20px; border-width: 1px; font-size: 16px; text-align: center; color: #ffff; padding-left: 20px; padding-right: 20px"
         ),
         actionButton(
-          label = "Close", inputId = "closePlotModalDoc", style = "color: #ffff;",
+          label = "Close",
+          inputId = "closePlotModalDoc",
+          style = "color: #ffff;",
           icon = icon("remove", lib = "glyphicon")
         )
       ),
     )
   }
-
 
   observeEvent(input$closePlotModalDoc, {
     removeModal(session = getDefaultReactiveDomain())
@@ -2374,7 +3064,9 @@ server <- function(input, output, session) {
       easyClose = FALSE,
       footer = tagList(
         actionButton(
-          label = "Close", inputId = "closeplotModalDocHigh", style = "color: #ffff;",
+          label = "Close",
+          inputId = "closeplotModalDocHigh",
+          style = "color: #ffff;",
           icon = icon("remove", lib = "glyphicon")
         )
       ),
@@ -2405,7 +3097,12 @@ server <- function(input, output, session) {
         "Paragraph ID" = paragraph_id,
         "Paragraph" = paragraph
       )
-    DTformat(paragraphs, nrow = 3, size = "100%", title = paste0("Doc_id: ", doc))
+    DTformat(
+      paragraphs,
+      nrow = 3,
+      size = "100%",
+      title = paste0("Doc_id: ", doc)
+    )
     # HTML(paste0(paste0("<h3>Doc_id: ",doc,"</h3><hr>"),
     #   paste(sentences$sentence,collapse=" ")))
   })
@@ -2415,7 +3112,12 @@ server <- function(input, output, session) {
       values$d <- event_data("plotly_click")
     }
     doc <- values$d$y
-    DTformat(highlightSentences(values$dfTag, id = doc), nrow = 3, size = "100%", title = paste0("Doc_id: ", doc))
+    DTformat(
+      highlightSentences(values$dfTag, id = doc),
+      nrow = 3,
+      size = "100%",
+      title = paste0("Doc_id: ", doc)
+    )
     # HTML(paste0(paste0("<h3>Doc_id: ",doc,"</h3><hr>"), highlightSentences(values$dfTag, id=doc, n=3)))
   })
 
@@ -2439,8 +3141,20 @@ server <- function(input, output, session) {
     },
     valueExpr = {
       if (!is.null(input$posSelectionFreq)) {
-        values$wFreq <- freqByPos(values$dfTag %>% filter(docSelected), term = values$generalTerm, pos = input$posSelectionFreq)
-        values$wFreqPlotly <- freqPlotly(values$wFreq, x = "n", y = "term", n = input$wFreqN, xlabel = "Frequency", ylabel = input$posSelectionFreq, scale = "identity")
+        values$wFreq <- freqByPos(
+          values$dfTag %>% filter(docSelected),
+          term = values$generalTerm,
+          pos = input$posSelectionFreq
+        )
+        values$wFreqPlotly <- freqPlotly(
+          values$wFreq,
+          x = "n",
+          y = "term",
+          n = input$wFreqN,
+          xlabel = "Frequency",
+          ylabel = input$posSelectionFreq,
+          scale = "identity"
+        )
 
         values$wFreqData <- values$wFreq %>%
           rename(
@@ -2449,7 +3163,9 @@ server <- function(input, output, session) {
           )
       } else {
         popUpGeneric(
-          title = "No PoS Tag/Term selected!", type = "error", color = c("#1d8fe1", "#913333", "#FFA800"),
+          title = "No PoS Tag/Term selected!",
+          type = "error",
+          color = c("#1d8fe1", "#913333", "#FFA800"),
           subtitle = "Please, click on Option button and select by which PoS Tag and term /n
                      measure the frequency distribution",
           btn_labels = "OK"
@@ -2465,7 +3181,16 @@ server <- function(input, output, session) {
 
   output$wFreqTable <- renderDT(server = FALSE, {
     wFreq()
-    DTformat(values$wFreqData, left = 1, right = 2, round = 0, numeric = 2, filename = "WordsFreqList", dom = FALSE, size = "110%")
+    DTformat(
+      values$wFreqData,
+      left = 1,
+      right = 2,
+      round = 0,
+      numeric = 2,
+      filename = "WordsFreqList",
+      dom = FALSE,
+      size = "110%"
+    )
   })
 
   observeEvent(
@@ -2473,13 +3198,30 @@ server <- function(input, output, session) {
       input$wFreqExport
     },
     handlerExpr = {
-      file <- paste("WordsFrequency-", input$posSelectionFreq, "-", sys.time(), ".png", sep = "")
-      file_path <- destFolder(file, values$wdTall)
-      values$wFreqGgplot <- freqGgplot(values$wFreq,
-                                       x = 2, y = 1, n = input$wFreqN,
-                                       title = paste0("Words Frequency by ", input$posSelectionFreq)
+      file <- paste(
+        "WordsFrequency-",
+        input$posSelectionFreq,
+        "-",
+        sys.time(),
+        ".png",
+        sep = ""
       )
-      ggsave(filename = file_path, plot = values$wFreqGgplot, dpi = dpi, height = values$h, width = values$h * 2, bg = "transparent")
+      file_path <- destFolder(file, values$wdTall)
+      values$wFreqGgplot <- freqGgplot(
+        values$wFreq,
+        x = 2,
+        y = 1,
+        n = input$wFreqN,
+        title = paste0("Words Frequency by ", input$posSelectionFreq)
+      )
+      ggsave(
+        filename = file_path,
+        plot = values$wFreqGgplot,
+        dpi = dpi,
+        height = values$h,
+        width = values$h * 2,
+        bg = "transparent"
+      )
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -2487,21 +3229,31 @@ server <- function(input, output, session) {
   ## Report
   observeEvent(input$wFreqReport, {
     if (!is.null(values$wFreq)) {
-      values$wFreqGgplot <- freqGgplot(values$wFreq,
-                                       x = 2, y = 1, n = input$wFreqN,
-                                       title = paste0("Words Frequency by ", input$posSelectionFreq)
+      values$wFreqGgplot <- freqGgplot(
+        values$wFreq,
+        x = 2,
+        y = 1,
+        n = input$wFreqN,
+        title = paste0("Words Frequency by ", input$posSelectionFreq)
       )
       list_df <- list(values$wFreqData)
       list_plot <- list(values$wFreqGgplot)
-      wb <- addSheetToReport(list_df, list_plot, sheetname = "WordsFreq", wb = values$wb)
+      wb <- addSheetToReport(
+        list_df,
+        list_plot,
+        sheetname = "WordsFreq",
+        wb = values$wb
+      )
       values$wb <- wb
-      popUp(title = paste0("Words Frequency by-", input$posSelectionFreq), type = "success")
+      popUp(
+        title = paste0("Words Frequency by-", input$posSelectionFreq),
+        type = "success"
+      )
       values$myChoices <- sheets(values$wb)
     } else {
       popUp(type = "error")
     }
   })
-
 
   ## PART OF SPEECH ----
 
@@ -2518,7 +3270,15 @@ server <- function(input, output, session) {
         arrange(desc(n)) %>%
         rename(PoS = upos)
 
-      values$posPlotly <- freqPlotly(values$freqPOS, x = "n", y = "PoS", n = nrow(values$freqPOS), xlabel = "Frequency", ylabel = "Part of Speech", scale = "identity")
+      values$posPlotly <- freqPlotly(
+        values$freqPOS,
+        x = "n",
+        y = "PoS",
+        n = nrow(values$freqPOS),
+        xlabel = "Frequency",
+        ylabel = "Part of Speech",
+        scale = "identity"
+      )
 
       values$freqPOSData <- values$freqPOS %>%
         rename(Frequency = n)
@@ -2532,7 +3292,16 @@ server <- function(input, output, session) {
 
   output$posTable <- renderDT(server = FALSE, {
     posFreq()
-    DTformat(values$freqPOSData, left = 1, right = 2, round = 0, numeric = 2, filename = "POSFreqList", dom = FALSE, size = "110%")
+    DTformat(
+      values$freqPOSData,
+      left = 1,
+      right = 2,
+      round = 0,
+      numeric = 2,
+      filename = "POSFreqList",
+      dom = FALSE,
+      size = "110%"
+    )
   })
 
   observeEvent(
@@ -2542,11 +3311,21 @@ server <- function(input, output, session) {
     handlerExpr = {
       file <- paste("PoSFrequency-", sys.time(), ".png", sep = "")
       file <- destFolder(file, values$wdTall)
-      values$posGgplot <- freqGgplot(data.frame(values$freqPOS),
-                                     x = 2, y = 1, n = length(values$freqPOS$PoS),
-                                     title = "PoS Frequency"
+      values$posGgplot <- freqGgplot(
+        data.frame(values$freqPOS),
+        x = 2,
+        y = 1,
+        n = length(values$freqPOS$PoS),
+        title = "PoS Frequency"
       )
-      ggsave(filename = file, plot = values$posGgplot, dpi = dpi, height = values$h, width = values$h * 2, bg = "transparent")
+      ggsave(
+        filename = file,
+        plot = values$posGgplot,
+        dpi = dpi,
+        height = values$h,
+        width = values$h * 2,
+        bg = "transparent"
+      )
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -2554,14 +3333,22 @@ server <- function(input, output, session) {
   ## Report
 
   observeEvent(input$posReport, {
-    values$posGgplot <- freqGgplot(data.frame(values$freqPOS),
-                                   x = 2, y = 1, n = length(values$freqPOS$PoS),
-                                   title = "PoS Tag Frequency"
+    values$posGgplot <- freqGgplot(
+      data.frame(values$freqPOS),
+      x = 2,
+      y = 1,
+      n = length(values$freqPOS$PoS),
+      title = "PoS Tag Frequency"
     )
     if (!is.null(values$freqPOS)) {
       list_df <- list(values$freqPOSData)
       list_plot <- list(values$posGgplot)
-      wb <- addSheetToReport(list_df, list_plot, sheetname = "PoSFreq", wb = values$wb)
+      wb <- addSheetToReport(
+        list_df,
+        list_plot,
+        sheetname = "PoSFreq",
+        wb = values$wb
+      )
       values$wb <- wb
       popUp(title = "PoS Tag Frequency", type = "success")
       values$myChoices <- sheets(values$wb)
@@ -2582,10 +3369,12 @@ server <- function(input, output, session) {
       unique() %>%
       sort() %>%
       tolower()
-    updateSelectizeInput(session, "wordsContSearch",
-                         choices = c("", words),
-                         selected = "",
-                         server = TRUE
+    updateSelectizeInput(
+      session,
+      "wordsContSearch",
+      choices = c("", words),
+      selected = "",
+      server = TRUE
     )
   })
 
@@ -2605,10 +3394,12 @@ server <- function(input, output, session) {
         unique() %>%
         sort() %>%
         tolower()
-      updateSelectizeInput(session, "wordsContSearch",
-                           choices = c("", words),
-                           selected = "",
-                           server = TRUE
+      updateSelectizeInput(
+        session,
+        "wordsContSearch",
+        choices = c("", words),
+        selected = "",
+        server = TRUE
       )
     }
   )
@@ -2620,7 +3411,10 @@ server <- function(input, output, session) {
     },
     handlerExpr = {
       req(values$wordInContext)
-      file_path <- destFolder(paste("Tall-WordsInContext-", sys.time(), ".xlsx", sep = ""), values$wdTall)
+      file_path <- destFolder(
+        paste("Tall-WordsInContext-", sys.time(), ".xlsx", sep = ""),
+        values$wdTall
+      )
       openxlsx::write.xlsx(
         x = values$wordInContext,
         file = file_path,
@@ -2638,14 +3432,20 @@ server <- function(input, output, session) {
     valueExpr = {
       if (input$wordsContSearch != "") {
         word_search <- req(tolower(trimws(input$wordsContSearch)))
-        values$wordInContext <- get_context_window(values$dfTag,
-                                                   target_word = word_search,
-                                                   n_left = input$wordsContBefore,
-                                                   n_right = input$wordsContAfter,
-                                                   term = values$generalTerm
+        values$wordInContext <- get_context_window(
+          values$dfTag,
+          target_word = word_search,
+          n_left = input$wordsContBefore,
+          n_right = input$wordsContAfter,
+          term = values$generalTerm
         )
         if (nrow(values$wordInContext) > 1) {
-          values$contextNetwork <- contextNetwork(df = values$wordInContext, dfTag = values$dfTag, target_word = word_search, n = 50)
+          values$contextNetwork <- contextNetwork(
+            df = values$wordInContext,
+            dfTag = values$dfTag,
+            target_word = word_search,
+            n = 50
+          )
         } else {
           values$contextNetwork <- NULL
         }
@@ -2668,10 +3468,22 @@ server <- function(input, output, session) {
       div(
         style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;",
         # style = "display: flex; justify-content: center; align-items: center; margin-bottom: 10px;",
-        span(style = "color: darkblue; text-align: left; width: 150px; font-weight: bold;", row$doc_id), # Nome del documento
-        span(style = "color: gray; text-align: right; flex: 1;", paste0(unlist(row$context_before), collapse = " ")),
-        span(style = "color: #4F7942; font-weight: bold; padding: 0 10px;", row$target_word),
-        span(style = "color: gray; text-align: left; flex: 1;", paste0(unlist(row$context_after), collapse = " "))
+        span(
+          style = "color: darkblue; text-align: left; width: 150px; font-weight: bold;",
+          row$doc_id
+        ), # Nome del documento
+        span(
+          style = "color: gray; text-align: right; flex: 1;",
+          paste0(unlist(row$context_before), collapse = " ")
+        ),
+        span(
+          style = "color: #4F7942; font-weight: bold; padding: 0 10px;",
+          row$target_word
+        ),
+        span(
+          style = "color: gray; text-align: left; flex: 1;",
+          paste0(unlist(row$context_after), collapse = " ")
+        )
       )
     })
 
@@ -2685,7 +3497,11 @@ server <- function(input, output, session) {
   })
 
   output$ContextGeminiUI <- renderUI({
-    values$gemini_model_parameters <- geminiParameterPrompt(values, input$sidebarmenu, input)
+    values$gemini_model_parameters <- geminiParameterPrompt(
+      values,
+      input$sidebarmenu,
+      input
+    )
     geminiOutput(title = "Gemini AI", content = values$contextGemini, values)
   })
 
@@ -2697,14 +3513,21 @@ server <- function(input, output, session) {
     },
     valueExpr = {
       values$reinert <- tall::reinert(
-        x = values$dfTag, k = input$w_rein_k, term = values$generalTerm,
+        x = values$dfTag,
+        k = input$w_rein_k,
+        term = values$generalTerm,
         segment_size = input$w_rein_segments_size,
         min_segment_size = input$w_rein_min_segments,
         min_split_members = input$w_rein_min_split_members,
-        cc_test = input$w_rein_cc_test, tsj = input$w_rein_tsj
+        cc_test = input$w_rein_cc_test,
+        tsj = input$w_rein_tsj
       )
 
-      values$tc <- tall::term_per_cluster(values$reinert, cutree = NULL, k = unique(values$reinert$group))
+      values$tc <- tall::term_per_cluster(
+        values$reinert,
+        cutree = NULL,
+        k = unique(values$reinert$group)
+      )
       values$reinertSummary <- tall::reinSummary(values$tc, 10)
 
       # groups <- tibble(uc=1:length(values$reinert$group), Cluster=values$reinert$group)
@@ -2719,19 +3542,24 @@ server <- function(input, output, session) {
           column(9),
           column(
             3,
-            selectInput("ReinCutree",
-                        label = "Dendrogram Pruning",
-                        choices = input$w_rein_k:1,
-                        selected = input$w_rein_k
+            selectInput(
+              "ReinCutree",
+              label = "Dendrogram Pruning",
+              choices = input$w_rein_k:1,
+              selected = input$w_rein_k
             )
           )
         )
       })
 
-      values$ReinertDendrogram <- dend2vis(values$reinert, labelsize = 10, nclusters = input$w_rein_k, community = FALSE)
+      values$ReinertDendrogram <- dend2vis(
+        values$reinert,
+        labelsize = 10,
+        nclusters = input$w_rein_k,
+        community = FALSE
+      )
     }
   )
-
 
   cutree_event <- eventReactive(
     ignoreNULL = TRUE,
@@ -2739,10 +3567,11 @@ server <- function(input, output, session) {
       input$ReinCutree
     },
     valueExpr = {
-      values$ReinertDendrogram <- dend2vis(values$reinert,
-                                           labelsize = 10,
-                                           nclusters = as.numeric(input$ReinCutree),
-                                           community = FALSE
+      values$ReinertDendrogram <- dend2vis(
+        values$reinert,
+        labelsize = 10,
+        nclusters = as.numeric(input$ReinCutree),
+        community = FALSE
       )
     }
   )
@@ -2761,7 +3590,12 @@ server <- function(input, output, session) {
   output$w_ReinSummaryTable <- renderDT({
     dendReinFunction()
     # find sentences containing the tokens/lemma
-    DTformat(values$reinertSummary, size = "100%", button = FALSE, filter = "none")
+    DTformat(
+      values$reinertSummary,
+      size = "100%",
+      button = FALSE,
+      filter = "none"
+    )
   })
 
   output$w_ReinClusteringTableTerms <- renderDT({
@@ -2783,7 +3617,10 @@ server <- function(input, output, session) {
           "Sign" = sign,
           "Cluster" = cluster
         ),
-      size = "85%", button = FALSE, numeric = c(5), round = 3
+      size = "85%",
+      button = FALSE,
+      numeric = c(5),
+      round = 3
     )
   })
 
@@ -2825,8 +3662,16 @@ server <- function(input, output, session) {
       # values$wb <- res$wb
       owd <- setwd(tempdir())
       on.exit(setwd(owd))
-      values$fileReinertDendrogram <- plot2png(values$ReinertDendrogram, filename = "ReinertDendrogram.png", type = "vis", zoom = values$zoom)
-      values$list_file <- rbind(values$list_file, c(sheetname = res$sheetname, values$fileReinertDendrogram, res$col))
+      values$fileReinertDendrogram <- plot2png(
+        values$ReinertDendrogram,
+        filename = "ReinertDendrogram.png",
+        type = "vis",
+        zoom = values$zoom
+      )
+      values$list_file <- rbind(
+        values$list_file,
+        c(sheetname = res$sheetname, values$fileReinertDendrogram, res$col)
+      )
       popUp(title = "Reinert Clustering Results", type = "success")
       values$myChoices <- sheets(values$wb)
     } else {
@@ -2843,10 +3688,13 @@ server <- function(input, output, session) {
       input$w_clusteringApply
     },
     valueExpr = {
-      results <- clustering(LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected),
-                            n = input$w_clusteringNMax,
-                            group = "doc_id", minEdges = 25, term = values$generalTerm,
-                            normalization = input$w_clusteringSimilarity
+      results <- clustering(
+        LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected),
+        n = input$w_clusteringNMax,
+        group = "doc_id",
+        minEdges = 25,
+        term = values$generalTerm,
+        normalization = input$w_clusteringSimilarity
       )
       values$wordCluster <- results$cluster
       values$wordCluster <- values$wordCluster %>%
@@ -2855,9 +3703,16 @@ server <- function(input, output, session) {
       if (input$w_clusteringMode == "auto") {
         nclusters <- max(values$wordComm$membership)
       } else {
-        nclusters <- min(input$w_nclusters, length(values$wordComm$membership) - 1)
+        nclusters <- min(
+          input$w_nclusters,
+          length(values$wordComm$membership) - 1
+        )
       }
-      values$WordDendrogram <- dend2vis(values$wordComm, labelsize = input$w_clusteringLabelSize, nclusters = nclusters)
+      values$WordDendrogram <- dend2vis(
+        values$wordComm,
+        labelsize = input$w_clusteringLabelSize,
+        nclusters = nclusters
+      )
     }
   )
 
@@ -2868,9 +3723,16 @@ server <- function(input, output, session) {
 
   output$w_clusteringTable <- renderDT(server = FALSE, {
     dendFunction()
-    DTformat(values$wordCluster,
-             size = "100%", filename = "ClusterWordsTable", pagelength = TRUE, left = 1, right = NULL,
-             numeric = NULL, dom = TRUE, filter = "top"
+    DTformat(
+      values$wordCluster,
+      size = "100%",
+      filename = "ClusterWordsTable",
+      pagelength = TRUE,
+      left = 1,
+      right = NULL,
+      numeric = NULL,
+      dom = TRUE,
+      filter = "top"
     )
   })
 
@@ -2898,8 +3760,15 @@ server <- function(input, output, session) {
       # values$wb <- res$wb
       owd <- setwd(tempdir())
       on.exit(setwd(owd))
-      values$fileDend <- plot2png(values$WordDendrogram, filename = "Clustering.png", zoom = values$zoom)
-      values$list_file <- rbind(values$list_file, c(sheetname = res$sheetname, values$fileDend, res$col))
+      values$fileDend <- plot2png(
+        values$WordDendrogram,
+        filename = "Clustering.png",
+        zoom = values$zoom
+      )
+      values$list_file <- rbind(
+        values$list_file,
+        c(sheetname = res$sheetname, values$fileDend, res$col)
+      )
       popUp(title = "Clustering Results", type = "success")
       values$myChoices <- sheets(values$wb)
     } else {
@@ -2917,26 +3786,59 @@ server <- function(input, output, session) {
     },
     valueExpr = {
       ## check to verify if groups exist or not
-      if (input$groupCA == "Documents" & "ungroupDoc_id" %in% names(values$dfTag)) {
-        values$CA <- wordCA(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected), n = input$nCA, term = values$generalTerm, group = input$groupCA)
+      if (
+        input$groupCA == "Documents" & "ungroupDoc_id" %in% names(values$dfTag)
+      ) {
+        values$CA <- wordCA(
+          backToOriginalGroups(LemmaSelection(values$dfTag)) %>%
+            filter(docSelected),
+          n = input$nCA,
+          term = values$generalTerm,
+          group = input$groupCA
+        )
       } else {
-        values$CA <- wordCA(LemmaSelection(values$dfTag) %>% filter(docSelected), n = input$nCA, term = values$generalTerm, group = input$groupCA)
+        values$CA <- wordCA(
+          LemmaSelection(values$dfTag) %>% filter(docSelected),
+          n = input$nCA,
+          term = values$generalTerm,
+          group = input$groupCA
+        )
       }
       ##
-      values$CA <- caClustering(values$CA, nclusters = input$nClustersCA, nDim = input$nDimsCA, lim.contr = input$lim.contribCA)
+      values$CA <- caClustering(
+        values$CA,
+        nclusters = input$nClustersCA,
+        nDim = input$nDimsCA,
+        lim.contr = input$lim.contribCA
+      )
       values$CAdimY <- as.numeric(input$dimPlotCA) * 2
       values$CAdimX <- values$CAdimY - 1
-      values$plotCA <- ca2plotly(values$CA,
-                                 dimX = values$CAdimX, dimY = values$CAdimY,
-                                 topWordPlot = input$nCA, topDocPlot = input$nDocCA, threshold = 0.03, labelsize = input$labelsizeCA, size = input$sizeCA, lim.contr = input$lim.contribCA
+      values$plotCA <- ca2plotly(
+        values$CA,
+        dimX = values$CAdimX,
+        dimY = values$CAdimY,
+        topWordPlot = input$nCA,
+        topDocPlot = input$nDocCA,
+        threshold = 0.03,
+        labelsize = input$labelsizeCA,
+        size = input$sizeCA,
+        lim.contr = input$lim.contribCA
       )
-      values$CADendrogram <- dend2vis(values$CA$clustering$h, labelsize = input$labelsizeCA, nclusters = input$nClustersCA, community = FALSE)
+      values$CADendrogram <- dend2vis(
+        values$CA$clustering$h,
+        labelsize = input$labelsizeCA,
+        nclusters = input$nClustersCA,
+        community = FALSE
+      )
 
       # wordCoordData
       values$CA$wordCoordData <- values$CA$wordCoord %>%
         select(label, everything()) %>%
         left_join(
-          data.frame(label = names(values$CA$clustering$groups), Group = values$CA$clustering$groups),
+          data.frame(
+            label = names(values$CA$clustering$groups),
+            Group = values$CA$clustering$groups
+          ),
           by = "label"
         ) %>%
         rename(Label = label) %>%
@@ -2955,9 +3857,17 @@ server <- function(input, output, session) {
 
       # dfCA
       if (length(values$CA$ca$sv) < 10) {
-        values$dfCA <- data.frame(dim = paste0("Dim ", 1:length(values$CA$ca$sv)), sv = (values$CA$ca$sv / sum(values$CA$ca$sv) * 100), svcorr = values$CA$ca$eigCorrectedNorm)
+        values$dfCA <- data.frame(
+          dim = paste0("Dim ", 1:length(values$CA$ca$sv)),
+          sv = (values$CA$ca$sv / sum(values$CA$ca$sv) * 100),
+          svcorr = values$CA$ca$eigCorrectedNorm
+        )
       } else {
-        values$dfCA <- data.frame(dim = paste0("Dim ", 1:10), sv = (values$CA$ca$sv / sum(values$CA$ca$sv) * 100)[1:10], svcorr = values$CA$ca$eigCorrectedNorm[1:10])
+        values$dfCA <- data.frame(
+          dim = paste0("Dim ", 1:10),
+          sv = (values$CA$ca$sv / sum(values$CA$ca$sv) * 100)[1:10],
+          svcorr = values$CA$ca$eigCorrectedNorm[1:10]
+        )
       }
       values$dfCA <- values$dfCA %>%
         rename(
@@ -2980,42 +3890,73 @@ server <- function(input, output, session) {
 
   # gemini button for correspondence analysis
   output$caGeminiUI <- renderUI({
-    values$gemini_model_parameters <- geminiParameterPrompt(values, input$sidebarmenu, input)
+    values$gemini_model_parameters <- geminiParameterPrompt(
+      values,
+      input$sidebarmenu,
+      input
+    )
     geminiOutput(title = "", content = values$caGemini, values)
-
   })
-
 
   # CA Table
   output$caCoordTable <- renderDT(server = FALSE, {
     caPlotFunction()
-    DTformat(values$CA$wordCoordData,
-             size = "100%", filename = "CAWordCoordinatesTable", pagelength = TRUE, left = 1, right = 2:ncol(values$CA$wordCoordData),
-             numeric = 3:ncol(values$CA$wordCoordData), dom = TRUE, filter = "top", round = 3
+    DTformat(
+      values$CA$wordCoordData,
+      size = "100%",
+      filename = "CAWordCoordinatesTable",
+      pagelength = TRUE,
+      left = 1,
+      right = 2:ncol(values$CA$wordCoordData),
+      numeric = 3:ncol(values$CA$wordCoordData),
+      dom = TRUE,
+      filter = "top",
+      round = 3
     )
   })
 
   output$caContribTable <- renderDT(server = FALSE, {
     caPlotFunction()
-    DTformat(values$CA$contribData,
-             size = "100%", filename = "CAWordContributesTable", pagelength = TRUE, left = 1, # right=2:(ncol(values$CA$contrib)+1),
-             numeric = 2:(ncol(values$CA$contrib) + 1), dom = TRUE, filter = "top", round = 3
+    DTformat(
+      values$CA$contribData,
+      size = "100%",
+      filename = "CAWordContributesTable",
+      pagelength = TRUE,
+      left = 1, # right=2:(ncol(values$CA$contrib)+1),
+      numeric = 2:(ncol(values$CA$contrib) + 1),
+      dom = TRUE,
+      filter = "top",
+      round = 3
     )
   })
 
   output$caCosineTable <- renderDT(server = FALSE, {
     caPlotFunction()
-    DTformat(values$CA$cosineData,
-             size = "100%", filename = "CAWordCosinesTable", pagelength = TRUE, left = 1, # right=2:(ncol(values$CA$cosine)+1),
-             numeric = 2:(ncol(values$CA$cosine) + 1), dom = TRUE, filter = "top", round = 3
+    DTformat(
+      values$CA$cosineData,
+      size = "100%",
+      filename = "CAWordCosinesTable",
+      pagelength = TRUE,
+      left = 1, # right=2:(ncol(values$CA$cosine)+1),
+      numeric = 2:(ncol(values$CA$cosine) + 1),
+      dom = TRUE,
+      filter = "top",
+      round = 3
     )
   })
 
   output$caSingularValueTable <- renderDT(server = FALSE, {
     caPlotFunction()
-    DTformat(values$dfCA,
-             size = "100%", filename = "CAWordSingualValueTable", pagelength = TRUE, left = 1, # right=2:3,
-             numeric = 2:3, dom = TRUE, filter = "top", round = 2
+    DTformat(
+      values$dfCA,
+      size = "100%",
+      filename = "CAWordSingualValueTable",
+      pagelength = TRUE,
+      left = 1, # right=2:3,
+      numeric = 2:3,
+      dom = TRUE,
+      filter = "top",
+      round = 2
     )
   })
 
@@ -3053,10 +3994,21 @@ server <- function(input, output, session) {
       # values$wb <- res$wb
       owd <- setwd(tempdir())
       on.exit(setwd(owd))
-      values$fileplotCA <- plot2png(values$plotCA, filename = "CAMap.png", type = "plotly", zoom = values$zoom)
-      values$fileCADendrogram <- plot2png(values$CADendrogram, filename = "CADendrogram.png", type = "vis", zoom = values$zoom)
+      values$fileplotCA <- plot2png(
+        values$plotCA,
+        filename = "CAMap.png",
+        type = "plotly",
+        zoom = values$zoom
+      )
+      values$fileCADendrogram <- plot2png(
+        values$CADendrogram,
+        filename = "CADendrogram.png",
+        type = "vis",
+        zoom = values$zoom
+      )
       values$list_file <- rbind(
-        values$list_file, c(sheetname = res$sheetname, values$fileplotCA, res$col),
+        values$list_file,
+        c(sheetname = res$sheetname, values$fileplotCA, res$col),
         c(sheetname = res$sheetname, values$fileCADendrogram, res$col)
       )
       popUp(title = "Correspondence Analysis Results", type = "success")
@@ -3065,7 +4017,6 @@ server <- function(input, output, session) {
       popUp(type = "error")
     }
   })
-
 
   ## Network ----
 
@@ -3076,53 +4027,82 @@ server <- function(input, output, session) {
       input$w_networkCoocApply
     },
     valueExpr = {
-      switch(input$w_groupNet,
-             Groups = {
-               group <- "doc_id"
-             },
-             Documents = {
-               group <- "doc_id"
-             },
-             Paragraphs = {
-               group <- c("doc_id", "paragraph_id")
-             },
-             Sentences = {
-               group <- c("doc_id", "sentence_id")
-             }
+      switch(
+        input$w_groupNet,
+        Groups = {
+          group <- "doc_id"
+        },
+        Documents = {
+          group <- "doc_id"
+        },
+        Paragraphs = {
+          group <- c("doc_id", "paragraph_id")
+        },
+        Sentences = {
+          group <- c("doc_id", "sentence_id")
+        }
       )
       ## check to verify if groups exist or not
 
       # community.repulsion <- as.numeric(gsub("%","",input$community.repulsion))/100
       community.repulsion <- 0
 
-      if (input$w_groupNet == "Documents" & "ungroupDoc_id" %in% names(values$dfTag)) {
-        values$network <- network(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected),
-                                  term = values$generalTerm, group = group,
-                                  n = input$nMax, minEdges = input$minEdges,
-                                  labelsize = input$labelSize, opacity = input$opacity,
-                                  interLinks = input$interLinks, normalization = input$normalizationCooc,
-                                  remove.isolated = input$removeIsolated, community.repulsion = community.repulsion
+      if (
+        input$w_groupNet == "Documents" &
+          "ungroupDoc_id" %in% names(values$dfTag)
+      ) {
+        values$network <- network(
+          backToOriginalGroups(LemmaSelection(values$dfTag)) %>%
+            filter(docSelected),
+          term = values$generalTerm,
+          group = group,
+          n = input$nMax,
+          minEdges = input$minEdges,
+          labelsize = input$labelSize,
+          opacity = input$opacity,
+          interLinks = input$interLinks,
+          normalization = input$normalizationCooc,
+          remove.isolated = input$removeIsolated,
+          community.repulsion = community.repulsion
         )
       } else {
-        values$network <- network(LemmaSelection(values$dfTag) %>% filter(docSelected),
-                                  term = values$generalTerm, group = group,
-                                  n = input$nMax, minEdges = input$minEdges,
-                                  labelsize = input$labelSize, opacity = input$opacity,
-                                  interLinks = input$interLinks, normalization = input$normalizationCooc,
-                                  remove.isolated = input$removeIsolated, community.repulsion = community.repulsion
+        values$network <- network(
+          LemmaSelection(values$dfTag) %>% filter(docSelected),
+          term = values$generalTerm,
+          group = group,
+          n = input$nMax,
+          minEdges = input$minEdges,
+          labelsize = input$labelSize,
+          opacity = input$opacity,
+          interLinks = input$interLinks,
+          normalization = input$normalizationCooc,
+          remove.isolated = input$removeIsolated,
+          community.repulsion = community.repulsion
         )
       }
       ## end check
       # net=values$network
       # save(net, file="network.rdata")
 
-      values$netVis <- net2vis(nodes = values$network$nodes, edges = values$network$edges, click = TRUE, noOverlap = input$noOverlap)
+      values$netVis <- net2vis(
+        nodes = values$network$nodes,
+        edges = values$network$edges,
+        click = TRUE,
+        noOverlap = input$noOverlap
+      )
 
       # network$nodes
       if (is.na(values$network$nodes)[1]) {
-        values$network$nodesData <- data.frame(Word = "", Frequency = NA, Group = NA, "Color Group" = "")
+        values$network$nodesData <- data.frame(
+          Word = "",
+          Frequency = NA,
+          Group = NA,
+          "Color Group" = ""
+        )
         values$network$edgesData <- data.frame(
-          From = NA, To = NA, "Co-occurence" = 0,
+          From = NA,
+          To = NA,
+          "Co-occurence" = 0,
           "Association Index" = 0,
           "Cosine Similarity" = 0,
           "Jaccard Index" = 0,
@@ -3152,7 +4132,11 @@ server <- function(input, output, session) {
             "Group From" = group_from,
             "Group To" = group_to
           )
-        values$gemini_model_parameters <- geminiParameterPrompt(values, input$sidebarmenu, input)
+        values$gemini_model_parameters <- geminiParameterPrompt(
+          values,
+          input$sidebarmenu,
+          input
+        )
       }
     }
   )
@@ -3164,23 +4148,37 @@ server <- function(input, output, session) {
 
   # gemini button for word network
   output$w_networkGeminiUI <- renderUI({
-    values$gemini_model_parameters <- geminiParameterPrompt(values, input$sidebarmenu, input)
+    values$gemini_model_parameters <- geminiParameterPrompt(
+      values,
+      input$sidebarmenu,
+      input
+    )
     geminiOutput(title = "", content = values$w_networkGemini, values)
-
   })
 
   output$w_networkCoocNodesTable <- renderDT(server = FALSE, {
     netFunction()
-    DTformat(values$network$nodesData,
-             size = "100%", filename = "NetworkWordsTable", pagelength = TRUE, left = NULL, right = NULL,
-             numeric = NULL, dom = TRUE, filter = "top"
+    DTformat(
+      values$network$nodesData,
+      size = "100%",
+      filename = "NetworkWordsTable",
+      pagelength = TRUE,
+      left = NULL,
+      right = NULL,
+      numeric = NULL,
+      dom = TRUE,
+      filter = "top"
     )
   })
 
   output$w_networkCoocEdgesTable <- renderDT(server = FALSE, {
     netFunction()
-    DTformat(values$network$edgesData,
-             size = "100%", filename = "NetworkLinksTable", numeric = 6:8, round = 4
+    DTformat(
+      values$network$edgesData,
+      size = "100%",
+      filename = "NetworkLinksTable",
+      numeric = 6:8,
+      round = 4
     )
   })
 
@@ -3197,14 +4195,13 @@ server <- function(input, output, session) {
     }
   )
 
-
   ## Report
 
   observeEvent(input$w_networkCoocReport, {
     if (!is.null(values$network$nodes)) {
       popUp(title = NULL, type = "waiting")
       sheetname <- "CoWord"
-      Gem <-  values$w_networkGemini %>% string_to_sentence_df()
+      Gem <- values$w_networkGemini %>% string_to_sentence_df()
       list_df <- list(
         Gem,
         values$network$nodesData,
@@ -3214,15 +4211,21 @@ server <- function(input, output, session) {
       # values$wb <- res$wb
       owd <- setwd(tempdir())
       on.exit(setwd(owd))
-      values$filenetVis <- plot2png(values$netVis, filename = "CoWord.png", zoom = values$zoom)
-      values$list_file <- rbind(values$list_file, c(sheetname = res$sheetname, values$filenetVis, res$col))
+      values$filenetVis <- plot2png(
+        values$netVis,
+        filename = "CoWord.png",
+        zoom = values$zoom
+      )
+      values$list_file <- rbind(
+        values$list_file,
+        c(sheetname = res$sheetname, values$filenetVis, res$col)
+      )
       popUp(title = "Co-Word Analysis Results", type = "success")
       values$myChoices <- sheets(values$wb)
     } else {
       popUp(type = "error")
     }
   })
-
 
   ## Click on visNetwork: WORDS IN CONTEXT ----
   observeEvent(
@@ -3246,7 +4249,9 @@ server <- function(input, output, session) {
       easyClose = FALSE,
       footer = tagList(
         actionButton(
-          label = "Close", inputId = "closePlotModalTermNet", style = "color: #ffff;",
+          label = "Close",
+          inputId = "closePlotModalTermNet",
+          style = "color: #ffff;",
           icon = icon("remove", lib = "glyphicon")
         )
       ),
@@ -3262,36 +4267,43 @@ server <- function(input, output, session) {
   output$wordInContextNet <- renderDT(
     server = FALSE,
     {
-      if (!is.null(input$click)) id <- input$click
-      switch(input$sidebarmenu,
-             "w_networkGrako" = {
-               word_search <- values$grako$nodes$title[values$grako$nodes$id == id]
+      if (!is.null(input$click)) {
+        id <- input$click
+      }
+      switch(
+        input$sidebarmenu,
+        "w_networkGrako" = {
+          word_search <- values$grako$nodes$title[values$grako$nodes$id == id]
 
-               selectedEdges <- values$grako$edges %>%
-                 filter(term_from %in% word_search | term_to %in% word_search) %>%
-                 mutate(grako = paste0(term_from, " ", term_to))
+          selectedEdges <- values$grako$edges %>%
+            filter(term_from %in% word_search | term_to %in% word_search) %>%
+            mutate(grako = paste0(term_from, " ", term_to))
 
-               sentences <- values$grako$multiwords %>%
-                 filter(grako %in% selectedEdges$grako) %>%
-                 select(doc_id, sentence_hl) %>%
-                 distinct()
-             },
-             "overview" = {
-               word_search <- values$WC2VIS$x$nodes$label[values$WC2VIS$x$nodes$id == id]
-               sentences <- values$dfTag %>%
-                 filter(docSelected) %>%
-                 filter(lemma %in% word_search | token %in% word_search) %>%
-                 ungroup() %>%
-                 select(doc_id, lemma, token, sentence_hl)
-             },
-             {
-               word_search <- values$network$nodes$label[values$network$nodes$id == id]
-               sentences <- values$dfTag %>%
-                 filter(docSelected) %>%
-                 filter(lemma %in% word_search) %>%
-                 ungroup() %>%
-                 select(doc_id, lemma, token, sentence_hl)
-             }
+          sentences <- values$grako$multiwords %>%
+            filter(grako %in% selectedEdges$grako) %>%
+            select(doc_id, sentence_hl) %>%
+            distinct()
+        },
+        "overview" = {
+          word_search <- values$WC2VIS$x$nodes$label[
+            values$WC2VIS$x$nodes$id == id
+          ]
+          sentences <- values$dfTag %>%
+            filter(docSelected) %>%
+            filter(lemma %in% word_search | token %in% word_search) %>%
+            ungroup() %>%
+            select(doc_id, lemma, token, sentence_hl)
+        },
+        {
+          word_search <- values$network$nodes$label[
+            values$network$nodes$id == id
+          ]
+          sentences <- values$dfTag %>%
+            filter(docSelected) %>%
+            filter(lemma %in% word_search) %>%
+            ungroup() %>%
+            select(doc_id, lemma, token, sentence_hl)
+        }
       )
 
       # find sentences containing the tokens/lemma
@@ -3299,8 +4311,6 @@ server <- function(input, output, session) {
     },
     escape = FALSE
   )
-
-
 
   ## Click on Dendrogram: WORDS IN CONTEXT ----
   observeEvent(
@@ -3324,7 +4334,9 @@ server <- function(input, output, session) {
       easyClose = TRUE,
       footer = tagList(
         actionButton(
-          label = "Close", inputId = "closeplotModalTermDend", style = "color: #ffff;",
+          label = "Close",
+          inputId = "closeplotModalTermDend",
+          style = "color: #ffff;",
           icon = icon("remove", lib = "glyphicon")
         )
       ),
@@ -3340,18 +4352,35 @@ server <- function(input, output, session) {
   output$wordInContextDend <- renderDT(
     server = FALSE,
     {
-      if (!is.null(input$click_dend)) id <- unlist(input$click_dend)
-      switch(input$sidebarmenu,
-             "w_clustering" = {
-               words_id <- c(id, unlist(values$WordDendrogram$x$nodes$neib[values$WordDendrogram$x$nodes$id == id]))
-               words <- unlist(values$WordDendrogram$x$nodes$label[values$WordDendrogram$x$nodes$id %in% words_id])
-               word_search <- words[!is.na(words)]
-             },
-             "ca" = {
-               words_id <- c(id, unlist(values$CADendrogram$x$nodes$neib[values$CADendrogram$x$nodes$id == id]))
-               words <- unlist(values$CADendrogram$x$nodes$label[values$CADendrogram$x$nodes$id %in% words_id])
-               word_search <- words[!is.na(words)]
-             }
+      if (!is.null(input$click_dend)) {
+        id <- unlist(input$click_dend)
+      }
+      switch(
+        input$sidebarmenu,
+        "w_clustering" = {
+          words_id <- c(
+            id,
+            unlist(values$WordDendrogram$x$nodes$neib[
+              values$WordDendrogram$x$nodes$id == id
+            ])
+          )
+          words <- unlist(values$WordDendrogram$x$nodes$label[
+            values$WordDendrogram$x$nodes$id %in% words_id
+          ])
+          word_search <- words[!is.na(words)]
+        },
+        "ca" = {
+          words_id <- c(
+            id,
+            unlist(values$CADendrogram$x$nodes$neib[
+              values$CADendrogram$x$nodes$id == id
+            ])
+          )
+          words <- unlist(values$CADendrogram$x$nodes$label[
+            values$CADendrogram$x$nodes$id %in% words_id
+          ])
+          word_search <- words[!is.na(words)]
+        }
       )
 
       sentences <- values$dfTag %>%
@@ -3388,7 +4417,6 @@ server <- function(input, output, session) {
   #   }
   # })
 
-
   ## Click on Reinert Dendrogram: WORDS IN CONTEXT ----
   observeEvent(
     ignoreNULL = TRUE,
@@ -3398,8 +4426,15 @@ server <- function(input, output, session) {
     handlerExpr = {
       if (input$click_rein != "null") {
         id <- unlist(input$click_rein)
-        words_id <- c(id, unlist(values$ReinertDendrogram$x$nodes$neib[values$ReinertDendrogram$x$nodes$id == id]))
-        words <- unlist(values$ReinertDendrogram$x$nodes$label[values$ReinertDendrogram$x$nodes$id %in% words_id])
+        words_id <- c(
+          id,
+          unlist(values$ReinertDendrogram$x$nodes$neib[
+            values$ReinertDendrogram$x$nodes$id == id
+          ])
+        )
+        words <- unlist(values$ReinertDendrogram$x$nodes$label[
+          values$ReinertDendrogram$x$nodes$id %in% words_id
+        ])
         word_search <- as.numeric(words[!is.na(words)])
         values$word_search_rein <- word_search
 
@@ -3413,7 +4448,8 @@ server <- function(input, output, session) {
             slice_min(order_by = p_value, n = 1) %>%
             ungroup()
 
-          values$tc_k$segments <- values$tc_k$segments %>% filter(cluster %in% word_search)
+          values$tc_k$segments <- values$tc_k$segments %>%
+            filter(cluster %in% word_search)
           # segments <- values$tc
           values$tc_k <- highlight_segments(values$tc_k, n = 10)
 
@@ -3434,12 +4470,24 @@ server <- function(input, output, session) {
         type = "tabs",
         tabPanel(
           "Terms by Cluster",
-          h3(strong((paste0("Terms associated to Cluster(s): ", paste0(values$word_search_rein, collapse = ", "), collape = "")))),
+          h3(strong(
+            (paste0(
+              "Terms associated to Cluster(s): ",
+              paste0(values$word_search_rein, collapse = ", "),
+              collape = ""
+            ))
+          )),
           plotlyOutput(ns("plotInContextRein"))
         ),
         tabPanel(
           "Segments by Cluster",
-          h3(strong((paste0("Segments associated to Cluster(s): ", paste0(values$word_search_rein, collapse = ", "), collape = "")))),
+          h3(strong(
+            (paste0(
+              "Segments associated to Cluster(s): ",
+              paste0(values$word_search_rein, collapse = ", "),
+              collape = ""
+            ))
+          )),
           DTOutput(ns("wordInContextRein"))
         ),
       ),
@@ -3447,7 +4495,9 @@ server <- function(input, output, session) {
       easyClose = TRUE,
       footer = tagList(
         actionButton(
-          label = "Close", inputId = "closeplotModalTermRein", style = "color: #ffff;",
+          label = "Close",
+          inputId = "closeplotModalTermRein",
+          style = "color: #ffff;",
           icon = icon("remove", lib = "glyphicon")
         )
       ),
@@ -3503,36 +4553,55 @@ server <- function(input, output, session) {
       input$w_networkTMApply
     },
     valueExpr = {
-      switch(input$w_groupTM,
-             Groups = {
-               group <- "doc_id"
-             },
-             Documents = {
-               group <- "doc_id"
-             },
-             Paragraphs = {
-               group <- c("doc_id", "paragraph_id")
-             },
-             Sentences = {
-               group <- c("doc_id", "sentence_id")
-             }
+      switch(
+        input$w_groupTM,
+        Groups = {
+          group <- "doc_id"
+        },
+        Documents = {
+          group <- "doc_id"
+        },
+        Paragraphs = {
+          group <- c("doc_id", "paragraph_id")
+        },
+        Sentences = {
+          group <- c("doc_id", "sentence_id")
+        }
       )
       ## check to verify if groups exist or not
 
-      if (input$w_groupTM == "Documents" & "ungroupDoc_id" %in% names(values$dfTag)) {
-        values$TM <- tallThematicmap(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected),
-                                     term = values$generalTerm, group = group, n = input$nMaxTM, labelsize = input$labelSizeTM, n.labels = input$n.labelsTM,
-                                     opacity = input$opacityTM
+      if (
+        input$w_groupTM == "Documents" &
+          "ungroupDoc_id" %in% names(values$dfTag)
+      ) {
+        values$TM <- tallThematicmap(
+          backToOriginalGroups(LemmaSelection(values$dfTag)) %>%
+            filter(docSelected),
+          term = values$generalTerm,
+          group = group,
+          n = input$nMaxTM,
+          labelsize = input$labelSizeTM,
+          n.labels = input$n.labelsTM,
+          opacity = input$opacityTM
         )
       } else {
-        values$TM <- tallThematicmap(LemmaSelection(values$dfTag) %>% filter(docSelected),
-                                     term = values$generalTerm, group = group, n = input$nMaxTM, labelsize = input$labelSizeTM, n.labels = input$n.labelsTM,
-                                     opacity = input$opacityTM
+        values$TM <- tallThematicmap(
+          LemmaSelection(values$dfTag) %>% filter(docSelected),
+          term = values$generalTerm,
+          group = group,
+          n = input$nMaxTM,
+          labelsize = input$labelSizeTM,
+          n.labels = input$n.labelsTM,
+          opacity = input$opacityTM
         )
       }
 
-
-      values$TMvis <- net2vis(nodes = values$TM$net$nodes, edges = values$TM$net$edges, click = FALSE, noOverlap = TRUE)
+      values$TMvis <- net2vis(
+        nodes = values$TM$net$nodes,
+        edges = values$TM$net$edges,
+        click = FALSE,
+        noOverlap = TRUE
+      )
       values$TMmap <- plotTM(values$TM$df, size = input$labelSizeTM / 10)
       values$TM$ClusterTable <- values$TM$df %>%
         rename(
@@ -3544,7 +4613,15 @@ server <- function(input, output, session) {
           "Cluster" = groups,
           "Color" = color
         ) %>%
-        select("Label", "Cluster", "Cluster Frequency", "Num. of Words", "Centrality", "Density", "Color")
+        select(
+          "Label",
+          "Cluster",
+          "Cluster Frequency",
+          "Num. of Words",
+          "Centrality",
+          "Density",
+          "Color"
+        )
     }
   )
 
@@ -3555,9 +4632,12 @@ server <- function(input, output, session) {
 
   # gemini button for word in context
   output$w_networkTMGeminiUI <- renderUI({
-    values$gemini_model_parameters <- geminiParameterPrompt(values, input$sidebarmenu, input)
+    values$gemini_model_parameters <- geminiParameterPrompt(
+      values,
+      input$sidebarmenu,
+      input
+    )
     geminiOutput(title = "", content = values$w_networkTMGemini, values)
-
   })
 
   output$w_networkTMNetPlot <- renderVisNetwork({
@@ -3567,17 +4647,31 @@ server <- function(input, output, session) {
 
   output$w_networkTMClusterTable <- renderDT(server = FALSE, {
     TMFunction()
-    DTformat(values$TM$ClusterTable,
-             size = "100%", filename = "TMClusterTable", pagelength = TRUE, left = NULL, right = NULL,
-             numeric = NULL, dom = TRUE, filter = "top"
+    DTformat(
+      values$TM$ClusterTable,
+      size = "100%",
+      filename = "TMClusterTable",
+      pagelength = TRUE,
+      left = NULL,
+      right = NULL,
+      numeric = NULL,
+      dom = TRUE,
+      filter = "top"
     )
   })
 
   output$w_networkTMWordTable <- renderDT(server = FALSE, {
     TMFunction()
-    DTformat(values$TM$df_lab %>% select(-Cluster_Frequency),
-             size = "100%", filename = "TMWordsTable", pagelength = TRUE, left = NULL, right = NULL,
-             numeric = NULL, dom = TRUE, filter = "top"
+    DTformat(
+      values$TM$df_lab %>% select(-Cluster_Frequency),
+      size = "100%",
+      filename = "TMWordsTable",
+      pagelength = TRUE,
+      left = NULL,
+      right = NULL,
+      numeric = NULL,
+      dom = TRUE,
+      filter = "top"
     )
   })
 
@@ -3613,10 +4707,21 @@ server <- function(input, output, session) {
       # values$wb <- res$wb
       owd <- setwd(tempdir())
       on.exit(setwd(owd))
-      values$fileplotTM <- plot2png(values$TMmap, filename = "TMMap.png", type = "plotly", zoom = values$zoom)
-      values$fileTMNetwork <- plot2png(values$TMvis, filename = "TMNetwork.png", type = "vis", zoom = values$zoom)
+      values$fileplotTM <- plot2png(
+        values$TMmap,
+        filename = "TMMap.png",
+        type = "plotly",
+        zoom = values$zoom
+      )
+      values$fileTMNetwork <- plot2png(
+        values$TMvis,
+        filename = "TMNetwork.png",
+        type = "vis",
+        zoom = values$zoom
+      )
       values$list_file <- rbind(
-        values$list_file, c(sheetname = res$sheetname, values$fileplotTM, res$col),
+        values$list_file,
+        c(sheetname = res$sheetname, values$fileplotTM, res$col),
         c(sheetname = res$sheetname, values$fileTMNetwork, res$col)
       )
       popUp(title = "Thematic Map Results", type = "success")
@@ -3626,57 +4731,64 @@ server <- function(input, output, session) {
     }
   })
 
-
   ## word2vec TRAINING ----
 
-  w2vTrainingFunction <- eventReactive(input$w2vApply,
-                                       valueExpr = {
-                                         values$w2v_model <- w2vTraining(values$dfTag %>% filter(docSelected), term = values$generalTerm, dim = input$w2vDim, iter = input$w2vIter)
-                                         values$w2v_stats <- list()
-                                         values$w2v_stats$stats <- summary_stats_embeddings(as.matrix(values$w2v_model))
-                                         # values$w2v_stats$distances <- distance_similarity_stats(as.matrix(values$w2v_model))
-                                         values$w2v_stats$pca <- pca_analysis_embeddings(as.matrix(values$w2v_model))
-                                         values$df_EmbeddingDims <- as.matrix(values$w2v_model) %>%
-                                           as.data.frame() %>%
-                                           tibble::rownames_to_column(var = "Word") %>%
-                                           tidyr::pivot_longer(
-                                             cols = -Word,
-                                             names_to = "Dimension",
-                                             values_to = "Value"
-                                           )
-                                         values$df_EmbeddingDims$Dimension <- rep(
-                                           sprintf(
-                                             "D%03d",
-                                             seq_len(nrow(values$df_EmbeddingDims) / length(unique(values$df_EmbeddingDims$Word)))
-                                           ),
-                                           length(unique(values$df_EmbeddingDims$Word))
-                                         )
-                                         values$w2vBoxplot <- plot_ly(
-                                           data = values$df_EmbeddingDims,
-                                           y = ~Value,
-                                           x = ~Dimension,
-                                           type = "box",
-                                           boxpoints = "outliers",
-                                           hoverinfo = "x+y"
-                                         ) %>%
-                                           layout(
-                                             title = "Distribution of embedding values by dimension",
-                                             xaxis = list(title = "Dimension", tickangle = -45),
-                                             yaxis = list(title = "Value")
-                                           )
-                                         values$w2vPCA <- plot_ly(
-                                           x = sprintf("PC%03d", seq_along(values$w2v_stats$pca)),
-                                           y = values$w2v_stats$pca * 100,
-                                           type = "bar"
-                                         ) %>%
-                                           layout(
-                                             title = "Variance Explained by Principal Components",
-                                             xaxis = list(title = "Principal Components"),
-                                             yaxis = list(title = "Variance Proportion"),
-                                             bargap = 0.2
-                                           )
-                                       }
-  )
+  w2vTrainingFunction <- eventReactive(input$w2vApply, valueExpr = {
+    values$w2v_model <- w2vTraining(
+      values$dfTag %>% filter(docSelected),
+      term = values$generalTerm,
+      dim = input$w2vDim,
+      iter = input$w2vIter
+    )
+    values$w2v_stats <- list()
+    values$w2v_stats$stats <- summary_stats_embeddings(as.matrix(
+      values$w2v_model
+    ))
+    # values$w2v_stats$distances <- distance_similarity_stats(as.matrix(values$w2v_model))
+    values$w2v_stats$pca <- pca_analysis_embeddings(as.matrix(values$w2v_model))
+    values$df_EmbeddingDims <- as.matrix(values$w2v_model) %>%
+      as.data.frame() %>%
+      tibble::rownames_to_column(var = "Word") %>%
+      tidyr::pivot_longer(
+        cols = -Word,
+        names_to = "Dimension",
+        values_to = "Value"
+      )
+    values$df_EmbeddingDims$Dimension <- rep(
+      sprintf(
+        "D%03d",
+        seq_len(
+          nrow(values$df_EmbeddingDims) /
+            length(unique(values$df_EmbeddingDims$Word))
+        )
+      ),
+      length(unique(values$df_EmbeddingDims$Word))
+    )
+    values$w2vBoxplot <- plot_ly(
+      data = values$df_EmbeddingDims,
+      y = ~Value,
+      x = ~Dimension,
+      type = "box",
+      boxpoints = "outliers",
+      hoverinfo = "x+y"
+    ) %>%
+      layout(
+        title = "Distribution of embedding values by dimension",
+        xaxis = list(title = "Dimension", tickangle = -45),
+        yaxis = list(title = "Value")
+      )
+    values$w2vPCA <- plot_ly(
+      x = sprintf("PC%03d", seq_along(values$w2v_stats$pca)),
+      y = values$w2v_stats$pca * 100,
+      type = "bar"
+    ) %>%
+      layout(
+        title = "Variance Explained by Principal Components",
+        xaxis = list(title = "Principal Components"),
+        yaxis = list(title = "Variance Proportion"),
+        bargap = 0.2
+      )
+  })
 
   output$w_word2vecBoxplot <- renderPlotly({
     w2vTrainingFunction()
@@ -3690,9 +4802,16 @@ server <- function(input, output, session) {
 
   output$w_word2vecTable <- renderDT(server = FALSE, {
     w2vTrainingFunction()
-    DTformat(values$w2v_stats$stats,
-             size = "80%", filename = "WordEmbeddingTable", pagelength = TRUE, left = NULL, right = NULL,
-             numeric = NULL, dom = TRUE, filter = "none"
+    DTformat(
+      values$w2v_stats$stats,
+      size = "80%",
+      filename = "WordEmbeddingTable",
+      pagelength = TRUE,
+      left = NULL,
+      right = NULL,
+      numeric = NULL,
+      dom = TRUE,
+      filter = "none"
     )
   })
 
@@ -3725,10 +4844,21 @@ server <- function(input, output, session) {
       # values$wb <- res$wb
       owd <- setwd(tempdir())
       on.exit(setwd(owd))
-      values$fileplotw2vBoxplot <- plot2png(values$w2vBoxplot, filename = "w2vBoxplot.png", type = "plotly", zoom = values$zoom)
-      values$fileplotw2vPCA <- plot2png(values$w2vPCA, filename = "w2vPCA.png", type = "plotly", zoom = values$zoom)
+      values$fileplotw2vBoxplot <- plot2png(
+        values$w2vBoxplot,
+        filename = "w2vBoxplot.png",
+        type = "plotly",
+        zoom = values$zoom
+      )
+      values$fileplotw2vPCA <- plot2png(
+        values$w2vPCA,
+        filename = "w2vPCA.png",
+        type = "plotly",
+        zoom = values$zoom
+      )
       values$list_file <- rbind(
-        values$list_file, c(sheetname = res$sheetname, values$fileplotw2vBoxplot, res$col),
+        values$list_file,
+        c(sheetname = res$sheetname, values$fileplotw2vBoxplot, res$col),
         c(sheetname = res$sheetname, values$fileplotw2vPCA, res$col)
       )
       popUp(title = "Word Embedding Training Results", type = "success")
@@ -3742,12 +4872,27 @@ server <- function(input, output, session) {
 
   w2vSimilarity <- eventReactive(input$w_w2v_similarityApply, {
     w2vTrainingFunction()
-    values$w2vNetwork <- w2vNetwork(values$w2v_model, values$dfTag, term = values$generalTerm, n = input$w_w2v_similarityN)
-    values$umapDf <- w2vUMAP(values$w2v_model, top_words = values$w2vNetwork$top_words)
-    df_adj <- adjust_labels_iterative_with_opacity(values$umapDf, min_dist = 0.3, max_iter = 50, shift_step = 0.05, alpha_low = 0.4)
+    values$w2vNetwork <- w2vNetwork(
+      values$w2v_model,
+      values$dfTag,
+      term = values$generalTerm,
+      n = input$w_w2v_similarityN
+    )
+    values$umapDf <- w2vUMAP(
+      values$w2v_model,
+      top_words = values$w2vNetwork$top_words
+    )
+    df_adj <- adjust_labels_iterative_with_opacity(
+      values$umapDf,
+      min_dist = 0.3,
+      max_iter = 50,
+      shift_step = 0.05,
+      alpha_low = 0.4
+    )
     values$w2vUMAPplot <- plot_ly(
       data = df_adj,
-      x = ~x, y = ~y,
+      x = ~x,
+      y = ~y,
       type = "scatter",
       mode = "text",
       text = ~word,
@@ -3761,8 +4906,16 @@ server <- function(input, output, session) {
       ) %>%
       layout(
         # title = list(text = "CBOW Embeddings Visualization (UMAP)", x = 0.5),
-        xaxis = list(title = "UMAP Dimension 1", zeroline = FALSE, showgrid = FALSE),
-        yaxis = list(title = "UMAP Dimension 2", zeroline = FALSE, showgrid = FALSE),
+        xaxis = list(
+          title = "UMAP Dimension 1",
+          zeroline = FALSE,
+          showgrid = FALSE
+        ),
+        yaxis = list(
+          title = "UMAP Dimension 2",
+          zeroline = FALSE,
+          showgrid = FALSE
+        ),
         hovermode = "closest"
       )
   })
@@ -3771,25 +4924,34 @@ server <- function(input, output, session) {
     w2vTrainingFunction()
     #nodesId <- sort(values$w2vNetwork$top_words)
     nodesId <- sort(values$w2vNetwork$nodes$id)
-    selectInput("w2v_selected_node", "Select word to highlight:",
-                choices = c("", nodesId),
-                selected = ""
+    selectInput(
+      "w2v_selected_node",
+      "Select word to highlight:",
+      choices = c("", nodesId),
+      selected = ""
     )
   })
 
   output$w_w2vNetworkplot <- renderVisNetwork({
     w2vSimilarity()
-    values$w2vNetworkPlot <- w2v2Vis(nodes = values$w2vNetwork$nodes, edges = values$w2vNetwork$edges, size = 20,
-                                     labelsize = input$w_w2v_font_size,
-                                     overlap = input$w_w2v_overlap)
+    values$w2vNetworkPlot <- w2v2Vis(
+      nodes = values$w2vNetwork$nodes,
+      edges = values$w2vNetwork$edges,
+      size = 20,
+      labelsize = input$w_w2v_font_size,
+      overlap = input$w_w2v_overlap
+    )
     values$w2vNetworkPlot
   })
 
   # gemini button for word embedding similarity
   output$w_w2vGeminiUI <- renderUI({
-    values$gemini_model_parameters <- geminiParameterPrompt(values, input$sidebarmenu, input)
+    values$gemini_model_parameters <- geminiParameterPrompt(
+      values,
+      input$sidebarmenu,
+      input
+    )
     geminiOutput(title = "", content = values$w_w2vGemini, values)
-
   })
 
   observe({
@@ -3798,12 +4960,16 @@ server <- function(input, output, session) {
       visFit(nodes = input$w2v_selected_node)
   })
 
-  observeEvent(eventExpr = {input$w_w2v_Back},
-               handlerExpr = {
-                 visNetworkProxy("w_w2vNetworkplot") %>%
-                   visSelectNodes(id = values$w2vNetwork$top_words) %>%
-                   visFit(nodes = NULL)
-               })
+  observeEvent(
+    eventExpr = {
+      input$w_w2v_Back
+    },
+    handlerExpr = {
+      visNetworkProxy("w_w2vNetworkplot") %>%
+        visSelectNodes(id = values$w2vNetwork$top_words) %>%
+        visFit(nodes = NULL)
+    }
+  )
 
   output$w_w2vUMAPplot <- renderPlotly({
     w2vSimilarity()
@@ -3841,10 +5007,21 @@ server <- function(input, output, session) {
       # values$wb <- res$wb
       owd <- setwd(tempdir())
       on.exit(setwd(owd))
-      values$fileplotw2vNet <- plot2png(values$w2vNetworkPlot, filename = "w2vNetworkPlot.png", type = "vis", zoom = values$zoom)
-      values$fileplotw2vUMAP <- plot2png(values$w2vUMAPplot, filename = "w2vUMAPPlot.png", type = "plotly", zoom = values$zoom)
+      values$fileplotw2vNet <- plot2png(
+        values$w2vNetworkPlot,
+        filename = "w2vNetworkPlot.png",
+        type = "vis",
+        zoom = values$zoom
+      )
+      values$fileplotw2vUMAP <- plot2png(
+        values$w2vUMAPplot,
+        filename = "w2vUMAPPlot.png",
+        type = "plotly",
+        zoom = values$zoom
+      )
       values$list_file <- rbind(
-        values$list_file, c(sheetname = res$sheetname, values$fileplotw2vNet, res$col),
+        values$list_file,
+        c(sheetname = res$sheetname, values$fileplotw2vNet, res$col),
         c(sheetname = res$sheetname, values$fileplotw2vUMAP, res$col)
       )
       popUp(title = "Word Embedding Similarity Results", type = "success")
@@ -3861,14 +5038,21 @@ server <- function(input, output, session) {
       input$w_networkGrakoApply
     },
     valueExpr = {
-      values$grako <- grako(values$dfTag %>% filter(docSelected),
-                            n = input$grakoNMax, minEdges = input$grakoMinEdges,
-                            labelsize = input$grakoLabelSize, opacity = input$grakoOpacity,
-                            normalization = input$grakoNormalization,
-                            singleWords = input$grakoUnigram, term = values$generalTerm
+      values$grako <- grako(
+        values$dfTag %>% filter(docSelected),
+        n = input$grakoNMax,
+        minEdges = input$grakoMinEdges,
+        labelsize = input$grakoLabelSize,
+        opacity = input$grakoOpacity,
+        normalization = input$grakoNormalization,
+        singleWords = input$grakoUnigram,
+        term = values$generalTerm
       )
 
-      values$grakoVis <- grako2vis(nodes = values$grako$nodes, edges = values$grako$edges)
+      values$grakoVis <- grako2vis(
+        nodes = values$grako$nodes,
+        edges = values$grako$edges
+      )
 
       # grako$nodes
       values$grako$nodesData <- values$grako$nodes %>%
@@ -3905,16 +5089,27 @@ server <- function(input, output, session) {
 
   output$w_networkGrakoNodesTable <- renderDT(server = FALSE, {
     grakoFunction()
-    DTformat(values$grako$nodesData,
-             size = "100%", filename = "GrakoWordsTable", pagelength = TRUE, left = NULL, right = NULL,
-             numeric = NULL, dom = TRUE, filter = "top"
+    DTformat(
+      values$grako$nodesData,
+      size = "100%",
+      filename = "GrakoWordsTable",
+      pagelength = TRUE,
+      left = NULL,
+      right = NULL,
+      numeric = NULL,
+      dom = TRUE,
+      filter = "top"
     )
   })
 
   output$w_networkGrakoEdgesTable <- renderDT(server = FALSE, {
     grakoFunction()
-    DTformat(values$grako$edgesData,
-             size = "100%", filename = "GrakoLinksTable", numeric = 7:9, round = 4
+    DTformat(
+      values$grako$edgesData,
+      size = "100%",
+      filename = "GrakoLinksTable",
+      numeric = 7:9,
+      round = 4
     )
   })
 
@@ -3945,15 +5140,21 @@ server <- function(input, output, session) {
       # values$wb <- res$wb
       owd <- setwd(tempdir())
       on.exit(setwd(owd))
-      values$fileGrako <- plot2png(values$grakoVis, filename = "grako.png", zoom = values$zoom)
-      values$list_file <- rbind(values$list_file, c(sheetname = res$sheetname, values$fileGrako, res$col))
+      values$fileGrako <- plot2png(
+        values$grakoVis,
+        filename = "grako.png",
+        zoom = values$zoom
+      )
+      values$list_file <- rbind(
+        values$list_file,
+        c(sheetname = res$sheetname, values$fileGrako, res$col)
+      )
       popUp(title = "Grako Results", type = "success")
       values$myChoices <- sheets(values$wb)
     } else {
       popUp(type = "error")
     }
   })
-
 
   ## DOCUMENTS ----
 
@@ -3966,24 +5167,42 @@ server <- function(input, output, session) {
       input$d_tm_selectApply
     },
     valueExpr = {
-      switch(input$groupTm,
-             Groups = {
-               groupTm <- "doc_id"
-             },
-             {
-               groupTm <- input$groupTm
-             }
+      switch(
+        input$groupTm,
+        Groups = {
+          groupTm <- "doc_id"
+        },
+        {
+          groupTm <- input$groupTm
+        }
       )
       ## check to verify if groups exist or not
-      if (input$groupTm == "doc_id" & "ungroupDoc_id" %in% names(values$dfTag)) {
-        values$TMKresult <- tmTuning(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected),
-                                     group = groupTm, term = values$generalTerm,
-                                     metric = input$metric, n = input$nTm, top_by = input$top_by, minK = input$minK, maxK = input$maxK, Kby = input$Kby
+      if (
+        input$groupTm == "doc_id" & "ungroupDoc_id" %in% names(values$dfTag)
+      ) {
+        values$TMKresult <- tmTuning(
+          backToOriginalGroups(LemmaSelection(values$dfTag)) %>%
+            filter(docSelected),
+          group = groupTm,
+          term = values$generalTerm,
+          metric = input$metric,
+          n = input$nTm,
+          top_by = input$top_by,
+          minK = input$minK,
+          maxK = input$maxK,
+          Kby = input$Kby
         )
       } else {
-        values$TMKresult <- tmTuning(LemmaSelection(values$dfTag) %>% filter(docSelected),
-                                     group = groupTm, term = values$generalTerm,
-                                     metric = input$metric, n = input$nTm, top_by = input$top_by, minK = input$minK, maxK = input$maxK, Kby = input$Kby
+        values$TMKresult <- tmTuning(
+          LemmaSelection(values$dfTag) %>% filter(docSelected),
+          group = groupTm,
+          term = values$generalTerm,
+          metric = input$metric,
+          n = input$nTm,
+          top_by = input$top_by,
+          minK = input$minK,
+          maxK = input$maxK,
+          Kby = input$Kby
         )
       }
 
@@ -4009,7 +5228,13 @@ server <- function(input, output, session) {
 
   output$d_tm_selectTable <- renderDataTable({
     netTMKselect()
-    DTformat(values$df, numeric = c(2, 3), round = 2, nrow = nrow(df), size = "110%")
+    DTformat(
+      values$df,
+      numeric = c(2, 3),
+      round = 2,
+      nrow = nrow(df),
+      size = "110%"
+    )
   })
 
   observeEvent(
@@ -4035,15 +5260,21 @@ server <- function(input, output, session) {
       # values$wb <- res$wb
       owd <- setwd(tempdir())
       on.exit(setwd(owd))
-      values$fileKchoice <- plot2png(values$TMKplot, filename = "kchoiche.png", zoom = values$zoom)
-      values$list_file <- rbind(values$list_file, c(sheetname = res$sheetname, values$fileKchoice, res$col))
+      values$fileKchoice <- plot2png(
+        values$TMKplot,
+        filename = "kchoiche.png",
+        zoom = values$zoom
+      )
+      values$list_file <- rbind(
+        values$list_file,
+        c(sheetname = res$sheetname, values$fileKchoice, res$col)
+      )
       popUp(title = "K choice Results", type = "success")
       values$myChoices <- sheets(values$wb)
     } else {
       popUp(type = "error")
     }
   })
-
 
   ## Model estimation ----
 
@@ -4056,47 +5287,89 @@ server <- function(input, output, session) {
       values$TMplotIndex <- 1
       values$TMdocIndex <- 1
 
-      switch(input$groupTmEstim,
-             Groups = {
-               groupTmEstim <- "doc_id"
-             },
-             {
-               groupTmEstim <- input$groupTmEstim
-             }
+      switch(
+        input$groupTmEstim,
+        Groups = {
+          groupTmEstim <- "doc_id"
+        },
+        {
+          groupTmEstim <- input$groupTmEstim
+        }
       )
 
       ## check to verify if groups exist or not
-      if (input$groupTmEstim == "doc_id" & "ungroupDoc_id" %in% names(values$dfTag)) {
+      if (
+        input$groupTmEstim == "doc_id" &
+          "ungroupDoc_id" %in% names(values$dfTag)
+      ) {
         if (isTRUE(input$tmKauto)) {
-          values$TMKresult <- tmTuning(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected),
-                                       group = groupTmEstim, term = values$generalTerm,
-                                       metric = "CaoJuan2009", n = input$nTmEstim, top_by = input$top_byEstim,
-                                       minK = 2, maxK = 20, Kby = 1
+          values$TMKresult <- tmTuning(
+            backToOriginalGroups(LemmaSelection(values$dfTag)) %>%
+              filter(docSelected),
+            group = groupTmEstim,
+            term = values$generalTerm,
+            metric = "CaoJuan2009",
+            n = input$nTmEstim,
+            top_by = input$top_byEstim,
+            minK = 2,
+            maxK = 20,
+            Kby = 1
           )
-          values$tmK <- find_elbow(values$TMKresult$metrics$k, values$TMKresult$metrics$CaoJuan2009, decreasing = TRUE, plot = FALSE)
+          values$tmK <- find_elbow(
+            values$TMKresult$metrics$k,
+            values$TMKresult$metrics$CaoJuan2009,
+            decreasing = TRUE,
+            plot = FALSE
+          )
         } else {
           values$tmK <- input$KEstim
         }
-        values$TMplotList <- split(1:values$tmK, ceiling(seq_along(1:values$tmK) / 3))
-        values$TMestim_result <- tmEstimate(backToOriginalGroups(LemmaSelection(values$dfTag)) %>% filter(docSelected),
-                                            K = values$tmK, group = groupTmEstim,
-                                            term = values$generalTerm, n = input$nTmEstim, top_by = input$top_byEstim
+        values$TMplotList <- split(
+          1:values$tmK,
+          ceiling(seq_along(1:values$tmK) / 3)
+        )
+        values$TMestim_result <- tmEstimate(
+          backToOriginalGroups(LemmaSelection(values$dfTag)) %>%
+            filter(docSelected),
+          K = values$tmK,
+          group = groupTmEstim,
+          term = values$generalTerm,
+          n = input$nTmEstim,
+          top_by = input$top_byEstim
         )
       } else {
         if (isTRUE(input$tmKauto)) {
-          values$TMKresult <- tmTuning(LemmaSelection(values$dfTag) %>% filter(docSelected),
-                                       group = groupTmEstim,
-                                       term = values$generalTerm, metric = "CaoJuan2009", n = input$nTmEstim,
-                                       top_by = input$top_byEstim, minK = 2, maxK = 20, Kby = 1
+          values$TMKresult <- tmTuning(
+            LemmaSelection(values$dfTag) %>% filter(docSelected),
+            group = groupTmEstim,
+            term = values$generalTerm,
+            metric = "CaoJuan2009",
+            n = input$nTmEstim,
+            top_by = input$top_byEstim,
+            minK = 2,
+            maxK = 20,
+            Kby = 1
           )
-          values$tmK <- find_elbow(values$TMKresult$metrics$k, values$TMKresult$metrics$CaoJuan2009, decreasing = TRUE, plot = FALSE)
+          values$tmK <- find_elbow(
+            values$TMKresult$metrics$k,
+            values$TMKresult$metrics$CaoJuan2009,
+            decreasing = TRUE,
+            plot = FALSE
+          )
         } else {
           values$tmK <- input$KEstim
         }
-        values$TMplotList <- split(1:values$tmK, ceiling(seq_along(1:values$tmK) / 3))
-        values$TMestim_result <- tmEstimate(LemmaSelection(values$dfTag) %>% filter(docSelected),
-                                            K = values$tmK, group = groupTmEstim,
-                                            term = values$generalTerm, n = input$nTmEstim, top_by = input$top_byEstim
+        values$TMplotList <- split(
+          1:values$tmK,
+          ceiling(seq_along(1:values$tmK) / 3)
+        )
+        values$TMestim_result <- tmEstimate(
+          LemmaSelection(values$dfTag) %>% filter(docSelected),
+          K = values$tmK,
+          group = groupTmEstim,
+          term = values$generalTerm,
+          n = input$nTmEstim,
+          top_by = input$top_byEstim
         )
       }
       ## End check ###
@@ -4104,12 +5377,18 @@ server <- function(input, output, session) {
       ### BETA PROBABILITY
       values$beta <- values$TMestim_result$beta
 
-      names(values$beta)[2:ncol(values$beta)] <- paste0("Topic ", 1:(ncol(values$beta) - 1))
+      names(values$beta)[2:ncol(values$beta)] <- paste0(
+        "Topic ",
+        1:(ncol(values$beta) - 1)
+      )
       values$tmHeatmap <- tmHeatmap(values$beta)
 
       ### THETA PROBABILITY
       values$theta <- values$TMestim_result$theta
-      names(values$theta)[2:ncol(values$theta)] <- paste0("Topic ", 1:(ncol(values$theta) - 1))
+      names(values$theta)[2:ncol(values$theta)] <- paste0(
+        "Topic ",
+        1:(ncol(values$theta) - 1)
+      )
     }
   )
 
@@ -4118,7 +5397,7 @@ server <- function(input, output, session) {
     values$tmHeatmap$Hplot
   })
 
- observeEvent(input$TMplotRight, {
+  observeEvent(input$TMplotRight, {
     if (values$TMplotIndex < ceiling(req(values$tmK) / 3)) {
       values$TMplotIndex <- values$TMplotIndex + 1
     }
@@ -4132,16 +5411,26 @@ server <- function(input, output, session) {
 
   output$d_tm_estimTPlot1 <- renderPlotly({
     netTMestim()
-    if (!values$TMplotIndex %in% 1:length(values$TMplotList)) values$TMplotIndex <- 1
+    if (!values$TMplotIndex %in% 1:length(values$TMplotList)) {
+      values$TMplotIndex <- 1
+    }
     topic1 <- values$TMplotList[[values$TMplotIndex]]
-    values$TMestim_plot1 <- tmTopicPlot(values$TMestim_result$beta, topic = topic1[[1]], nPlot = input$nTopicPlot)
+    values$TMestim_plot1 <- tmTopicPlot(
+      values$TMestim_result$beta,
+      topic = topic1[[1]],
+      nPlot = input$nTopicPlot
+    )
     values$TMestim_plot1
   })
 
   output$d_tm_estimTPlot2 <- renderPlotly({
     topic2 <- values$TMplotList[[values$TMplotIndex]]
     if (length(topic2) >= 2) {
-      values$TMestim_plot2 <- tmTopicPlot(values$TMestim_result$beta, topic = topic2[[2]], nPlot = input$nTopicPlot)
+      values$TMestim_plot2 <- tmTopicPlot(
+        values$TMestim_result$beta,
+        topic = topic2[[2]],
+        nPlot = input$nTopicPlot
+      )
       values$TMestim_plot2
     }
   })
@@ -4149,14 +5438,26 @@ server <- function(input, output, session) {
   output$d_tm_estimTPlot3 <- renderPlotly({
     topic3 <- values$TMplotList[[values$TMplotIndex]]
     if (length(topic3) == 3) {
-      values$TMestim_plot3 <- tmTopicPlot(values$TMestim_result$beta, topic = topic3[[3]], nPlot = input$nTopicPlot)
+      values$TMestim_plot3 <- tmTopicPlot(
+        values$TMestim_result$beta,
+        topic = topic3[[3]],
+        nPlot = input$nTopicPlot
+      )
       values$TMestim_plot3
     }
   })
 
   output$d_tm_estimBpTable <- renderDataTable(server = FALSE, {
     netTMestim()
-    DTformat(values$beta, left = 1, numeric = c(2:ncol(values$TMestim_result$beta)), round = 4, nrow = 10, size = "85%", filename = "TopicModel_BetaTable")
+    DTformat(
+      values$beta,
+      left = 1,
+      numeric = c(2:ncol(values$TMestim_result$beta)),
+      round = 4,
+      nrow = 10,
+      size = "85%",
+      filename = "TopicModel_BetaTable"
+    )
   })
 
   observeEvent(input$TMdocRight, {
@@ -4173,16 +5474,26 @@ server <- function(input, output, session) {
 
   output$d_tm_DocPlot1 <- renderPlotly({
     netTMestim()
-    if (!values$TMdocIndex %in% 1:length(values$TMplotList)) values$TMdocIndex <- 1
+    if (!values$TMdocIndex %in% 1:length(values$TMplotList)) {
+      values$TMdocIndex <- 1
+    }
     topic1 <- values$TMplotList[[values$TMdocIndex]]
-    values$TMdoc_plot1 <- tmDocPlot(values$TMestim_result$theta, topic = topic1[[1]], nPlot = input$nTopicPlot)
+    values$TMdoc_plot1 <- tmDocPlot(
+      values$TMestim_result$theta,
+      topic = topic1[[1]],
+      nPlot = input$nTopicPlot
+    )
     values$TMdoc_plot1
   })
 
   output$d_tm_DocPlot2 <- renderPlotly({
     topic2 <- values$TMplotList[[values$TMdocIndex]]
     if (length(topic2) >= 2) {
-      values$TMdoc_plot2 <- tmDocPlot(values$TMestim_result$theta, topic = topic2[[2]], nPlot = input$nTopicPlot)
+      values$TMdoc_plot2 <- tmDocPlot(
+        values$TMestim_result$theta,
+        topic = topic2[[2]],
+        nPlot = input$nTopicPlot
+      )
       values$TMdoc_plot2
     }
   })
@@ -4190,18 +5501,34 @@ server <- function(input, output, session) {
   output$d_tm_DocPlot3 <- renderPlotly({
     topic3 <- values$TMplotList[[values$TMdocIndex]]
     if (length(topic3) == 3) {
-      values$TMdoc_plot3 <- tmDocPlot(values$TMestim_result$theta, topic = topic3[[3]], nPlot = input$nTopicPlot)
+      values$TMdoc_plot3 <- tmDocPlot(
+        values$TMestim_result$theta,
+        topic = topic3[[3]],
+        nPlot = input$nTopicPlot
+      )
       values$TMdoc_plot3
     }
   })
 
   output$d_tm_estimTpTable <- renderDataTable(server = FALSE, {
     netTMestim()
-    DTformat(values$theta, left = 1, numeric = c(2:ncol(values$TMestim_result$theta)), round = 4, nrow = 10, size = "85%", filename = "TopicModel_ThetaTable")
+    DTformat(
+      values$theta,
+      left = 1,
+      numeric = c(2:ncol(values$TMestim_result$theta)),
+      round = 4,
+      nrow = 10,
+      size = "85%",
+      filename = "TopicModel_ThetaTable"
+    )
   })
 
   output$d_tm_GeminiUI <- renderUI({
-    values$gemini_model_parameters <- geminiParameterPrompt(values, input$sidebarmenu, input)
+    values$gemini_model_parameters <- geminiParameterPrompt(
+      values,
+      input$sidebarmenu,
+      input
+    )
     geminiOutput(title = "Gemini AI", content = values$tmGemini, values)
   })
 
@@ -4216,11 +5543,40 @@ server <- function(input, output, session) {
       file2 <- destFolder(file2, values$wdTall)
       file3 <- paste("TMDocPlots-", sys.time(), ".png", sep = "")
       file3 <- destFolder(file3, values$wdTall)
-      values$tmGplotBeta <- topicGplot(values$TMestim_result$beta, nPlot = input$nTopicPlot, type = "beta")
-      values$tmGplotTheta <- topicGplot(values$TMestim_result$theta, nPlot = input$nTopicPlot, type = "theta")
-      ggsave(filename = file1, plot = values$tmHeatmap$HplotStatic, dpi = dpi, height = values$h, width = values$h * 2, bg = "transparent")
-      ggsave(filename = file2, plot = values$tmGplotBeta, dpi = dpi, height = values$h, width = values$h * 2, bg = "transparent")
-      ggsave(filename = file3, plot = values$tmGplotTheta, dpi = dpi, height = values$h, width = values$h * 2, bg = "transparent")
+      values$tmGplotBeta <- topicGplot(
+        values$TMestim_result$beta,
+        nPlot = input$nTopicPlot,
+        type = "beta"
+      )
+      values$tmGplotTheta <- topicGplot(
+        values$TMestim_result$theta,
+        nPlot = input$nTopicPlot,
+        type = "theta"
+      )
+      ggsave(
+        filename = file1,
+        plot = values$tmHeatmap$HplotStatic,
+        dpi = dpi,
+        height = values$h,
+        width = values$h * 2,
+        bg = "transparent"
+      )
+      ggsave(
+        filename = file2,
+        plot = values$tmGplotBeta,
+        dpi = dpi,
+        height = values$h,
+        width = values$h * 2,
+        bg = "transparent"
+      )
+      ggsave(
+        filename = file3,
+        plot = values$tmGplotTheta,
+        dpi = dpi,
+        height = values$h,
+        width = values$h * 2,
+        bg = "transparent"
+      )
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -4230,13 +5586,34 @@ server <- function(input, output, session) {
   observeEvent(input$d_tm_estimReport, {
     if (!is.null(values$TMestim_result$beta)) {
       popUp(title = NULL, type = "waiting")
-      values$tmGplotBeta <- topicGplot(values$TMestim_result$beta, nPlot = input$nTopicPlot, type = "beta")
-      values$tmGplotTheta <- topicGplot(values$TMestim_result$theta, nPlot = input$nTopicPlot, type = "theta")
+      values$tmGplotBeta <- topicGplot(
+        values$TMestim_result$beta,
+        nPlot = input$nTopicPlot,
+        type = "beta"
+      )
+      values$tmGplotTheta <- topicGplot(
+        values$TMestim_result$theta,
+        nPlot = input$nTopicPlot,
+        type = "theta"
+      )
       Gem <- values$tmGemini %>% string_to_sentence_df()
-      list_df <- list(values$tmGemini %>% string_to_sentence_df(),
-                      values$beta, values$theta)
-      list_plot <- list(values$tmGplotBeta, values$tmGplotTheta, values$tmHeatmap$HplotStatic)
-      wb <- addSheetToReport(list_df, list_plot, sheetname = "ModelEstim", wb = values$wb, startRow = nrow(Gem)+1)
+      list_df <- list(
+        values$tmGemini %>% string_to_sentence_df(),
+        values$beta,
+        values$theta
+      )
+      list_plot <- list(
+        values$tmGplotBeta,
+        values$tmGplotTheta,
+        values$tmHeatmap$HplotStatic
+      )
+      wb <- addSheetToReport(
+        list_df,
+        list_plot,
+        sheetname = "ModelEstim",
+        wb = values$wb,
+        startRow = nrow(Gem) + 1
+      )
       values$wb <- wb
       popUp(title = "Model Estimation Results", type = "success")
       values$myChoices <- sheets(values$wb)
@@ -4245,13 +5622,13 @@ server <- function(input, output, session) {
     }
   })
 
-
   ## Polarity detection ----
 
   output$lexiconD_polarity <- renderUI({
     if (values$language == "english") {
       selectInput(
-        inputId = "lexiconD_polarity", label = "Select lexicon",
+        inputId = "lexiconD_polarity",
+        label = "Select lexicon",
         choices = c(
           "huliu",
           "loughran_mcdonald",
@@ -4271,10 +5648,56 @@ server <- function(input, output, session) {
     },
     valueExpr = {
       choices <- c(
-        "english", "italian", "french", "german", "spanish", "afrikaans", "arabic", "armenian", "basque", "belarusian", "bulgarian", "catalan", "chinese",
-        "croatian", "czech", "danish", "dutch", "estonian", "finnish", "galician", "greek", "hebrew", "hindi", "hungarian", "indonesian", "irish", "japanese",
-        "korean", "latin", "latvian", "lithuanian", "maltese", "marathi", "norwegian", "persian", "polish", "portuguese",
-        "romanian", "russian", "serbian", "slovak", "slovenian", "swedish", "tamil", "telugu", "turkish", "ukrainian", "urdu", "uyghur", "vietnamese"
+        "english",
+        "italian",
+        "french",
+        "german",
+        "spanish",
+        "afrikaans",
+        "arabic",
+        "armenian",
+        "basque",
+        "belarusian",
+        "bulgarian",
+        "catalan",
+        "chinese",
+        "croatian",
+        "czech",
+        "danish",
+        "dutch",
+        "estonian",
+        "finnish",
+        "galician",
+        "greek",
+        "hebrew",
+        "hindi",
+        "hungarian",
+        "indonesian",
+        "irish",
+        "japanese",
+        "korean",
+        "latin",
+        "latvian",
+        "lithuanian",
+        "maltese",
+        "marathi",
+        "norwegian",
+        "persian",
+        "polish",
+        "portuguese",
+        "romanian",
+        "russian",
+        "serbian",
+        "slovak",
+        "slovenian",
+        "swedish",
+        "tamil",
+        "telugu",
+        "turkish",
+        "ukrainian",
+        "urdu",
+        "uyghur",
+        "vietnamese"
       )
       if (values$language %in% choices) {
         if (is.null(input$lexiconD_polarity)) {
@@ -4284,16 +5707,36 @@ server <- function(input, output, session) {
         }
 
         ## check to verify if groups exist or not
-        if (input$groupPolarity == "doc_id" & "ungroupDoc_id" %in% names(values$dfTag)) {
-          values$docPolarity <- sentimentAnalysis(backToOriginalGroups(values$dfTag) %>% filter(docSelected), language = values$language, lexicon_model = lexiconD_polarity)
+        if (
+          input$groupPolarity == "doc_id" &
+            "ungroupDoc_id" %in% names(values$dfTag)
+        ) {
+          values$docPolarity <- sentimentAnalysis(
+            backToOriginalGroups(values$dfTag) %>% filter(docSelected),
+            language = values$language,
+            lexicon_model = lexiconD_polarity
+          )
         } else {
-          values$docPolarity <- sentimentAnalysis(values$dfTag %>% filter(docSelected), language = values$language, lexicon_model = lexiconD_polarity)
+          values$docPolarity <- sentimentAnalysis(
+            values$dfTag %>% filter(docSelected),
+            language = values$language,
+            lexicon_model = lexiconD_polarity
+          )
         }
-        values$docPolPlots <- sentimentWordPlot(values$docPolarity$sent_data, n = 10)
+        values$docPolPlots <- sentimentWordPlot(
+          values$docPolarity$sent_data,
+          n = 10
+        )
       }
 
       values$docPolarityOverallData <- values$docPolarity$sent_overall %>%
-        select(doc_id, sentiment_polarity, doc_pol_clas, terms_positive, terms_negative) %>%
+        select(
+          doc_id,
+          sentiment_polarity,
+          doc_pol_clas,
+          terms_positive,
+          terms_negative
+        ) %>%
         rename(
           Polarity = sentiment_polarity,
           "Polarity Category" = doc_pol_clas,
@@ -4301,13 +5744,21 @@ server <- function(input, output, session) {
           "Negative Words" = terms_negative
         )
       # Pie chart
-      values$sentimentPieChart <- sentimentPieChart(values$docPolarity$sent_overall %>%
-                                                      count(doc_pol_clas) %>%
-                                                      rename("Polarity" = doc_pol_clas))
+      values$sentimentPieChart <- sentimentPieChart(
+        values$docPolarity$sent_overall %>%
+          count(doc_pol_clas) %>%
+          rename("Polarity" = doc_pol_clas)
+      )
       # Density plot
-      values$sentimentDensityPlot <- sentimentDensityPlot(values$docPolarity$sent_overall$sentiment_polarity, from = -1, to = 1)
+      values$sentimentDensityPlot <- sentimentDensityPlot(
+        values$docPolarity$sent_overall$sentiment_polarity,
+        from = -1,
+        to = 1
+      )
       # Box plot
-      values$sentimentBoxPlot <- sentimentBoxPlot(values$docPolarity$sent_overall)
+      values$sentimentBoxPlot <- sentimentBoxPlot(
+        values$docPolarity$sent_overall
+      )
     }
   )
 
@@ -4336,14 +5787,24 @@ server <- function(input, output, session) {
   })
 
   output$d_polDet_GeminiUI <- renderUI({
-    values$gemini_model_parameters <- geminiParameterPrompt(values, input$sidebarmenu, input)
+    values$gemini_model_parameters <- geminiParameterPrompt(
+      values,
+      input$sidebarmenu,
+      input
+    )
     geminiOutput(title = "Gemini AI", content = values$d_polDet_Gemini, values)
   })
 
-
   output$d_polDetTable <- renderDT(server = FALSE, {
     docPolarityEstim()
-    DTformat(values$docPolarityOverallData, filename = "DocPolarity", left = c(2, 4, 5, 6), numeric = 3, round = 4, button = TRUE)
+    DTformat(
+      values$docPolarityOverallData,
+      filename = "DocPolarity",
+      left = c(2, 4, 5, 6),
+      numeric = 3,
+      round = 4,
+      button = TRUE
+    )
   })
 
   observeEvent(
@@ -4363,10 +5824,22 @@ server <- function(input, output, session) {
       file5 <- destFolder(file5, values$wdTall)
 
       plot2png(values$sentimentPieChart, filename = file1, zoom = values$zoom)
-      plot2png(values$sentimentDensityPlot, filename = file2, zoom = values$zoom)
+      plot2png(
+        values$sentimentDensityPlot,
+        filename = file2,
+        zoom = values$zoom
+      )
       plot2png(values$sentimentBoxPlot, filename = file3, zoom = values$zoom)
-      plot2png(values$docPolPlots$positive, filename = file4, zoom = values$zoom)
-      plot2png(values$docPolPlots$negative, filename = file5, zoom = values$zoom)
+      plot2png(
+        values$docPolPlots$positive,
+        filename = file4,
+        zoom = values$zoom
+      )
+      plot2png(
+        values$docPolPlots$negative,
+        filename = file5,
+        zoom = values$zoom
+      )
 
       popUp(title = "Saved in your working folder", type = "saved")
     }
@@ -4386,12 +5859,38 @@ server <- function(input, output, session) {
       # values$wb <- res$wb
       owd <- setwd(tempdir())
       on.exit(setwd(owd))
-      files <- c("PieChart.png", "DensDensity.png", "BoxPlot.png", "Positive.png", "Negative.png")
-      values$filePieChart <- plot2png(values$sentimentPieChart, filename = files[1], zoom = values$zoom)
-      values$fileDensityPlot <- plot2png(values$sentimentDensityPlot, filename = files[2], zoom = values$zoom)
-      values$fileBoxPlot <- plot2png(values$sentimentBoxPlot, filename = files[3], zoom = values$zoom)
-      values$filedocPolPos <- plot2png(values$docPolPlots$positive, filename = files[4], zoom = values$zoom)
-      values$filedocPolNeg <- plot2png(values$docPolPlots$negative, filename = files[5], zoom = values$zoom)
+      files <- c(
+        "PieChart.png",
+        "DensDensity.png",
+        "BoxPlot.png",
+        "Positive.png",
+        "Negative.png"
+      )
+      values$filePieChart <- plot2png(
+        values$sentimentPieChart,
+        filename = files[1],
+        zoom = values$zoom
+      )
+      values$fileDensityPlot <- plot2png(
+        values$sentimentDensityPlot,
+        filename = files[2],
+        zoom = values$zoom
+      )
+      values$fileBoxPlot <- plot2png(
+        values$sentimentBoxPlot,
+        filename = files[3],
+        zoom = values$zoom
+      )
+      values$filedocPolPos <- plot2png(
+        values$docPolPlots$positive,
+        filename = files[4],
+        zoom = values$zoom
+      )
+      values$filedocPolNeg <- plot2png(
+        values$docPolPlots$negative,
+        filename = files[5],
+        zoom = values$zoom
+      )
       values$list_file <- rbind(
         values$list_file,
         c(sheetname = res$sheetname, values$filePieChart, res$col),
@@ -4413,7 +5912,11 @@ server <- function(input, output, session) {
     selectizeInput(
       inputId = "Abst_document_selection",
       label = "Select Document",
-      choices = values$dfTag %>% dplyr::filter(docSelected) %>% select(doc_id) %>% unique() %>% pull(doc_id),
+      choices = values$dfTag %>%
+        dplyr::filter(docSelected) %>%
+        select(doc_id) %>%
+        unique() %>%
+        pull(doc_id),
       multiple = FALSE,
       width = "100%"
     )
@@ -4430,7 +5933,7 @@ server <- function(input, output, session) {
     )
   })
 
-  observeEvent(input$d_abstractiveApply,{
+  observeEvent(input$d_abstractiveApply, {
     values$abstractivePrompt <- input$abstractivePrompt
   })
 
@@ -4440,12 +5943,14 @@ server <- function(input, output, session) {
       input$d_abstractiveApply
     },
     valueExpr = {
-      values$abstractiveSumm <- abstractive_summary(values,
-                                                    input = input,
-                                                    id = input$Abst_document_selection,
-                                                    nL = input$summaryLength,
-                                                    api_key=NULL,
-                                                    model = values$gemini_api_model)
+      values$abstractiveSumm <- abstractive_summary(
+        values,
+        input = input,
+        id = input$Abst_document_selection,
+        nL = input$summaryLength,
+        api_key = NULL,
+        model = values$gemini_api_model
+      )
     }
   )
 
@@ -4456,7 +5961,6 @@ server <- function(input, output, session) {
       style = "white-space: pre-wrap; background-color:#f9f9f9; padding:15px; border:1px solid #ccc; border-radius:5px; max-height:700px; overflow-y: auto;",
       HTML(values$abstractiveSumm)
     )
-
   })
 
   output$documentData2 <- renderUI({
@@ -4464,9 +5968,12 @@ server <- function(input, output, session) {
     div(
       id = "typing-box",
       style = "white-space: pre-wrap; background-color:#f9f9f9; padding:15px; border:1px solid #ccc; border-radius:5px; max-height:700px; overflow-y: auto;",
-      HTML(values$dfTag %>%
-             filter(doc_id == !!input$Abst_document_selection) %>%
-             rebuild_documents() %>% pull(text) %>% paste(collapse = "<br>")
+      HTML(
+        values$dfTag %>%
+          filter(doc_id == !!input$Abst_document_selection) %>%
+          rebuild_documents() %>%
+          pull(text) %>%
+          paste(collapse = "<br>")
       )
     )
   })
@@ -4479,8 +5986,14 @@ server <- function(input, output, session) {
       sheetname <- "AbstractiveSummarization"
 
       list_df <- list(
-        data.frame(Abstract = paste0("Document: ",input$Abst_document_selection,
-                                     "\n\n Abstract:\n\n",values$abstractiveSumm))
+        data.frame(
+          Abstract = paste0(
+            "Document: ",
+            input$Abst_document_selection,
+            "\n\n Abstract:\n\n",
+            values$abstractiveSumm
+          )
+        )
       )
       res <- addDataScreenWb(list_df, wb = values$wb, sheetname = sheetname)
       # values$wb <- res$wb
@@ -4495,7 +6008,9 @@ server <- function(input, output, session) {
 
   output$optionsUnitSummarization <- renderUI({
     selectInput(
-      inputId = "unit_selection", label = "Summarize ", choices = c("Groups", "Documents"),
+      inputId = "unit_selection",
+      label = "Summarize ",
+      choices = c("Groups", "Documents"),
       selected = "Documents",
       multiple = FALSE,
       width = "100%"
@@ -4505,15 +6020,23 @@ server <- function(input, output, session) {
   output$optionsSummarization <- renderUI({
     selectizeInput(
       inputId = "document_selection",
-      label = ifelse(input$unit_selection == "Documents", "Select Document", "Select Group"),
-      choices = ids(values$dfTag %>% group_by(doc_id) %>%
-                      mutate(n_sentences = max(sentence_id)) %>% ungroup() %>%
-                      dplyr::filter(docSelected, n_sentences > 1), type = input$unit_selection),
+      label = ifelse(
+        input$unit_selection == "Documents",
+        "Select Document",
+        "Select Group"
+      ),
+      choices = ids(
+        values$dfTag %>%
+          group_by(doc_id) %>%
+          mutate(n_sentences = max(sentence_id)) %>%
+          ungroup() %>%
+          dplyr::filter(docSelected, n_sentences > 1),
+        type = input$unit_selection
+      ),
       multiple = FALSE,
       width = "100%"
     )
   })
-
 
   docExtraction <- eventReactive(
     ignoreNULL = TRUE,
@@ -4521,15 +6044,27 @@ server <- function(input, output, session) {
       input$d_summarizationApply
     },
     valueExpr = {
-      values$docExtracted <- textrankDocument(values$dfTag, id = input$document_selection)
-      values$docExtraction <- abstractingDocument(values$docExtracted$s, n = "5%", id = input$document_selection)
-      values$docExtraction$sentences <- values$docExtracted$sentences %>% rename(S_id = textrank_id, Ranking = textrank)
+      values$docExtracted <- textrankDocument(
+        values$dfTag,
+        id = input$document_selection
+      )
+      values$docExtraction <- abstractingDocument(
+        values$docExtracted$s,
+        n = "5%",
+        id = input$document_selection
+      )
+      values$docExtraction$sentences <- values$docExtracted$sentences %>%
+        rename(S_id = textrank_id, Ranking = textrank)
     }
   )
 
   output$sliderAbstractData <- renderUI({
     docExtraction()
-    choices <- c("More Concise", paste0(seq(from = 10, to = 95, by = 5), "%"), "Less Concise")
+    choices <- c(
+      "More Concise",
+      paste0(seq(from = 10, to = 95, by = 5), "%"),
+      "Less Concise"
+    )
     sliderTextInput(
       inputId = "sliderAbstractData",
       label = "Summarization",
@@ -4548,8 +6083,13 @@ server <- function(input, output, session) {
     },
     valueExpr = {
       req(values$docExtracted)
-      values$docExtraction <- abstractingDocument(values$docExtracted$s, n = input$sliderAbstractData, id = input$document_selection)
-      values$docExtraction$sentences <- values$docExtracted$sentences %>% rename(S_id = textrank_id, Ranking = textrank)
+      values$docExtraction <- abstractingDocument(
+        values$docExtracted$s,
+        n = input$sliderAbstractData,
+        id = input$document_selection
+      )
+      values$docExtraction$sentences <- values$docExtracted$sentences %>%
+        rename(S_id = textrank_id, Ranking = textrank)
     }
   )
 
@@ -4559,16 +6099,29 @@ server <- function(input, output, session) {
     HTML(values$docExtraction$abstract)
   })
 
-
   output$RelSentData <- renderDT(server = FALSE, {
     docExtraction()
-    DTformat(values$docExtraction$sentences, nrow = 10, size = "85%", title = paste0("Doc_id: ", input$document_selection), left = 1:2, numeric = 3, round = 4)
+    DTformat(
+      values$docExtraction$sentences,
+      nrow = 10,
+      size = "85%",
+      title = paste0("Doc_id: ", input$document_selection),
+      left = 1:2,
+      numeric = 3,
+      round = 4
+    )
   })
 
   output$documentData <- renderDT(server = FALSE, {
     docExtraction()
 
-    DTformat(values$docExtraction$document, nrow = 3, size = "100%", title = paste0("Doc_id: ", input$document_selection), left = 2)
+    DTformat(
+      values$docExtraction$document,
+      nrow = 3,
+      size = "100%",
+      title = paste0("Doc_id: ", input$document_selection),
+      left = 2
+    )
   })
 
   ## Report
@@ -4578,7 +6131,9 @@ server <- function(input, output, session) {
       popUp(title = NULL, type = "waiting")
       sheetname <- "ExtractiveSummarization"
 
-      values$docExtraction$abstractData <- data.frame("Abstract" = values$docExtraction$abstract)
+      values$docExtraction$abstractData <- data.frame(
+        "Abstract" = values$docExtraction$abstract
+      )
       values$docExtraction$abstractData <- values$docExtraction$abstractData %>%
         mutate(Abstract = gsub("<.*?>", "", Abstract))
 
@@ -4596,8 +6151,6 @@ server <- function(input, output, session) {
     }
   })
 
-
-
   ## REPORT ----
   ### Report Save xlsx ----
   observeEvent(
@@ -4613,14 +6166,25 @@ server <- function(input, output, session) {
         wb_export <- addScreenWb(df = values$list_file, wb = wb_export) # , width=10, height=7, dpi=300)
       }
       sheetToRemove <- setdiff(sheets(wb_export), input$reportSheets)
-      if (length(sheetToRemove) > 0) for (i in sheetToRemove) removeWorksheet(wb_export, i)
+      if (length(sheetToRemove) > 0) {
+        for (i in sheetToRemove) {
+          removeWorksheet(wb_export, i)
+        }
+      }
       sheetToAdd <- sheets(wb_export)
-      for (i in sheetToAdd) setColWidths(wb_export, sheet = i, cols = 1, widths = 30, hidden = FALSE)
+      for (i in sheetToAdd) {
+        setColWidths(
+          wb_export,
+          sheet = i,
+          cols = 1,
+          widths = 30,
+          hidden = FALSE
+        )
+      }
       openxlsx::saveWorkbook(wb_export, file = file)
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
-
 
   ### Report UI elements
   observe({
@@ -4678,17 +6242,17 @@ server <- function(input, output, session) {
     )
   })
 
-  observeEvent(input$delete_confirmation,
-               {
-                 if (isTRUE(input$delete_confirmation)) {
-                   values$myChoices <- "Empty Report"
-                   values$list_file <- data.frame(sheet = NULL, file = NULL, n = NULL)
-                   values$wb <- openxlsx::createWorkbook()
-                 }
-               },
-               ignoreNULL = TRUE
+  observeEvent(
+    input$delete_confirmation,
+    {
+      if (isTRUE(input$delete_confirmation)) {
+        values$myChoices <- "Empty Report"
+        values$list_file <- data.frame(sheet = NULL, file = NULL, n = NULL)
+        values$wb <- openxlsx::createWorkbook()
+      }
+    },
+    ignoreNULL = TRUE
   )
-
 
   ## SETTINGS ----
 
@@ -4705,9 +6269,12 @@ server <- function(input, output, session) {
         style = "height: 550px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;",
         h3(strong(("Document corpus"))),
         br(),
-        HTML(values$dfTag %>%
-               filter(doc_id == !!input$Abst_document_selection) %>%
-               rebuild_documents() %>% pull(text) %>% paste(collapse = "<br>")
+        HTML(
+          values$dfTag %>%
+            filter(doc_id == !!input$Abst_document_selection) %>%
+            rebuild_documents() %>%
+            pull(text) %>%
+            paste(collapse = "<br>")
         ),
         size = "l",
         easyClose = TRUE,
@@ -4777,7 +6344,9 @@ server <- function(input, output, session) {
         easyClose = FALSE,
         footer = tagList(
           actionButton(
-            label = "Close", inputId = "closeShowDocument", style = "color: #ffff;",
+            label = "Close",
+            inputId = "closeShowDocument",
+            style = "color: #ffff;",
             icon = icon("remove", lib = "glyphicon")
           )
         )
@@ -4792,7 +6361,9 @@ server <- function(input, output, session) {
   })
 
   output$showDocument <- renderUI({
-    if (input$sidebarmenu %in% c("import_tx", "split_tx", "extInfo", "textNorm")) {
+    if (
+      input$sidebarmenu %in% c("import_tx", "split_tx", "extInfo", "textNorm")
+    ) {
       text <- values$txt %>% filter(doc_id == input$button_id)
       text <- gsub("\n\n", "<br><br>", text$text)
     } else {
@@ -4842,7 +6413,13 @@ server <- function(input, output, session) {
   observeEvent(input$button_id_del, {
     if (input$sidebarmenu %in% c("import_tx", "split_tx", "extInfo")) {
       values$txt <- values$txt %>%
-        mutate(doc_selected = ifelse(doc_id == input$button_id_del, FALSE, doc_selected))
+        mutate(
+          doc_selected = ifelse(
+            doc_id == input$button_id_del,
+            FALSE,
+            doc_selected
+          )
+        )
     }
     output$dataImported <- DT::renderDT({
       # DATAloading()
@@ -4853,7 +6430,11 @@ server <- function(input, output, session) {
             mutate(text = paste0(substr(text, 1, 500), "...")) %>%
             select(doc_id, text, everything()) %>%
             select(-doc_selected, -text_original),
-          left = 2, nrow = 5, filter = "none", button = TRUE, delete = TRUE
+          left = 2,
+          nrow = 5,
+          filter = "none",
+          button = TRUE,
+          delete = TRUE
         )
       }
     })
@@ -4889,10 +6470,13 @@ server <- function(input, output, session) {
           dir.create(path_tall)
         }
         writeLines(wdTall, con = paste0(path_tall, "/tallWD.tall"))
-        if (values$menu == -2) values$menu <- -1
+        if (values$menu == -2) {
+          values$menu <- -1
+        }
         values$wdTall <- wdTall
       }
-    }, ignoreNULL = TRUE
+    },
+    ignoreNULL = TRUE
   )
 
   output$wdFolder <- renderText({
@@ -4900,9 +6484,9 @@ server <- function(input, output, session) {
   })
 
   output$apiStatus <- renderUI({
-    if (values$geminiAPI){
+    if (values$geminiAPI) {
       last <- showGeminiAPI()
-      output$status <- renderText(paste0("✅ API key has been set: ",last))
+      output$status <- renderText(paste0("✅ API key has been set: ", last))
     }
   })
 
@@ -4911,7 +6495,11 @@ server <- function(input, output, session) {
       selectInput(
         inputId = "gemini_output_size",
         label = "Max Output (in tokens)",
-        selected = ifelse(is.null(values$gemini_output_size), "medium", values$gemini_output_size),
+        selected = ifelse(
+          is.null(values$gemini_output_size),
+          "medium",
+          values$gemini_output_size
+        ),
         choices = c("Medium" = "medium", "Large" = "large")
       ),
       conditionalPanel(
@@ -4940,95 +6528,138 @@ server <- function(input, output, session) {
           "Gemini 1.5 Flash" = "1.5-flash",
           "Gemini 1.5 Flash Lite" = "1.5-flash-8b"
         ),
-        selected = ifelse(is.null(values$gemini_api_model), "2.0-flash", values$gemini_api_model)
+        selected = ifelse(
+          is.null(values$gemini_api_model),
+          "2.0-flash",
+          values$gemini_api_model
+        )
       ),
       conditionalPanel(
         condition = "input.gemini_api_model == '2.5-flash'",
         helpText(strong("Free Tier Rate Limits:")),
-        helpText(em("Request per Minutes: 10", tags$br(),
-                    "Requests per Day: 500", tags$br(),
-                    "Latency time: High"))
+        helpText(em(
+          "Request per Minutes: 10",
+          tags$br(),
+          "Requests per Day: 500",
+          tags$br(),
+          "Latency time: High"
+        ))
       ),
       conditionalPanel(
         condition = "input.gemini_api_model == '2.5-flash-lite'",
         helpText(strong("Free Tier Rate Limits:")),
-        helpText(em("Request per Minutes: 15", tags$br(),
-                    "Requests per Day: 500", tags$br(),
-                    "Latency time: Low"))
+        helpText(em(
+          "Request per Minutes: 15",
+          tags$br(),
+          "Requests per Day: 500",
+          tags$br(),
+          "Latency time: Low"
+        ))
       ),
       conditionalPanel(
         condition = "input.gemini_api_model == '2.0-flash-lite'",
         helpText(strong("Free Tier Rate Limits:")),
-        helpText(em("Request per Minutes: 30", tags$br(),
-                    "Requests per Day: 1500",tags$br(),
-                    "Latency time: Low"))
+        helpText(em(
+          "Request per Minutes: 30",
+          tags$br(),
+          "Requests per Day: 1500",
+          tags$br(),
+          "Latency time: Low"
+        ))
       ),
       conditionalPanel(
         condition = "input.gemini_api_model == '2.0-flash'",
         helpText(strong("Free Tier Rate Limits:")),
-        helpText(em("Request per Minutes: 15", tags$br(),
-                    "Requests per Day: 1500",tags$br(),
-                    "Latency time: Medium"))
+        helpText(em(
+          "Request per Minutes: 15",
+          tags$br(),
+          "Requests per Day: 1500",
+          tags$br(),
+          "Latency time: Medium"
+        ))
       ),
       conditionalPanel(
         condition = "input.gemini_api_model == '1.5-flash'",
         helpText(strong("Free Tier Rate Limits:")),
-        helpText(em("Request per Minutes: 15", tags$br(),
-                    "Requests per Day: 1500",tags$br(),
-                    "Latency time: Medium"))
+        helpText(em(
+          "Request per Minutes: 15",
+          tags$br(),
+          "Requests per Day: 1500",
+          tags$br(),
+          "Latency time: Medium"
+        ))
       ),
       conditionalPanel(
         condition = "input.gemini_api_model == '1.5-flash-8b'",
         helpText(strong("Free Tier Rate Limits:")),
-        helpText(em("Request per Minutes: 15", tags$br(),
-                    "Requests per Day: 1500",tags$br(),
-                    "Latency time: Low"))
+        helpText(em(
+          "Request per Minutes: 15",
+          tags$br(),
+          "Requests per Day: 1500",
+          tags$br(),
+          "Latency time: Low"
+        ))
       )
     )
   })
 
   observeEvent(input$gemini_api_model, {
-    if (!is.null(input$gemini_api_model)){
-      saveGeminiModel(model=c(input$gemini_api_model,input$gemini_output_model), file=paste0(homeFolder(),"/.tall_gemini_model.txt", collapse=""))
+    if (!is.null(input$gemini_api_model)) {
+      saveGeminiModel(
+        model = c(input$gemini_api_model, input$gemini_output_model),
+        file = paste0(homeFolder(), "/.tall_gemini_model.txt", collapse = "")
+      )
       values$gemini_api_model <- input$gemini_api_model
       values$gemini_output_size <- input$gemini_output_size
     }
   })
 
   observeEvent(input$gemini_output_size, {
-    if (!is.null(input$gemini_output_size)){
-      saveGeminiModel(model=c(input$gemini_api_model,input$gemini_output_size), file=paste0(homeFolder(),"/.tall_gemini_model.txt", collapse=""))
+    if (!is.null(input$gemini_output_size)) {
+      saveGeminiModel(
+        model = c(input$gemini_api_model, input$gemini_output_size),
+        file = paste0(homeFolder(), "/.tall_gemini_model.txt", collapse = "")
+      )
       values$gemini_api_model <- input$gemini_api_model
       values$gemini_output_size <- input$gemini_output_size
     }
   })
 
-
   observeEvent(input$set_key, {
     key <- input$api_key
     last <- setGeminiAPI(key)
 
-    if (!last$valid){
+    if (!last$valid) {
       output$apiStatus <- renderUI({
         output$status <- renderText(last$message)
       })
       values$geminiAPI <- FALSE
     } else {
       output$apiStatus <- renderUI({
-        output$status <- renderText(paste0("✅ API key has been set: ",last$message))
+        output$status <- renderText(paste0(
+          "✅ API key has been set: ",
+          last$message
+        ))
       })
       values$geminiAPI <- TRUE
       home <- homeFolder()
-      path_gemini_key <- paste0(home,"/tall/.tall_gemini_key.txt", collapse="")
+      path_gemini_key <- paste0(
+        home,
+        "/tall/.tall_gemini_key.txt",
+        collapse = ""
+      )
       writeLines(Sys.getenv("GEMINI_API_KEY"), path_gemini_key)
     }
-
   })
 
   observeEvent(input$remove_key, {
-    if (values$geminiAPI){
+    if (values$geminiAPI) {
       home <- homeFolder()
-      path_gemini_key <- paste0(home,"/tall/.tall_gemini_key.txt", collapse="")
+      path_gemini_key <- paste0(
+        home,
+        "/tall/.tall_gemini_key.txt",
+        collapse = ""
+      )
       file.remove(path_gemini_key)
       values$geminiAPI <- FALSE
       output$apiStatus <- renderUI({
@@ -5036,6 +6667,4 @@ server <- function(input, output, session) {
       })
     }
   })
-
-
 } # END SERVER
