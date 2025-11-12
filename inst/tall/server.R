@@ -739,25 +739,56 @@ server <- function(input, output, session) {
   loadTallgModal <- function(session) {
     ns <- session$ns
     modalDialog(
-      h3(strong(("Tall Data Overview"))),
-      br(),
-      uiOutput("loadSynthesis"),
-      size = "m",
-      easyClose = TRUE,
-      footer = tagList(
-        actionButton(
-          label = "Custom Lists",
-          inputId = "modalCustomLists",
-          style = "color: #ffff;",
-          icon = icon("th-list", lib = "glyphicon")
-        ),
-        actionButton(
-          label = "Close",
-          inputId = "closeModalCustomLists",
-          style = "color: #ffff;",
-          icon = icon("remove", lib = "glyphicon")
+      title = div(
+        style = "background: linear-gradient(135deg, #5cb85c 0%, #4F7942 100%);
+               color: white;
+               padding: 20px;
+               margin: -15px -15px 20px -15px;
+               border-radius: 5px 5px 0 0;",
+        h3(
+          icon("info-circle", lib = "font-awesome"),
+          strong(" TALL Data Overview"),
+          style = "margin: 0; color: white;"
         )
       ),
+      div(
+        style = "padding: 10px;",
+        uiOutput("loadSynthesis")
+      ),
+      size = "l",
+      easyClose = TRUE,
+      footer = div(
+        style = "background-color: #f8f9fa;
+               padding: 15px;
+               margin: 20px -15px -15px -15px;
+               border-top: 2px solid #dee2e6;",
+        tagList(
+          actionButton(
+            label = tagList(
+              icon("th-list", lib = "glyphicon"),
+              " Custom Lists"
+            ),
+            inputId = "modalCustomLists",
+            style = "background-color: #5cb85c;
+                   color: white;
+                   border: none;
+                   padding: 10px 20px;
+                   border-radius: 5px;
+                   font-weight: bold;
+                   margin-right: 10px;"
+          ),
+          actionButton(
+            label = tagList(icon("remove", lib = "glyphicon"), " Close"),
+            inputId = "closeModalCustomLists",
+            style = "background-color: #6c757d;
+                   color: white;
+                   border: none;
+                   padding: 10px 20px;
+                   border-radius: 5px;
+                   font-weight: bold;"
+          )
+        )
+      )
     )
   }
 
@@ -767,28 +798,23 @@ server <- function(input, output, session) {
 
   output$loadSynthesis <- renderUI({
     ndocs <- length(unique(values$dfTag$doc_id))
-    txt1 <- paste0("<strong>Tall file contains:</strong> ", ndocs, " documents")
-    txt2 <- paste0("<strong>Last modified date:</strong> ", values$D)
-    txt2b <- paste0(
-      "<strong>Language:</strong> ",
-      tools::toTitleCase(values$language),
-      " - <strong>Treebank:</strong> ",
-      values$treebank
-    )
-    txt2c <- paste0(
-      "<strong>Corpus Description:</strong> ",
-      values$corpus_description
-    )
+
+    # Prepare data
+    txt1 <- paste0(ndocs, " documents")
+    txt2 <- values$D
+    txt2b_lang <- tools::toTitleCase(values$language)
+    txt2b_tree <- values$treebank
+    txt2c <- values$corpus_description
 
     if (!is.null(dim(values$custom_lists))) {
       ncust <- nrow(values$custom_lists)
-      txt3 <- paste0(
-        "<strong>Custom Word List:</strong> Includes ",
-        ncust,
-        " words"
-      )
+      txt3 <- paste0(ncust, " words")
+      custom_status <- "included"
+      custom_badge_color <- "#5cb85c"
     } else {
-      txt3 <- "<strong>Custom Word List:</strong> Not included"
+      txt3 <- "Not included"
+      custom_status <- "not-included"
+      custom_badge_color <- "#6c757d"
     }
 
     upos <- values$dfTag %>%
@@ -797,9 +823,11 @@ server <- function(input, output, session) {
       unique()
 
     if ("MULTIWORD" %in% upos) {
-      txt3bis <- "<strong>Multi-Words:</strong> Included"
+      txt3bis <- "Included"
+      multi_badge_color <- "#5cb85c"
     } else {
-      txt3bis <- "<strong>Multi-Words:</strong> Not included"
+      txt3bis <- "Not included"
+      multi_badge_color <- "#6c757d"
     }
 
     items <- toupper(c(
@@ -813,52 +841,257 @@ server <- function(input, output, session) {
 
     if (length(intersect(items, upos)) > 0) {
       txt3ter <- paste0(
-        "<strong>Special Entities:</strong> ",
-        paste0(
-          tools::toTitleCase(tolower(intersect(items, upos))),
-          collapse = ", "
-        )
+        tools::toTitleCase(tolower(intersect(items, upos))),
+        collapse = ", "
       )
+      entity_badge_color <- "#5cb85c"
     } else {
-      txt3ter <- "<strong>Special Entities:</strong> Not included"
+      txt3ter <- "Not included"
+      entity_badge_color <- "#6c757d"
     }
 
-    txt4 <- paste0("<strong>Last pre-processing step:</strong> ", values$where)
+    txt4 <- values$where
 
-    # Create a structured list format with added spacing
-    text <- paste0(
-      "<ul style='list-style-type: none; padding-left: 0;'>",
-      "<li style='margin-bottom: 15px;'>",
-      txt1,
-      "</li>",
-      "<li style='margin-bottom: 15px;'>",
-      txt2,
-      "</li>",
-      "<li style='margin-bottom: 15px;'>",
-      txt2b,
-      "</li>",
-      "<li style='margin-bottom: 15px;'>",
-      txt2c,
-      "</li>",
-      "<li style='margin-bottom: 15px;'>",
-      txt3ter,
-      "</li>",
-      "<li style='margin-bottom: 15px;'>",
-      txt3bis,
-      "</li>",
-      "<li style='margin-bottom: 15px;'>",
-      txt3,
-      "</li>",
-      "<li style='margin-bottom: 15px;'>",
-      txt4,
-      "</li>",
-      "</ul>"
-    )
-
+    # Create modern styled layout
     tagList(
+      # Main Info Card
       div(
-        h4(HTML(text)),
-        style = "text-align:left;"
+        style = "background: white;
+               border-left: 4px solid #5cb85c;
+               padding: 15px 20px;
+               margin-bottom: 15px;
+               box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+               border-radius: 5px;",
+        div(
+          style = "display: flex; align-items: center; margin-bottom: 10px;",
+          icon(
+            "file-text",
+            lib = "font-awesome",
+            style = "font-size: 24px; color: #5cb85c; margin-right: 10px;"
+          ),
+          h4(strong("Corpus Information"), style = "margin: 0; color: #2c3e50;")
+        ),
+        hr(style = "margin: 10px 0; border-color: #e0e0e0;"),
+        div(
+          style = "display: grid; grid-template-columns: 1fr 1fr; gap: 15px;",
+          # Documents
+          div(
+            style = "padding: 10px;",
+            div(
+              style = "color: #6c757d; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 5px;",
+              "Documents"
+            ),
+            div(
+              style = "font-size: 24px; font-weight: bold; color: #2c3e50;",
+              txt1
+            )
+          ),
+          # Last Modified
+          div(
+            style = "padding: 10px;",
+            div(
+              style = "color: #6c757d; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 5px;",
+              "Last Modified"
+            ),
+            div(
+              style = "font-size: 16px; color: #2c3e50;",
+              txt2
+            )
+          )
+        )
+      ),
+
+      # Language & Treebank Card
+      div(
+        style = "background: white;
+               border-left: 4px solid #17a2b8;
+               padding: 15px 20px;
+               margin-bottom: 15px;
+               box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+               border-radius: 5px;",
+        div(
+          style = "display: flex; align-items: center; margin-bottom: 10px;",
+          icon(
+            "globe",
+            lib = "glyphicon",
+            style = "font-size: 20px; color: #17a2b8; margin-right: 10px;"
+          ),
+          h4(strong("Language Settings"), style = "margin: 0; color: #2c3e50;")
+        ),
+        hr(style = "margin: 10px 0; border-color: #e0e0e0;"),
+        div(
+          style = "display: grid; grid-template-columns: 1fr 1fr; gap: 15px;",
+          div(
+            style = "padding: 10px;",
+            div(
+              style = "color: #6c757d; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 5px;",
+              "Language"
+            ),
+            span(
+              txt2b_lang,
+              style = "background-color: #17a2b8;
+                     color: white;
+                     padding: 5px 12px;
+                     border-radius: 15px;
+                     font-weight: 600;
+                     font-size: 14px;"
+            )
+          ),
+          div(
+            style = "padding: 10px;",
+            div(
+              style = "color: #6c757d; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 5px;",
+              "Treebank"
+            ),
+            span(
+              txt2b_tree,
+              style = "background-color: #17a2b8;
+                     color: white;
+                     padding: 5px 12px;
+                     border-radius: 15px;
+                     font-weight: 600;
+                     font-size: 14px;"
+            )
+          )
+        )
+      ),
+
+      # Description Card
+      div(
+        style = "background: #f8f9fa;
+               border-left: 4px solid #6c757d;
+               padding: 15px 20px;
+               margin-bottom: 15px;
+               box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+               border-radius: 5px;",
+        div(
+          style = "display: flex; align-items: center; margin-bottom: 10px;",
+          icon(
+            "info-sign",
+            lib = "glyphicon",
+            style = "font-size: 20px; color: #6c757d; margin-right: 10px;"
+          ),
+          h4(strong("Corpus Description"), style = "margin: 0; color: #2c3e50;")
+        ),
+        hr(style = "margin: 10px 0; border-color: #dee2e6;"),
+        p(txt2c, style = "margin: 0; color: #495057; line-height: 1.6;")
+      ),
+
+      # Features Card
+      div(
+        style = "background: white;
+               border-left: 4px solid #f39c12;
+               padding: 15px 20px;
+               margin-bottom: 15px;
+               box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+               border-radius: 5px;",
+        div(
+          style = "display: flex; align-items: center; margin-bottom: 10px;",
+          icon(
+            "tags",
+            lib = "glyphicon",
+            style = "font-size: 20px; color: #f39c12; margin-right: 10px;"
+          ),
+          h4(
+            strong("Preprocessing Features"),
+            style = "margin: 0; color: #2c3e50;"
+          )
+        ),
+        hr(style = "margin: 10px 0; border-color: #e0e0e0;"),
+        div(
+          style = "display: grid; grid-template-columns: 1fr 1fr; gap: 15px;",
+          # Special Entities
+          div(
+            style = "padding: 10px;",
+            div(
+              style = "color: #6c757d; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;",
+              icon("star", lib = "glyphicon", style = "margin-right: 5px;"),
+              "Special Entities"
+            ),
+            span(
+              txt3ter,
+              style = paste0(
+                "background-color: ",
+                entity_badge_color,
+                ";
+                           color: white;
+                           padding: 5px 12px;
+                           border-radius: 15px;
+                           font-weight: 600;
+                           font-size: 13px;
+                           display: inline-block;"
+              )
+            )
+          ),
+          # Multi-Words
+          div(
+            style = "padding: 10px;",
+            div(
+              style = "color: #6c757d; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;",
+              icon("link", lib = "glyphicon", style = "margin-right: 5px;"),
+              "Multi-Words"
+            ),
+            span(
+              txt3bis,
+              style = paste0(
+                "background-color: ",
+                multi_badge_color,
+                ";
+                           color: white;
+                           padding: 5px 12px;
+                           border-radius: 15px;
+                           font-weight: 600;
+                           font-size: 13px;
+                           display: inline-block;"
+              )
+            )
+          )
+        ),
+        div(
+          style = "display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;",
+          # Custom Word List
+          div(
+            style = "padding: 10px;",
+            div(
+              style = "color: #6c757d; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;",
+              icon("list", lib = "glyphicon", style = "margin-right: 5px;"),
+              "Custom Word List"
+            ),
+            span(
+              txt3,
+              style = paste0(
+                "background-color: ",
+                custom_badge_color,
+                ";
+                           color: white;
+                           padding: 5px 12px;
+                           border-radius: 15px;
+                           font-weight: 600;
+                           font-size: 13px;
+                           display: inline-block;"
+              )
+            )
+          ),
+          # Last Step
+          div(
+            style = "padding: 10px;",
+            div(
+              style = "color: #6c757d; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;",
+              icon("flag", lib = "glyphicon", style = "margin-right: 5px;"),
+              "Last Preprocessing Step"
+            ),
+            span(
+              txt4,
+              style = "background-color: #5cb85c;
+                     color: white;
+                     padding: 5px 12px;
+                     border-radius: 15px;
+                     font-weight: 600;
+                     font-size: 13px;
+                     display: inline-block;"
+            )
+          )
+        )
       )
     )
   })
@@ -2512,7 +2745,11 @@ server <- function(input, output, session) {
 
   ## BOX ----
 
-  #### box1 ---------------
+  # ============================================
+  # CORPUS SIZE & STRUCTURE (GREEN)
+  # ============================================
+
+  #### box1 - Documents ---------------
   output$nDoc <- renderValueBox({
     values$vb <- valueBoxesIndices(values$dfTag %>% filter(docSelected))
 
@@ -2541,285 +2778,204 @@ server <- function(input, output, session) {
       ),
       Values = unlist(values$vb)
     )
+
     valueBox(
-      value = p(
-        ifelse(
-          is.null(input$defineGroupsList),
-          "Documents",
-          paste0("Docs grouped by ", input$defineGroupsList)
-        ),
-        style = "font-size:16px;color:white;"
-      ),
-      subtitle = p(
-        strong(values$vb$nDoc),
-        style = "font-size:36px;color:white;",
-        align = "center"
-      ),
-      icon = icon("duplicate", lib = "glyphicon"),
-      color = "olive",
+      value = strong(values$vb$nDoc),
+      subtitle = "Documents",
+      icon = icon("file-text", class = "fa-2x", lib = "font-awesome"),
+      color = "green",
       width = NULL
     )
   })
 
-  #### box2 ---------------
-  output$avgDocLengthChar <- renderValueBox({
-    valueBox(
-      value = p(
-        "Doc Avg Length in Chars",
-        style = "font-size:16px;color:white;"
-      ),
-      subtitle = p(
-        strong(paste0(
-          values$vb$avgDocLengthChars,
-          " ± ",
-          values$vb$avgDocLengthCharsSD
-        )),
-        style = "font-size:36px;color:white;",
-        align = "center"
-      ),
-      icon = icon("duplicate", lib = "glyphicon"),
-      color = "olive",
-      width = NULL
-    )
-  })
-
-  #### box3 ------------
-  output$avgDocLengthTokens <- renderValueBox({
-    valueBox(
-      value = p(
-        "Doc Avg Length in Tokens",
-        style = "font-size:16px;color:white;"
-      ),
-      subtitle = p(
-        strong(
-          paste0(
-            values$vb$avgDocLengthTokens,
-            " ± ",
-            values$vb$avgDocLengthTokensSD
-          )
-        ),
-        style = "font-size:36px;color:white;",
-        align = "center"
-      ),
-      icon = icon("duplicate", lib = "glyphicon"),
-      color = "olive",
-      width = NULL
-    )
-  })
-
-  #### box4 ---------------
+  #### box4 - Sentences ---------------
   output$nSentences <- renderValueBox({
     valueBox(
-      value = p("Sentences", style = "font-size:16px;color:white;"),
-      subtitle = p(
-        strong(values$vb$nSentences),
-        style = "font-size:36px;color:white;",
-        align = "center"
-      ),
-      icon = icon(name = "align-left", lib = "glyphicon"),
-      color = "olive",
+      value = strong(values$vb$nSentences),
+      subtitle = "Sentences",
+      icon = icon("align-left", class = "fa-2x", lib = "glyphicon"),
+      color = "green",
       width = NULL
     )
   })
 
-  #### box5 --------------------
-  output$avgSentLengthChar <- renderValueBox({
-    valueBox(
-      value = p(
-        "Sent Avg Length in Chars",
-        style = "font-size:16px;color:white;"
-      ),
-      subtitle = p(
-        strong(
-          paste0(
-            values$vb$avgSentLengthChars,
-            " ± ",
-            values$vb$avgSentLengthCharsSD
-          )
-        ),
-        style = "font-size:36px;color:white;",
-        align = "center"
-      ),
-      icon = icon(name = "align-left", lib = "glyphicon"),
-      color = "olive",
-      width = NULL
-    )
-  })
-
-  #### box6 -------------
-  output$avgSentLengthTokens <- renderValueBox({
-    valueBox(
-      value = p(
-        "Sent Avg Length in Tokens",
-        style = "font-size:16px;color:white;"
-      ),
-      subtitle = p(
-        strong(
-          paste0(
-            values$vb$avgSentLengthTokens,
-            " ± ",
-            values$vb$avgSentLengthTokensSD
-          )
-        ),
-        style = "font-size:36px;color:white;",
-        align = "center"
-      ),
-      icon = icon(name = "align-left", lib = "glyphicon"),
-      color = "olive",
-      width = NULL
-    )
-  })
-
-  #### box7 ----------------
-  output$nDictionary <- renderValueBox({
-    valueBox(
-      value = p("Types", style = "font-size:16px;color:white;"),
-      subtitle = p(
-        strong(values$vb$nDictionary),
-        style = "font-size:36px;color:white;",
-        align = "center"
-      ),
-      icon = icon(name = "font", lib = "glyphicon"),
-      color = "olive",
-      width = NULL
-    )
-  })
-
-  #### box8 ---------------
+  #### box8 - Tokens ---------------
   output$nTokens <- renderValueBox({
     valueBox(
-      value = p("Tokens", style = "font-size:16px;color:white;"),
-      subtitle = p(
-        strong(values$vb$nTokens),
-        style = "font-size:36px;color:white;",
-        align = "center"
-      ),
-      icon = icon(name = "font", lib = "glyphicon"),
-      color = "olive",
+      value = strong(values$vb$nTokens),
+      subtitle = "Tokens",
+      icon = icon("font", class = "fa-2x", lib = "glyphicon"),
+      color = "green",
       width = NULL
     )
   })
 
-  #### box9 ---------------
+  #### box7 - Types ----------------
+  output$nDictionary <- renderValueBox({
+    valueBox(
+      value = strong(values$vb$nDictionary),
+      subtitle = "Types",
+      icon = icon("list-alt", class = "fa-2x", lib = "glyphicon"),
+      color = "green",
+      width = NULL
+    )
+  })
+
+  #### box9 - Lemma ---------------
   output$nLemmas <- renderValueBox({
     valueBox(
-      value = p("Lemma", style = "font-size:16px;color:white;"),
-      subtitle = p(
-        strong(values$vb$nLemmas),
-        style = "font-size:36px;color:white;",
-        align = "center"
-      ),
-      icon = icon(name = "font", lib = "glyphicon"),
-      color = "olive",
+      value = strong(values$vb$nLemmas),
+      subtitle = "Lemma",
+      icon = icon("book", class = "fa-2x", lib = "font-awesome"),
+      color = "green",
       width = NULL
     )
   })
 
-  #### box10 ------------------
+  # ============================================
+  # AVERAGE LENGTH METRICS (BLUE)
+  # ============================================
+
+  #### box2 - Doc Avg Length in Chars ---------------
+  output$avgDocLengthChar <- renderValueBox({
+    valueBox(
+      value = strong(paste0(
+        values$vb$avgDocLengthChars,
+        " ± ",
+        values$vb$avgDocLengthCharsSD
+      )),
+      subtitle = "Doc Avg Length in Chars",
+      icon = icon("list-alt", class = "fa-2x", lib = "glyphicon"),
+      color = "blue",
+      width = NULL
+    )
+  })
+
+  #### box3 - Doc Avg Length in Tokens ------------
+  output$avgDocLengthTokens <- renderValueBox({
+    valueBox(
+      value = strong(paste0(
+        values$vb$avgDocLengthTokens,
+        " ± ",
+        values$vb$avgDocLengthTokensSD
+      )),
+      subtitle = "Doc Avg Length in Tokens",
+      icon = icon("text-height", class = "fa-2x", lib = "font-awesome"),
+      color = "blue",
+      width = NULL
+    )
+  })
+
+  #### box5 - Sent Avg Length in Chars --------------------
+  output$avgSentLengthChar <- renderValueBox({
+    valueBox(
+      value = strong(paste0(
+        values$vb$avgSentLengthChars,
+        " ± ",
+        values$vb$avgSentLengthCharsSD
+      )),
+      subtitle = "Sent Avg Length in Chars",
+      icon = icon("text-width", class = "fa-2x", lib = "font-awesome"),
+      color = "blue",
+      width = NULL
+    )
+  })
+
+  #### box6 - Sent Avg Length in Tokens -------------
+  output$avgSentLengthTokens <- renderValueBox({
+    valueBox(
+      value = strong(paste0(
+        values$vb$avgSentLengthTokens,
+        " ± ",
+        values$vb$avgSentLengthTokensSD
+      )),
+      subtitle = "Sent Avg Length in Tokens",
+      icon = icon("align-justify", class = "fa-2x", lib = "glyphicon"),
+      color = "blue",
+      width = NULL
+    )
+  })
+
+  # ============================================
+  # LEXICAL METRICS - TUTTE ARANCIONE
+  # ============================================
+
+  #### box10 - TTR ------------------
   output$TTR <- renderValueBox({
     valueBox(
-      value = p("TTR (%)", style = "font-size:16px;color:white;"),
-      subtitle = p(
-        strong(values$vb$TTR),
-        style = "font-size:36px;color:white;",
-        align = "center"
-      ),
-      icon = icon(name = "stats", lib = "glyphicon"),
-      color = "olive",
+      value = strong(values$vb$TTR),
+      subtitle = "TTR (%)",
+      icon = icon("percent", class = "fa-2x", lib = "font-awesome"),
+      color = "orange",
       width = NULL
     )
   })
 
-  #### box11 ------
+  #### box11 - Hapax ------
   output$hapax <- renderValueBox({
     valueBox(
-      value = p("Hapax (%)", style = "font-size:16px;color:white;"),
-      subtitle = p(
-        strong(values$vb$hapax),
-        style = "font-size:36px;color:white;",
-        align = "center"
-      ),
-      icon = icon(name = "stats", lib = "glyphicon"),
-      color = "olive",
+      value = strong(round(values$vb$hapax, 0)),
+      subtitle = "Hapax (%)",
+      icon = icon("star", class = "fa-2x", lib = "font-awesome"),
+      color = "orange",
       width = NULL
     )
   })
 
-  #### box12 -------
+  #### box12 - Guiraud -------
   output$guiraud <- renderValueBox({
     valueBox(
-      value = p("Guiraud Index", style = "font-size:16px;color:white;"),
-      subtitle = p(
-        strong(values$vb$guiraud),
-        style = "font-size:36px;color:white;",
-        align = "center"
-      ),
-      icon = icon(name = "stats", lib = "glyphicon"),
-      color = "olive",
+      value = strong(values$vb$guiraud),
+      subtitle = "Guiraud Index",
+      icon = icon("bar-chart", class = "fa-2x", lib = "font-awesome"),
+      color = "orange",
       width = NULL
     )
   })
 
-  #### box13 -------
+  #### box13 - Lexical Density -------
   output$lexicalDensity <- renderValueBox({
     valueBox(
-      value = p("Lexical Density", style = "font-size:16px;color:white;"),
-      subtitle = p(
-        strong(values$vb$lexical_density),
-        style = "font-size:36px;color:white;",
-        align = "center"
-      ),
-      icon = icon(name = "stats", lib = "glyphicon"),
-      color = "olive",
+      value = strong(round(values$vb$lexical_density, 1)),
+      subtitle = "Lexical Density",
+      icon = icon("tachometer", class = "fa-2x", lib = "font-awesome"),
+      color = "orange",
       width = NULL
     )
   })
 
-  #### box14 -------
+  #### box14 - Nominal Ratio -------
   output$nominalRatio <- renderValueBox({
     valueBox(
-      value = p("Nominal Ratio", style = "font-size:16px;color:white;"),
-      subtitle = p(
-        strong(values$vb$nominal_ratio),
-        style = "font-size:36px;color:white;",
-        align = "center"
-      ),
-      icon = icon(name = "stats", lib = "glyphicon"),
-      color = "olive",
+      value = strong(round(values$vb$nominal_ratio, 2)),
+      subtitle = "Nominal Ratio",
+      icon = icon("balance-scale", class = "fa-2x", lib = "font-awesome"),
+      color = "orange",
       width = NULL
     )
   })
 
-  #### box15 -------
+  #### box15 - Gini Index -------
   output$giniIndex <- renderValueBox({
     valueBox(
-      value = p("Gini Index", style = "font-size:16px;color:white;"),
-      subtitle = p(
-        strong(values$vb$gini_index),
-        style = "font-size:36px;color:white;",
-        align = "center"
-      ),
-      icon = icon(name = "stats", lib = "glyphicon"),
-      color = "olive",
+      value = strong(round(values$vb$gini_index, 2)),
+      subtitle = "Gini Index",
+      icon = icon("signal", class = "fa-2x", lib = "font-awesome"),
+      color = "orange",
       width = NULL
     )
   })
 
-  #### box16 -------
+  #### box16 - Yule's K -------
   output$yuleK <- renderValueBox({
     valueBox(
-      value = p("Yule's K", style = "font-size:16px;color:white;"),
-      subtitle = p(
-        strong(values$vb$yule_k),
-        style = "font-size:36px;color:white;",
-        align = "center"
-      ),
-      icon = icon(name = "stats", lib = "glyphicon"),
-      color = "olive",
+      value = strong(round(values$vb$yule_k, 1)),
+      subtitle = "Yule's K",
+      icon = icon("line-chart", class = "fa-2x", lib = "font-awesome"),
+      color = "orange",
       width = NULL
     )
   })
-
   ## Overview Table ----
 
   output$overviewData <- renderDT(server = FALSE, {

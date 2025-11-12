@@ -3,6 +3,7 @@
 source("libraries.R", local = TRUE)
 source("tallFunctions.R", local = TRUE)
 source("helpContent.R", local = TRUE)
+source("cssTags.R", local = TRUE)
 libraries()
 
 htmltools::findDependencies(selectizeInput(
@@ -191,150 +192,7 @@ sidebar <- dashboardSidebar(
 
 body <- dashboardBody(
   customTheme(),
-  ## workaround to solve visualization issues in Data Table
-  tags$head(tags$style(HTML(
-    ".has-feedback .form-control { padding-right: 0px;}"
-  ))),
-  ## script to open more times the same modal ####
-  tags$script(
-    "
-    Shiny.addCustomMessageHandler('button_id', function(value) {
-    Shiny.setInputValue('button_id', value);
-    });
-  "
-  ),
-  tags$script(
-    "
-    Shiny.addCustomMessageHandler('button_id2', function(value) {
-    Shiny.setInputValue('button_id2', value);
-    });
-  "
-  ),
-  tags$script(
-    "
-    Shiny.addCustomMessageHandler('click', function(value) {
-    Shiny.setInputValue('click', value);
-    });
-  "
-  ),
-  tags$script(
-    "
-    Shiny.addCustomMessageHandler('click_dend', function(value) {
-    Shiny.setInputValue('click_dend', value);
-    });
-  "
-  ),
-  #### BUTTON STYLE ###############
-  tags$style(
-    ".glyphicon-refresh {color:#ffffff; font-size: 15px; align: center;}"
-  ),
-  tags$style(
-    ".fa-magnifying-glass {color:#ffffff; font-size: 15px; align: center;}"
-  ),
-  tags$style(".fa-microchip {color:#ffffff; font-size: 15px; align: center;}"),
-  tags$style(
-    ".glyphicon-download-alt {color:#ffffff; font-size: 18px; align: center; margin-left: -3.5px}"
-  ),
-  tags$style(
-    ".glyphicon-play {color:#ffffff; font-size: 18px; align: center;margin-left: -0.5px}"
-  ),
-  tags$style(
-    ".glyphicon-remove {color:#ffffff; font-size: 18px; align: center;margin-left: -0.5px}"
-  ),
-  tags$style(
-    ".glyphicon-search {color:#ffffff; font-size: 18px; align: center;margin-left: -0.5px}"
-  ),
-  tags$style(
-    ".glyphicon-repeat {color:#ffffff; font-size: 18px; align: center;margin-left: -3px; padding-left: -15px}"
-  ),
-  tags$style(
-    ".glyphicon-plus {color:#ffffff; font-size: 18px;align: center; margin-left: -2px}"
-  ),
-  tags$style(
-    ".glyphicon-cog {color:#4F794290; font-size: 21px; margin-top: 2.3px; margin-left: -3px}"
-  ),
-  tags$style(
-    ".glyphicon-floppy-save {color:#ffffff; font-size: 18px; text-align:center; padding-right: -10px;
-             margin-top: 1px;}"
-  ), # margin-top: 4px; margin-down: 22px; margin-right: 25px}"),
-  tags$style(
-    ".glyphicon-download {color:#ffffff; font-size: 18px; align: center;margin-top: 3px}"
-  ),
-  tags$style(".glyphicon-folder-open {color:#ffffff; font-size: 17px}"),
-  tags$head(
-    tags$style("mark {background-color: #6CC283;}"), ## Color for highlighted text #5a918a
-
-    tags$style(".fa-envelope {color:#FF0000; font-size: 20px}"),
-    tags$style(".fa-envelope-open {font-size: 20px}"),
-    tags$style(".fa-cube {font-size: 20px}"),
-    tags$style(".fa-question {font-size: 20px}"),
-    tags$style(".fa-comment-dollar {font-size: 20px}"),
-    tags$style(".fa-bars {font-size: 20px}"),
-    tags$style(".sidebar-toggle {font-size: 15px}"),
-    tags$style(".fa-users {font-size: 18px}"),
-
-    ## radio button color for primary status (Lemma or Token)
-    tags$style(HTML(
-      "
-    /* Change the default primary button color to a gradient */
-    .btn-primary {
-      background: linear-gradient(to right,rgb(191, 191, 191),rgb(148, 148, 148),rgb(123, 123, 123)) !important;
-      border: none !important;
-      color: white !important;
-    }
-
-    /* Change the hover state */
-    .btn-primary:hover,
-    .btn-primary.hover {
-      background: linear-gradient(to left, #4F7942,rgb(62, 97, 52)) !important;
-      border: none !important;
-    }
-
-    /* Change the active state */
-    .btn-primary:active,
-    .btn-primary.active {
-      background: linear-gradient(to right, #95D297, #6CC283, #4F7942) !important;
-      border: none !important;
-    }
-
-    /* Make button labels bold */
-    .btn-group .btn {
-      font-weight: bold;
-    }
-  "
-    ))
-  ),
-  tags$head(
-    tags$style(HTML(
-      "
-
-     .multicol {
-
-       -webkit-column-count: 2; /* Chrome, Safari, Opera */
-
-       -moz-column-count: 2; /* Firefox */
-
-       column-count: 2;
-
-     }
-
-   "
-    ))
-  ),
-
-  ## Style for selectInput menu with several choices
-  tags$head(
-    tags$style(HTML(
-      "
-      .selectize-dropdown-content {
-        max-height: 200px !important; /* Limita l'altezza della lista */
-        overflow-y: auto !important; /* Aggiunge lo scrolling verticale */
-        overflow-x: auto !important; /* Aggiunge lo scrolling orizzontale se necessario */
-        white-space: nowrap !important; /* Evita il wrapping del testo */
-      }
-    "
-    ))
-  ),
+  cssTags(), ## CSS tags
   tabItems(
     ### TALL PAGE ----
     tabItem(
@@ -1960,6 +1818,7 @@ body <- dashboardBody(
           tabsetPanel(
             type = "tabs",
             id = "maininfo",
+            # OVERVIEW TAB - NEW LAYOUT
             tabPanel(
               "Overview",
               fluidRow(
@@ -1982,104 +1841,172 @@ body <- dashboardBody(
                       )
                     )
                   )
-                ),
+                )
+              ),
+
+              # GROUP 1: CORPUS SIZE & STRUCTURE
+              fluidRow(
+                column(
+                  12,
+                  div(
+                    class = "group-header group-header-green",
+                    icon("folder-open", class = "fa-lg"),
+                    " Corpus Size & Structure"
+                  )
+                )
               ),
               fluidRow(
-                br(),
+                class = "overview-row",
                 tagList(
                   useShinyjs(),
                   column(
-                    3,
+                    2,
+                    offset = 0,
                     div(
                       id = "clickbox1",
-                      title = "Numbers of Documents",
-                      valueBoxOutput("nDoc", width = "33vh")
-                    ),
-                    div(
-                      id = "clickbox2",
-                      title = "Average Document's Lenght by characters",
-                      valueBoxOutput("avgDocLengthChar", width = "33vh")
-                    ),
-                    div(
-                      id = "clickbox3",
-                      title = "Average Document's Length by tokens",
-                      valueBoxOutput("avgDocLengthTokens", width = "33vh")
-                    ),
-                    div(
-                      id = "clickbox13",
-                      title = "Lexical Density",
-                      valueBoxOutput("lexicalDensity", width = "33vh")
-                    ),
+                      title = "Number of Documents",
+                      valueBoxOutput("nDoc", width = NULL)
+                    )
                   ),
                   column(
-                    3,
+                    2,
+                    offset = 0,
                     div(
                       id = "clickbox4",
                       title = "Number of Sentences",
-                      valueBoxOutput("nSentences", width = "33vh")
-                    ),
-                    div(
-                      id = "clickbox5",
-                      title = "Average Sentence's Length by characters",
-                      valueBoxOutput("avgSentLengthChar", width = "33vh")
-                    ),
-                    div(
-                      id = "clickbox6",
-                      title = "Average Sentence's Length by tokens",
-                      valueBoxOutput("avgSentLengthTokens", width = "33vh")
-                    ),
-                    div(
-                      id = "clickbox14",
-                      title = "Nominal Ratio",
-                      valueBoxOutput("nominalRatio", width = "33vh")
+                      valueBoxOutput("nSentences", width = NULL)
                     )
                   ),
                   column(
                     3,
-                    div(
-                      id = "clickbox7",
-                      title = "Number of Types",
-                      valueBoxOutput("nDictionary", width = "33vh")
-                    ),
+                    offset = 0,
                     div(
                       id = "clickbox8",
                       title = "Number of Tokens",
-                      valueBoxOutput("nTokens", width = "33vh")
-                    ),
+                      valueBoxOutput("nTokens", width = NULL)
+                    )
+                  ),
+                  column(
+                    3,
+                    offset = 0,
+                    div(
+                      id = "clickbox7",
+                      title = "Number of Types",
+                      valueBoxOutput("nDictionary", width = NULL)
+                    )
+                  ),
+                  column(
+                    2,
+                    offset = 0,
                     div(
                       id = "clickbox9",
                       title = "Number of Lemma",
-                      valueBoxOutput("nLemmas", width = "33vh")
-                    ),
+                      valueBoxOutput("nLemmas", width = NULL)
+                    )
+                  )
+                )
+              ),
+
+              # GROUP 2: AVERAGE LENGTH METRICS
+              fluidRow(
+                column(
+                  12,
+                  div(
+                    class = "group-header group-header-blue",
+                    style = "margin-top: 20px;",
+                    icon("text-height", class = "fa-lg"),
+                    " Average Length Metrics"
+                  )
+                )
+              ),
+              fluidRow(
+                class = "overview-row",
+                tagList(
+                  column(
+                    3,
                     div(
-                      id = "clickbox15",
-                      title = "Gini Index",
-                      valueBoxOutput("giniIndex", width = "33vh")
+                      id = "clickbox2",
+                      title = "Average Document's Length by Characters",
+                      valueBoxOutput("avgDocLengthChar", width = NULL)
                     )
                   ),
                   column(
                     3,
                     div(
-                      id = "clickbox10",
-                      title = "Types/Tokens Ratio",
-                      valueBoxOutput("TTR", width = "33vh")
-                    ),
-                    div(
-                      id = "clickbox11",
-                      title = "Percentage of Hapax",
-                      valueBoxOutput("hapax", width = "33vh")
-                    ),
-                    div(
-                      id = "clickbox12",
-                      title = "Guiraud Index",
-                      valueBoxOutput("guiraud", width = "33vh")
-                    ),
-                    div(
-                      id = "clickbox16",
-                      title = "Yule's K",
-                      valueBoxOutput("yuleK", width = "33vh")
+                      id = "clickbox3",
+                      title = "Average Document's Length by Tokens",
+                      valueBoxOutput("avgDocLengthTokens", width = NULL)
                     )
                   ),
+                  column(
+                    3,
+                    div(
+                      id = "clickbox5",
+                      title = "Average Sentence's Length by Characters",
+                      valueBoxOutput("avgSentLengthChar", width = NULL)
+                    )
+                  ),
+                  column(
+                    3,
+                    div(
+                      id = "clickbox6",
+                      title = "Average Sentence's Length by Tokens",
+                      valueBoxOutput("avgSentLengthTokens", width = NULL)
+                    )
+                  )
+                )
+              ),
+
+              # GROUP 3: LEXICAL METRICS (TUTTE E 7 SULLA STESSA RIGA)
+              fluidRow(
+                column(
+                  12,
+                  div(
+                    class = "group-header group-header-orange",
+                    style = "margin-top: 20px;",
+                    icon("bar-chart", class = "fa-lg"),
+                    " Lexical Metrics"
+                  )
+                )
+              ),
+              div(
+                class = "lexical-row",
+                tagList(
+                  div(
+                    id = "clickbox10",
+                    title = "Type-Token Ratio",
+                    valueBoxOutput("TTR", width = NULL)
+                  ),
+                  div(
+                    id = "clickbox11",
+                    title = "Percentage of Hapax Legomena",
+                    valueBoxOutput("hapax", width = NULL)
+                  ),
+                  div(
+                    id = "clickbox12",
+                    title = "Guiraud Index",
+                    valueBoxOutput("guiraud", width = NULL)
+                  ),
+                  div(
+                    id = "clickbox13",
+                    title = "Lexical Density",
+                    valueBoxOutput("lexicalDensity", width = NULL)
+                  ),
+                  div(
+                    id = "clickbox14",
+                    title = "Nominal Ratio",
+                    valueBoxOutput("nominalRatio", width = NULL)
+                  ),
+                  div(
+                    id = "clickbox15",
+                    title = "Gini Index",
+                    valueBoxOutput("giniIndex", width = NULL)
+                  ),
+                  div(
+                    id = "clickbox16",
+                    title = "Yule's K Index",
+                    valueBoxOutput("yuleK", width = NULL)
+                  )
                 )
               )
             ),
@@ -2265,25 +2192,32 @@ body <- dashboardBody(
                       1,
                       dropdown(
                         h4(strong("Options: ")),
-                        hr(),
-                        numericInput(
-                          "wFreqN",
-                          label = ("Number of words"),
-                          value = 20
+                        br(),
+
+                        # Main Configuration
+                        div(
+                          class = "config-section",
+                          div(
+                            class = "config-section-header",
+                            icon("cog", lib = "glyphicon"),
+                            "Main Configuration"
+                          ),
+                          numericInput(
+                            "wFreqN",
+                            label = "Number of words",
+                            value = 20,
+                            min = 1,
+                            step = 1
+                          ),
+                          uiOutput("posSelectionFreq")
                         ),
-                        uiOutput("posSelectionFreq"),
-                        # selectInput("wFreqTerm",
-                        #             "Terms:",
-                        #             choices = c("Tokens" = "token",
-                        #                         "Lemma" = "lemma"),
-                        #             selected = "lemma"),
-                        width = "220px",
-                        icon = icon("cog", lib = "glyphicon"),
+                        style = "gradient",
                         right = TRUE,
                         animate = TRUE,
+                        circle = TRUE,
                         tooltip = tooltipOptions(title = "Options"),
-                        style = "material-circle",
-                        size = "sm"
+                        icon = icon("sliders", lib = "font-awesome"),
+                        width = "300px"
                       )
                     ),
                     style = style_opt
@@ -2414,15 +2348,32 @@ body <- dashboardBody(
               1,
               dropdown(
                 h4(strong("Options: ")),
-                hr(),
-                numericInput("posN", label = ("Number of PoS"), value = 20),
-                width = "220px",
-                icon = icon("cog", lib = "glyphicon"),
+                br(),
+
+                # Main Configuration
+                div(
+                  class = "config-section",
+                  div(
+                    class = "config-section-header",
+                    icon("cog", lib = "glyphicon"),
+                    "Main Configuration"
+                  ),
+                  numericInput(
+                    "posN",
+                    label = "Number of PoS",
+                    value = 20,
+                    min = 1,
+                    step = 1
+                  )
+                ),
+
+                style = "gradient",
                 right = TRUE,
                 animate = TRUE,
+                circle = TRUE,
                 tooltip = tooltipOptions(title = "Options"),
-                style = "material-circle",
-                size = "sm"
+                icon = icon("sliders", lib = "font-awesome"),
+                width = "300px"
               )
             ),
             style = style_opt
@@ -2686,71 +2637,100 @@ body <- dashboardBody(
               1,
               dropdown(
                 h4(strong("Options: ")),
-                hr(),
-                # selectInput("termClustering",
-                #             "By:",
-                #             choices = c("Tokens" = "token",
-                #                         "Lemma" = "lemma"),
-                #             selected = "lemma"),
-                selectInput(
-                  "w_clusteringSimilarity",
-                  label = "Words Similarity by:",
-                  choices = c(
-                    "None" = "none",
-                    "Association Index" = "association",
-                    "Cosine Similarity" = "cosine",
-                    "Jaccard Index" = "jaccard"
+                br(),
+
+                # Main Configuration
+                div(
+                  class = "config-section",
+                  div(
+                    class = "config-section-header",
+                    icon("cog", lib = "glyphicon"),
+                    "Main Configuration"
                   ),
-                  selected = "association"
-                ),
-                selectInput(
-                  "w_clusteringMode",
-                  label = "Cluster selection:",
-                  choices = c(
-                    "Auto" = "auto",
-                    "Manual" = "manual"
+                  selectInput(
+                    "w_clusteringSimilarity",
+                    label = "Words Similarity by:",
+                    choices = c(
+                      "None" = "none",
+                      "Association Index" = "association",
+                      "Cosine Similarity" = "cosine",
+                      "Jaccard Index" = "jaccard"
+                    ),
+                    selected = "association"
                   ),
-                  selected = "auto"
-                ),
-                conditionalPanel(
-                  condition = "input.w_clusteringMode == 'manual'",
-                  numericInput(
-                    "w_nclusters",
-                    label = "N. of Clusters",
-                    value = 1,
-                    min = 1,
-                    step = 1
-                  )
-                ),
-                fluidRow(
-                  column(
-                    6,
+                  selectInput(
+                    "w_clusteringMode",
+                    label = "Cluster selection:",
+                    choices = c(
+                      "Auto" = "auto",
+                      "Manual" = "manual"
+                    ),
+                    selected = "auto"
+                  ),
+                  conditionalPanel(
+                    condition = "input.w_clusteringMode == 'manual'",
                     numericInput(
-                      "w_clusteringNMax",
-                      label = "Words",
-                      value = 50,
-                      min = 2,
+                      "w_nclusters",
+                      label = "N. of Clusters",
+                      value = 1,
+                      min = 1,
                       step = 1
                     )
+                  )
+                ),
+
+                # Parameters Section
+                tags$details(
+                  class = "params-section",
+                  tags$summary(
+                    div(
+                      class = "params-section-header",
+                      style = "display: flex; justify-content: space-between; align-items: center;",
+                      div(
+                        icon("list", lib = "glyphicon"),
+                        " Parameters"
+                      ),
+                      icon(
+                        "chevron-down",
+                        lib = "glyphicon",
+                        style = "font-size: 12px;"
+                      )
+                    )
                   ),
-                  column(
-                    6,
-                    numericInput(
-                      "w_clusteringLabelSize",
-                      label = "Label Size",
-                      value = 4,
-                      min = 1,
-                      step = 0.5
+                  div(
+                    style = "margin-top: 10px;",
+                    fluidRow(
+                      column(
+                        6,
+                        numericInput(
+                          "w_clusteringNMax",
+                          label = "Words",
+                          value = 50,
+                          min = 2,
+                          step = 1
+                        )
+                      ),
+                      column(
+                        6,
+                        numericInput(
+                          "w_clusteringLabelSize",
+                          label = "Label Size",
+                          value = 4,
+                          min = 1,
+                          step = 0.5
+                        )
+                      )
                     )
                   )
                 ),
-                tooltip = tooltipOptions(title = "Options"),
-                width = "300px",
-                icon = icon("cog", lib = "glyphicon"),
+
+                style = "gradient",
                 right = TRUE,
                 animate = TRUE,
-                style = "material-circle",
-                size = "sm"
+                circle = TRUE,
+                tooltip = tooltipOptions(title = "Options"),
+                icon = icon("sliders", lib = "font-awesome"),
+                width = "320px"
               )
             ),
             style = style_opt
@@ -2841,90 +2821,138 @@ body <- dashboardBody(
               1,
               dropdown(
                 h4(strong("Options: ")),
-                hr(),
-                # selectInput("termReinClustering",
-                #             "By:",
-                #             choices = c("Tokens" = "token",
-                #                         "Lemma" = "lemma"),
-                #             selected = "token"),
-                fluidRow(
-                  column(
-                    6,
-                    numericInput(
-                      "w_rein_k",
-                      label = "Max N. of Clusters",
-                      value = 10,
-                      min = 1,
-                      step = 1
-                    )
+                br(),
+
+                # Main Configuration
+                div(
+                  class = "config-section",
+                  div(
+                    class = "config-section-header",
+                    icon("cog", lib = "glyphicon"),
+                    "Main Configuration"
                   ),
-                  column(
-                    6,
-                    numericInput(
-                      "w_rein_min_split_members",
-                      label = "Min. Segments per Cluster",
-                      value = 10,
-                      min = 1,
-                      step = 1
+                  fluidRow(
+                    column(
+                      6,
+                      numericInput(
+                        "w_rein_k",
+                        label = "Max N. of Clusters",
+                        value = 10,
+                        min = 1,
+                        step = 1
+                      )
+                    ),
+                    column(
+                      6,
+                      numericInput(
+                        "w_rein_min_split_members",
+                        label = "Min. Segments per Cluster",
+                        value = 10,
+                        min = 1,
+                        step = 1
+                      )
                     )
                   )
                 ),
-                hr(),
-                h4(("Segment parameters ")),
-                fluidRow(
-                  column(
-                    6,
-                    numericInput(
-                      "w_rein_segments_size",
-                      label = "Segment Lenght",
-                      value = 40,
-                      min = 3,
-                      step = 1
+
+                # Segment Parameters Section
+                tags$details(
+                  class = "params-section",
+                  tags$summary(
+                    div(
+                      class = "params-section-header",
+                      style = "display: flex; justify-content: space-between; align-items: center;",
+                      div(
+                        icon("scissors", lib = "glyphicon"),
+                        " Segment Parameters"
+                      ),
+                      icon(
+                        "chevron-down",
+                        lib = "glyphicon",
+                        style = "font-size: 12px;"
+                      )
                     )
                   ),
-                  column(
-                    6,
-                    numericInput(
-                      "w_rein_min_segments",
-                      label = "Min. Segment Lenght",
-                      value = 5,
-                      min = 3,
-                      step = 1
+                  div(
+                    style = "margin-top: 10px;",
+                    fluidRow(
+                      column(
+                        6,
+                        numericInput(
+                          "w_rein_segments_size",
+                          label = "Segment Length",
+                          value = 40,
+                          min = 3,
+                          step = 1
+                        )
+                      ),
+                      column(
+                        6,
+                        numericInput(
+                          "w_rein_min_segments",
+                          label = "Min. Segment Length",
+                          value = 5,
+                          min = 3,
+                          step = 1
+                        )
+                      )
                     )
                   )
                 ),
-                hr(),
-                h4(("Feature selection parameters")),
-                fluidRow(
-                  column(
-                    6,
-                    numericInput(
-                      "w_rein_cc_test",
-                      label = "Contingency Coefficient Value",
-                      value = 0.3,
-                      min = 0.1,
-                      step = 0.1,
-                      max = 0.8
+
+                # Feature Selection Section
+                tags$details(
+                  class = "advanced-section",
+                  tags$summary(
+                    div(
+                      class = "advanced-section-header",
+                      style = "display: flex; justify-content: space-between; align-items: center;",
+                      div(
+                        icon("ok-sign", lib = "glyphicon"),
+                        " Feature Selection Parameters"
+                      ),
+                      icon(
+                        "chevron-down",
+                        lib = "glyphicon",
+                        style = "font-size: 12px;"
+                      )
                     )
                   ),
-                  column(
-                    6,
-                    numericInput(
-                      "w_rein_tsj",
-                      label = "Min freq",
-                      value = 3,
-                      min = 1,
-                      step = 1
+                  div(
+                    style = "margin-top: 10px;",
+                    fluidRow(
+                      column(
+                        6,
+                        numericInput(
+                          "w_rein_cc_test",
+                          label = "Contingency Coefficient Value",
+                          value = 0.3,
+                          min = 0.1,
+                          step = 0.1,
+                          max = 0.8
+                        )
+                      ),
+                      column(
+                        6,
+                        numericInput(
+                          "w_rein_tsj",
+                          label = "Min freq",
+                          value = 3,
+                          min = 1,
+                          step = 1
+                        )
+                      )
                     )
                   )
                 ),
-                tooltip = tooltipOptions(title = "Options"),
-                width = "300px",
-                icon = icon("cog", lib = "glyphicon"),
+
+                style = "gradient",
                 right = TRUE,
                 animate = TRUE,
-                style = "material-circle",
-                size = "sm"
+                circle = TRUE,
+                tooltip = tooltipOptions(title = "Options"),
+                icon = icon("sliders", lib = "font-awesome"),
+                width = "320px"
               )
             ),
             style = style_opt
@@ -3045,110 +3073,163 @@ body <- dashboardBody(
               1,
               dropdown(
                 h4(strong("Options: ")),
-                hr(),
-                selectInput(
-                  inputId = "groupCA",
-                  label = "Unit of Analysis ",
-                  choices = c("Groups", "Documents", "Paragraphs", "Sentences"),
-                  selected = "Documents"
-                ),
-                fluidRow(
-                  column(
-                    6,
-                    numericInput(
-                      "nCA",
-                      label = "Words",
-                      value = 50,
-                      min = 2,
-                      step = 1
-                    )
-                  ),
-                  column(6)
-                ),
-                fluidRow(
-                  column(
-                    6,
-                    numericInput(
-                      "nClustersCA",
-                      label = "Clusters",
-                      value = 1,
-                      min = 1,
-                      step = 1
-                    )
-                  ),
-                  column(
-                    6,
-                    numericInput(
-                      "nDimsCA",
-                      label = "Dims for Clustering",
-                      value = 2,
-                      min = 1,
-                      max = 10,
-                      step = 1
-                    )
-                  )
-                ),
-                hr(),
-                h4(strong("Graphical options: ")),
                 br(),
-                selectInput(
-                  "dimPlotCA",
-                  "Select plane to plot:",
-                  choices = c(
-                    "1° Factorial Plane" = "1",
-                    "2° Factorial Plane" = "2",
-                    "3° Factorial Plane" = "3",
-                    "4° Factorial Plane" = "4",
-                    "5° Factorial Plane" = "5"
+
+                # Main Configuration
+                div(
+                  class = "config-section",
+                  div(
+                    class = "config-section-header",
+                    icon("cog", lib = "glyphicon"),
+                    "Main Configuration"
                   ),
-                  selected = "1"
+                  selectInput(
+                    inputId = "groupCA",
+                    label = "Unit of Analysis",
+                    choices = c(
+                      "Groups",
+                      "Documents",
+                      "Paragraphs",
+                      "Sentences"
+                    ),
+                    selected = "Documents"
+                  ),
+                  numericInput(
+                    "nCA",
+                    label = "Words",
+                    value = 50,
+                    min = 2,
+                    step = 1
+                  )
                 ),
-                numericInput(
-                  "nDocCA",
-                  label = "Top Contributing Docs/Groups",
-                  value = 0,
-                  min = 0,
-                  step = 1
-                ),
-                numericInput(
-                  "lim.contribCA",
-                  label = "Max Contribution",
-                  value = 2,
-                  min = 0.01,
-                  max = 10,
-                  step = 0.01
-                ),
-                fluidRow(
-                  column(
-                    6,
-                    numericInput(
-                      "labelsizeCA",
-                      label = "Label Size",
-                      value = 16,
-                      min = 2,
-                      step = 1
+
+                # Clustering Parameters Section
+                tags$details(
+                  class = "params-section",
+                  tags$summary(
+                    div(
+                      class = "params-section-header",
+                      style = "display: flex; justify-content: space-between; align-items: center;",
+                      div(
+                        icon("stats", lib = "glyphicon"),
+                        " Clustering Parameters"
+                      ),
+                      icon(
+                        "chevron-down",
+                        lib = "glyphicon",
+                        style = "font-size: 12px;"
+                      )
                     )
                   ),
-                  column(
-                    6,
-                    numericInput(
-                      "sizeCA",
-                      label = "Min. Dot Size",
-                      value = 2,
-                      min = 0,
-                      max = 20,
-                      step = 1
+                  div(
+                    style = "margin-top: 10px;",
+                    fluidRow(
+                      column(
+                        6,
+                        numericInput(
+                          "nClustersCA",
+                          label = "Clusters",
+                          value = 1,
+                          min = 1,
+                          step = 1
+                        )
+                      ),
+                      column(
+                        6,
+                        numericInput(
+                          "nDimsCA",
+                          label = "Dims for Clustering",
+                          value = 2,
+                          min = 1,
+                          max = 10,
+                          step = 1
+                        )
+                      )
                     )
                   )
                 ),
-                tooltip = tooltipOptions(title = "Options"),
-                width = "300px",
-                icon = icon("cog", lib = "glyphicon"),
+
+                # Graphical Options Section
+                tags$details(
+                  class = "advanced-section",
+                  tags$summary(
+                    div(
+                      class = "advanced-section-header",
+                      style = "display: flex; justify-content: space-between; align-items: center;",
+                      div(
+                        icon("picture", lib = "glyphicon"),
+                        " Graphical Options"
+                      ),
+                      icon(
+                        "chevron-down",
+                        lib = "glyphicon",
+                        style = "font-size: 12px;"
+                      )
+                    )
+                  ),
+                  div(
+                    style = "margin-top: 10px;",
+                    selectInput(
+                      "dimPlotCA",
+                      "Select plane to plot:",
+                      choices = c(
+                        "1° Factorial Plane" = "1",
+                        "2° Factorial Plane" = "2",
+                        "3° Factorial Plane" = "3",
+                        "4° Factorial Plane" = "4",
+                        "5° Factorial Plane" = "5"
+                      ),
+                      selected = "1"
+                    ),
+                    numericInput(
+                      "nDocCA",
+                      label = "Top Contributing Docs/Groups",
+                      value = 0,
+                      min = 0,
+                      step = 1
+                    ),
+                    numericInput(
+                      "lim.contribCA",
+                      label = "Max Contribution",
+                      value = 2,
+                      min = 0.01,
+                      max = 10,
+                      step = 0.01
+                    ),
+                    fluidRow(
+                      column(
+                        6,
+                        numericInput(
+                          "labelsizeCA",
+                          label = "Label Size",
+                          value = 16,
+                          min = 2,
+                          step = 1
+                        )
+                      ),
+                      column(
+                        6,
+                        numericInput(
+                          "sizeCA",
+                          label = "Min. Dot Size",
+                          value = 2,
+                          min = 0,
+                          max = 20,
+                          step = 1
+                        )
+                      )
+                    )
+                  )
+                ),
+
+                style = "gradient",
                 right = TRUE,
                 animate = TRUE,
-                style = "material-circle",
-                size = "sm"
-              ),
+                circle = TRUE,
+                tooltip = tooltipOptions(title = "Options"),
+                icon = icon("sliders", lib = "font-awesome"),
+                width = "320px"
+              )
             ),
             style = style_opt
           )
@@ -3304,84 +3385,147 @@ body <- dashboardBody(
               1,
               dropdown(
                 h4(strong("Options: ")),
-                hr(),
-                selectInput(
-                  inputId = "w_groupNet",
-                  label = "Co-occurrences in ",
-                  choices = c("Groups", "Documents", "Paragraphs", "Sentences"),
-                  selected = "Sentences"
-                ),
-                materialSwitch(
-                  inputId = "noOverlap",
-                  label = "Avoid label overlap",
-                  value = TRUE,
-                  status = "success"
-                ),
-                materialSwitch(
-                  inputId = "interLinks",
-                  label = "Inter-group links",
-                  value = TRUE,
-                  status = "success"
-                ),
-                materialSwitch(
-                  inputId = "removeIsolated",
-                  label = "Delete isolated nodes",
-                  value = FALSE,
-                  status = "success"
-                ),
-                selectInput(
-                  "normalizationCooc",
-                  label = "Normalization by:",
-                  choices = c(
-                    "None" = "none",
-                    "Association Index" = "association",
-                    "Cosine Similarity" = "cosine",
-                    "Jaccard Index" = "jaccard"
+                br(),
+
+                # Main Configuration
+                div(
+                  class = "config-section",
+                  div(
+                    class = "config-section-header",
+                    icon("cog", lib = "glyphicon"),
+                    "Main Configuration"
                   ),
-                  selected = "association"
-                ),
-                fluidRow(
-                  column(
-                    6,
-                    numericInput(
-                      "nMax",
-                      label = "Words",
-                      value = 100,
-                      min = 2,
-                      step = 1
+                  selectInput(
+                    inputId = "w_groupNet",
+                    label = "Co-occurrences in",
+                    choices = c(
+                      "Groups",
+                      "Documents",
+                      "Paragraphs",
+                      "Sentences"
                     ),
-                    numericInput(
-                      "labelSize",
-                      label = "Label Size",
-                      value = 4,
-                      min = 1,
-                      step = 0.5
+                    selected = "Sentences"
+                  ),
+                  selectInput(
+                    "normalizationCooc",
+                    label = "Normalization by:",
+                    choices = c(
+                      "None" = "none",
+                      "Association Index" = "association",
+                      "Cosine Similarity" = "cosine",
+                      "Jaccard Index" = "jaccard"
+                    ),
+                    selected = "association"
+                  )
+                ),
+
+                # Network Options Section
+                tags$details(
+                  class = "advanced-section",
+                  tags$summary(
+                    div(
+                      class = "advanced-section-header",
+                      style = "display: flex; justify-content: space-between; align-items: center;",
+                      div(
+                        icon("link", lib = "glyphicon"),
+                        " Network Options"
+                      ),
+                      icon(
+                        "chevron-down",
+                        lib = "glyphicon",
+                        style = "font-size: 12px;"
+                      )
                     )
                   ),
-                  column(
-                    6,
-                    selectInput(
-                      "minEdges",
-                      label = "Top Link (%)",
-                      choices = c("Auto", paste0(seq(10, 100, 10), "%")),
-                      selected = "Auto"
+                  div(
+                    style = "margin-top: 10px;",
+                    materialSwitch(
+                      inputId = "noOverlap",
+                      label = "Avoid label overlap",
+                      value = TRUE,
+                      status = "success"
                     ),
-                    numericInput(
-                      "opacity",
-                      label = "Opacity",
-                      value = 0.6,
-                      min = 0,
-                      step = 0.1
+                    materialSwitch(
+                      inputId = "interLinks",
+                      label = "Inter-group links",
+                      value = TRUE,
+                      status = "success"
+                    ),
+                    materialSwitch(
+                      inputId = "removeIsolated",
+                      label = "Delete isolated nodes",
+                      value = FALSE,
+                      status = "success"
                     )
                   )
                 ),
-                tooltip = tooltipOptions(title = "Options"),
-                width = "300px",
-                icon = icon("cog", lib = "glyphicon"),
+
+                # Graphical Parameters Section
+                tags$details(
+                  class = "params-section",
+                  tags$summary(
+                    div(
+                      class = "params-section-header",
+                      style = "display: flex; justify-content: space-between; align-items: center;",
+                      div(
+                        icon("eye-open", lib = "glyphicon"),
+                        " Graphical Parameters"
+                      ),
+                      icon(
+                        "chevron-down",
+                        lib = "glyphicon",
+                        style = "font-size: 12px;"
+                      )
+                    )
+                  ),
+                  div(
+                    style = "margin-top: 10px;",
+                    fluidRow(
+                      column(
+                        6,
+                        numericInput(
+                          "nMax",
+                          label = "Words",
+                          value = 100,
+                          min = 2,
+                          step = 1
+                        ),
+                        numericInput(
+                          "labelSize",
+                          label = "Label Size",
+                          value = 4,
+                          min = 1,
+                          step = 0.5
+                        )
+                      ),
+                      column(
+                        6,
+                        selectInput(
+                          "minEdges",
+                          label = "Top Link (%)",
+                          choices = c("Auto", paste0(seq(10, 100, 10), "%")),
+                          selected = "Auto"
+                        ),
+                        numericInput(
+                          "opacity",
+                          label = "Opacity",
+                          value = 0.6,
+                          min = 0,
+                          max = 1,
+                          step = 0.1
+                        )
+                      )
+                    )
+                  )
+                ),
+
+                style = "gradient",
                 right = TRUE,
                 animate = TRUE,
-                style = "material-circle",
-                size = "sm"
+                circle = TRUE,
+                tooltip = tooltipOptions(title = "Options"),
+                icon = icon("sliders", lib = "font-awesome"),
+                width = "320px"
               )
             ),
             style = style_opt
@@ -3511,62 +3655,102 @@ body <- dashboardBody(
               1,
               dropdown(
                 h4(strong("Options: ")),
-                hr(),
-                selectInput(
-                  inputId = "w_groupTM",
-                  label = "Co-occurrences in ",
-                  choices = c("Groups", "Documents", "Paragraphs", "Sentences"),
-                  selected = "Sentences"
-                ),
-                materialSwitch(
-                  inputId = "noOverlapTM",
-                  label = "Avoid label overlap",
-                  value = TRUE,
-                  status = "success"
-                ),
-                fluidRow(
-                  column(
-                    6,
-                    numericInput(
-                      "nMaxTM",
-                      label = "Words",
-                      value = 250,
-                      min = 2,
-                      step = 1
+                br(),
+
+                # Main Configuration
+                div(
+                  class = "config-section",
+                  div(
+                    class = "config-section-header",
+                    icon("cog", lib = "glyphicon"),
+                    "Main Configuration"
+                  ),
+                  selectInput(
+                    inputId = "w_groupTM",
+                    label = "Co-occurrences in",
+                    choices = c(
+                      "Groups",
+                      "Documents",
+                      "Paragraphs",
+                      "Sentences"
                     ),
-                    numericInput(
-                      "labelSizeTM",
-                      label = "Label Size",
-                      value = 4,
-                      min = 1,
-                      step = 0.5
+                    selected = "Sentences"
+                  ),
+                  materialSwitch(
+                    inputId = "noOverlapTM",
+                    label = "Avoid label overlap",
+                    value = TRUE,
+                    status = "success"
+                  )
+                ),
+
+                # Graphical Parameters Section
+                tags$details(
+                  class = "params-section",
+                  tags$summary(
+                    div(
+                      class = "params-section-header",
+                      style = "display: flex; justify-content: space-between; align-items: center;",
+                      div(
+                        icon("eye-open", lib = "glyphicon"),
+                        " Graphical Parameters"
+                      ),
+                      icon(
+                        "chevron-down",
+                        lib = "glyphicon",
+                        style = "font-size: 12px;"
+                      )
                     )
                   ),
-                  column(
-                    6,
-                    numericInput(
-                      "n.labelsTM",
-                      label = "Labels",
-                      value = 3,
-                      min = 0,
-                      step = 1
-                    ),
-                    numericInput(
-                      "opacityTM",
-                      label = "Opacity",
-                      value = 0.6,
-                      min = 0,
-                      step = 0.1
+                  div(
+                    style = "margin-top: 10px;",
+                    fluidRow(
+                      column(
+                        6,
+                        numericInput(
+                          "nMaxTM",
+                          label = "Words",
+                          value = 250,
+                          min = 2,
+                          step = 1
+                        ),
+                        numericInput(
+                          "labelSizeTM",
+                          label = "Label Size",
+                          value = 4,
+                          min = 1,
+                          step = 0.5
+                        )
+                      ),
+                      column(
+                        6,
+                        numericInput(
+                          "n.labelsTM",
+                          label = "Labels",
+                          value = 3,
+                          min = 0,
+                          step = 1
+                        ),
+                        numericInput(
+                          "opacityTM",
+                          label = "Opacity",
+                          value = 0.6,
+                          min = 0,
+                          max = 1,
+                          step = 0.1
+                        )
+                      )
                     )
                   )
                 ),
-                tooltip = tooltipOptions(title = "Options"),
-                width = "300px",
-                icon = icon("cog", lib = "glyphicon"),
+
+                style = "gradient",
                 right = TRUE,
                 animate = TRUE,
-                style = "material-circle",
-                size = "sm"
+                circle = TRUE,
+                tooltip = tooltipOptions(title = "Options"),
+                icon = icon("sliders", lib = "font-awesome"),
+                width = "320px"
               )
             ),
             style = style_opt
@@ -3855,38 +4039,49 @@ body <- dashboardBody(
               dropdown(
                 h4(strong("Options: ")),
                 br(),
-                numericInput(
-                  "w_w2v_similarityN",
-                  label = "Top Words",
-                  min = 1,
-                  value = 100,
-                  step = 1
-                ),
-                sliderInput(
-                  "w_w2v_font_size",
-                  "Font Size",
-                  min = 8,
-                  max = 30,
-                  value = 14,
-                  step = 1
-                ),
-                selectInput(
-                  "w_w2v_overlap",
-                  "Avoid Label Overlap",
-                  choices = c(
-                    "No" = "none",
-                    "Hide" = "hide",
-                    "Transparency" = "transparency"
+
+                # Main Configuration
+                div(
+                  class = "config-section",
+                  div(
+                    class = "config-section-header",
+                    icon("cog", lib = "glyphicon"),
+                    "Main Configuration"
                   ),
-                  selected = "transparency"
+                  numericInput(
+                    "w_w2v_similarityN",
+                    label = "Top Words",
+                    min = 1,
+                    value = 100,
+                    step = 1
+                  ),
+                  sliderInput(
+                    "w_w2v_font_size",
+                    "Font Size",
+                    min = 8,
+                    max = 30,
+                    value = 14,
+                    step = 1
+                  ),
+                  selectInput(
+                    "w_w2v_overlap",
+                    "Avoid Label Overlap",
+                    choices = c(
+                      "No" = "none",
+                      "Hide" = "hide",
+                      "Transparency" = "transparency"
+                    ),
+                    selected = "transparency"
+                  )
                 ),
-                tooltip = tooltipOptions(title = "Options"),
-                width = "300px",
-                icon = icon("cog", lib = "glyphicon"),
+
+                style = "gradient",
                 right = TRUE,
                 animate = TRUE,
-                style = "material-circle",
-                size = "sm"
+                circle = TRUE,
+                tooltip = tooltipOptions(title = "Options"),
+                icon = icon("sliders", lib = "font-awesome"),
+                width = "300px"
               )
             ),
             style = style_opt
@@ -4026,74 +4221,102 @@ body <- dashboardBody(
               dropdown(
                 h4(strong("Options: ")),
                 br(),
-                # selectInput(inputId="grako_term",
-                #             label = "By:",
-                #             choices = c(
-                #               "Tokens"="token",
-                #               "Lemma"="lemma"),
-                #             selected = "lemma"
-                # ),
-                selectInput(
-                  "grakoNormalization",
-                  label = "Normalization by:",
-                  choices = c(
-                    "None" = "none",
-                    "Association Index" = "association",
-                    "Cosine Similarity" = "cosine",
-                    "Jaccard Index" = "jaccard"
+
+                # Main Configuration
+                div(
+                  class = "config-section",
+                  div(
+                    class = "config-section-header",
+                    icon("cog", lib = "glyphicon"),
+                    "Main Configuration"
                   ),
-                  selected = "association"
-                ),
-                materialSwitch(
-                  inputId = "grakoUnigram",
-                  label = "Include Single words",
-                  value = TRUE,
-                  status = "success"
-                ),
-                fluidRow(
-                  column(
-                    6,
-                    numericInput(
-                      "grakoNMax",
-                      label = "Links",
-                      value = 30,
-                      min = 2,
-                      step = 1
+                  selectInput(
+                    "grakoNormalization",
+                    label = "Normalization by:",
+                    choices = c(
+                      "None" = "none",
+                      "Association Index" = "association",
+                      "Cosine Similarity" = "cosine",
+                      "Jaccard Index" = "jaccard"
                     ),
-                    numericInput(
-                      "grakoMinEdges",
-                      label = "Top Link (%)",
-                      value = 100,
-                      min = 0,
-                      max = 100,
-                      step = 1
+                    selected = "association"
+                  ),
+                  materialSwitch(
+                    inputId = "grakoUnigram",
+                    label = "Include Single words",
+                    value = TRUE,
+                    status = "success"
+                  )
+                ),
+
+                # Graphical Parameters Section
+                tags$details(
+                  class = "params-section",
+                  tags$summary(
+                    div(
+                      class = "params-section-header",
+                      style = "display: flex; justify-content: space-between; align-items: center;",
+                      div(
+                        icon("eye-open", lib = "glyphicon"),
+                        " Graphical Parameters"
+                      ),
+                      icon(
+                        "chevron-down",
+                        lib = "glyphicon",
+                        style = "font-size: 12px;"
+                      )
                     )
                   ),
-                  column(
-                    6,
-                    numericInput(
-                      "grakoLabelSize",
-                      label = "Label Size",
-                      value = 4,
-                      min = 0.0,
-                      step = 0.5
-                    ),
-                    numericInput(
-                      "grakoOpacity",
-                      label = "Opacity",
-                      value = 0.6,
-                      min = 0,
-                      step = 0.1
+                  div(
+                    style = "margin-top: 10px;",
+                    fluidRow(
+                      column(
+                        6,
+                        numericInput(
+                          "grakoNMax",
+                          label = "Links",
+                          value = 30,
+                          min = 2,
+                          step = 1
+                        ),
+                        numericInput(
+                          "grakoMinEdges",
+                          label = "Top Link (%)",
+                          value = 100,
+                          min = 0,
+                          max = 100,
+                          step = 1
+                        )
+                      ),
+                      column(
+                        6,
+                        numericInput(
+                          "grakoLabelSize",
+                          label = "Label Size",
+                          value = 4,
+                          min = 0.0,
+                          step = 0.5
+                        ),
+                        numericInput(
+                          "grakoOpacity",
+                          label = "Opacity",
+                          value = 0.6,
+                          min = 0,
+                          max = 1,
+                          step = 0.1
+                        )
+                      )
                     )
                   )
                 ),
-                tooltip = tooltipOptions(title = "Options"),
-                width = "300px",
-                icon = icon("cog", lib = "glyphicon"),
+
+                style = "gradient",
                 right = TRUE,
                 animate = TRUE,
-                style = "material-circle",
-                size = "sm"
+                circle = TRUE,
+                tooltip = tooltipOptions(title = "Options"),
+                icon = icon("sliders", lib = "font-awesome"),
+                width = "320px"
               )
             ),
             style = style_opt
@@ -4387,70 +4610,120 @@ body <- dashboardBody(
               1,
               dropdown(
                 h4(strong("Options: ")),
-                hr(),
-                materialSwitch(
-                  inputId = "tmKauto",
-                  label = "Automatic Topic Selection",
-                  value = TRUE,
-                  status = "success"
-                ),
-                conditionalPanel(
-                  "!input.tmKauto",
-                  numericInput(
-                    "KEstim",
-                    label = "N. of Topics (K)",
-                    value = 2,
-                    min = 2,
-                    step = 1
+                br(),
+
+                # Main Configuration
+                div(
+                  class = "config-section",
+                  div(
+                    class = "config-section-header",
+                    icon("cog", lib = "glyphicon"),
+                    "Main Configuration"
+                  ),
+                  materialSwitch(
+                    inputId = "tmKauto",
+                    label = "Automatic Topic Selection",
+                    value = TRUE,
+                    status = "success"
+                  ),
+                  conditionalPanel(
+                    "!input.tmKauto",
+                    numericInput(
+                      "KEstim",
+                      label = "N. of Topics (K)",
+                      value = 2,
+                      min = 2,
+                      step = 1
+                    )
+                  ),
+                  selectInput(
+                    inputId = "groupTmEstim",
+                    label = "Topics",
+                    choices = c(
+                      "Groups" = "Groups",
+                      "Docs" = "doc_id",
+                      "Sentences" = "sentence_id"
+                    ),
+                    selected = "doc_id"
                   )
                 ),
-                selectInput(
-                  inputId = "groupTmEstim",
-                  label = "Topics",
-                  choices = c(
-                    "Groups" = "Groups",
-                    "Docs" = "doc_id",
-                    "Sentences" = "sentence_id"
+
+                # Terms Selection Section
+                tags$details(
+                  class = "filter-section",
+                  tags$summary(
+                    div(
+                      class = "filter-section-header",
+                      style = "display: flex; justify-content: space-between; align-items: center;",
+                      div(
+                        icon("filter", lib = "glyphicon"),
+                        " Terms Selection"
+                      ),
+                      icon(
+                        "chevron-down",
+                        lib = "glyphicon",
+                        style = "font-size: 12px;"
+                      )
+                    )
                   ),
-                  selected = "doc_id"
-                ),
-                fluidRow(
-                  column(6),
-                  column(
-                    6,
+                  div(
+                    style = "margin-top: 10px;",
                     numericInput(
                       "nTmEstim",
                       label = "N. of terms",
                       value = 100,
                       min = 1,
                       step = 1
+                    ),
+                    selectInput(
+                      "top_byEstim",
+                      "Terms selection by:",
+                      choices = c(
+                        "Frequency" = "freq",
+                        "TF-IDF" = "tfidf"
+                      ),
+                      selected = "freq"
                     )
                   )
                 ),
-                selectInput(
-                  "top_byEstim",
-                  "Terms selection by:",
-                  choices = c(
-                    "Frequency" = "freq",
-                    "TF-IDF" = "tfidf"
+
+                # Display Options Section
+                tags$details(
+                  class = "params-section",
+                  tags$summary(
+                    div(
+                      class = "params-section-header",
+                      style = "display: flex; justify-content: space-between; align-items: center;",
+                      div(
+                        icon("eye-open", lib = "glyphicon"),
+                        " Display Options"
+                      ),
+                      icon(
+                        "chevron-down",
+                        lib = "glyphicon",
+                        style = "font-size: 12px;"
+                      )
+                    )
                   ),
-                  selected = "freq"
+                  div(
+                    style = "margin-top: 10px;",
+                    numericInput(
+                      "nTopicPlot",
+                      label = "Word/Docs per Topic",
+                      value = 10,
+                      min = 2,
+                      step = 1
+                    )
+                  )
                 ),
-                hr(),
-                numericInput(
-                  "nTopicPlot",
-                  label = "Word/Docs per Topic",
-                  value = 10,
-                  min = 2,
-                  step = 1
-                ),
-                tooltip = tooltipOptions(title = "Options"),
-                width = "300px",
-                icon = icon("cog", lib = "glyphicon"),
+
+                style = "gradient",
                 right = TRUE,
                 animate = TRUE,
-                style = "material-circle",
-                size = "sm"
+                circle = TRUE,
+                tooltip = tooltipOptions(title = "Options"),
+                icon = icon("sliders", lib = "font-awesome"),
+                width = "320px"
               )
             ),
             style = style_opt
@@ -4669,24 +4942,35 @@ body <- dashboardBody(
               1,
               dropdown(
                 h4(strong("Options: ")),
-                hr(),
-                selectInput(
-                  inputId = "groupPolarity",
-                  label = "Polarity of",
-                  choices = c(
-                    "Groups" = "Groups",
-                    "Docs" = "doc_id"
+                br(),
+
+                # Main Configuration
+                div(
+                  class = "config-section",
+                  div(
+                    class = "config-section-header",
+                    icon("cog", lib = "glyphicon"),
+                    "Main Configuration"
                   ),
-                  selected = "doc_id"
+                  selectInput(
+                    inputId = "groupPolarity",
+                    label = "Polarity of",
+                    choices = c(
+                      "Groups" = "Groups",
+                      "Docs" = "doc_id"
+                    ),
+                    selected = "doc_id"
+                  ),
+                  uiOutput("lexiconD_polarity")
                 ),
-                uiOutput("lexiconD_polarity"),
-                tooltip = tooltipOptions(title = "Options"),
-                width = "220px",
-                icon = icon("cog", lib = "glyphicon"),
+
+                style = "gradient",
                 right = TRUE,
                 animate = TRUE,
-                style = "material-circle",
-                size = "sm"
+                circle = TRUE,
+                tooltip = tooltipOptions(title = "Options"),
+                icon = icon("sliders", lib = "font-awesome"),
+                width = "300px"
               )
             ),
             style = style_opt

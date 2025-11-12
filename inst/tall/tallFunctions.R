@@ -5433,51 +5433,218 @@ tmNetwork <- function(beta, minEdge) {
 }
 
 tmHeatmap <- function(beta) {
+  # Calculate correlation matrix
   data <- cor(as.matrix(beta[, -1]))
   diag(data) <- 0
 
-  data <- data[nrow(data):1, ]
-
   df <- data.frame(data)
-  # x <- y <- colnames(df) <- row.names(df) <- paste0("topic ",nrow(data):1)
-  id <- sprintf(paste0("%0", nchar(nrow(data)), "d"), nrow(data):1)
+
+  # Create topic labels - ordinamento naturale
+  n_topics <- nrow(data)
+  id <- sprintf(paste0("%0", nchar(n_topics), "d"), 1:n_topics)
+  x <- colnames(df) <- paste0("topic ", id)
   y <- row.names(df) <- paste0("topic ", id)
 
-  x <- colnames(df) <- sort(y)
-
-  df <- df %>%
+  # Prepare data for plotting
+  df_long <- df %>%
     rownames_to_column("y") %>%
     pivot_longer(
       cols = starts_with("topic "),
       names_to = "variable",
       values_to = "value"
     ) %>%
-    mutate(value = round(value, 3))
+    mutate(
+      value = round(value, 3),
+      abs_value = abs(value),
+      topic_y_num = as.numeric(gsub("topic ", "", y)),
+      topic_x_num = as.numeric(gsub("topic ", "", variable))
+    )
 
-  pal <- colorRampPalette(RColorBrewer::brewer.pal(9, "RdYlBu"))(30)
-  pal[1] <- c("#FFFFFF")
+  # Create mini scatterplot data for each cell
+  scatter_data_list <- list()
+  beta_matrix <- as.matrix(beta[, -1])
+  n_topics_beta <- ncol(beta_matrix)
 
-  Hplot <- plot_ly(
-    z = data,
-    x = x,
-    y = y,
-    text = data,
-    type = "heatmap",
-    hoverinfo = "none",
-    colors = pal,
-    zauto = F,
-    zmin = -1,
-    zmax = 1
-  ) %>%
+  for (i in 1:nrow(df_long)) {
+    row_info <- df_long[i, ]
+    topic_y <- row_info$topic_y_num
+    topic_x <- row_info$topic_x_num
+
+    if (topic_x != topic_y) {
+      # Sample points for scatter (max 50 points per cell)
+      n_points <- min(50, nrow(beta_matrix))
+      sample_idx <- sample(1:nrow(beta_matrix), n_points)
+
+      scatter_data_list[[i]] <- data.frame(
+        cell_id = i,
+        x_pos = row_info$variable,
+        y_pos = row_info$y,
+        x_cat_num = row_info$topic_x_num,
+        y_cat_num = row_info$topic_y_num,
+        scatter_x = beta_matrix[sample_idx, topic_x],
+        scatter_y = beta_matrix[sample_idx, topic_y],
+        correlation = row_info$value
+      )
+    }
+  }
+
+  scatter_data <- bind_rows(scatter_data_list)
+
+  # Modern color palette
+  pal <- colorRampPalette(c(
+    "#d73027",
+    "#f46d43",
+    "#fdae61",
+    "#fee090",
+    "#ffffbf",
+    "#e0f3f8",
+    "#abd9e9",
+    "#74add1",
+    "#4575b4"
+  ))(100)
+
+  # PLOTLY VERSION - Interactive with borders and scatter
+  Hplot <- plot_ly()
+
+  # Add heatmap base - topic 1 at top
+  Hplot <- Hplot %>%
+    add_trace(
+      data = df_long,
+      x = ~ topic_x_num - 1,
+      y = ~ topic_y_num - 1,
+      z = ~value,
+      type = "heatmap",
+      colorscale = list(
+        list(0, "#d73027"),
+        list(0.25, "#fdae61"),
+        list(0.5, "#ffffbf"),
+        list(0.75, "#abd9e9"),
+        list(1, "#4575b4")
+      ),
+      zmin = -1,
+      zmax = 1,
+      hovertemplate = "Correlation: %{z:.3f}<extra></extra>",
+      # hovertemplate = paste(
+      #   "<b>%{customdata[0]} vs %{customdata[1]}</b><br>",
+      #   "Correlation: %{z:.3f}<br>",
+      #   "<extra></extra>"
+      # ),
+      customdata = ~ cbind(y, variable),
+      showscale = TRUE,
+      xgap = 3,
+      ygap = 3,
+      colorbar = list(
+        title = "Correlation",
+        titleside = "right",
+        tickmode = "linear",
+        tick0 = -1,
+        dtick = 0.5,
+        len = 0.7,
+        thickness = 15,
+        x = 1.02
+      )
+    )
+
+  # Add scatter points for each non-diagonal cell
+  if (nrow(scatter_data) > 0) {
+    for (cell_id in unique(scatter_data$cell_id)) {
+      cell_scatter <- scatter_data[scatter_data$cell_id == cell_id, ]
+
+      # Get cell position
+      x_pos <- unique(cell_scatter$x_cat_num) - 1
+      y_pos <- unique(cell_scatter$y_cat_num) - 1
+
+      # Normalize scatter values to fit within cell (±0.35 offset)
+      x_vals <- cell_scatter$scatter_x
+      if (length(unique(x_vals)) > 1) {
+        x_norm <- (x_vals - mean(x_vals)) / (max(x_vals) - min(x_vals))
+        x_norm <- x_norm * 0.35
+      } else {
+        x_norm <- rep(0, length(x_vals))
+      }
+
+      y_vals <- cell_scatter$scatter_y
+      if (length(unique(y_vals)) > 1) {
+        y_norm <- (y_vals - mean(y_vals)) / (max(y_vals) - min(y_vals))
+        y_norm <- y_norm * 0.35
+      } else {
+        y_norm <- rep(0, length(y_vals))
+      }
+
+      # Add scatter trace
+      Hplot <- Hplot %>%
+        add_markers(
+          x = x_pos + x_norm,
+          y = y_pos + y_norm,
+          marker = list(
+            size = 4,
+            color = "rgba(50, 50, 50, 0.3)",
+            line = list(width = 0)
+          ),
+          hoverinfo = "skip",
+          showlegend = FALSE
+        )
+    }
+  }
+
+  # Add text annotations - POSITIONED AT TOP OF CELL
+  Hplot <- Hplot %>%
     add_annotations(
-      data = df,
-      x = ~variable,
-      y = ~y,
-      text = ~value,
+      data = df_long,
+      x = ~ topic_x_num - 1,
+      y = ~ topic_y_num - 1,
+      text = ~ ifelse(value == 0, "—", as.character(value)),
       xref = "x",
       yref = "y",
+      yshift = 25,
       showarrow = FALSE,
-      font = list(color = "black", size = 10)
+      font = list(
+        color = ~ ifelse(abs(value) > 0.5, "white", "black"),
+        size = 14,
+        family = "Arial, sans-serif",
+        weight = "bold"
+      )
+    ) %>%
+    layout(
+      title = list(
+        text = "<b>Topic Correlation Matrix</b>",
+        font = list(size = 18, color = "#2c3e50"),
+        x = 0.5,
+        xanchor = "center"
+      ),
+      xaxis = list(
+        title = "",
+        tickmode = "array",
+        tickvals = 0:(n_topics - 1),
+        ticktext = x,
+        tickangle = -45,
+        tickfont = list(
+          size = 11,
+          family = "Arial, sans-serif",
+          color = "black"
+        ),
+        side = "bottom",
+        showgrid = FALSE,
+        zeroline = FALSE
+      ),
+      yaxis = list(
+        title = "",
+        tickmode = "array",
+        tickvals = 0:(n_topics - 1),
+        ticktext = y, # NOT reversed - use natural order
+        tickfont = list(
+          size = 11,
+          family = "Arial, sans-serif",
+          color = "black"
+        ),
+        showgrid = FALSE,
+        zeroline = FALSE,
+        autorange = "reversed" # This makes y=0 appear at top
+      ),
+      plot_bgcolor = "#f8f9fa",
+      paper_bgcolor = "white",
+      margin = list(l = 100, r = 120, t = 80, b = 100),
+      hovermode = "closest"
     ) %>%
     config(
       displaylogo = FALSE,
@@ -5488,23 +5655,123 @@ tmHeatmap <- function(beta) {
         "lasso2d",
         "toggleSpikelines",
         "hoverClosestCartesian",
-        "hoverCompareCartesian"
+        "hoverCompareCartesian",
+        "autoScale2d",
+        "zoom2d"
       )
     )
-  # create a ggplot2 graph to be exported
-  HplotStatic <- ggplot(data = df, aes(x = variable, y = y, fill = value)) +
-    geom_tile(color = "white") + # Heatmap con celle delineate in bianco
-    scale_fill_gradientn(colors = pal, limits = c(-1, 1)) + # Palette e limiti del gradiente
-    geom_text(aes(label = value), color = "black", size = 3) + # Annotazioni con i valori
-    theme_minimal() + # Tema minimal
-    theme(
-      axis.text.x = element_text(angle = 45, hjust = 1), # Rotazione asse X per leggibilità
-      panel.grid = element_blank(), # Rimuove la griglia
-      panel.border = element_blank() # Rimuove il bordo
-    ) +
-    labs(x = NULL, y = NULL, fill = "Value") # Etichette asse
 
-  return(list(Hplot = Hplot, HplotStatic = HplotStatic))
+  # GGPLOT2 VERSION - Static with scatterplots in cells
+  df_long$y <- factor(df_long$y, levels = rev(y))
+  df_long$variable <- factor(df_long$variable, levels = x)
+
+  if (nrow(scatter_data) > 0) {
+    scatter_data$y_pos <- factor(scatter_data$y_pos, levels = rev(y))
+    scatter_data$x_pos <- factor(scatter_data$x_pos, levels = x)
+  }
+
+  HplotStatic <- ggplot() +
+    # Base heatmap
+    geom_tile(
+      data = df_long,
+      aes(x = variable, y = y, fill = value),
+      color = "white",
+      size = 1.5
+    ) +
+    # Add mini scatterplots in each cell
+    {
+      if (nrow(scatter_data) > 0) {
+        geom_point(
+          data = scatter_data,
+          aes(
+            x = as.numeric(x_pos) +
+              (scatter_x - mean(scatter_x)) /
+                (max(scatter_x) - min(scatter_x) + 0.001) *
+                0.35,
+            y = as.numeric(y_pos) +
+              (scatter_y - mean(scatter_y)) /
+                (max(scatter_y) - min(scatter_y) + 0.001) *
+                0.35
+          ),
+          alpha = 0.3,
+          size = 0.8,
+          color = "gray30"
+        )
+      }
+    } +
+    # Add text annotations - POSITIONED AT TOP OF CELL
+    geom_text(
+      data = df_long,
+      aes(
+        x = variable,
+        y = y,
+        label = ifelse(value == 0, "—", value),
+        color = abs(value) > 0.5
+      ),
+      size = 4.5,
+      fontface = "bold",
+      family = "sans",
+      vjust = -0.5
+    ) +
+    # Color scales
+    scale_fill_gradientn(
+      colors = c("#d73027", "#fdae61", "#ffffbf", "#abd9e9", "#4575b4"),
+      limits = c(-1, 1),
+      breaks = seq(-1, 1, 0.5),
+      guide = guide_colorbar(
+        title = "Correlation",
+        title.position = "top",
+        title.hjust = 0.5,
+        barwidth = 1,
+        barheight = 15,
+        frame.colour = "black",
+        ticks.colour = "black"
+      )
+    ) +
+    scale_color_manual(
+      values = c("TRUE" = "white", "FALSE" = "black"),
+      guide = "none"
+    ) +
+    # Theme and styling
+    theme_minimal(base_size = 12) +
+    theme(
+      plot.title = element_text(
+        hjust = 0.5,
+        face = "bold",
+        size = 16,
+        color = "#2c3e50",
+        margin = margin(b = 15)
+      ),
+      axis.text.x = element_text(
+        angle = 45,
+        hjust = 1,
+        vjust = 1,
+        size = 10,
+        face = "bold"
+      ),
+      axis.text.y = element_text(
+        size = 10,
+        face = "bold"
+      ),
+      axis.title = element_blank(),
+      panel.grid = element_blank(),
+      panel.border = element_blank(),
+      plot.background = element_rect(fill = "white", color = NA),
+      panel.background = element_rect(fill = "#f8f9fa", color = NA),
+      legend.position = "right",
+      legend.title = element_text(size = 11, face = "bold"),
+      legend.text = element_text(size = 9),
+      plot.margin = margin(20, 20, 20, 20)
+    ) +
+    labs(
+      title = "Topic Correlation Matrix with Data Distribution"
+    ) +
+    coord_fixed(ratio = 1)
+
+  return(list(
+    Hplot = Hplot,
+    HplotStatic = HplotStatic
+  ))
 }
 
 tmTopicPlot <- function(beta, topic = 1, nPlot = 10) {
