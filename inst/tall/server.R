@@ -6289,10 +6289,10 @@ server <- function(input, output, session) {
     }
   )
 
+  # Styled output for abstract
   output$abstractData <- renderUI({
-    # docExtraction()
     docExtractionVisualize()
-    HTML(values$docExtraction$abstract)
+    HTML(create_abstract_box(values$docExtraction$abstract))
   })
 
   output$RelSentData <- renderDT(server = FALSE, {
@@ -6308,16 +6308,13 @@ server <- function(input, output, session) {
     )
   })
 
-  output$documentData <- renderDT(server = FALSE, {
+  # Styled output for full document with highlighting
+  output$documentData <- renderUI({
     docExtraction()
-
-    DTformat(
+    HTML(create_document_box(
       values$docExtraction$document,
-      nrow = 3,
-      size = "100%",
-      title = paste0("Doc_id: ", input$document_selection),
-      left = 2
-    )
+      input$document_selection
+    ))
   })
 
   ## Report

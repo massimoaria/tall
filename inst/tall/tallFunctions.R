@@ -6502,6 +6502,103 @@ abstractingDocument <- function(s, n, id) {
   return(results)
 }
 
+# Helper function to create styled HTML box for abstract
+create_abstract_box <- function(abstract_text) {
+  html_content <- paste0(
+    "<div style='",
+    "background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);",
+    "border-radius: 12px;",
+    "padding: 30px;",
+    "box-shadow: 0 8px 16px rgba(0,0,0,0.1);",
+    "border-left: 5px solid #4CAF50;",
+    "font-family: \"Georgia\", \"Times New Roman\", serif;",
+    "line-height: 1.8;",
+    "color: #2c3e50;",
+    "max-height: 600px;",
+    "overflow-y: auto;",
+    "'>",
+    "<div style='",
+    "font-size: 1.1em;",
+    "text-align: justify;",
+    "'>",
+    abstract_text,
+    "</div>",
+    "</div>"
+  )
+  return(html_content)
+}
+
+# Helper function to create document HTML with highlighted sentences
+create_document_box <- function(document_df, doc_id) {
+  # Extract paragraphs and combine them
+  paragraphs <- document_df$Paragraph
+
+  # Replace <mark><strong> tags with styled span for highlighting
+  paragraphs <- gsub(
+    "<mark><strong>(.*?)</strong></mark>",
+    "<span style='background-color: #ffeb3b; padding: 2px 4px; border-radius: 3px; font-weight: 500;'>\\1</span>",
+    paragraphs
+  )
+
+  # Create paragraph HTML
+  paragraph_html <- paste0(
+    "<p style='margin-bottom: 20px; text-indent: 30px;'>",
+    paragraphs,
+    "</p>"
+  )
+
+  full_text <- paste(paragraph_html, collapse = "\n")
+
+  html_content <- paste0(
+    "<div style='",
+    "background: #ffffff;",
+    "border-radius: 12px;",
+    "padding: 30px;",
+    "box-shadow: 0 4px 12px rgba(0,0,0,0.08);",
+    "border: 1px solid #e0e0e0;",
+    "max-height: 600px;",
+    "overflow-y: auto;",
+    "'>",
+    "<h3 style='",
+    "color: #2c3e50;",
+    "border-bottom: 2px solid #4CAF50;",
+    "padding-bottom: 10px;",
+    "margin-bottom: 25px;",
+    "font-family: \"Arial\", sans-serif;",
+    "'>Document: <strong>",
+    doc_id,
+    "</strong></h3>",
+    "<div style='",
+    "font-family: \"Georgia\", \"Times New Roman\", serif;",
+    "font-size: 1.05em;",
+    "line-height: 1.8;",
+    "color: #34495e;",
+    "text-align: justify;",
+    "'>",
+    full_text,
+    "</div>",
+    "<div style='",
+    "margin-top: 20px;",
+    "padding-top: 15px;",
+    "border-top: 1px solid #e0e0e0;",
+    "font-size: 0.9em;",
+    "color: #7f8c8d;",
+    "'>",
+    "<span style='",
+    "display: inline-block;",
+    "background-color: #ffeb3b;",
+    "padding: 4px 8px;",
+    "border-radius: 3px;",
+    "margin-right: 8px;",
+    "'>Highlighted</span> ",
+    "= Sentences selected for summarization",
+    "</div>",
+    "</div>"
+  )
+
+  return(html_content)
+}
+
 ### ABSTRACTIVE TEXT SUMMARIZATION: ----
 
 abstractive_summary <- function(

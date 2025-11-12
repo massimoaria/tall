@@ -5261,6 +5261,7 @@ body <- dashboardBody(
               type = "tabs",
               tabPanel(
                 "Abstract",
+                br(),
                 fluidRow(
                   style = "height:65vh",
                   shinycssloaders::withSpinner(
@@ -5278,8 +5279,10 @@ body <- dashboardBody(
               ),
               tabPanel(
                 "Full Document",
+                br(),
                 shinycssloaders::withSpinner(
-                  DT::DTOutput("documentData"),
+                  # DT::DTOutput("documentData"),
+                  uiOutput("documentData"),
                   color = getOption("spinner.color", default = "#4F7942")
                 )
               ),
@@ -5555,7 +5558,7 @@ body <- dashboardBody(
             12,
             wellPanel(
               style = "background-color: #fff3e0; border: 1px solid #ffe0b2;",
-              h3(icon("brain"), strong("Tall AI - Google Gemini Integration")),
+              h3(icon("robot"), strong("Tall AI - Google Gemini Integration")),
               h5(
                 "Enable advanced AI-powered features by providing your Google Gemini API Key. If you don't have one, you can generate it at ",
                 tags$a(
