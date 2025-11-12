@@ -278,11 +278,11 @@ helpContent <- function() {
 
   customterm <- "<body>
 
-    <h3><strong>Custom Term List in TALL</strong></strong></h3>
+    <h3><strong>Custom PoS List in TALL</strong></strong></h3>
 
-    <p>TALL allows users to define a <strong>Custom Term List</strong>, enabling more precise control over text processing and linguistic analysis. This feature allows users to manually assign custom tags to specific terms, overriding their default categorization by the language model.</p>
+    <p>TALL allows users to define a <strong>Custom PoS List</strong>, enabling more precise control over text processing and linguistic analysis. This feature allows users to manually assign custom PoS tags to specific terms, overriding their default categorization by the language model.</p>
     <hr>
-    <h4><strong>Why Use a Custom Term List?</strong></strong></h4>
+    <h4><strong>Why Use a Custom PoS List?</strong></strong></h4>
     <ul>
     <li><strong>Highlighting Specific Concepts:</strong> Identifying key terms related to methodologies, specialized vocabulary, or domain-specific jargon.</li>
     <li><strong>Filtering Stop Words:</strong> Removing terms that are irrelevant to the analysis, ensuring a cleaner dataset.</li>
@@ -290,7 +290,7 @@ helpContent <- function() {
     <li><strong>Overriding Default PoS Assignments:</strong> Ensuring consistency in tagging across texts by defining a fixed categorization for certain terms.</li>
     </ul>
     <hr>
-    <h4><strong>How to Import a Custom Term List</strong></strong></h4>
+    <h4><strong>How to Import a Custom PoS List</strong></strong></h4>
     <p>To integrate a custom list of terms, users must provide a properly formatted file:</p>
     <ul>
     <li>The list must be in <strong>Excel format (<code>.xlsx</code>)</strong>.</li>
@@ -302,7 +302,7 @@ helpContent <- function() {
     <li>The specified tags should align with standard linguistic categories (e.g., noun, verb, adjective) or custom categories for specific analysis needs.</li>
     </ul>
     <hr>
-  <h4><strong>Example of Custom Term List Format</strong></h4>
+  <h4><strong>Example of Custom PoS List Format</strong></h4>
 
   <table border='1' cellspacing='0' cellpadding='5'>
   <tr>
@@ -917,7 +917,7 @@ helpContent <- function() {
 
   "
 
-  embeddingtrain<- "
+  embeddingtrain <- "
 
     <body>
     <h3><strong>Training Word Embeddings in TALL</strong></h3>
@@ -976,7 +976,7 @@ helpContent <- function() {
     </body>
   "
 
-  embeddingsimilarity<- "<body>
+  embeddingsimilarity <- "<body>
     <h3><strong>Word Similarity Network in TALL</strong></h3>
     <p>
     The <strong>Similarity</strong> module in TALL allows users to explore semantic relationships between words through an interactive <strong>similarity network</strong> generated from word embeddings trained in the <strong>Training</strong> tab. These embeddings are built using the <strong>word2vec</strong> algorithm (either CBOW or Skip-gram).
@@ -1146,7 +1146,6 @@ helpContent <- function() {
       </div>
 
       </body>"
-
 
   polaritydetection <- "<body>
 

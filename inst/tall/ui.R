@@ -358,92 +358,155 @@ body <- dashboardBody(
 
     ### IMPORT ----
 
+    ### IMPORT ----
+
     tabItem(
       tabName = "import_tx",
       fluidPage(
+        # Page Header
+        fluidRow(
+          column(
+            12,
+            div(
+              h2(
+                icon("file-text", lib = "glyphicon"),
+                strong("Import Texts"),
+                style = "color: #4F7942; text-align: center; margin-bottom: 30px;"
+              )
+            )
+          )
+        ),
+
         fluidRow(
           tabsetPanel(
             type = "tabs",
             tabPanel(
               "Corpus",
-              column(
-                9,
-                shinycssloaders::withSpinner(
-                  DT::DTOutput("dataImported"),
-                  color = getOption("spinner.color", default = "#4F7942")
-                )
-              ),
-              column(
-                3,
-                fluidRow(
-                  box(
-                    width = 12,
-                    div(
-                      h3(strong(em("Import texts"))),
-                      style = "margin-top:-57px"
-                    ),
-                    hr(),
-                    uiOutput("runButton"),
-                    conditionalPanel(
-                      condition = "input.runImport > 0",
-                      tags$hr(),
+              fluidRow(
+                # Main Content Area - Data Table
+                column(
+                  9,
+                  div(
+                    style = "margin-top: 20px;",
+                    shinycssloaders::withSpinner(
+                      DT::DTOutput("dataImported"),
+                      color = getOption("spinner.color", default = "#4F7942")
+                    )
+                  )
+                ),
+
+                # Sidebar - Control Panel
+                column(
+                  3,
+                  div(
+                    style = "margin-top: 20px;",
+                    box(
+                      width = 12,
+                      solidHeader = TRUE,
+                      status = "success",
+
+                      # Box Header
                       div(
-                        fluidRow(
-                          column(
-                            6,
-                            div(
-                              align = "center",
-                              title = "Export raw text(s) in Excel",
-                              do.call(
-                                "actionButton",
-                                c(list(
-                                  label = NULL,
-                                  style = "display:block; height: 37px; width: 37px; border-radius: 50%;
-                                      border: 1px; margin-top: 16px;",
-                                  icon = icon(
-                                    name = "download-alt",
-                                    lib = "glyphicon"
-                                  ),
-                                  inputId = "collection.save"
-                                ))
-                              )
-                            )
+                        class = "box-header with-border",
+                        h4(
+                          icon("upload", lib = "glyphicon"),
+                          strong("Import Controls"),
+                          style = "margin: 0; color: #4F7942;"
+                        )
+                      ),
+
+                      # Box Body
+                      div(
+                        class = "box-body",
+
+                        # Import Button Area
+                        div(
+                          style = "margin-bottom: 20px;",
+                          uiOutput("runButton")
+                        ),
+
+                        # Action Buttons (shown after import)
+                        conditionalPanel(
+                          condition = "input.runImport > 0",
+                          tags$hr(
+                            style = "border-color: #e0e0e0; margin: 20px 0;"
                           ),
-                          column(
-                            6,
-                            div(
-                              align = "center",
-                              title = "Back to imported text(s) ",
-                              do.call(
-                                "actionButton",
-                                c(
-                                  back_bttn,
-                                  list(
-                                    inputId = "importTextBack"
+
+                          div(
+                            h5(
+                              strong("Actions"),
+                              style = "color: #666; margin-bottom: 15px;"
+                            ),
+
+                            fluidRow(
+                              column(
+                                6,
+                                div(
+                                  align = "center",
+                                  div(
+                                    title = "Export raw text(s) in Excel",
+                                    actionButton(
+                                      inputId = "collection.save",
+                                      label = NULL,
+                                      icon = icon(
+                                        "download-alt",
+                                        lib = "glyphicon"
+                                      ),
+                                      style = "display: block; height: 45px; width: 45px;
+                                         border-radius: 50%; border: 2px solid #4F7942;
+                                         background: linear-gradient(135deg, #6CC283, #4F7942);
+                                         color: white; transition: all 0.3s ease;
+                                         box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+                                    )
+                                  )
+                                )
+                              ),
+
+                              column(
+                                6,
+                                div(
+                                  align = "center",
+                                  div(
+                                    title = "Back to imported text(s)",
+                                    do.call(
+                                      "actionButton",
+                                      c(
+                                        back_bttn,
+                                        list(
+                                          inputId = "importTextBack",
+                                          style = "display: block; height: 45px; width: 45px;
+                                             border-radius: 50%; border: 2px solid #4F7942;
+                                             background: linear-gradient(135deg, #6CC283, #4F7942);
+                                             color: white; transition: all 0.3s ease;
+                                             box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+                                        )
+                                      )
+                                    )
                                   )
                                 )
                               )
                             )
                           )
-                        ),
-                        style = "margin-top: -15px"
+                        )
                       )
                     )
                   )
                 )
               )
             ),
+
             tabPanel(
               "Info & References",
               fluidPage(
                 fluidRow(
-                  column(1),
                   column(
-                    10,
-                    br(),
-                    HTML(infoTexts$importmenu)
-                  ),
-                  column(1)
+                    12,
+                    div(
+                      style = "padding: 30px; background: white; border-radius: 8px;
+                         box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-top: 20px;",
+                      HTML(infoTexts$importmenu)
+                    )
+                  )
                 )
               )
             )
@@ -1138,7 +1201,7 @@ body <- dashboardBody(
       )
     ),
 
-    ## Custom Term Lists -----
+    ## Custom PoS Lists -----
 
     tabItem(
       tabName = "custTermList",
@@ -1146,7 +1209,7 @@ body <- dashboardBody(
         fluidRow(
           column(
             12,
-            h3(strong("Custom Term List Loading and Merging"), align = "center")
+            h3(strong("Custom PoS List Loading and Merging"), align = "center")
           )
         ),
         br(),
@@ -1185,7 +1248,7 @@ body <- dashboardBody(
               box(
                 width = 12,
                 div(
-                  h3(strong(em("Import Custom Term List"))),
+                  h3(strong(em("Import Custom PoS List"))),
                   style = "margin-top:-57px"
                 ),
                 hr(),
@@ -1195,8 +1258,8 @@ body <- dashboardBody(
                 #                         "Lemma" = "lemma"),
                 #             selected = "lemma"),
                 helpText(h5(
-                  "Please ensure that the Custom Term List is formatted as an Excel file with two columns.
-                                       In the first column include the desired terms.
+                  "Please ensure that the Custom PoS List is formatted as an Excel file with two columns.
+                                       In the first column include the list of terms.
                                        In the second column provide the corresponding list of PoS associated with each term."
                 )),
                 fileInput(
@@ -5116,84 +5179,160 @@ body <- dashboardBody(
     tabItem(
       tabName = "settings",
       fluidPage(
-        fluidRow(
-          h3(strong("Settings"), align = "center"),
-          br(),
-        ),
+        # Header
         fluidRow(
           column(
-            6,
-            h3("Working Folder"),
-            h4("Select a folder where the analysis outputs will be saved"),
-            br(),
-            shinyDirButton(
-              "workingfolder",
-              "Select a Working Folder",
-              "Select",
-              style = "color:white;"
+            12,
+            h3(icon("cog"), strong("Settings"), align = "center"),
+            h5(
+              "Configure global settings for plots, analysis reproducibility, and AI features.",
+              align = "center",
+              style = "color: #666;"
             ),
-            br(),
-            textOutput("wdFolder"),
-            hr(),
-            h3("Language Models"),
-            actionButton(
-              inputId = "cache",
-              style = "color:white;",
-              label = "Clean model folder"
-            )
-          ),
-          column(
-            6
-            ### To insert settings for default path, etc.
+            br()
           )
         ),
-        hr(),
-        h3("'Tall AI' Api Key"),
-        h4(
-          "Set a valid API Key to use 'Tall AI' features powered by Google Gemini."
-        ),
-        h5(HTML(
-          'If you don’t have one yet, you can generate it by logging into <a href="https://aistudio.google.com/app/apikey" target="_blank">AI Studio</a> with your Google account and creating a new API Key.'
-        )),
-        br(),
+
         fluidRow(
+          # LEFT COLUMN - Working Folder & Language Models
           column(
-            4,
-            passwordInput(
-              "api_key",
-              "Enter your Gemini API Key:",
-              "",
-              width = "100%"
-            ),
-            uiOutput("apiStatus"),
-            br(),
-            fluidRow(
-              column(
-                6,
-                actionButton(
-                  "set_key",
-                  "Set API Key",
-                  style = "color:white;",
-                  width = "90%"
-                )
+            6,
+            wellPanel(
+              style = "background-color: #f8f9fa; border: 1px solid #dee2e6;",
+              h4(icon("folder"), strong("Working Folder")),
+              h5("Select a folder where the analysis outputs will be saved"),
+              br(),
+              shinyDirButton(
+                "workingfolder",
+                "Select a Working Folder",
+                "Select",
+                style = "color:white;"
               ),
-              column(
-                6,
-                actionButton(
-                  "remove_key",
-                  "Remove API Key",
-                  style = "color:white;",
-                  width = "90%"
-                )
+              br(),
+              br(),
+              textOutput("wdFolder"),
+              hr(),
+              h4(icon("database"), strong("Language Models")),
+              actionButton(
+                inputId = "cache",
+                style = "color:white;",
+                label = "Clean model folder"
               )
             )
           ),
-          column(1),
+
+          # RIGHT COLUMN - Reproducibility Settings
           column(
-            3,
-            uiOutput("geminiModelChoice") #, style = "color: red; font-weight: bold;")
-          ),
-          column(2, uiOutput("geminiOutputSize"))
+            6,
+            wellPanel(
+              style = "background-color: #e8f5e9; border: 1px solid #c8e6c9;",
+              h4(icon("random"), strong("Reproducibility Settings")),
+              br(),
+              fluidRow(
+                column(
+                  9,
+                  numericInput(
+                    "random_seed",
+                    "Random Seed",
+                    value = 1234,
+                    min = 1,
+                    max = 99999,
+                    step = 1
+                  )
+                ),
+                column(
+                  3,
+                  br(),
+                  actionButton(
+                    "randomize_seed",
+                    "Randomize",
+                    icon = icon("random"),
+                    style = "color:white; margin-top: 5px;"
+                  )
+                )
+              ),
+              div(
+                style = "background-color: #d1f2d5; padding: 10px; border-radius: 5px; border-left: 4px solid #4caf50;",
+                icon("info-circle", style = "color: #2e7d32;"),
+                span(
+                  " Using the same seed value ensures that analyses involving randomization will produce identical results when re-run.",
+                  style = "color: #2e7d32;"
+                )
+              )
+            )
+          )
+        ),
+
+        hr(),
+
+        # TALL AI Section
+        fluidRow(
+          column(
+            12,
+            wellPanel(
+              style = "background-color: #fff3e0; border: 1px solid #ffe0b2;",
+              h3(icon("brain"), strong("Tall AI - Google Gemini Integration")),
+              h5(
+                "Enable advanced AI-powered features by providing your Google Gemini API Key. If you don't have one, you can generate it at ",
+                tags$a(
+                  "AI Studio",
+                  href = "https://aistudio.google.com/app/apikey",
+                  target = "_blank"
+                ),
+                "."
+              ),
+              br(),
+
+              fluidRow(
+                column(
+                  4,
+                  h5(strong("API Key")),
+                  passwordInput(
+                    "api_key",
+                    "Enter your Gemini API Key:",
+                    "",
+                    width = "100%"
+                  ),
+                  uiOutput("apiStatus"),
+                  br(),
+                  fluidRow(
+                    column(
+                      6,
+                      actionButton(
+                        "set_key",
+                        "Set API Key",
+                        icon = icon("check"),
+                        style = "color:white;",
+                        width = "100%"
+                      )
+                    ),
+                    column(
+                      6,
+                      actionButton(
+                        "remove_key",
+                        "Remove Key",
+                        icon = icon("trash"),
+                        style = "color:white;",
+                        width = "100%"
+                      )
+                    )
+                  )
+                ),
+
+                column(
+                  4,
+                  h5(strong("Model Selection")),
+                  uiOutput("geminiModelChoice")
+                ),
+
+                column(
+                  4,
+                  h5(strong("Output Size")),
+                  uiOutput("geminiOutputSize")
+                )
+              )
+            )
+          )
         )
       )
     )

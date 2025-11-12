@@ -982,6 +982,10 @@ server <- function(input, output, session) {
     DTformat(
       values$txt %>%
         mutate(text = paste0(substr(text, 1, 500), "...")) %>%
+        mutate(across(
+          c(where(is.character), -text),
+          ~ paste0(substr(., 1, 150), "...")
+        )) %>%
         select(-c("text_original", ends_with("id_old"))) %>%
         filter(doc_selected) %>%
         select(-"doc_selected"),
@@ -1299,13 +1303,6 @@ server <- function(input, output, session) {
 
       # ## set cores for parallel computing
       ncores <- coresCPU()
-      # ncores <- max(1,parallel::detectCores()-1)
-      #
-      # ## set cores for windows machines
-      # if (Sys.info()[["sysname"]]=="Windows") {
-      #   cl <- parallel::makeCluster(ncores)
-      #   doParallel::registerDoParallel(cl)
-      # }
 
       # Lemmatization and POS Tagging
       values$dfTag <- udpipe(
@@ -1473,7 +1470,8 @@ server <- function(input, output, session) {
             Token = token,
             Lemma = lemma,
             "Part of Speech" = upos
-          )
+          ),
+        col_to_remove = values$generalTerm
       )
     }
   })
@@ -1669,7 +1667,8 @@ server <- function(input, output, session) {
             Token = token,
             Lemma = lemma,
             "Part of Speech" = upos
-          )
+          ),
+        col_to_remove = values$generalTerm
       )
     }
   })
@@ -1688,7 +1687,8 @@ server <- function(input, output, session) {
               rename(
                 Lemma = lemma,
                 "Part of Speech" = upos
-              )
+              ),
+            col_to_remove = values$generalTerm
           )
         }
       },
@@ -1701,7 +1701,8 @@ server <- function(input, output, session) {
               rename(
                 Token = token,
                 "Part of Speech" = upos
-              )
+              ),
+            col_to_remove = values$generalTerm
           )
         }
       }
@@ -1867,7 +1868,8 @@ server <- function(input, output, session) {
           Lemma = lemma,
           "Part of Speech" = upos
         ),
-      size = "80%"
+      size = "80%",
+      col_to_remove = values$generalTerm
     )
   })
   observeEvent(input$multiwordCreatApply, {
@@ -2017,7 +2019,8 @@ server <- function(input, output, session) {
           Token = token,
           Lemma = lemma,
           "Part of Speech" = upos
-        )
+        ),
+      col_to_remove = values$generalTerm
     )
   })
 
@@ -2138,7 +2141,8 @@ server <- function(input, output, session) {
           Lemma = lemma,
           "Part of Speech" = upos
         ) %>%
-        ungroup()
+        ungroup(),
+      col_to_remove = values$generalTerm
     )
   })
 
@@ -2335,8 +2339,10 @@ server <- function(input, output, session) {
       size = "100%",
       title = paste0(
         "Filtered Data by ",
-        paste0(input$filterList, collapse = ", ")
-      )
+        paste0(input$filterList, collapse = ", "),
+        col_to_remove = values$generalTerm
+      ),
+      col_to_remove = values$generalTerm
     )
   })
 
@@ -2443,7 +2449,8 @@ server <- function(input, output, session) {
       values$dfTag %>% filter(docSelected),
       nrow = 3,
       size = "100%",
-      title = "Data Grouped By External Information"
+      title = "Data Grouped By External Information",
+      col_to_remove = values$generalTerm
     )
   })
 
@@ -2496,7 +2503,8 @@ server <- function(input, output, session) {
       nrow = 10,
       size = "100%",
       title = "Groups By External Information",
-      left = 1
+      left = 1,
+      col_to_remove = values$generalTerm
     )
   })
 
@@ -2824,7 +2832,8 @@ server <- function(input, output, session) {
       pagelength = FALSE,
       dom = FALSE,
       size = "110%",
-      filename = "Overview"
+      filename = "Overview",
+      col_to_remove = values$generalTerm
     )
   })
 
@@ -2912,14 +2921,22 @@ server <- function(input, output, session) {
       pagelength = TRUE,
       filename = "Dictionary",
       dom = TRUE,
-      size = "110%"
+      size = "110%",
+      col_to_remove = values$generalTerm
     )
   })
 
   ## TF-IDF Table----
   output$tfidfData <- renderDT(server = FALSE, {
     values$tfidfDATA <- tfidfTable(values$dfTag, term = values$generalTerm)
-    DTformat(values$tfidfDATA, left = 1, numeric = 2, round = 4, size = "110%")
+    DTformat(
+      values$tfidfDATA,
+      left = 1,
+      numeric = 2,
+      round = 4,
+      size = "110%",
+      col_to_remove = values$generalTerm
+    )
   })
 
   ### WORDS ----
@@ -3019,7 +3036,12 @@ server <- function(input, output, session) {
           select(doc_id, lemma, token, sentence_hl)
       }
       # find sentences containing the tokens/lemma
-      DTformat(sentences, size = "100%", button = TRUE)
+      DTformat(
+        sentences,
+        size = "100%",
+        button = TRUE,
+        col_to_remove = values$generalTerm
+      )
     },
     escape = FALSE
   )
@@ -3101,7 +3123,8 @@ server <- function(input, output, session) {
       paragraphs,
       nrow = 3,
       size = "100%",
-      title = paste0("Doc_id: ", doc)
+      title = paste0("Doc_id: ", doc),
+      col_to_remove = values$generalTerm
     )
     # HTML(paste0(paste0("<h3>Doc_id: ",doc,"</h3><hr>"),
     #   paste(sentences$sentence,collapse=" ")))
@@ -3116,7 +3139,8 @@ server <- function(input, output, session) {
       highlightSentences(values$dfTag, id = doc),
       nrow = 3,
       size = "100%",
-      title = paste0("Doc_id: ", doc)
+      title = paste0("Doc_id: ", doc),
+      col_to_remove = values$generalTerm
     )
     # HTML(paste0(paste0("<h3>Doc_id: ",doc,"</h3><hr>"), highlightSentences(values$dfTag, id=doc, n=3)))
   })
@@ -3189,7 +3213,8 @@ server <- function(input, output, session) {
       numeric = 2,
       filename = "WordsFreqList",
       dom = FALSE,
-      size = "110%"
+      size = "110%",
+      col_to_remove = values$generalTerm
     )
   })
 
@@ -3300,7 +3325,8 @@ server <- function(input, output, session) {
       numeric = 2,
       filename = "POSFreqList",
       dom = FALSE,
-      size = "110%"
+      size = "110%",
+      col_to_remove = values$generalTerm
     )
   })
 
@@ -3585,7 +3611,12 @@ server <- function(input, output, session) {
   output$w_ReinClusteringTableSegments <- renderDT({
     dendReinFunction()
     # find sentences containing the tokens/lemma
-    DTformat(values$tc$segments, size = "100%", button = FALSE)
+    DTformat(
+      values$tc$segments,
+      size = "100%",
+      button = FALSE,
+      col_to_remove = values$generalTerm
+    )
   })
   output$w_ReinSummaryTable <- renderDT({
     dendReinFunction()
@@ -3594,7 +3625,8 @@ server <- function(input, output, session) {
       values$reinertSummary,
       size = "100%",
       button = FALSE,
-      filter = "none"
+      filter = "none",
+      col_to_remove = values$generalTerm
     )
   })
 
@@ -3732,7 +3764,8 @@ server <- function(input, output, session) {
       right = NULL,
       numeric = NULL,
       dom = TRUE,
-      filter = "top"
+      filter = "top",
+      col_to_remove = values$generalTerm
     )
   })
 
@@ -3911,7 +3944,8 @@ server <- function(input, output, session) {
       numeric = 3:ncol(values$CA$wordCoordData),
       dom = TRUE,
       filter = "top",
-      round = 3
+      round = 3,
+      col_to_remove = values$generalTerm
     )
   })
 
@@ -3926,7 +3960,8 @@ server <- function(input, output, session) {
       numeric = 2:(ncol(values$CA$contrib) + 1),
       dom = TRUE,
       filter = "top",
-      round = 3
+      round = 3,
+      col_to_remove = values$generalTerm
     )
   })
 
@@ -3941,7 +3976,8 @@ server <- function(input, output, session) {
       numeric = 2:(ncol(values$CA$cosine) + 1),
       dom = TRUE,
       filter = "top",
-      round = 3
+      round = 3,
+      col_to_remove = values$generalTerm
     )
   })
 
@@ -3956,7 +3992,8 @@ server <- function(input, output, session) {
       numeric = 2:3,
       dom = TRUE,
       filter = "top",
-      round = 2
+      round = 2,
+      col_to_remove = values$generalTerm
     )
   })
 
@@ -4045,7 +4082,7 @@ server <- function(input, output, session) {
       ## check to verify if groups exist or not
 
       # community.repulsion <- as.numeric(gsub("%","",input$community.repulsion))/100
-      community.repulsion <- 0
+      #community.repulsion <- 0
 
       if (
         input$w_groupNet == "Documents" &
@@ -4063,7 +4100,9 @@ server <- function(input, output, session) {
           interLinks = input$interLinks,
           normalization = input$normalizationCooc,
           remove.isolated = input$removeIsolated,
-          community.repulsion = community.repulsion
+          community.repulsion = 0.5,
+          seed = values$random_seed,
+          cluster = "louvain"
         )
       } else {
         values$network <- network(
@@ -4077,7 +4116,9 @@ server <- function(input, output, session) {
           interLinks = input$interLinks,
           normalization = input$normalizationCooc,
           remove.isolated = input$removeIsolated,
-          community.repulsion = community.repulsion
+          community.repulsion = 0.5,
+          seed = values$random_seed,
+          cluster = "louvain"
         )
       }
       ## end check
@@ -4167,7 +4208,8 @@ server <- function(input, output, session) {
       right = NULL,
       numeric = NULL,
       dom = TRUE,
-      filter = "top"
+      filter = "top",
+      col_to_remove = values$generalTerm
     )
   })
 
@@ -4178,7 +4220,8 @@ server <- function(input, output, session) {
       size = "100%",
       filename = "NetworkLinksTable",
       numeric = 6:8,
-      round = 4
+      round = 4,
+      col_to_remove = values$generalTerm
     )
   })
 
@@ -4307,7 +4350,12 @@ server <- function(input, output, session) {
       )
 
       # find sentences containing the tokens/lemma
-      DTformat(sentences, size = "100%", button = TRUE)
+      DTformat(
+        sentences,
+        size = "100%",
+        button = TRUE,
+        col_to_remove = values$generalTerm
+      )
     },
     escape = FALSE
   )
@@ -4390,7 +4438,12 @@ server <- function(input, output, session) {
         select(doc_id, lemma, token, sentence_hl)
 
       # find sentences containing the tokens/lemma
-      DTformat(sentences, size = "100%", button = TRUE)
+      DTformat(
+        sentences,
+        size = "100%",
+        button = TRUE,
+        col_to_remove = values$generalTerm
+      )
     },
     escape = FALSE
   )
@@ -4514,7 +4567,13 @@ server <- function(input, output, session) {
     server = FALSE,
     {
       # find sentences containing the tokens/lemma
-      DTformat(values$tc_k$segments, nrow = 5, size = "80%", button = TRUE)
+      DTformat(
+        values$tc_k$segments,
+        nrow = 5,
+        size = "80%",
+        button = TRUE,
+        col_to_remove = values$generalTerm
+      )
     },
     escape = FALSE
   )
@@ -4522,29 +4581,6 @@ server <- function(input, output, session) {
   output$plotInContextRein <- renderPlotly({
     tall::reinPlot(values$tc_k$terms, nPlot = 10)
   })
-
-  #
-  #   ## Report
-  #
-  #   observeEvent(input$w_networkCoocReport,{
-  #     if(!is.null(values$network$nodes)){
-  #       popUp(title=NULL, type="waiting")
-  #       sheetname <- "CoWord"
-  #       list_df <- list(values$network$nodesData
-  #                       ,values$network$edgesData
-  #       )
-  #       res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
-  #       #values$wb <- res$wb
-  #       owd <- setwd(tempdir())
-  #       on.exit(setwd(owd))
-  #       values$filenetVis <- plot2png(values$netVis, filename="CoWord.png", zoom = values$zoom)
-  #       values$list_file <- rbind(values$list_file, c(sheetname=res$sheetname,values$filenetVis,res$col))
-  #       popUp(title="Co-Word Analysis Results", type="success")
-  #       values$myChoices <- sheets(values$wb)
-  #     } else {
-  #       popUp(type="error")
-  #     }
-  #   })
 
   ## Thematic Map ----
   TMFunction <- eventReactive(
@@ -4582,7 +4618,8 @@ server <- function(input, output, session) {
           n = input$nMaxTM,
           labelsize = input$labelSizeTM,
           n.labels = input$n.labelsTM,
-          opacity = input$opacityTM
+          opacity = input$opacityTM,
+          seed = values$random_seed
         )
       } else {
         values$TM <- tallThematicmap(
@@ -4592,7 +4629,8 @@ server <- function(input, output, session) {
           n = input$nMaxTM,
           labelsize = input$labelSizeTM,
           n.labels = input$n.labelsTM,
-          opacity = input$opacityTM
+          opacity = input$opacityTM,
+          seed = values$random_seed
         )
       }
 
@@ -4656,7 +4694,8 @@ server <- function(input, output, session) {
       right = NULL,
       numeric = NULL,
       dom = TRUE,
-      filter = "top"
+      filter = "top",
+      col_to_remove = values$generalTerm
     )
   })
 
@@ -4671,7 +4710,8 @@ server <- function(input, output, session) {
       right = NULL,
       numeric = NULL,
       dom = TRUE,
-      filter = "top"
+      filter = "top",
+      col_to_remove = values$generalTerm
     )
   })
 
@@ -6481,6 +6521,18 @@ server <- function(input, output, session) {
 
   output$wdFolder <- renderText({
     values$wdTall
+  })
+
+  # Random Seed Management
+  observeEvent(input$random_seed, {
+    if (!is.null(input$random_seed)) {
+      values$random_seed <- input$random_seed
+    }
+  })
+
+  observeEvent(input$randomize_seed, {
+    new_seed <- sample(1:99999, 1)
+    updateNumericInput(session, "random_seed", value = new_seed)
   })
 
   output$apiStatus <- renderUI({

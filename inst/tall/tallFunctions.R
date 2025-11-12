@@ -217,7 +217,7 @@ read_files <- function(
     ext,
     txt = {
       ## detect text encoding for each file
-      df <- readtext(file)
+      df <- readtext::readtext(file)
       encod <- suppressMessages(readtext::encoding(df, verbose = FALSE)$all)
       ## read txt files using the right encoding
       df <- data.frame(
@@ -879,42 +879,63 @@ rebuild_documents <- function(df) {
 
 ### SPLIT TEXT INTO SUB-DOCS
 splitDoc <- function(df, word) {
+  # If the word is too short, return the original dataframe without splitting
   if (nchar(word) <= 3) {
     return(df)
   }
+
+  # Filter only selected documents
   df <- df %>% filter(doc_selected)
   df_splitted <- list()
-  n <- length(unique(df$doc_id))
+  n <- nrow(df)
+
+  # Loop through each document and split by the word
   for (i in seq_len(n)) {
     testo <- df$text[i]
-    testo <- unlist(strsplit(testo, word))
-    df_splitted[[i]] <- testo[nchar(testo) > 0]
-  }
-  # })
-  doc_id_old <- rep(df$doc_id, lengths(df_splitted))
 
-  df <- data.frame(
+    # Split by the word and keep it in the result
+    # Strategy: replace the word with a unique delimiter + word
+    delimiter <- "\u0001SPLIT_HERE\u0001" # Use a unique character unlikely to appear in text
+    testo_marked <- gsub(word, paste0(delimiter, word), testo, fixed = TRUE)
+
+    # Split by the delimiter
+    parti <- unlist(strsplit(testo_marked, delimiter, fixed = TRUE))
+
+    # Remove empty parts and trim whitespace
+    parti <- parti[nchar(trimws(parti)) > 0]
+
+    df_splitted[[i]] <- parti
+  }
+
+  # Create globally unique doc_ids
+  doc_id_old <- rep(df$doc_id, lengths(df_splitted))
+  total_docs <- sum(lengths(df_splitted))
+
+  # Calculate correct padding based on total number of documents
+  padding <- nchar(as.character(total_docs))
+
+  # Build the result dataframe
+  df_result <- data.frame(
     doc_id = paste0(
       "doc_",
-      sprintf(
-        paste0("%0", nchar(lengths(df_splitted)), "d"),
-        1:lengths(df_splitted)
-      )
+      sprintf(paste0("%0", padding, "d"), 1:total_docs)
     ),
     text = unlist(df_splitted),
     doc_id_old = doc_id_old,
-    doc_selected = TRUE
+    doc_selected = TRUE,
+    stringsAsFactors = FALSE
   ) %>%
     left_join(
       df %>%
-        select(-c("doc_selected", "text", "text_original")),
+        select(-c("doc_selected", "text")),
       by = c("doc_id_old" = "doc_id")
     ) %>%
     mutate(
-      "text_original" = text,
-      "split_word" = word
+      text_original = text,
+      split_word = word
     )
-  return(df)
+
+  return(df_result)
 }
 
 unsplitDoc <- function(df) {
@@ -929,7 +950,8 @@ unsplitDoc <- function(df) {
       ungroup() %>%
       select(-c("doc_id_old", "split_word")) %>%
       distinct(doc_id, .keep_all = TRUE) %>%
-      mutate(doc_selected = TRUE)
+      mutate(doc_selected = TRUE) %>%
+      arrange(doc_id)
   }
   return(df)
 }
@@ -1612,9 +1634,25 @@ applyRake <- function(x, rakeResults, row_sel = NULL, term = "lemma") {
       select(-"ngram")
   }
 
+  # Filter stats based on selected rows
   rakeResults$stats <- rakeResults$stats[row_sel, ]
-  # filter original token df removing POS excluded in rake
 
+  # *** AGGIUNGI QUESTO FILTRO ***
+  # Filter dfMW to keep only multiwords from selected keywords
+  selected_keywords <- rakeResults$stats$keyword
+
+  rakeResults$dfMW <- rakeResults$dfMW %>%
+    filter(
+      # Keep MULTIWORD rows only if they match selected keywords
+      (upos_multiword == "MULTIWORD" & multiword %in% selected_keywords) |
+        # Keep NGRAM_MERGED rows only if they are part of selected keywords
+        (upos_multiword == "NGRAM_MERGED" & multiword %in% selected_keywords) |
+        # Keep all single word rows (not part of any multiword)
+        (!upos_multiword %in% c("MULTIWORD", "NGRAM_MERGED"))
+    )
+  # *** FINE AGGIUNTA ***
+
+  # filter original token df removing POS excluded in rake
   # combine lemmas or tokens into multi-words
 
   switch(
@@ -3341,6 +3379,13 @@ cooc_freq <- function(cooc) {
     ungroup()
 }
 
+# Modified network() function with seed fixing and improved community repulsion
+# Based on bibliometrix networkPlot() implementation
+
+# Add these new parameters to the network() function signature:
+# - seed: Random seed for clustering reproducibility (default = 123)
+# - cluster: Type of clustering algorithm (default = "walktrap")
+
 network <- function(
   x,
   term = "lemma",
@@ -3352,7 +3397,9 @@ network <- function(
   interLinks = FALSE,
   normalization = "none",
   remove.isolated = FALSE,
-  community.repulsion = 0
+  community.repulsion = 0.5, # Changed default from 0 to 0.5
+  seed = 123,
+  cluster = "louvain"
 ) {
   # size scaling
   scalemin <- 20 * (1 + labelsize / 5)
@@ -3363,8 +3410,6 @@ network <- function(
   # params
   shape <- "dot"
   opacity.min <- 0.4
-
-  # x <- dfTag %>% dplyr::filter(POSSelected)
 
   cooc <- coocMatrix(x, term = term, group = group, n = n, pos = FALSE)
   if (is.na(cooc)[1]) {
@@ -3384,8 +3429,6 @@ network <- function(
     )
 
   nodes$font.size <- log(nodes$value)
-  # scalemin <- 20
-  # scalemax <- 150
   Min <- min(nodes$font.size)
   Max <- max(nodes$font.size)
   if (Max > Min) {
@@ -3437,10 +3480,6 @@ network <- function(
   edges$sANorm <- Normalize(edges$sA) * 14 + 1
   edges$sCNorm <- Normalize(edges$sC) * 14 + 1
   edges$sJNorm <- Normalize(edges$sJ) * 14 + 1
-  # sNorm = ((s-min(s))/diff(range(s)))*14+1,
-  # sANorm = ((sA-min(sA))/diff(range(sA)))*14+1,
-  # sCNorm = ((sC-min(sC))/diff(range(sC)))*14+1,
-  # sJNorm = ((sJ-min(sJ))/diff(range(sJ)))*14+1,
 
   switch(
     normalization,
@@ -3463,13 +3502,10 @@ network <- function(
     x <- 1:length(y)
     res <- strucchange::breakpoints(y ~ x)
     tailEdges <- y[res$breakpoints[1]]
-    # minEdges <- 10*which.min(diff((quantile(edges$value,1-(seq(0,100,10)/100)))))
   } else {
     minEdges <- as.numeric(gsub("%", "", minEdges))
     tailEdges <- quantile(edges$value, 1 - (minEdges / 100), na.rm = T)
   }
-
-  # tailEdges <- quantile(edges$value,1-(minEdges/100))
 
   edges <- edges %>%
     dplyr::filter(value >= tailEdges) %>%
@@ -3485,17 +3521,80 @@ network <- function(
     if (length(id_remove) > 0) {
       nodes <- nodes %>%
         filter(!id %in% id_remove)
-      # opacity_font <- opacity_font[-id_remove]
     }
   }
 
-  ### COMMUNITY DETECTION
+  ### COMMUNITY DETECTION WITH SEED FIXING STRATEGY
   graph <- igraph::graph_from_data_frame(
     edges %>% select(-term_from, -term_to),
     directed = FALSE
   )
-  cluster <- igraph::cluster_walktrap(graph)
-  cluster_df <- data.frame(as.list(igraph::membership(cluster)))
+
+  # STRATEGY 1: SEED FIXING FOR STOCHASTIC ALGORITHMS
+  # For stochastic algorithms (louvain, leiden), run multiple times and keep best result
+  if (cluster %in% c("louvain", "leiden")) {
+    n_runs <- 10
+    best_modularity <- -Inf
+    best_result <- NULL
+
+    for (i in 1:n_runs) {
+      set.seed(seed + i - 1) # Different seed for each run
+
+      if (cluster == "louvain") {
+        result <- igraph::cluster_louvain(graph)
+      } else if (cluster == "leiden") {
+        result <- igraph::cluster_leiden(
+          graph,
+          objective_function = "modularity",
+          n_iterations = 3,
+          resolution_parameter = 0.75
+        )
+      }
+
+      current_modularity <- igraph::modularity(graph, result$membership)
+
+      if (current_modularity > best_modularity) {
+        best_modularity <- current_modularity
+        best_result <- result
+      }
+    }
+
+    net_groups <- best_result
+  } else {
+    # For other algorithms, use standard logic with set.seed
+    set.seed(seed)
+
+    switch(
+      cluster,
+      walktrap = {
+        net_groups <- igraph::cluster_walktrap(graph)
+      },
+      optimal = {
+        net_groups <- igraph::cluster_optimal(graph)
+      },
+      fast_greedy = {
+        net_groups <- igraph::cluster_fast_greedy(graph)
+      },
+      leading_eigen = {
+        net_groups <- igraph::cluster_leading_eigen(graph)
+      },
+      spinglass = {
+        net_groups <- igraph::cluster_spinglass(graph)
+      },
+      infomap = {
+        net_groups <- igraph::cluster_infomap(graph)
+      },
+      edge_betweenness = {
+        net_groups <- igraph::cluster_edge_betweenness(graph)
+      },
+      {
+        # Default to walktrap
+        net_groups <- igraph::cluster_walktrap(graph)
+      }
+    )
+  }
+
+  cluster_df <- data.frame(as.list(igraph::membership(net_groups)))
   cluster_df <- as.data.frame(t(cluster_df)) %>%
     mutate(id = as.numeric(gsub("X", "", rownames(.)))) %>%
     rename(group = "V1")
@@ -3504,21 +3603,59 @@ network <- function(
   nodes <- left_join(nodes, cluster_df, by = "id") %>%
     drop_na(group)
 
-  # Community repulsion
+  # STRATEGY 2: IMPROVED COMMUNITY REPULSION
   if (community.repulsion > 0) {
-    community.repulsion <- round(community.repulsion * 100)
-    # row <- as_edgelist(bsk.network)
-    row <- edges %>%
-      select(1:2) %>%
-      as.matrix()
+    # Extract community structure information
     membership <- nodes$group
     names(membership) <- nodes$label
+    n_communities <- length(unique(membership))
+    n_nodes <- nrow(nodes)
 
-    # membership <- V(bsk.network)$community
-    # names(membership) <- V(bsk.network)$name
-    repulsion <- community.repulsion * max(edges$value, na.rm = T)
-    edges$value <- edges$value +
-      apply(row, 1, weight.community, membership, repulsion, 1)
+    # Calculate statistics for adaptive normalization
+    community_sizes <- table(membership)
+    avg_community_size <- mean(community_sizes)
+
+    # Calculate adaptive repulsion strength
+    repulsion_strength <- adaptive_repulsion_strength(
+      community.repulsion,
+      n_nodes,
+      n_communities,
+      avg_community_size
+    )
+
+    # Get edge matrix
+    row <- edges %>%
+      select(term_from, term_to) %>%
+      as.matrix()
+
+    # Save original values
+    original_values <- edges$value
+
+    # Apply new weighting scheme with gradual growth
+    new_values <- numeric(nrow(row))
+
+    for (i in 1:nrow(row)) {
+      node1 <- row[i, 1]
+      node2 <- row[i, 2]
+
+      comm1 <- membership[which(names(membership) == node1)]
+      comm2 <- membership[which(names(membership) == node2)]
+
+      if (comm1 == comm2) {
+        # INTRA-COMMUNITY Edge
+        # Moderate increase with sub-linear growth
+        multiplier <- 1 + (repulsion_strength^0.7) * 1.5
+        new_values[i] <- original_values[i] * multiplier
+      } else {
+        # INTER-COMMUNITY Edge
+        # Gradual reduction with attenuated exponential function
+        divisor <- 1 + exp(repulsion_strength * 1.2) - 1
+        new_values[i] <- original_values[i] / divisor
+      }
+    }
+
+    # Apply new values
+    edges$value <- new_values
   }
 
   ## opacity for label
@@ -3570,6 +3707,31 @@ network <- function(
     )
 
   obj <- list(nodes = nodes, edges = edges)
+  return(obj)
+}
+
+# Helper function for adaptive community repulsion
+adaptive_repulsion_strength <- function(
+  community.repulsion,
+  n_nodes,
+  n_communities,
+  avg_community_size
+) {
+  # Scale factor based on network size
+  scale_factor <- log10(n_nodes + 10) / log10(100)
+
+  # Correction factor based on the number of communities
+  community_factor <- 1 + (n_communities - 2) * 0.1
+  community_factor <- max(0.5, min(community_factor, 2))
+
+  # Sigmoidal transformation of the user parameter
+  x <- community.repulsion * 10
+  sigmoid_transform <- x / (1 + x)
+
+  # Combine the factors
+  strength <- sigmoid_transform * scale_factor * community_factor
+
+  return(strength)
 }
 
 net2vis <- function(nodes, edges, click = TRUE, noOverlap = FALSE) {
@@ -3768,7 +3930,8 @@ tallThematicmap <- function(
   n = 100,
   labelsize = 10,
   n.labels = 1,
-  opacity = 0.8
+  opacity = 0.8,
+  seed = 1234
 ) {
   net <- network(
     LemmaSelection(dfTag) %>% filter(docSelected),
@@ -3781,7 +3944,9 @@ tallThematicmap <- function(
     interLinks = FALSE,
     normalization = "association",
     remove.isolated = FALSE,
-    community.repulsion = 0
+    community.repulsion = 0.5,
+    seed = seed,
+    cluster = "louvain"
   )
   nodes <- net$nodes
   edges <- net$edges %>%
@@ -6644,6 +6809,9 @@ To ensure the functionality of Biblioshiny,
     values$menu <- -1
   }
 
+  ## random seed
+  values$random_seed <- 1234
+
   ## gemini api and model
   home <- homeFolder()
   path_gemini_key <- paste0(
@@ -6995,7 +7163,7 @@ menuList <- function(menu) {
             )
           ),
           menuSubItem(
-            "Custom Term List",
+            "Custom PoS List",
             tabName = "custTermList",
             icon = icon("chevron-right"),
             selected = TRUE
@@ -7052,7 +7220,7 @@ menuList <- function(menu) {
             )
           ),
           menuSubItem(
-            "Custom Term List",
+            "Custom PoS List",
             tabName = "custTermList",
             icon = icon("chevron-right")
           ),
@@ -7216,7 +7384,7 @@ menuList <- function(menu) {
             )
           ),
           menuSubItem(
-            "Custom Term List",
+            "Custom PoS List",
             tabName = "custTermList",
             icon = icon("chevron-right")
           ),
@@ -7354,6 +7522,77 @@ menuList <- function(menu) {
 }
 
 # DATA TABLE FORMAT ----
+#' Format Data Table for Display
+#'
+#' Creates a formatted DT::datatable with customizable options for displaying
+#' data frames in Shiny applications. Supports features like Excel export,
+#' column truncation, custom buttons, and various styling options.
+#'
+#' @param df Data frame to display
+#' @param nrow Number of rows to display per page (default: 10)
+#' @param filename Base filename for Excel export
+#' @param pagelength Logical. If TRUE, includes page length selector button
+#' @param left Column indices to left-align
+#' @param right Column indices to right-align
+#' @param numeric Column indices containing numeric values to round
+#' @param dom Logical or character. If TRUE, uses "Brtip" layout. If FALSE, uses "Bt"
+#' @param size Font size for table cells (default: "85%")
+#' @param filter Filter position: "top", "bottom", or "none"
+#' @param columnShort Column indices to truncate at 500 characters with ellipsis
+#' @param columnSmall Currently unused parameter
+#' @param round Number of decimal places for numeric columns (default: 2)
+#' @param title Table title displayed above the table
+#' @param button Logical. If TRUE, adds a "View" button using doc_id
+#' @param delete Logical. If TRUE, adds a "Remove" button using doc_id
+#' @param escape Logical. If TRUE, escapes HTML in table cells
+#' @param selection Logical. If TRUE, enables row selection with select all/none buttons
+#' @param specialtags Logical. If TRUE, adds special entity frequency distribution button
+#' @param col_to_remove Character string. If "lemma", hides "token" column. If "token", hides "lemma" column. If NULL, no columns are removed (default: NULL)
+#'
+#' @return A DT::datatable object with specified formatting and options
+#'
+#' @details
+#' The function automatically centers all columns and provides Excel export functionality.
+#' If a "text" column exists, it removes angle brackets to prevent rendering issues.
+#' The table includes fixed headers, column reordering capabilities, and horizontal scrolling.
+#'
+#' @keywords internal
+#' Format Data Table for Display
+#'
+#' Creates a formatted DT::datatable with customizable options for displaying
+#' data frames in Shiny applications. Supports features like Excel export,
+#' column truncation, custom buttons, and various styling options.
+#'
+#' @param df Data frame to display
+#' @param nrow Number of rows to display per page (default: 10)
+#' @param filename Base filename for Excel export
+#' @param pagelength Logical. If TRUE, includes page length selector button
+#' @param left Column indices to left-align
+#' @param right Column indices to right-align
+#' @param numeric Column indices containing numeric values to round
+#' @param dom Logical or character. If TRUE, uses "Brtip" layout. If FALSE, uses "Bt"
+#' @param size Font size for table cells (default: "85%")
+#' @param filter Filter position: "top", "bottom", or "none"
+#' @param columnShort Column indices to truncate at 500 characters with ellipsis
+#' @param columnSmall Currently unused parameter
+#' @param round Number of decimal places for numeric columns (default: 2)
+#' @param title Table title displayed above the table
+#' @param button Logical. If TRUE, adds a "View" button using doc_id
+#' @param delete Logical. If TRUE, adds a "Remove" button using doc_id
+#' @param escape Logical. If TRUE, escapes HTML in table cells
+#' @param selection Logical. If TRUE, enables row selection with select all/none buttons
+#' @param specialtags Logical. If TRUE, adds special entity frequency distribution button
+#' @param col_to_remove Character string. If "lemma" or "Lemma", hides "token"/"Token" column.
+#'   If "token" or "Token", hides "lemma"/"Lemma" column. If NULL, no columns are removed (default: NULL)
+#'
+#' @return A DT::datatable object with specified formatting and options
+#'
+#' @details
+#' The function automatically centers all columns and provides Excel export functionality.
+#' If a "text" column exists, it removes angle brackets to prevent rendering issues.
+#' The table includes fixed headers, column reordering capabilities, and horizontal scrolling.
+#'
+#' @keywords internal
 DTformat <- function(
   df,
   nrow = 10,
@@ -7373,8 +7612,33 @@ DTformat <- function(
   delete = FALSE,
   escape = FALSE,
   selection = FALSE,
-  specialtags = FALSE
+  specialtags = FALSE,
+  col_to_remove = NULL
 ) {
+  # Handle column removal based on col_to_remove parameter
+  # Consider both lowercase and capitalized versions
+  if (!is.null(col_to_remove)) {
+    col_to_remove_lower <- tolower(col_to_remove)
+
+    if (col_to_remove_lower == "lemma") {
+      # Remove token or Token if they exist
+      if ("token" %in% names(df)) {
+        df <- df %>% select(-token)
+      }
+      if ("Token" %in% names(df)) {
+        df <- df %>% select(-Token)
+      }
+    } else if (col_to_remove_lower == "token") {
+      # Remove lemma or Lemma if they exist
+      if ("lemma" %in% names(df)) {
+        df <- df %>% select(-lemma)
+      }
+      if ("Lemma" %in% names(df)) {
+        df <- df %>% select(-Lemma)
+      }
+    }
+  }
+
   if ("text" %in% names(df)) {
     df <- df %>%
       mutate(text = gsub("<|>", "", text))
@@ -7488,7 +7752,7 @@ DTformat <- function(
   if (isTRUE(selection)) {
     extensions <- c("Buttons", "Select", "ColReorder", "FixedHeader")
     buttons <- c(buttons, c("selectAll", "selectNone"))
-    select <- list(style = "multiple", items = "row", selected = 1:nrow(df))
+    select <- list(style = "os", items = "row")
     # selection = list(mode = 'multiple', selected = 1:nrow(df), target = 'row')
   } else {
     extensions <- c("Buttons", "ColReorder", "FixedHeader")
