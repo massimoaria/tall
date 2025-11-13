@@ -6529,7 +6529,11 @@ create_abstract_box <- function(abstract_text) {
 }
 
 # Helper function to create document HTML with highlighted sentences
-create_document_box <- function(document_df, doc_id) {
+create_document_box <- function(
+  document_df,
+  doc_id,
+  summarization_type = "extractive"
+) {
   # Extract paragraphs and combine them
   paragraphs <- document_df$Paragraph
 
@@ -6548,6 +6552,21 @@ create_document_box <- function(document_df, doc_id) {
   )
 
   full_text <- paste(paragraph_html, collapse = "\n")
+
+  if (summarization_type == "extractive") {
+    legend = paste0(
+      "<span style='",
+      "display: inline-block;",
+      "background-color: #ffeb3b;",
+      "padding: 4px 8px;",
+      "border-radius: 3px;",
+      "margin-right: 8px;",
+      "'>Highlighted</span> ",
+      "= Sentences selected for summarization"
+    )
+  } else {
+    legend = ""
+  }
 
   html_content <- paste0(
     "<div style='",
@@ -6584,20 +6603,22 @@ create_document_box <- function(document_df, doc_id) {
     "font-size: 0.9em;",
     "color: #7f8c8d;",
     "'>",
-    "<span style='",
-    "display: inline-block;",
-    "background-color: #ffeb3b;",
-    "padding: 4px 8px;",
-    "border-radius: 3px;",
-    "margin-right: 8px;",
-    "'>Highlighted</span> ",
-    "= Sentences selected for summarization",
+    legend,
+    # "<span style='",
+    # "display: inline-block;",
+    # "background-color: #ffeb3b;",
+    # "padding: 4px 8px;",
+    # "border-radius: 3px;",
+    # "margin-right: 8px;",
+    # "'>Highlighted</span> ",
+    # "= Sentences selected for summarization",
     "</div>",
     "</div>"
   )
 
   return(html_content)
 }
+
 
 ### ABSTRACTIVE TEXT SUMMARIZATION: ----
 

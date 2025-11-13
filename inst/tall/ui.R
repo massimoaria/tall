@@ -5123,6 +5123,7 @@ body <- dashboardBody(
               type = "tabs",
               tabPanel(
                 "Abstract",
+                br(),
                 shinycssloaders::withSpinner(
                   uiOutput("summaryData"),
                   color = getOption("spinner.color", default = "#4F7942")
@@ -5130,6 +5131,7 @@ body <- dashboardBody(
               ),
               tabPanel(
                 "Full Document",
+                br(),
                 shinycssloaders::withSpinner(
                   uiOutput("documentData2"),
                   color = getOption("spinner.color", default = "#4F7942")
@@ -5263,13 +5265,14 @@ body <- dashboardBody(
                 "Abstract",
                 br(),
                 fluidRow(
-                  style = "height:65vh",
+                  #style = "height:65vh",
                   shinycssloaders::withSpinner(
                     uiOutput("abstractData"),
                     color = getOption("spinner.color", default = "#4F7942")
                   )
                 ),
                 fluidRow(
+                  br(),
                   align = "center",
                   shinycssloaders::withSpinner(
                     uiOutput("sliderAbstractData"),

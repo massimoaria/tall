@@ -6152,26 +6152,29 @@ server <- function(input, output, session) {
 
   output$summaryData <- renderUI({
     abstractiveSummarization()
-    div(
-      id = "typing-box",
-      style = "white-space: pre-wrap; background-color:#f9f9f9; padding:15px; border:1px solid #ccc; border-radius:5px; max-height:700px; overflow-y: auto;",
-      HTML(values$abstractiveSumm)
+    HTML(
+      create_abstract_box(
+        gemini_to_html(values$abstractiveSumm, type = "summary")
+      )
     )
   })
 
   output$documentData2 <- renderUI({
     abstractiveSummarization()
-    div(
-      id = "typing-box",
-      style = "white-space: pre-wrap; background-color:#f9f9f9; padding:15px; border:1px solid #ccc; border-radius:5px; max-height:700px; overflow-y: auto;",
-      HTML(
-        values$dfTag %>%
-          filter(doc_id == !!input$Abst_document_selection) %>%
-          rebuild_documents() %>%
-          pull(text) %>%
-          paste(collapse = "<br>")
-      )
-    )
+    ## collapse sentences into paragraphs
+    df_paragraphs <- values$dfTag %>%
+      filter(doc_id == !!input$Abst_document_selection) %>%
+      select(doc_id, paragraph_id, sentence_id, sentence) %>%
+      distinct() %>%
+      group_by(doc_id, paragraph_id) %>%
+      summarise(Paragraph = paste(sentence, collapse = "\n ")) %>%
+      ungroup()
+
+    HTML(create_document_box(
+      df_paragraphs,
+      input$Abst_document_selection,
+      summarization_type = "abstractive"
+    ))
   })
 
   ## Report
@@ -6313,7 +6316,8 @@ server <- function(input, output, session) {
     docExtraction()
     HTML(create_document_box(
       values$docExtraction$document,
-      input$document_selection
+      input$document_selection,
+      summarization_type = "extractive"
     ))
   })
 
