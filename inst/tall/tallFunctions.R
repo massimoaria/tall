@@ -2122,43 +2122,74 @@ valueBoxesIndices <- function(x) {
   nLemmas <- length(unique(x$lemma))
 
   # 5. # of sentences
+  # nSentences <- x %>%
+  #   group_by(doc_id) %>%
+  #   reframe(nSent = max(sentence_id)) %>%
+  #   ungroup() %>%
+  #   select(nSent) %>%
+  #   reframe(nSent = sum(nSent)) %>%
+  #   as.numeric()
   nSentences <- x %>%
-    group_by(doc_id) %>%
-    reframe(nSent = max(sentence_id)) %>%
-    ungroup() %>%
-    select(nSent) %>%
-    reframe(nSent = sum(nSent)) %>%
-    as.numeric()
+    select(doc_id, sentence) %>%
+    distinct() %>%
+    nrow()
 
   # 6. # avg document length
+  # avgDocLength <- x %>%
+  #   group_by(doc_id) %>%
+  #   select(doc_id, sentence) %>%
+  #   reframe(
+  #     nTokens = n(),
+  #     nChars = nchar(paste(sentence, collapse = " "))
+  #   ) %>%
+  #   ungroup() %>%
+  #   reframe(
+  #     avgChars = round(mean(nChars), 0),
+  #     sdChars = round(sd(nChars), 0),
+  #     avgTokens = round(mean(nTokens), 0),
+  #     sdTokens = round(sd(nTokens), 0)
+  #   )
+
   avgDocLength <- x %>%
     group_by(doc_id) %>%
-    select(doc_id, sentence) %>%
-    reframe(
-      nTokens = n(),
-      nChars = nchar(paste(sentence, collapse = " "))
+    summarise(
+      char_length = max(end, na.rm = TRUE),
+      token_length = n()
     ) %>%
-    ungroup() %>%
-    reframe(
-      avgChars = round(mean(nChars), 0),
-      sdChars = round(sd(nChars), 0),
-      avgTokens = round(mean(nTokens), 0),
-      sdTokens = round(sd(nTokens), 0)
+    summarise(
+      avgChars = mean(char_length, na.rm = TRUE),
+      sdChars = sd(char_length, na.rm = TRUE),
+      avgTokens = mean(token_length, na.rm = TRUE),
+      sdTokens = sd(token_length, na.rm = TRUE)
     )
 
   # 7. # avg length sentence
+  # avgSentLength <- x %>%
+  #   group_by(doc_id, sentence_id) %>%
+  #   reframe(
+  #     sentLength = n(),
+  #     nChars = nchar(sentence)
+  #   ) %>%
+  #   ungroup() %>%
+  #   reframe(
+  #     avgTokens = round(mean(sentLength), 1),
+  #     sdTokens = round(sd(sentLength), 1),
+  #     avgChars = round(mean(nChars), 1),
+  #     sdChars = round(sd(nChars), 1)
+  #   )
   avgSentLength <- x %>%
     group_by(doc_id, sentence_id) %>%
-    reframe(
-      sentLength = n(),
-      nChars = nchar(sentence)
+    summarise(
+      char_length = max(end, na.rm = TRUE) - min(start, na.rm = TRUE),
+      token_length = n(),
+      .groups = "drop"
     ) %>%
-    ungroup() %>%
-    reframe(
-      avgTokens = round(mean(sentLength), 1),
-      sdTokens = round(sd(sentLength), 1),
-      avgChars = round(mean(nChars), 1),
-      sdChars = round(sd(nChars), 1)
+    summarise(
+      avgChars = mean(char_length, na.rm = TRUE),
+      sdChars = sd(char_length, na.rm = TRUE),
+
+      avgTokens = mean(token_length, na.rm = TRUE),
+      sdTokens = sd(token_length, na.rm = TRUE)
     )
 
   # 8. TTR: il rapporto tra la varietà del dizionario (Dictionary) e il numero totale di token in una raccolta testuale (# terms); in altre parole, misura la diversità lessicale in un corpus
@@ -2210,14 +2241,14 @@ valueBoxesIndices <- function(x) {
     nDictionary = nDictionary,
     nLemmas = nLemmas,
     nSentences = nSentences,
-    avgDocLengthChars = avgDocLength$avgChars,
-    avgDocLengthCharsSD = avgDocLength$sdChars,
-    avgDocLengthTokens = avgDocLength$avgTokens,
-    avgDocLengthTokensSD = avgDocLength$sdTokens,
-    avgSentLengthTokens = avgSentLength$avgTokens,
-    avgSentLengthTokensSD = avgSentLength$sdTokens,
-    avgSentLengthChars = avgSentLength$avgChars,
-    avgSentLengthCharsSD = avgSentLength$sdChars,
+    avgDocLengthChars = round(avgDocLength$avgChars, 0),
+    avgDocLengthCharsSD = round(avgDocLength$sdChars, 0),
+    avgDocLengthTokens = round(avgDocLength$avgTokens, 0),
+    avgDocLengthTokensSD = round(avgDocLength$sdTokens, 0),
+    avgSentLengthTokens = round(avgSentLength$avgTokens, 0),
+    avgSentLengthTokensSD = round(avgSentLength$sdTokens, 0),
+    avgSentLengthChars = round(avgSentLength$avgChars, 0),
+    avgSentLengthCharsSD = round(avgSentLength$sdChars, 0),
     TTR = TTR,
     hapax = round(hapax, 1),
     guiraud = guiraud,
@@ -7772,6 +7803,7 @@ menuList <- function(menu) {
         PREPROCESSING,
         preprocessing_menu1,
         ANALYSIS,
+        overview_menu,
         word_menu,
         document_menu,
         tags$div(style = "margin-top: 20px;"),
@@ -7789,6 +7821,7 @@ menuList <- function(menu) {
         filter_menu,
         group_menu,
         ANALYSIS,
+        overview_menu,
         word_menu,
         document_menu,
         tags$div(style = "margin-top: 20px;"),
