@@ -6477,159 +6477,112 @@ server <- function(input, output, session) {
   ## UTILITY ----
 
   observeEvent(input$d_abstractiveView, {
-    showModal(showDocumentAbstractiveModal(session))
+    showModal(showDocumentModal(
+      session,
+      input$Abst_document_selection,
+      input
+    ))
   })
-
-  showDocumentAbstractiveModal <- function(session) {
-    ns <- session$ns
-    modalDialog(
-      div(
-        style = "height: 550px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;",
-        h3(strong(("Document corpus"))),
-        br(),
-        HTML(
-          values$dfTag %>%
-            filter(doc_id == !!input$Abst_document_selection) %>%
-            rebuild_documents() %>%
-            pull(text) %>%
-            paste(collapse = "<br>")
-        ),
-        size = "l",
-        easyClose = TRUE,
-        footer = tagList(
-          modalButton("Close")
-        )
-      )
-    )
-  }
 
   observeEvent(input$d_summarizationView, {
-    showModal(showDocumentSummarizationModal(session))
+    showModal(showDocumentModal(
+      session,
+      input$document_selection,
+      input
+    ))
   })
 
-  showDocumentSummarizationModal <- function(session) {
+  showDocumentModal <- function(session, docID, input) {
     ns <- session$ns
+    if (
+      input$sidebarmenu %in%
+        c("import_tx", "split_tx", "extInfo", "randomText")
+    ) {
+      text <- create_document_box(
+        values$txt %>% filter(doc_id == docID) %>% pull(text),
+        docID,
+        summarization_type = "original_text"
+      )
+    } else {
+      text <- create_document_box(
+        values$dfTag %>%
+          filter(doc_id == !!docID) %>%
+          select(doc_id, paragraph_id, sentence_id, sentence) %>%
+          distinct() %>%
+          group_by(doc_id, paragraph_id) %>%
+          summarise(Paragraph = paste(sentence, collapse = "\n ")) %>%
+          ungroup(),
+        docID,
+        summarization_type = "abstractive"
+      )
+    }
     modalDialog(
       div(
-        style = "height: 550px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;",
+        style = "height: 70vh; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;",
         h3(strong(("Document corpus"))),
         br(),
-        uiOutput("showDocumentSummarization"),
-        size = "l",
-        easyClose = TRUE,
-        footer = tagList(
-          modalButton("Close")
-        )
+        HTML(text)
+      ),
+      size = "l",
+      easyClose = TRUE,
+      footer = tagList(
+        modalButton("Close"),
+        tags$style(HTML(
+          "
+        .modal-dialog {
+          width: 70vw !important;
+          max-width: 70vw !important;
+        }
+        .modal-content {
+          height: 75vh !important;
+        }
+      "
+        ))
       )
     )
   }
-
-  output$showDocumentSummarization <- renderUI({
-    txt1 <- (paste0("Document ID: ", input$document_selection))
-    doc <- values$dfTag %>%
-      filter(doc_id == input$document_selection) %>%
-      distinct(paragraph_id, sentence_id, sentence) %>%
-      group_by(paragraph_id) %>%
-      summarize(paragraph = paste0(sentence, collapse = " ")) %>%
-      ungroup()
-    txt2 <- paste(doc$paragraph, collapse = "<br><br>")
-    text <- paste0(txt1, "<br><br>", txt2)
-
-    tagList(
-      div(
-        h4(HTML(text)),
-        style = "text-align:left"
-      )
-    )
-  })
 
   ## table click button ----
   observeEvent(input$button_id, {
     if (input$button_id != "null") {
-      showModal(showDocumentModal(session))
+      showModal(showDocumentModal(session, input$button_id, input))
     }
   })
 
-  showDocumentModal <- function(session) {
-    ns <- session$ns
-    modalDialog(
-      div(
-        style = "height: 550px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;",
-        h3(strong(("Document corpus"))),
-        br(),
-        uiOutput("showDocument"),
-        size = "l",
-        easyClose = FALSE,
-        footer = tagList(
-          actionButton(
-            label = "Close",
-            inputId = "closeShowDocument",
-            style = "color: #ffff;",
-            icon = icon("remove", lib = "glyphicon")
-          )
-        )
-      )
-    )
-  }
+  # observeEvent(input$closeShowDocument, {
+  #   removeModal(session = getDefaultReactiveDomain())
+  #   # session$sendCustomMessage("button_id", 'null') # reset input value to plot modal more times
+  #   resetModalButtons(session = getDefaultReactiveDomain())
+  # })
 
-  observeEvent(input$closeShowDocument, {
-    removeModal(session = getDefaultReactiveDomain())
-    # session$sendCustomMessage("button_id", 'null') # reset input value to plot modal more times
-    resetModalButtons(session = getDefaultReactiveDomain())
-  })
-
-  output$showDocument <- renderUI({
-    if (
-      input$sidebarmenu %in% c("import_tx", "split_tx", "extInfo", "textNorm")
-    ) {
-      text <- values$txt %>% filter(doc_id == input$button_id)
-      text <- gsub("\n\n", "<br><br>", text$text)
-    } else {
-      txt1 <- (paste0("Document ID: ", input$button_id))
-      doc <- values$dfTag %>%
-        filter(doc_id == input$button_id) %>%
-        distinct(paragraph_id, sentence_id, sentence) %>%
-        group_by(paragraph_id) %>%
-        summarize(paragraph = paste0(sentence, collapse = " ")) %>%
-        ungroup()
-      txt2 <- paste(doc$paragraph, collapse = "<br><br>")
-      text <- paste0(txt1, "<br><br>", txt2)
-    }
-
-    tagList(
-      div(
-        h4(HTML(text)),
-        style = "text-align:left"
-      )
-    )
-  })
-
-  output$showDocumentInOption <- renderUI({
-    if (input$sidebarmenu %in% c("import_tx", "split_tx", "extInfo")) {
-      text <- values$txt %>% filter(doc_id == values$button_id)
-      text <- gsub("\n\n", "<br><br>", text$text)
-    } else {
-      txt1 <- (paste0("Document ID: ", input$button_id))
-      doc <- values$dfTag %>%
-        filter(doc_id == input$button_id) %>%
-        distinct(paragraph_id, sentence_id, sentence) %>%
-        group_by(paragraph_id) %>%
-        summarize(paragraph = paste0(sentence, collapse = " ")) %>%
-        ungroup()
-      txt2 <- paste(doc$paragraph, collapse = "<br><br>")
-      text <- paste0(txt1, "<br><br>", txt2)
-    }
-
-    tagList(
-      div(
-        h4(HTML(text)),
-        style = "text-align:left"
-      )
-    )
-  })
+  # output$showDocumentInOption <- renderUI({
+  #   if (input$sidebarmenu %in% c("import_tx", "split_tx", "extInfo")) {
+  #     text <- values$txt %>% filter(doc_id == values$button_id)
+  #     text <- gsub("\n\n", "<br><br>", text$text)
+  #   } else {
+  #     txt1 <- (paste0("Document ID: ", input$button_id))
+  #     doc <- values$dfTag %>%
+  #       filter(doc_id == input$button_id) %>%
+  #       distinct(paragraph_id, sentence_id, sentence) %>%
+  #       group_by(paragraph_id) %>%
+  #       summarize(paragraph = paste0(sentence, collapse = " ")) %>%
+  #       ungroup()
+  #     txt2 <- paste(doc$paragraph, collapse = "<br><br>")
+  #     text <- paste0(txt1, "<br><br>", txt2)
+  #   }
+  #
+  #   tagList(
+  #     div(
+  #       h4(HTML(text)),
+  #       style = "text-align:left"
+  #     )
+  #   )
+  # })
 
   observeEvent(input$button_id_del, {
-    if (input$sidebarmenu %in% c("import_tx", "split_tx", "extInfo")) {
+    if (
+      input$sidebarmenu %in% c("import_tx", "split_tx", "extInfo", "randomText")
+    ) {
       values$txt <- values$txt %>%
         mutate(
           doc_selected = ifelse(

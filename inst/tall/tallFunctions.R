@@ -6564,24 +6564,28 @@ create_document_box <- function(
   doc_id,
   summarization_type = "extractive"
 ) {
-  # Extract paragraphs and combine them
-  paragraphs <- document_df$Paragraph
+  if (summarization_type != "original_text") {
+    # Extract paragraphs and combine them
+    paragraphs <- document_df$Paragraph
 
-  # Replace <mark><strong> tags with styled span for highlighting
-  paragraphs <- gsub(
-    "<mark><strong>(.*?)</strong></mark>",
-    "<span style='background-color: #ffeb3b; padding: 2px 4px; border-radius: 3px; font-weight: 500;'>\\1</span>",
-    paragraphs
-  )
+    # Replace <mark><strong> tags with styled span for highlighting
+    paragraphs <- gsub(
+      "<mark><strong>(.*?)</strong></mark>",
+      "<span style='background-color: #ffeb3b; padding: 2px 4px; border-radius: 3px; font-weight: 500;'>\\1</span>",
+      paragraphs
+    )
 
-  # Create paragraph HTML
-  paragraph_html <- paste0(
-    "<p style='margin-bottom: 20px; text-indent: 30px;'>",
-    paragraphs,
-    "</p>"
-  )
+    # Create paragraph HTML
+    paragraph_html <- paste0(
+      "<p style='margin-bottom: 20px; text-indent: 30px;'>",
+      paragraphs,
+      "</p>"
+    )
 
-  full_text <- paste(paragraph_html, collapse = "\n")
+    full_text <- paste(paragraph_html, collapse = "\n")
+  } else {
+    full_text <- document_df
+  }
 
   if (summarization_type == "extractive") {
     legend = paste0(
