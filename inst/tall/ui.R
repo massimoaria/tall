@@ -166,6 +166,22 @@ header <- shinydashboardPlus::dashboardHeader(
       icon = fa_i(name = "github")
     )
   ),
+  # Settings Button - uses actionLink to trigger server-side tab change
+  tags$li(
+    class = "dropdown",
+    actionButton(
+      inputId = "go_to_settings",
+      label = NULL,
+      icon = icon("gear", lib = "font-awesome"),
+      style = "background: transparent;
+               border: none;
+               color: #fff;
+               font-size: 20px;  /* Increased from 16px to 20px */
+               margin-top: 7px;
+               cursor: pointer;",
+      title = "Settings"
+    )
+  ),
   tags$li(
     class = "dropdown",
     tags$style(".main-header .logo {height: 53px}")
@@ -198,13 +214,11 @@ body <- dashboardBody(
     tabItem(
       tabName = "tall",
       fluidRow(
-        # h1(HTML("TA<i>ll</i>"), align="center", style = "font-family: 'Times New Roman'; font-size: 70px;"),
         br(),
         div(
           img(src = "tall_logo.jpg", height = "10%", width = "33%"),
           style = "text-align: center;"
         ),
-        # h2(HTML("Text Analysis for A<i>ll</i>"), align="center", style = "font-family: 'Times New Roman';"),
         br(),
         div(p(
           "Powered by ",
@@ -213,8 +227,6 @@ body <- dashboardBody(
         ))
       )
     ),
-
-    ### IMPORT ----
 
     ### IMPORT ----
 

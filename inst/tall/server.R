@@ -123,13 +123,25 @@ server <- function(input, output, session) {
     if (values$menu == -2) {
       # popup to inform user that at first run you have to set the working folder
       popUpGeneric(
-        title = "Welcome to <strong>TALL</strong>!",
-        type = "warning",
-        color = c("#FFA800"),
-        subtitle = HTML(
-          "Please go to the <b>Settings</b> menu<br>and set a working folder.<br><br>This is where all your analyses will be saved."
+        title = HTML(
+          "<span style='color: #4F7942;'><strong>Welcome to TALL</strong></span> 👋"
         ),
-        btn_labels = "OK",
+        type = "info", # Cambiato da "warning" a "info"
+        color = c("#4F7942", "#6CC283"), # Colori brand di TALL con gradiente
+        subtitle = HTML(
+          "
+    <div style='text-align: left; line-height: 1.6; color: #333;'>
+      <p style='margin-bottom: 15px;'>
+        Before we begin, please select a <strong>default working folder</strong> where all your analyses,
+        reports, and results will be saved.
+      </p>
+      <p style='margin-bottom: 0; color: #666; font-size: 14px;'>
+        💡 <em>You can always change this location later in Settings.</em>
+      </p>
+    </div>
+  "
+        ),
+        btn_labels = "Continue",
         html = TRUE
       )
       updateTabItems(session, "sidebarmenu", "settings")
@@ -185,6 +197,15 @@ server <- function(input, output, session) {
   observeEvent(input$multiwordListBack, {
     updateTabItems(session, "sidebarmenu", "multiwordByList")
   })
+
+  # Settings button handler
+  observeEvent(
+    input$go_to_settings,
+    {
+      updateTabItems(session, "sidebarmenu", "settings")
+    },
+    ignoreInit = TRUE
+  )
 
   # observeEvent(input$w2vApply, {
   #   updateTabItems(session, "sidebarmenu", "w_word2vec")

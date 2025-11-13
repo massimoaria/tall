@@ -7456,451 +7456,353 @@ saveTall <- function(
 
 # SIDEBARMENU DYNAMIC ----
 menuList <- function(menu) {
+  CORPUS <- tags$div(
+    id = "corpus-header",
+    style = "display: flex;
+        align-items: center;
+        font-size: 14px;
+        font-weight: 600;
+        color: #FFFFFF;
+        background: rgba(255,255,255,0.1);
+        padding: 10px 10px;
+        margin: 15px 8px 8px 8px;
+        border-radius: 6px;
+        border-left: 3px solid #26A69A;
+        letter-spacing: 0.8px;",
+    tags$span(
+      style = "background: #26A69A;
+          padding: 4px 8px;
+          border-radius: 4px;
+          margin-right: 10px;
+          font-size: 12px;",
+      icon("database")
+    ),
+    "CORPUS"
+  )
+
+  PREPROCESSING <- tags$div(
+    id = "preprocessing-header",
+    style = "display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 14px;
+        font-weight: 600;
+        color: #FFFFFF;
+        background: rgba(255,255,255,0.1);
+        padding: 10px 10px;
+        margin: 15px 8px 8px 8px;
+        border-radius: 6px;
+        border-left: 3px solid #9C27B0;
+        letter-spacing: 0.8px;",
+    tags$div(
+      style = "display: flex; align-items: center;",
+      tags$span(
+        style = "background: #9C27B0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-right: 10px;
+            font-size: 12px;",
+        icon("wand-magic-sparkles")
+      ),
+      "PREPROCESSING"
+    )
+  )
+
+  ANALYSIS <- tags$div(
+    id = "analysis-header",
+    style = "display: flex;
+        align-items: center;
+        font-size: 14px;
+        font-weight: 600;
+        color: #FFFFFF;
+        background: rgba(255,255,255,0.1);
+        padding: 10px 10px;
+        margin: 15px 8px 8px 8px;
+        border-radius: 6px;
+        border-left: 3px solid #FF5722;
+        letter-spacing: 0.8px;",
+    tags$span(
+      style = "background: #FF5722;
+          padding: 4px 8px;
+          border-radius: 4px;
+          margin-right: 10px;
+          font-size: 12px;",
+      icon("microscope")
+    ),
+    "ANALYSIS"
+  )
+
+  import_menu <- menuItem(
+    "Import",
+    tabName = "import_tx",
+    icon = icon("open-file", lib = "glyphicon")
+  )
+
+  edit_menu <- menuItem(
+    "Edit",
+    tabName = "edit_tx",
+    icon = icon("edit", lib = "glyphicon"),
+    menuSubItem(
+      "Split",
+      tabName = "split_tx",
+      icon = icon("chevron-right")
+    ),
+    menuSubItem(
+      "Random Selection",
+      tabName = "randomText",
+      icon = icon("chevron-right")
+    ),
+    menuSubItem(
+      "External Information",
+      tabName = "extInfo",
+      icon = icon("chevron-right")
+    )
+  )
+
+  preprocessing_menu0 <- menuItem(
+    "Pre-processing",
+    tabName = "prePro",
+    icon = icon("indent-right", lib = "glyphicon"),
+    startExpanded = TRUE,
+    menuSubItem(
+      "Tokenization & PoS Tagging",
+      tabName = "tokPos",
+      icon = icon("chevron-right"),
+      selected = TRUE
+    )
+  )
+
+  preprocessing_menu1 <- menuItem(
+    "Pre-processing",
+    tabName = "prePro",
+    icon = icon("indent-right", lib = "glyphicon"),
+    startExpanded = TRUE,
+    menuSubItem(
+      "Tokenization & PoS Tagging",
+      tabName = "tokPos",
+      icon = icon("chevron-right")
+    ),
+    menuSubItem(
+      "Tagging Special Entities",
+      tabName = "posSpecial",
+      icon = icon("chevron-right")
+    ),
+    menuItem(
+      "Multi-Word",
+      tabName = "multiword",
+      icon = icon("chevron-right"),
+      startExpanded = TRUE,
+      menuSubItem(
+        "Automatic",
+        tabName = "multiwordCreat",
+        icon = icon("chevron-right")
+      ),
+      menuSubItem(
+        "By a List",
+        tabName = "multiwordByList",
+        icon = icon("chevron-right")
+      )
+    ),
+    menuSubItem(
+      "Custom PoS List",
+      tabName = "custTermList",
+      icon = icon("chevron-right"),
+      selected = TRUE
+    ),
+    menuSubItem(
+      "PoS Tag Selection",
+      tabName = "posTagSelect",
+      icon = icon("chevron-right")
+    )
+  )
+
+  overview_menu <- menuItem(
+    "Overview",
+    tabName = "overview",
+    icon = icon("search", lib = "glyphicon")
+  )
+  word_menu <- menuItem(
+    "Words",
+    tabName = "words",
+    icon = icon("font", lib = "glyphicon"),
+    menuSubItem(
+      "Words in Context",
+      tabName = "wordCont",
+      icon = icon("chevron-right")
+    ),
+    # menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),
+    menuSubItem(
+      "Reinert Clustering",
+      tabName = "w_reinclustering",
+      icon = icon("chevron-right")
+    ),
+    menuSubItem(
+      "Correspondence Analysis",
+      tabName = "ca",
+      icon = icon("chevron-right")
+    ),
+    menuItem(
+      "Network",
+      tabName = "w_network",
+      icon = icon("chevron-right"),
+      menuSubItem(
+        "Co-word analysis",
+        tabName = "w_networkCooc",
+        icon = icon("chevron-right")
+      ),
+      menuSubItem(
+        "Thematic Map",
+        tabName = "w_networkTM",
+        icon = icon("chevron-right")
+      )
+      # ,menuSubItem("Grako", tabName = "w_networkGrako", icon = icon("chevron-right"))
+    ),
+    menuItem(
+      "Word Embeddings",
+      tabName = "w_embeddings",
+      icon = icon("chevron-right"),
+      menuSubItem(
+        "Training",
+        tabName = "w_word2vec",
+        icon = icon("chevron-right")
+      ),
+      # if (embedding){
+      menuSubItem(
+        "Similarity",
+        tabName = "w_w2v_similarity",
+        icon = icon("chevron-right")
+      )
+      # }
+    )
+  )
+  document_menu <- menuItem(
+    "Documents",
+    tabName = "documents",
+    icon = icon(name = "duplicate", lib = "glyphicon"),
+    menuItem(
+      "Topic Modeling",
+      tabName = "d_topicMod",
+      icon = icon("chevron-right"),
+      menuSubItem(
+        "K choice",
+        tabName = "d_tm_select",
+        icon = icon("chevron-right")
+      ),
+      menuSubItem(
+        "Model Estimation",
+        tabName = "d_tm_estim",
+        icon = icon("chevron-right")
+      )
+    ),
+    menuSubItem(
+      "Polarity Detection",
+      tabName = "d_polDet",
+      icon = icon("chevron-right")
+    ),
+    menuItem(
+      "Summarization",
+      tabName = "summarization",
+      icon = icon("chevron-right"),
+      menuSubItem(
+        "Abstractive",
+        tabName = "d_astractive",
+        icon = icon("chevron-right")
+      ),
+      menuSubItem(
+        "Extractive",
+        tabName = "d_summarization",
+        icon = icon("chevron-right")
+      )
+    )
+  )
+
+  filter_menu <- menuItem(
+    "Filter",
+    tabName = "filter_text",
+    icon = icon("filter")
+  )
+  group_menu <- menuItem(
+    "Groups",
+    tabName = "defineGroups",
+    icon = icon("th", lib = "glyphicon")
+  )
+
+  setting_menu <- tags$div(
+    style = "display: none;",
+    menuItem("Settings", tabName = "settings", icon = icon("tasks"))
+  )
+
   switch(
     as.character(menu),
     "-2" = {
       list(
-        menuItem("Settings", tabName = "settings", icon = icon("tasks"))
+        CORPUS,
+        PREPROCESSING,
+        ANALYSIS,
+        setting_menu
       )
     },
     "0" = {
       list(
-        menuItem(
-          "Import",
-          tabName = "import_tx",
-          icon = icon("open-file", lib = "glyphicon")
-        ),
-        menuItem(
-          "Edit",
-          tabName = "edit_tx",
-          icon = icon("edit", lib = "glyphicon"),
-          menuSubItem(
-            "Split",
-            tabName = "split_tx",
-            icon = icon("chevron-right")
-          ),
-          menuSubItem(
-            "Random Selection",
-            tabName = "randomText",
-            icon = icon("chevron-right")
-          ),
-          menuSubItem(
-            "External Information",
-            tabName = "extInfo",
-            icon = icon("chevron-right")
-          )
-        ),
-        menuItem(
-          "Pre-processing",
-          tabName = "prePro",
-          icon = icon("indent-right", lib = "glyphicon"),
-          startExpanded = TRUE,
-          menuSubItem(
-            "Tokenization & PoS Tagging",
-            tabName = "tokPos",
-            icon = icon("chevron-right"),
-            selected = TRUE
-          )
-        ),
-        menuItem("Settings", tabName = "settings", icon = icon("tasks"))
+        CORPUS,
+        import_menu,
+        edit_menu,
+        PREPROCESSING,
+        preprocessing_menu0,
+        ANALYSIS,
+        setting_menu
       )
     },
     "1" = {
       list(
-        menuItem(
-          "Import",
-          tabName = "import_tx",
-          icon = icon("open-file", lib = "glyphicon")
-        ),
-        # menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
-        #          menuSubItem("Split", tabName = "split_tx", icon = icon("chevron-right")),
-        #          menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
-        #          menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
-        menuItem(
-          "Pre-processing",
-          tabName = "prePro",
-          icon = icon("indent-right", lib = "glyphicon"),
-          startExpanded = TRUE,
-          menuSubItem(
-            "Tokenization & PoS Tagging",
-            tabName = "tokPos",
-            icon = icon("chevron-right")
-          ),
-          menuSubItem(
-            "Tagging Special Entities",
-            tabName = "posSpecial",
-            icon = icon("chevron-right")
-          ),
-          menuItem(
-            "Multi-Word",
-            tabName = "multiword",
-            icon = icon("chevron-right"),
-            startExpanded = TRUE,
-            menuSubItem(
-              "Automatic",
-              tabName = "multiwordCreat",
-              icon = icon("chevron-right")
-            ),
-            menuSubItem(
-              "By a List",
-              tabName = "multiwordByList",
-              icon = icon("chevron-right")
-            )
-          ),
-          menuSubItem(
-            "Custom PoS List",
-            tabName = "custTermList",
-            icon = icon("chevron-right"),
-            selected = TRUE
-          ),
-          menuSubItem(
-            "PoS Tag Selection",
-            tabName = "posTagSelect",
-            icon = icon("chevron-right")
-          )
-        ),
-        menuItem("Settings", tabName = "settings", icon = icon("tasks"))
+        CORPUS,
+        import_menu,
+        edit_menu,
+        PREPROCESSING,
+        preprocessing_menu1,
+        ANALYSIS,
+        setting_menu
       )
     },
     "2" = {
       list(
-        menuItem(
-          "Import",
-          tabName = "import_tx",
-          icon = icon("open-file", lib = "glyphicon")
-        ),
-        # menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
-        #          menuSubItem("Split", tabName = "split_tx", icon = icon("chevron-right")),
-        #          menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
-        #          menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
-        menuItem(
-          "Pre-processing",
-          tabName = "prePro",
-          icon = icon("indent-right", lib = "glyphicon"),
-          startExpanded = TRUE,
-          menuSubItem(
-            "Tokenization & PoS Tagging",
-            tabName = "tokPos",
-            icon = icon("chevron-right")
-          ),
-          menuSubItem(
-            "Tagging Special Entities",
-            tabName = "posSpecial",
-            icon = icon("chevron-right")
-          ),
-          menuItem(
-            "Multi-Word",
-            tabName = "multiword",
-            icon = icon("chevron-right"),
-            startExpanded = TRUE,
-            menuSubItem(
-              "Automatic",
-              tabName = "multiwordCreat",
-              icon = icon("chevron-right")
-            ),
-            menuSubItem(
-              "By a List",
-              tabName = "multiwordByList",
-              icon = icon("chevron-right")
-            )
-          ),
-          menuSubItem(
-            "Custom PoS List",
-            tabName = "custTermList",
-            icon = icon("chevron-right")
-          ),
-          menuSubItem(
-            "PoS Tag Selection",
-            tabName = "posTagSelect",
-            icon = icon("chevron-right")
-          ),
-          selected = TRUE
-        ),
-        # menuItem("Filter", tabName = "filter_text", icon = icon("filter")),
-        # menuItem("Groups",tabName = "defineGroups", icon = icon("th", lib="glyphicon")),
-        menuItem(
-          "Overview",
-          tabName = "overview",
-          icon = icon("search", lib = "glyphicon")
-        ),
-        menuItem(
-          "Words",
-          tabName = "words",
-          icon = icon("font", lib = "glyphicon"),
-          # menuItem("Frequencies",
-          #   tabName = "freqList", icon = icon("chevron-right"),
-          #   menuSubItem("Words", tabName = "w_freq", icon = icon("chevron-right")),
-          #   menuSubItem("Part of Speech", tabName = "w_pos", icon = icon("chevron-right"))
-          # ),
-          menuSubItem(
-            "Words in Context",
-            tabName = "wordCont",
-            icon = icon("chevron-right")
-          ),
-          # menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),
-          menuSubItem(
-            "Reinert Clustering",
-            tabName = "w_reinclustering",
-            icon = icon("chevron-right")
-          ),
-          menuSubItem(
-            "Correspondence Analysis",
-            tabName = "ca",
-            icon = icon("chevron-right")
-          ),
-          menuItem(
-            "Network",
-            tabName = "w_network",
-            icon = icon("chevron-right"),
-            menuSubItem(
-              "Co-word analysis",
-              tabName = "w_networkCooc",
-              icon = icon("chevron-right")
-            ),
-            menuSubItem(
-              "Thematic Map",
-              tabName = "w_networkTM",
-              icon = icon("chevron-right")
-            )
-            # ,menuSubItem("Grako", tabName = "w_networkGrako", icon = icon("chevron-right"))
-          ),
-          menuItem(
-            "Word Embeddings",
-            tabName = "w_embeddings",
-            icon = icon("chevron-right"),
-            menuSubItem(
-              "Training",
-              tabName = "w_word2vec",
-              icon = icon("chevron-right")
-            ),
-            # if (embedding){
-            menuSubItem(
-              "Similarity",
-              tabName = "w_w2v_similarity",
-              icon = icon("chevron-right")
-            )
-            # }
-          )
-        ),
-        menuItem(
-          "Documents",
-          tabName = "documents",
-          icon = icon(name = "duplicate", lib = "glyphicon"),
-          menuItem(
-            "Topic Modeling",
-            tabName = "d_topicMod",
-            icon = icon("chevron-right"),
-            menuSubItem(
-              "K choice",
-              tabName = "d_tm_select",
-              icon = icon("chevron-right")
-            ),
-            menuSubItem(
-              "Model Estimation",
-              tabName = "d_tm_estim",
-              icon = icon("chevron-right")
-            )
-          ),
-          menuSubItem(
-            "Polarity Detection",
-            tabName = "d_polDet",
-            icon = icon("chevron-right")
-          ),
-          menuItem(
-            "Summarization",
-            tabName = "summarization",
-            icon = icon("chevron-right"),
-            menuSubItem(
-              "Abstractive",
-              tabName = "d_astractive",
-              icon = icon("chevron-right")
-            ),
-            menuSubItem(
-              "Extractive",
-              tabName = "d_summarization",
-              icon = icon("chevron-right")
-            )
-          )
-        ),
+        CORPUS,
+        import_menu,
+        edit_menu,
+        PREPROCESSING,
+        preprocessing_menu1,
+        ANALYSIS,
+        word_menu,
+        document_menu,
+        tags$div(style = "margin-top: 20px;"),
         menuItem("Report", tabName = "report", icon = icon("list-alt")),
-        menuItem("Settings", tabName = "settings", icon = icon("tasks"))
+        setting_menu
       )
     },
     "3" = {
       list(
-        menuItem(
-          "Import",
-          tabName = "import_tx",
-          icon = icon("open-file", lib = "glyphicon")
-        ),
-        # menuItem("Edit", tabName = "edit_tx", icon = icon("edit", lib="glyphicon"),
-        #          menuSubItem("Split", tabName = "split_tx", icon = icon("chevron-right")),
-        #          menuSubItem("Random Selection", tabName = "randomText", icon = icon("chevron-right")),
-        #          menuSubItem("External Information", tabName = "extInfo", icon = icon("chevron-right"))),
-        menuItem(
-          "Pre-processing",
-          tabName = "prePro",
-          icon = icon("indent-right", lib = "glyphicon"),
-          startExpanded = TRUE,
-          menuSubItem(
-            "Tokenization & PoS Tagging",
-            tabName = "tokPos",
-            icon = icon("chevron-right")
-          ),
-          menuSubItem(
-            "Tagging Special Entities",
-            tabName = "posSpecial",
-            icon = icon("chevron-right")
-          ),
-          menuItem(
-            "Multi-Word",
-            tabName = "multiword",
-            icon = icon("chevron-right"),
-            startExpanded = TRUE,
-            menuSubItem(
-              "Automatic",
-              tabName = "multiwordCreat",
-              icon = icon("chevron-right")
-            ),
-            menuSubItem(
-              "By a List",
-              tabName = "multiwordByList",
-              icon = icon("chevron-right")
-            )
-          ),
-          menuSubItem(
-            "Custom PoS List",
-            tabName = "custTermList",
-            icon = icon("chevron-right")
-          ),
-          menuSubItem(
-            "PoS Tag Selection",
-            tabName = "posTagSelect",
-            icon = icon("chevron-right")
-          ),
-          selected = TRUE
-        ),
-        menuItem("Filter", tabName = "filter_text", icon = icon("filter")),
-        menuItem(
-          "Groups",
-          tabName = "defineGroups",
-          icon = icon("th", lib = "glyphicon")
-        ),
-        menuItem(
-          "Overview",
-          tabName = "overview",
-          icon = icon("search", lib = "glyphicon")
-        ),
-        menuItem(
-          "Words",
-          tabName = "words",
-          icon = icon("font", lib = "glyphicon"),
-          # menuItem("Frequencies",
-          #   tabName = "freqList", icon = icon("chevron-right"),
-          #   menuSubItem("Words", tabName = "w_freq", icon = icon("chevron-right")),
-          #   menuSubItem("Part of Speech", tabName = "w_pos", icon = icon("chevron-right"))
-          # ),
-          menuSubItem(
-            "Words in Context",
-            tabName = "wordCont",
-            icon = icon("chevron-right")
-          ),
-          menuSubItem(
-            "Reinert Clustering",
-            tabName = "w_reinclustering",
-            icon = icon("chevron-right")
-          ),
-          menuSubItem(
-            "Correspondence Analysis",
-            tabName = "ca",
-            icon = icon("chevron-right")
-          ),
-          menuItem(
-            "Network",
-            tabName = "w_network",
-            icon = icon("chevron-right"),
-            menuSubItem(
-              "Co-word analysis",
-              tabName = "w_networkCooc",
-              icon = icon("chevron-right")
-            ),
-            menuSubItem(
-              "Thematic Map",
-              tabName = "w_networkTM",
-              icon = icon("chevron-right")
-            )
-            # ,menuSubItem("Grako", tabName = "w_networkGrako", icon = icon("chevron-right"))
-          ),
-          menuItem(
-            "Word Embeddings",
-            tabName = "w_embeddings",
-            icon = icon("chevron-right"),
-            menuSubItem(
-              "Training",
-              tabName = "w_word2vec",
-              icon = icon("chevron-right")
-            ),
-            # if (embedding){
-            menuSubItem(
-              "Similarity",
-              tabName = "w_w2v_similarity",
-              icon = icon("chevron-right")
-            )
-            # }
-          )
-        ),
-        menuItem(
-          "Documents",
-          tabName = "documents",
-          icon = icon(name = "duplicate", lib = "glyphicon"),
-          menuItem(
-            "Topic Modeling",
-            tabName = "d_topicMod",
-            icon = icon("chevron-right"),
-            menuSubItem(
-              "K choice",
-              tabName = "d_tm_select",
-              icon = icon("chevron-right")
-            ),
-            menuSubItem(
-              "Model Estimation",
-              tabName = "d_tm_estim",
-              icon = icon("chevron-right")
-            )
-          ),
-          menuSubItem(
-            "Polarity Detection",
-            tabName = "d_polDet",
-            icon = icon("chevron-right")
-          ),
-          menuItem(
-            "Summarization",
-            tabName = "summarization",
-            icon = icon("chevron-right"),
-            menuSubItem(
-              "Abstractive",
-              tabName = "d_astractive",
-              icon = icon("chevron-right")
-            ),
-            menuSubItem(
-              "Extractive",
-              tabName = "d_summarization",
-              icon = icon("chevron-right")
-            )
-          )
-        ),
+        CORPUS,
+        import_menu,
+        edit_menu,
+        PREPROCESSING,
+        preprocessing_menu1,
+        filter_menu,
+        group_menu,
+        ANALYSIS,
+        word_menu,
+        document_menu,
+        tags$div(style = "margin-top: 20px;"),
         menuItem("Report", tabName = "report", icon = icon("list-alt")),
-        menuItem("Settings", tabName = "settings", icon = icon("tasks"))
+        setting_menu
       )
     },
     {
       list(
-        menuItem(
-          "Import",
-          tabName = "import_tx",
-          icon = icon("open-file", lib = "glyphicon")
-        ),
-        menuItem("Settings", tabName = "settings", icon = icon("tasks"))
+        CORPUS,
+        import_menu,
+        PREPROCESSING,
+        ANALYSIS,
+        setting_menu
       )
     }
   )
