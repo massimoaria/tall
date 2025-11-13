@@ -2153,7 +2153,7 @@ valueBoxesIndices <- function(x) {
   avgDocLength <- x %>%
     group_by(doc_id) %>%
     summarise(
-      char_length = max(end, na.rm = TRUE),
+      char_length = sum(nchar(token), na.rm = TRUE),
       token_length = n()
     ) %>%
     summarise(
@@ -2180,14 +2180,13 @@ valueBoxesIndices <- function(x) {
   avgSentLength <- x %>%
     group_by(doc_id, sentence_id) %>%
     summarise(
-      char_length = max(end, na.rm = TRUE) - min(start, na.rm = TRUE),
+      char_length = sum(nchar(token), na.rm = TRUE),
       token_length = n(),
       .groups = "drop"
     ) %>%
     summarise(
       avgChars = mean(char_length, na.rm = TRUE),
       sdChars = sd(char_length, na.rm = TRUE),
-
       avgTokens = mean(token_length, na.rm = TRUE),
       sdTokens = sd(token_length, na.rm = TRUE)
     )
