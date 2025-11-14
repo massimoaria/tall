@@ -3116,6 +3116,80 @@ server <- function(input, output, session) {
     )
   })
 
+  ### KLEYNESS ----
+
+  # Keyness Analysis
+  keyness_results <- eventReactive(input$run_keyness, {
+    withProgress(message = 'Running Keyness Analysis...', value = 0, {
+      incProgress(0.3, detail = "Calculating frequencies...")
+      results <- tall_keyness_analysis(
+        dfTag = values$dfTag,
+        language = values$language,
+        N = input$keyness_n,
+        min.char = input$keyness_minchar,
+        upos_list = input$keyness_upos
+      )
+
+      incProgress(0.7, detail = "Generating plots...")
+    })
+    results$results <- results$results %>%
+      rename(Word = token, Obs_Freq = O11, Exp_Freq = O12) %>%
+      select(
+        Word,
+        Sig_corrected,
+        Obs_Freq,
+        Exp_Freq,
+        G2,
+        RDF,
+        RateRatio,
+        OddsRatio,
+        LogOddsRatio,
+        phi,
+        MI,
+        PMI,
+        DeltaP
+      ) %>%
+      mutate(
+        RDF = round(RDF, 3),
+        RateRatio = round(RateRatio, 3),
+        OddsRatio = round(OddsRatio, 3),
+        LogOddsRatio = round(LogOddsRatio, 3),
+        phi = round(phi, 3),
+        MI = round(MI, 3),
+        PMI = round(PMI, 3),
+        DeltaP = round(DeltaP, 3)
+      )
+    values$keyness_results <- results
+  })
+
+  # Keyness Table Output
+  output$keyness_table <- DT::renderDT({
+    req(keyness_results())
+
+    DTformat(values$keyness_results$results)
+    # DT::datatable(
+    #   values$keyness_results$results,
+    #   options = list(
+    #     pageLength = 25,
+    #     scrollX = TRUE,
+    #     order = list(list(7, 'desc')) # Order by G2 column
+    #   ),
+    #   rownames = FALSE,
+    #   filter = 'top'
+    # ) %>%
+    #   DT::formatRound(
+    #     columns = c('G2', 'phi', 'MI', 'PMI', 'LogOddsRatio'),
+    #     digits = 2
+    #   ) %>%
+    #   DT::formatRound(columns = c('ptw_target', 'ptw_ref'), digits = 3)
+  })
+
+  # Keyness Bar Plot plotly
+  output$keyness_barplot_plotly <- plotly::renderPlotly({
+    req(keyness_results())
+    values$keyness_results$plot_plotly_bar
+  })
+
   ### WORDS ----
 
   ## Click on Plotly graphs: WORDS IN CONTEXT ----
@@ -6516,31 +6590,83 @@ server <- function(input, output, session) {
         summarization_type = "abstractive"
       )
     }
+
     modalDialog(
+      tags$style(HTML(
+        "
+      .modal-dialog {
+        width: 70vw !important;
+        max-width: 70vw !important;
+      }
+      .modal-content {
+        height: 85vh !important;
+      }
+      .modal-body {
+        overflow-y: auto !important;
+        max-height: calc(85vh - 120px) !important;
+      }
+    "
+      )),
       div(
-        style = "height: 70vh; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;",
-        h3(strong(("Document corpus"))),
+        h3(strong("Document corpus")),
         br(),
         HTML(text)
       ),
       size = "l",
       easyClose = TRUE,
-      footer = tagList(
-        modalButton("Close"),
-        tags$style(HTML(
-          "
-        .modal-dialog {
-          width: 70vw !important;
-          max-width: 70vw !important;
-        }
-        .modal-content {
-          height: 75vh !important;
-        }
-      "
-        ))
-      )
+      footer = modalButton("Close")
     )
   }
+
+  # showDocumentModal <- function(session, docID, input) {
+  #   ns <- session$ns
+  #   if (
+  #     input$sidebarmenu %in%
+  #       c("import_tx", "split_tx", "extInfo", "randomText")
+  #   ) {
+  #     text <- create_document_box(
+  #       values$txt %>% filter(doc_id == docID) %>% pull(text),
+  #       docID,
+  #       summarization_type = "original_text"
+  #     )
+  #   } else {
+  #     text <- create_document_box(
+  #       values$dfTag %>%
+  #         filter(doc_id == !!docID) %>%
+  #         select(doc_id, paragraph_id, sentence_id, sentence) %>%
+  #         distinct() %>%
+  #         group_by(doc_id, paragraph_id) %>%
+  #         summarise(Paragraph = paste(sentence, collapse = "\n ")) %>%
+  #         ungroup(),
+  #       docID,
+  #       summarization_type = "abstractive"
+  #     )
+  #   }
+  #   modalDialog(
+  #     div(
+  #       style = "height: 70vh; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;",
+  #       h3(strong(("Document corpus"))),
+  #       br(),
+  #       HTML(text)
+  #     ),
+  #     size = "l",
+  #     easyClose = TRUE,
+  #     footer = tagList(
+  #       modalButton("Close"),
+  #       tags$style(HTML(
+  #         "
+  #       .modal-dialog {
+  #         width: 70vw !important;
+  #         max-width: 70vw !important;
+  #       }
+  #       .modal-content {
+  #         height: 70vh !important;
+  #       }
+  #     "
+  #       ))
+  #     )
+  #   )
+  # }
 
   ## table click button ----
   observeEvent(input$button_id, {

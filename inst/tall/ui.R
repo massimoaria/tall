@@ -2295,6 +2295,143 @@ body <- dashboardBody(
       )
     ),
 
+    ### KEYNESS ----
+
+    tabItem(
+      tabName = "keyness",
+      fluidPage(
+        fluidRow(
+          column(
+            8,
+            h3(strong("Keyness Results"), align = "center")
+          ),
+          div(
+            title = t_run,
+            column(
+              1,
+              do.call(
+                "actionButton",
+                c(
+                  run_bttn,
+                  list(
+                    inputId = "run_keyness"
+                  )
+                )
+              )
+            )
+          ),
+          div(
+            title = t_export,
+            column(
+              1,
+              do.call(
+                "actionButton",
+                c(
+                  export_bttn,
+                  list(
+                    inputId = "keynessExport"
+                  )
+                )
+              )
+            )
+          ),
+          div(
+            title = t_report,
+            column(
+              1,
+              do.call(
+                "actionButton",
+                c(
+                  report_bttn,
+                  list(
+                    inputId = "keynessReport"
+                  )
+                )
+              )
+            )
+          ),
+          div(
+            column(
+              1,
+              dropdown(
+                h4(strong("Options: ")),
+                br(),
+
+                # Main Configuration
+                div(
+                  class = "config-section",
+                  div(
+                    class = "config-section-header",
+                    icon("cog", lib = "glyphicon"),
+                    "Main Configuration"
+                  ),
+                  numericInput(
+                    inputId = "keyness_n",
+                    label = "Max Number of Terms:",
+                    value = 2000,
+                    min = 100,
+                    max = 10000,
+                    step = 100
+                  ),
+                  numericInput(
+                    inputId = "keyness_minchar",
+                    label = "Min Character Length:",
+                    value = 3,
+                    min = 1,
+                    max = 10,
+                    step = 1
+                  ),
+                  checkboxGroupInput(
+                    inputId = "keyness_upos",
+                    label = "POS Tags:",
+                    choices = c("NOUN", "VERB", "ADJ", "ADV"),
+                    selected = c("NOUN", "VERB"),
+                    inline = FALSE
+                  )
+                ),
+
+                style = "gradient",
+                right = TRUE,
+                animate = TRUE,
+                circle = TRUE,
+                tooltip = tooltipOptions(title = "Options"),
+                icon = icon("sliders", lib = "font-awesome"),
+                width = "300px"
+              )
+            ),
+            style = style_opt
+          )
+        ),
+        fluidRow(
+          tabsetPanel(
+            type = "tabs",
+            tabPanel(
+              br(),
+              title = "Plot",
+              icon = icon("chart-column"),
+              shinycssloaders::withSpinner(
+                plotlyOutput(
+                  outputId = "keyness_barplot_plotly",
+                  height = "75vh",
+                  width = "98.9%"
+                ),
+                color = getOption("spinner.color", default = "#4F7942")
+              )
+            ),
+            tabPanel(
+              title = "Table",
+              icon = icon("table"),
+              shinycssloaders::withSpinner(
+                DT::DTOutput("keyness_table"),
+                color = getOption("spinner.color", default = "#4F7942")
+              ),
+              align = "center"
+            )
+          )
+        )
+      )
+    ),
+
     ### WORDS ----
 
     ## Frequency List----

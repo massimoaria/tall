@@ -10,7 +10,6 @@ coresCPU <- function() {
     cl <- parallel::makeCluster(ncores)
     doParallel::registerDoParallel(cl)
   }
-  return(ncores)
 }
 
 ## Check Internet connection ----
@@ -1064,115 +1063,6 @@ tall_download_model <- function(
 
 ## Tagging Special Entites ----
 
-# TaggingCorpusElements <- function(x) {
-#   if ("upos_specialentities" %in% names(x)) {
-#     x <- resetSpecialEntities(x)
-#   } else {
-#     x$upos_specialentities <- x$upos
-#   }
-#
-#   regexList <- c(
-#     EMAIL = "(?i)([_+a-z0-9-]+(\\.[_+a-z0-9-]+)*@[a-z0-9-]+(\\.[a-z0-9-]+)*(\\.[a-z]{2,14}))",
-#     URL = "(?<!@)\\b(https?://[\\w.-]+\\.[a-z]{2,6}(/[\\S]*)?|[\\w.-]+\\.(com|org|net|edu|gov|it|uk)\\b)",
-#     HASH = "^#",
-#     EMOJI = "[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F700-\U0001F77F\U0001F780-\U0001F7FF\U0001F800-\U0001F8FF\U0001F900-\U0001F9FF\U0001FA00-\U0001FA6F\U0001FA70-\U0001FAFF\U00002702-\U000027B0\U000024C2-\U0001F251]",
-#     IP_ADDRESS = "\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b",
-#     MENTION = "^@"
-#   )
-#   items <- names(regexList)
-#
-#   resList <- list()
-#   j <- 0
-#
-#   for (i in 1:length(items)) {
-#     item <- items[i]
-#     results <- stringi::stri_detect_regex(x$token, regexList[[item]])
-#     if (sum(results) > 0) {
-#       j <- j + 1
-#       resList[[j]] <- data.frame(doc_id = x$doc_id[results], item = x$token[results], tag = item)
-#       x$upos[results] <- toupper(item)
-#       x$POSSelected[results] <- ifelse(x$upos[results] %in% c("HASH", "MENTION", "EMOJI"), TRUE, FALSE)
-#     }
-#   }
-#
-#   if (length(resList) > 0) {
-#     resList <- dplyr::bind_rows(resList) %>%
-#       dplyr::filter(!is.na(item))
-#   } else {
-#     resList <- tibble::tibble(doc_id = 0, item = NA, tag = "email") %>% dplyr::filter(!is.na(item))
-#   }
-#
-#   # normalize hash and email
-#   x <- x %>%
-#     mutate(
-#       lemma = case_when(
-#         upos %in% c("HASH", "EMAIL") ~ tolower(lemma),
-#         upos == "EMOJI" ~ trimws(lemma),
-#         TRUE ~ lemma
-#       ),
-#       token = case_when(
-#         upos %in% c("HASH", "EMAIL") ~ tolower(token),
-#         upos == "EMOJI" ~ trimws(token),
-#         TRUE ~ token
-#       )
-#     )
-#
-#   if (nrow(resList) > 0) {
-#     resList <- resList %>%
-#       mutate(item = case_when(
-#         tag %in% c("HASH", "EMAIL") ~ tolower(item),
-#         tag == "EMOJI" ~ trimws(item),
-#         TRUE ~ item
-#       ))
-#   }
-#
-#   return(list(resList = resList, x = x))
-# }
-#
-# resetSpecialEntities <- function(x) {
-#   if ("upos_specialentities" %in% names(x)) {
-#     items <- toupper(c("email", "url", "hash", "emoji", "ip_address", "mention"))
-#     x <- x %>%
-#       mutate(upos = ifelse(upos %in% items, upos_specialentities, upos))
-#   } else {
-#     x$upos_specialentities <- x$upos
-#   }
-#   return(x)
-# }
-#
-# summarySpecialEntities <- function(resList, type = "all") {
-#   data.frame(UPOS = toupper(c("email", "url", "hash", "emoji", "ip_address", "mention")), "N. of Items" = rep(0, 6), "N. of Docs" = rep(0, 6))
-#
-#   switch(type,
-#          "all" = {
-#            resList %>%
-#              group_by(tag) %>%
-#              summarise(items = length(unique(item))) %>%
-#              rename(
-#                UPOS = tag,
-#                "Frequency" = items
-#              ) %>%
-#              ungroup() %>%
-#              bind_rows(tibble(
-#                UPOS = toupper(c("email", "url", "hash", "emoji", "ip_address", "mention")),
-#                "Frequency" = rep(0, 6)
-#              )) %>%
-#              group_by(UPOS) %>%
-#              summarize_all(sum)
-#          },
-#          {
-#            label <- toupper(type)
-#            resList %>%
-#              rename(UPOS = tag) %>%
-#              filter(UPOS == label) %>%
-#              count(item) %>%
-#              arrange(desc(n))
-#          }
-#   )
-# }
-
-## Tagging Special Entites ----
-
 TaggingCorpusElements <- function(x) {
   if ("upos_specialentities" %in% names(x)) {
     x <- resetSpecialEntities(x)
@@ -1924,7 +1814,6 @@ backToOriginalGroups <- function(dfTag) {
   return(dfTag)
 }
 
-
 ### OVERVIEW ----
 
 # Vocabulary calculation
@@ -2471,6 +2360,404 @@ tfidf <- function(dfTag, term = "lemma", document = "doc_id") {
   tibble(term = names(tfidf), TFIDF = as.numeric(tfidf)) %>%
     arrange(desc(tfidf))
 }
+
+### KEYNESS ----
+tall_download_wordlist <- function(
+  language,
+  file_dir = NULL,
+  overwrite = TRUE
+) {
+  switch(
+    language,
+    "english" = "en_word_frequency.keyness",
+    "spanish" = "es_word_frequency.keyness",
+    "french" = "fr_word_frequency.keyness",
+    "italian" = "it_word_frequency.keyness",
+    "german" = "de_word_frequency.keyness",
+    stop("Language not supported")
+  ) -> filename
+
+  if (is.null(file_dir)) {
+    file_dir <- paste0(homeFolder(), "/tall/language_models")
+  }
+
+  url <- file.path(
+    "https://raw.githubusercontent.com/massimoaria/tall.language.models/main/word.frequency.data",
+    filename
+  )
+  to <- file.path(file_dir, filename)
+  download_failed <- FALSE
+  download_message <- "OK"
+  dl <- suppressWarnings(try(
+    utils::download.file(url = url, destfile = to, mode = "wb"),
+    silent = TRUE
+  ))
+  if (inherits(dl, "try-error")) {
+    download_failed <- TRUE
+    download_message <- as.character(dl)
+  } else if (inherits(dl, "integer") && dl != 0) {
+    download_failed <- TRUE
+    download_message <- "Download failed. Please check internet connectivity"
+  }
+  if (download_failed) {
+    message("Something went wrong")
+    message(download_message)
+  } else {
+    message(sprintf("Downloading finished, model stored at '%s'", to))
+  }
+
+  return(list(
+    download_failed = download_failed,
+    download_message = download_message,
+    file_wordlist = to
+  ))
+}
+
+tall_load_wordlist <- function(
+  language,
+  file_dir = NULL
+) {
+  wordlist_path <- paste0(homeFolder(), "/tall/language_models/")
+  if (!dir.exists(wordlist_path)) {
+    dir.create(wordlist_path, recursive = TRUE)
+  }
+
+  switch(
+    language,
+    "english" = "en_word_frequency.keyness",
+    "spanish" = "es_word_frequency.keyness",
+    "french" = "fr_word_frequency.keyness",
+    "italian" = "it_word_frequency.keyness",
+    "german" = "de_word_frequency.keyness",
+    stop("Language not supported")
+  ) -> filename
+
+  file_path <- file.path(wordlist_path, filename)
+
+  if (!file.exists(file_path)) {
+    message(sprintf(
+      "Wordlist for language '%s' not found locally. Downloading...",
+      language
+    ))
+    info <- tall_download_wordlist(
+      language = language,
+      file_dir = file_dir,
+      overwrite = FALSE
+    )
+    if (info$download_failed) {
+      return(NULL)
+    }
+  }
+
+  load(info$file_wordlist)
+
+  if (info$download_failed) {
+    return(NULL)
+  }
+
+  return(get(sub("\\..*", "", filename)))
+}
+
+tall_keyness_analysis <- function(
+  dfTag,
+  language = "english",
+  N = 2000,
+  min.char = 3,
+  upos_list = c("NOUN", "VERB")
+) {
+  # Load word frequency list for the specified language
+  word_frequency <- tall_load_wordlist(language = language)
+
+  # Calculate observed frequencies by filtering and aggregating tokens
+  x <- dfTag %>%
+    dplyr::filter(upos %in% upos_list) %>%
+    mutate(token = tolower(token)) %>%
+    dplyr::group_by(token) %>%
+    dplyr::summarise(n = n()) %>%
+    ungroup() %>%
+    dplyr::filter(nchar(token) > min.char) %>%
+    slice_max(order_by = n, n = N) %>%
+    rename(obsFreq = n) %>%
+    as_tibble()
+
+  # Calculate total number of words (excluding numbers and punctuation)
+  total_words <- nrow(
+    dfTag %>%
+      dplyr::filter(!upos %in% c("NUM", "PUNCT"))
+  )
+
+  # Calculate expected frequencies based on reference corpus
+  df <- word_frequency %>%
+    as_tibble() %>%
+    mutate(token = tolower(token)) %>%
+    group_by(token) %>%
+    summarise(rel_freq = sum(rel_freq, na.rm = T)) %>%
+    ungroup() %>%
+    mutate(expFreq = round(rel_freq * total_words, 0))
+
+  # Create frequency table by joining observed and expected frequencies
+  freq_table <- x %>%
+    left_join(df, by = c("token")) %>%
+    select(token, obsFreq, expFreq) %>%
+    distinct() %>%
+    ungroup() %>%
+    drop_na()
+
+  # Calculate contingency table statistics
+  stats_tb2 <- freq_table %>%
+    dplyr::mutate(
+      C1 = sum(obsFreq),
+      C2 = sum(expFreq),
+      N = C1 + C2
+    ) %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(
+      R1 = obsFreq + expFreq,
+      R2 = N - R1,
+      O11 = obsFreq,
+      O11 = ifelse(O11 == 0, O11 + 0.1, O11),
+      O12 = R1 - O11,
+      O21 = C1 - O11,
+      O22 = C2 - O12
+    ) %>%
+    dplyr::mutate(
+      E11 = (R1 * C1) / N,
+      E12 = (R1 * C2) / N,
+      E21 = (R2 * C1) / N,
+      E22 = (R2 * C2) / N
+    ) %>%
+    dplyr::select(-obsFreq, -expFreq)
+
+  # Calculate association measures and keyness statistics
+  assoc_tb3 <- stats_tb2 %>%
+    dplyr::mutate(Rws = nrow(.)) %>%
+    dplyr::rowwise() %>%
+    # Calculate Fisher's exact test
+    dplyr::mutate(
+      p = as.vector(unlist(fisher.test(matrix(
+        c(O11, O12, O21, O22),
+        ncol = 2,
+        byrow = T
+      ))[1]))
+    ) %>%
+    # Calculate per thousand word frequencies
+    dplyr::mutate(
+      ptw_target = O11 / C1 * 1000,
+      ptw_ref = O12 / C2 * 1000
+    ) %>%
+    # Calculate chi-square statistic
+    dplyr::mutate(
+      X2 = (O11 - E11)^2 /
+        E11 +
+        (O12 - E12)^2 / E12 +
+        (O21 - E21)^2 / E21 +
+        (O22 - E22)^2 / E22
+    ) %>%
+    # Calculate various keyness measures
+    dplyr::mutate(
+      phi = sqrt((X2 / N)),
+      MI = log2(O11 / E11),
+      t.score = (O11 - E11) / sqrt(O11),
+      PMI = log2((O11 / N) / ((O11 + O12) / N) * ((O11 + O21) / N)),
+      DeltaP = (O11 / R1) - (O21 / R2),
+      LogOddsRatio = log(
+        ((O11 + 0.5) * (O22 + 0.5)) / ((O12 + 0.5) * (O21 + 0.5))
+      ),
+      G2 = 2 *
+        ((O11 + 0.001) *
+          log((O11 + 0.001) / E11) +
+          (O12 + 0.001) * log((O12 + 0.001) / E12) +
+          O21 * log(O21 / E21) +
+          O22 * log(O22 / E22)),
+      # Traditional keyness measures
+      RateRatio = ((O11 + 0.001) / (C1 * 1000)) / ((O12 + 0.001) / (C2 * 1000)),
+      RateDifference = (O11 / (C1 * 1000)) - (O12 / (C2 * 1000)),
+      DifferenceCoefficient = RateDifference /
+        sum((O11 / (C1 * 1000)), (O12 / (C2 * 1000))),
+      OddsRatio = ((O11 + 0.5) * (O22 + 0.5)) / ((O12 + 0.5) * (O21 + 0.5)),
+      LLR = 2 * (O11 * (log((O11 / E11)))),
+      RDF = abs((O11 / C1) - (O12 / C2)),
+      PDiff = abs(ptw_target - ptw_ref) / ((ptw_target + ptw_ref) / 2) * 100,
+      SignedDKL = sum(
+        ifelse(O11 > 0, O11 * log(O11 / ((O11 + O12) / 2)), 0) -
+          ifelse(O12 > 0, O12 * log(O12 / ((O11 + O12) / 2)), 0)
+      )
+    ) %>%
+    # Determine Bonferroni corrected significance
+    dplyr::mutate(
+      Sig_corrected = dplyr::case_when(
+        p / Rws > .05 ~ "n.s.",
+        p / Rws > .01 ~ "p < .05*",
+        p / Rws > .001 ~ "p < .01**",
+        p / Rws <= .001 ~ "p < .001***",
+        T ~ "N.A."
+      )
+    ) %>%
+    # Round p-value and determine type/antitype
+    dplyr::mutate(
+      p = round(p, 5),
+      type = ifelse(E11 > O11, "antitype", "type"),
+      phi = ifelse(E11 > O11, -phi, phi),
+      G2 = ifelse(E11 > O11, -G2, G2)
+    ) %>%
+    # Filter out non-significant results
+    dplyr::filter(Sig_corrected != "n.s.") %>%
+    # Arrange by G2 statistic
+    dplyr::arrange(-G2) %>%
+    # Remove superfluous columns
+    dplyr::select(
+      -any_of(c(
+        "TermCoocFreq",
+        "AllFreq",
+        "NRows",
+        "R1",
+        "R2",
+        "C1",
+        "C2",
+        "E12",
+        "E21",
+        "E22",
+        "upp",
+        "low",
+        "op",
+        "t.score",
+        "z.score",
+        "Rws"
+      ))
+    ) %>%
+    # Relocate important columns to the front
+    dplyr::relocate(any_of(c(
+      "token",
+      "type",
+      "Sig_corrected",
+      "O11",
+      "O12",
+      "ptw_target",
+      "ptw_ref",
+      "G2",
+      "RDF",
+      "RateRatio",
+      "RateDifference",
+      "DifferenceCoefficient",
+      "LLR",
+      "SignedDKL",
+      "PDiff",
+      "LogOddsRatio",
+      "MI",
+      "PMI",
+      "phi",
+      "X2",
+      "OddsRatio",
+      "DeltaP",
+      "p",
+      "E11",
+      "O21",
+      "O22"
+    )))
+
+  # Create ggplot scatter plot for top 20 keywords
+  plot_gg_scatter <- assoc_tb3 %>%
+    dplyr::arrange(-G2) %>%
+    head(20) %>%
+    ggplot(aes(x = reorder(token, G2, mean), y = G2)) +
+    geom_point() +
+    coord_flip() +
+    theme_bw() +
+    labs(x = "Token", y = "Keyness (G2)")
+
+  # Create plotly scatter plot for top 20 keywords
+  top20_data <- assoc_tb3 %>%
+    dplyr::arrange(-G2) %>%
+    head(20) %>%
+    dplyr::mutate(token = reorder(token, G2, mean))
+
+  plot_plotly_scatter <- plotly::plot_ly(
+    data = top20_data,
+    x = ~G2,
+    y = ~token,
+    type = "scatter",
+    mode = "markers",
+    marker = list(size = 10, color = "steelblue")
+  ) %>%
+    plotly::layout(
+      xaxis = list(title = "Keyness (G2)"),
+      yaxis = list(title = "Token"),
+      margin = list(l = 100)
+    )
+
+  # Get top 10 and bottom 10 keywords
+  top <- assoc_tb3 %>%
+    dplyr::ungroup() %>%
+    dplyr::slice_head(n = 10)
+
+  bot <- assoc_tb3 %>%
+    dplyr::ungroup() %>%
+    dplyr::slice_tail(n = 10)
+
+  combined_data <- rbind(top, bot)
+
+  # Create ggplot bar plot for top/bottom keywords
+  # Higher G2 values (positive) = target corpus characteristics (blue)
+  # Lower G2 values (negative) = reference corpus characteristics (red)
+  plot_gg_bar <- combined_data %>%
+    ggplot(aes(x = reorder(token, G2, mean), y = G2, label = G2, fill = type)) +
+    geom_bar(stat = "identity") +
+    geom_text(
+      aes(
+        y = ifelse(G2 > 0, G2 - 50, G2 + 50),
+        label = round(G2, 1)
+      ),
+      color = "white",
+      size = 3
+    ) +
+    coord_flip() +
+    theme_bw() +
+    theme(legend.position = "none") +
+    scale_fill_manual(values = c("antitype" = "#D73027", "type" = "#4575B4")) +
+    labs(
+      title = "Top 10 keywords for Target vs General Corpus",
+      x = "Keyword",
+      y = "Keyness (G2)"
+    )
+
+  # Create plotly bar plot for top/bottom keywords
+  # Higher G2 values (positive) = target corpus characteristics (blue)
+  # Lower G2 values (negative) = reference corpus characteristics (red)
+  combined_data <- combined_data %>%
+    dplyr::mutate(
+      token = reorder(token, G2, mean),
+      color = ifelse(type == "antitype", "#D73027", "#4575B4")
+    )
+
+  plot_plotly_bar <- plotly::plot_ly(
+    data = combined_data,
+    y = ~token,
+    x = ~G2,
+    type = "bar",
+    orientation = "h",
+    marker = list(color = ~color),
+    text = ~ round(G2, 1),
+    textposition = "inside",
+    textfont = list(color = "white", size = 12)
+  ) %>%
+    plotly::layout(
+      title = "Top 10 keywords for Target vs General Corpus",
+      xaxis = list(title = "Keyness (G2)"),
+      yaxis = list(title = "Keyword"),
+      showlegend = FALSE,
+      margin = list(l = 100)
+    )
+
+  # Return results and plots
+  return(list(
+    results = assoc_tb3,
+    plot_ggplot_scatter = plot_gg_scatter,
+    plot_ggplot_bar = plot_gg_bar,
+    plot_plotly_scatter = plot_plotly_scatter,
+    plot_plotly_bar = plot_plotly_bar
+  ))
+}
+
 
 ### WORD IN CONTEXT ----
 get_context_window <- function(
@@ -7655,6 +7942,13 @@ menuList <- function(menu) {
     tabName = "overview",
     icon = icon("search", lib = "glyphicon")
   )
+
+  keyness_menu <- menuItem(
+    "Keyness",
+    tabName = "keyness",
+    icon = icon("key")
+  )
+
   word_menu <- menuItem(
     "Words",
     tabName = "words",
@@ -7807,6 +8101,7 @@ menuList <- function(menu) {
         preprocessing_menu1,
         ANALYSIS,
         overview_menu,
+        keyness_menu,
         word_menu,
         document_menu,
         tags$div(style = "margin-top: 20px;"),
@@ -7825,6 +8120,7 @@ menuList <- function(menu) {
         group_menu,
         ANALYSIS,
         overview_menu,
+        keyness_menu,
         word_menu,
         document_menu,
         tags$div(style = "margin-top: 20px;"),
