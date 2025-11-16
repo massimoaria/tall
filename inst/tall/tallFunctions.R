@@ -2651,26 +2651,36 @@ tall_keyness_analysis <- function(
   ))
 }
 
-plot_tall_keyness <- function(assoc_tb3, N = 10) {
+plot_tall_keyness <- function(assoc_tb3, measure = "G2", N = 10) {
   # Get top 10 and bottom 10 keywords
   top <- assoc_tb3 %>%
     dplyr::ungroup() %>%
+    dplyr::arrange(desc(.data[[measure]])) %>%
     dplyr::slice_head(n = N)
 
   bot <- assoc_tb3 %>%
     dplyr::ungroup() %>%
+    dplyr::arrange(desc(.data[[measure]])) %>%
     dplyr::slice_tail(n = N)
+
+  names(top)[which(names(top) %in% measure)] <- "Measure"
+  names(bot)[which(names(bot) %in% measure)] <- "Measure"
 
   combined_data <- rbind(top, bot)
 
   # Create ggplot bar plot for top/bottom keywords
   plot_gg_bar <- combined_data %>%
-    ggplot(aes(x = reorder(token, G2, mean), y = G2, label = G2, fill = type)) +
+    ggplot(aes(
+      x = reorder(token, Measure, mean),
+      y = Measure,
+      label = Measure,
+      fill = type
+    )) +
     geom_bar(stat = "identity") +
     geom_text(
       aes(
-        y = ifelse(G2 > 0, G2 - 50, G2 + 50),
-        label = round(G2, 1)
+        y = ifelse(Measure > 0, Measure - 50, Measure + 50),
+        label = round(Measure, 1)
       ),
       color = "white",
       size = 3
@@ -2682,30 +2692,30 @@ plot_tall_keyness <- function(assoc_tb3, N = 10) {
     labs(
       title = "Top 10 keywords for Target vs General Corpus",
       x = "Keyword",
-      y = "Keyness (G2)"
+      y = paste0("Keyness (", measure, ")")
     )
 
   # Create plotly bar plot
   combined_data <- combined_data %>%
     dplyr::mutate(
-      token = reorder(token, G2, mean),
+      token = reorder(token, Measure, mean),
       color = ifelse(type == "antitype", "#D73027", "#4575B4")
     )
 
   plot_plotly_bar <- plotly::plot_ly(
     data = combined_data,
     y = ~token,
-    x = ~G2,
+    x = ~Measure,
     type = "bar",
     orientation = "h",
     marker = list(color = ~color),
-    text = ~ round(G2, 1),
+    text = ~ round(Measure, 1),
     textposition = "inside",
     textfont = list(color = "white", size = 12)
   ) %>%
     plotly::layout(
       title = "Top 10 keywords for Target vs General Corpus",
-      xaxis = list(title = "Keyness (G2)"),
+      xaxis = list(title = paste0("Keyness (", measure, ")")),
       yaxis = list(title = "Keyword"),
       showlegend = FALSE,
       margin = list(l = 100)

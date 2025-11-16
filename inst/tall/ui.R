@@ -2381,6 +2381,17 @@ body <- dashboardBody(
                     max = 10,
                     step = 1
                   ),
+                  selectInput(
+                    inputId = "keyness_measure",
+                    label = "Keyness Measure:",
+                    choices = c(
+                      "G2" = "G2",
+                      "LogOddsRatio" = "LogOddsRatio",
+                      "Phi" = "phi",
+                      "Delta P" = "DeltaP"
+                    ),
+                    selected = "G2"
+                  ),
                   checkboxGroupInput(
                     inputId = "keyness_upos",
                     label = "POS Tags:",
