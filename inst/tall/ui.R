@@ -2471,7 +2471,7 @@ body <- dashboardBody(
               title = "WordCloud",
               icon = icon("chart-column"),
               shinycssloaders::withSpinner(
-                wordcloud2Output(
+                wordcloud2::wordcloud2Output(
                   outputId = "keyness_wordcloud",
                   height = "85vh", # Increased height to use more vertical space
                   width = "100%" # Changed to 100% to fill horizontal space

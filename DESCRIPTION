@@ -84,6 +84,7 @@ Imports:
     udpipe,
     umap,
     visNetwork,
+    wordcloud2,
     word2vec
 LazyData: true
 LinkingTo: Rcpp

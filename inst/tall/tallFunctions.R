@@ -2369,15 +2369,16 @@ tall_download_wordlist <- function(
   file_dir = NULL,
   overwrite = TRUE
 ) {
-  switch(
-    language,
-    "english" = "en_word_frequency.keyness",
-    "spanish" = "es_word_frequency.keyness",
-    "french" = "fr_word_frequency.keyness",
-    "italian" = "it_word_frequency.keyness",
-    "german" = "de_word_frequency.keyness",
-    stop("Language not supported")
-  ) -> filename
+  filename <- paste0(language, "_word_frequency.keyness")
+  # switch(
+  #   language,
+  #   "english" = "en_word_frequency.keyness",
+  #   "spanish" = "es_word_frequency.keyness",
+  #   "french" = "fr_word_frequency.keyness",
+  #   "italian" = "it_word_frequency.keyness",
+  #   "german" = "de_word_frequency.keyness",
+  #   stop("Language not supported")
+  # ) -> filename
 
   if (is.null(file_dir)) {
     file_dir <- paste0(homeFolder(), "/tall/language_models")
@@ -2424,15 +2425,7 @@ tall_load_wordlist <- function(
     dir.create(wordlist_path, recursive = TRUE)
   }
 
-  switch(
-    language,
-    "english" = "en_word_frequency.keyness",
-    "spanish" = "es_word_frequency.keyness",
-    "french" = "fr_word_frequency.keyness",
-    "italian" = "it_word_frequency.keyness",
-    "german" = "de_word_frequency.keyness",
-    stop("Language not supported")
-  ) -> filename
+  filename <- paste0(language, "_word_frequency.keyness")
 
   file_path <- file.path(wordlist_path, filename)
 
@@ -2453,7 +2446,7 @@ tall_load_wordlist <- function(
 
   load(file_path)
 
-  return(get(sub("\\..*", "", filename)))
+  return(word_frequency)
 }
 
 tall_keyness_analysis <- function(
