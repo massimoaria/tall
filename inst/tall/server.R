@@ -1549,7 +1549,10 @@ server <- function(input, output, session) {
       # values$language <- input$language_model
       # values$treebank <- input$treebank
       values$language_file <- values$languages %>%
-        filter(language_name == values$language, treebank == input$treebank) %>%
+        dplyr::filter(
+          language_name == values$language,
+          treebank == values$treebank
+        ) %>%
         select(file) %>%
         as.character()
       ## download and load model language
@@ -1562,7 +1565,7 @@ server <- function(input, output, session) {
       values$dfTag <- udpipe(
         object = udmodel_lang,
         x = values$txt %>%
-          filter(doc_selected),
+          dplyr::filter(doc_selected),
         parallel.cores = ncores
       )
 

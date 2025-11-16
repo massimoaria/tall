@@ -10,6 +10,7 @@ coresCPU <- function() {
     cl <- parallel::makeCluster(ncores)
     doParallel::registerDoParallel(cl)
   }
+  return(ncores)
 }
 
 ## Check Internet connection ----
@@ -7829,6 +7830,30 @@ menuList <- function(menu) {
     )
   )
 
+  FEATURES <- tags$div(
+    id = "features-header",
+    style = "display: flex;
+        align-items: center;
+        font-size: 14px;
+        font-weight: 600;
+        color: #FFFFFF;
+        background: rgba(255,255,255,0.1);
+        padding: 10px 10px;
+        margin: 15px 8px 8px 8px;
+        border-radius: 6px;
+        border-left: 3px solid #5C6BC0;
+        letter-spacing: 0.8px;",
+    tags$span(
+      style = "background: #5C6BC0;
+          padding: 4px 8px;
+          border-radius: 4px;
+          margin-right: 10px;
+          font-size: 12px;",
+      icon("puzzle-piece")
+    ),
+    "FEATURES"
+  )
+
   ANALYSIS <- tags$div(
     id = "analysis-header",
     style = "display: flex;
@@ -8066,6 +8091,7 @@ menuList <- function(menu) {
       list(
         CORPUS,
         PREPROCESSING,
+        FEATURES,
         ANALYSIS,
         setting_menu
       )
@@ -8077,6 +8103,7 @@ menuList <- function(menu) {
         edit_menu,
         PREPROCESSING,
         preprocessing_menu0,
+        FEATURES,
         ANALYSIS,
         setting_menu
       )
@@ -8088,6 +8115,7 @@ menuList <- function(menu) {
         edit_menu,
         PREPROCESSING,
         preprocessing_menu1,
+        FEATURES,
         ANALYSIS,
         setting_menu
       )
@@ -8099,6 +8127,7 @@ menuList <- function(menu) {
         edit_menu,
         PREPROCESSING,
         preprocessing_menu1,
+        FEATURES,
         ANALYSIS,
         overview_menu,
         keyness_menu,
@@ -8116,6 +8145,7 @@ menuList <- function(menu) {
         edit_menu,
         PREPROCESSING,
         preprocessing_menu1,
+        FEATURES,
         filter_menu,
         group_menu,
         ANALYSIS,
@@ -8133,6 +8163,7 @@ menuList <- function(menu) {
         CORPUS,
         import_menu,
         PREPROCESSING,
+        FEATURES,
         ANALYSIS,
         setting_menu
       )
