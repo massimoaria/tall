@@ -3134,34 +3134,66 @@ server <- function(input, output, session) {
       )
 
       incProgress(0.7, detail = "Generating plots...")
-    })
-    results$results <- results$results %>%
-      rename(Word = token, Obs_Freq = O11, Exp_Freq = O12) %>%
-      select(
-        Word,
-        Sig_corrected,
-        Obs_Freq,
-        Exp_Freq,
-        G2,
-        RDF,
-        RateRatio,
-        OddsRatio,
-        LogOddsRatio,
-        phi,
-        MI,
-        PMI,
-        DeltaP
-      ) %>%
-      mutate(
-        RDF = round(RDF, 3),
-        RateRatio = round(RateRatio, 3),
-        OddsRatio = round(OddsRatio, 3),
-        LogOddsRatio = round(LogOddsRatio, 3),
-        phi = round(phi, 3),
-        MI = round(MI, 3),
-        PMI = round(PMI, 3),
-        DeltaP = round(DeltaP, 3)
+      if (is.null(input$Keyness_Nbarplot)) {
+        Nbarplot = 10
+      } else {
+        Nbarplot = input$Keyness_Nbarplot
+      }
+      results <- c(
+        results,
+        plot_tall_keyness(results$results, N = Nbarplot)
       )
+      if (is.null(input$Keyness_Nwc)) {
+        Nwc = 50
+      } else {
+        Nwc = input$Keyness_Nwc
+      }
+
+      data_target <- results$results %>%
+        ungroup() %>%
+        select(token, G2) %>%
+        arrange(desc(G2)) %>%
+        slice_head(n = Nwc) %>%
+        rename(word = token)
+      wc = wordcloud2::wordcloud2(
+        data_target,
+        color = "#4575B4",
+        size = 2 # Adjust this value (0.5-2) to control word sizes relative to container
+      )
+      results <- c(
+        results,
+        wc = list(wc)
+      )
+
+      results$results <- results$results %>%
+        rename(Word = token, Obs_Freq = O11, Exp_Freq = O12) %>%
+        select(
+          Word,
+          Sig_corrected,
+          Obs_Freq,
+          Exp_Freq,
+          G2,
+          RDF,
+          RateRatio,
+          OddsRatio,
+          LogOddsRatio,
+          phi,
+          MI,
+          PMI,
+          DeltaP
+        ) %>%
+        mutate(
+          G2 = round(G2, 3),
+          RDF = round(RDF, 3),
+          RateRatio = round(RateRatio, 3),
+          OddsRatio = round(OddsRatio, 3),
+          LogOddsRatio = round(LogOddsRatio, 3),
+          phi = round(phi, 3),
+          MI = round(MI, 3),
+          PMI = round(PMI, 3),
+          DeltaP = round(DeltaP, 3)
+        )
+    })
     values$keyness_results <- results
   })
 
@@ -3170,27 +3202,18 @@ server <- function(input, output, session) {
     req(keyness_results())
 
     DTformat(values$keyness_results$results)
-    # DT::datatable(
-    #   values$keyness_results$results,
-    #   options = list(
-    #     pageLength = 25,
-    #     scrollX = TRUE,
-    #     order = list(list(7, 'desc')) # Order by G2 column
-    #   ),
-    #   rownames = FALSE,
-    #   filter = 'top'
-    # ) %>%
-    #   DT::formatRound(
-    #     columns = c('G2', 'phi', 'MI', 'PMI', 'LogOddsRatio'),
-    #     digits = 2
-    #   ) %>%
-    #   DT::formatRound(columns = c('ptw_target', 'ptw_ref'), digits = 3)
   })
 
   # Keyness Bar Plot plotly
   output$keyness_barplot_plotly <- plotly::renderPlotly({
     req(keyness_results())
     values$keyness_results$plot_plotly_bar
+  })
+
+  # Keyness WordCloud
+  output$keyness_wordcloud <- wordcloud2::renderWordcloud2({
+    req(keyness_results())
+    values$keyness_results$wc
   })
 
   ### WORDS ----

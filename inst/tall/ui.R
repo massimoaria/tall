@@ -2303,7 +2303,7 @@ body <- dashboardBody(
         fluidRow(
           column(
             8,
-            h3(strong("Keyness Results"), align = "center")
+            h3(strong("Keyness Analysis"), align = "center")
           ),
           div(
             title = t_run,
@@ -2389,7 +2389,53 @@ body <- dashboardBody(
                     inline = FALSE
                   )
                 ),
-
+                # Graphical Parameters Section
+                tags$details(
+                  class = "params-section",
+                  tags$summary(
+                    div(
+                      class = "params-section-header",
+                      style = "display: flex; justify-content: space-between; align-items: center;",
+                      div(
+                        icon("eye-open", lib = "glyphicon"),
+                        " Graphical Parameters"
+                      ),
+                      icon(
+                        "chevron-down",
+                        lib = "glyphicon",
+                        style = "font-size: 12px;"
+                      )
+                    )
+                  ),
+                  div(
+                    style = "margin-top: 10px;",
+                    h4("Number of Words:"),
+                    fluidRow(
+                      column(
+                        6,
+                        numericInput(
+                          "Keyness_Nbarplot",
+                          label = "BarPlot",
+                          value = 10,
+                          min = 1,
+                          max = 20,
+                          step = 1
+                        )
+                      ),
+                      column(
+                        6,
+                        numericInput(
+                          "Keyness_Nwc",
+                          label = "Wordcloud",
+                          value = 50,
+                          min = 10,
+                          step = 1,
+                          max = 200
+                        )
+                      )
+                    )
+                  )
+                ),
                 style = "gradient",
                 right = TRUE,
                 animate = TRUE,
@@ -2405,15 +2451,30 @@ body <- dashboardBody(
         fluidRow(
           tabsetPanel(
             type = "tabs",
+
             tabPanel(
               br(),
               title = "Plot",
               icon = icon("chart-column"),
+
               shinycssloaders::withSpinner(
                 plotlyOutput(
                   outputId = "keyness_barplot_plotly",
                   height = "75vh",
-                  width = "98.9%"
+                  width = "95.0%"
+                ),
+                color = getOption("spinner.color", default = "#4F7942")
+              )
+            ),
+            tabPanel(
+              br(),
+              title = "WordCloud",
+              icon = icon("chart-column"),
+              shinycssloaders::withSpinner(
+                wordcloud2Output(
+                  outputId = "keyness_wordcloud",
+                  height = "85vh", # Increased height to use more vertical space
+                  width = "100%" # Changed to 100% to fill horizontal space
                 ),
                 color = getOption("spinner.color", default = "#4F7942")
               )

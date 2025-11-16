@@ -1755,7 +1755,8 @@ noGroupLabels <- function(label) {
       "split_word",
       "token_original_nomultiwords",
       "lemma_original",
-      "upos_specialentities"
+      "upos_specialentities",
+      "upos_original_custom"
     )
   )
 }
@@ -2450,11 +2451,7 @@ tall_load_wordlist <- function(
     }
   }
 
-  load(info$file_wordlist)
-
-  if (info$download_failed) {
-    return(NULL)
-  }
+  load(file_path)
 
   return(get(sub("\\..*", "", filename)))
 }
@@ -2656,50 +2653,24 @@ tall_keyness_analysis <- function(
       "O22"
     )))
 
-  # Create ggplot scatter plot for top 20 keywords
-  plot_gg_scatter <- assoc_tb3 %>%
-    dplyr::arrange(-G2) %>%
-    head(20) %>%
-    ggplot(aes(x = reorder(token, G2, mean), y = G2)) +
-    geom_point() +
-    coord_flip() +
-    theme_bw() +
-    labs(x = "Token", y = "Keyness (G2)")
+  return(list(
+    results = assoc_tb3
+  ))
+}
 
-  # Create plotly scatter plot for top 20 keywords
-  top20_data <- assoc_tb3 %>%
-    dplyr::arrange(-G2) %>%
-    head(20) %>%
-    dplyr::mutate(token = reorder(token, G2, mean))
-
-  plot_plotly_scatter <- plotly::plot_ly(
-    data = top20_data,
-    x = ~G2,
-    y = ~token,
-    type = "scatter",
-    mode = "markers",
-    marker = list(size = 10, color = "steelblue")
-  ) %>%
-    plotly::layout(
-      xaxis = list(title = "Keyness (G2)"),
-      yaxis = list(title = "Token"),
-      margin = list(l = 100)
-    )
-
+plot_tall_keyness <- function(assoc_tb3, N = 10) {
   # Get top 10 and bottom 10 keywords
   top <- assoc_tb3 %>%
     dplyr::ungroup() %>%
-    dplyr::slice_head(n = 10)
+    dplyr::slice_head(n = N)
 
   bot <- assoc_tb3 %>%
     dplyr::ungroup() %>%
-    dplyr::slice_tail(n = 10)
+    dplyr::slice_tail(n = N)
 
   combined_data <- rbind(top, bot)
 
   # Create ggplot bar plot for top/bottom keywords
-  # Higher G2 values (positive) = target corpus characteristics (blue)
-  # Lower G2 values (negative) = reference corpus characteristics (red)
   plot_gg_bar <- combined_data %>%
     ggplot(aes(x = reorder(token, G2, mean), y = G2, label = G2, fill = type)) +
     geom_bar(stat = "identity") +
@@ -2721,9 +2692,7 @@ tall_keyness_analysis <- function(
       y = "Keyness (G2)"
     )
 
-  # Create plotly bar plot for top/bottom keywords
-  # Higher G2 values (positive) = target corpus characteristics (blue)
-  # Lower G2 values (negative) = reference corpus characteristics (red)
+  # Create plotly bar plot
   combined_data <- combined_data %>%
     dplyr::mutate(
       token = reorder(token, G2, mean),
@@ -2749,12 +2718,9 @@ tall_keyness_analysis <- function(
       margin = list(l = 100)
     )
 
-  # Return results and plots
+  # Return results
   return(list(
-    results = assoc_tb3,
-    plot_ggplot_scatter = plot_gg_scatter,
     plot_ggplot_bar = plot_gg_bar,
-    plot_plotly_scatter = plot_plotly_scatter,
     plot_plotly_bar = plot_plotly_bar
   ))
 }
