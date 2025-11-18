@@ -3119,7 +3119,7 @@ server <- function(input, output, session) {
     )
   })
 
-  ### KLEYNESS ----
+  ### KEYNESS ----
 
   # Keyness Analysis
   keyness_results <- eventReactive(
@@ -3152,7 +3152,7 @@ server <- function(input, output, session) {
         )
 
         if (is.null(input$Keyness_Nwc)) {
-          Nwc = 50
+          Nwc = 100
         } else {
           Nwc = input$Keyness_Nwc
         }
@@ -3211,7 +3211,7 @@ server <- function(input, output, session) {
   # Keyness Table Output
   output$keyness_table <- DT::renderDT({
     req(keyness_results())
-    DTformat(results)
+    DTformat(values$keyness_results$results)
   })
 
   # Keyness Bar Plot plotly

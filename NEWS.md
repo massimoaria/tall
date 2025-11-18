@@ -1,3 +1,5 @@
+# tall 1.0.0
+
 # tall 0.4.0
 * Added support to multicolumn pdf
 * Added Abstractive summarization

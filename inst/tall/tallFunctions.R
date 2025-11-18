@@ -2492,7 +2492,11 @@ tall_keyness_analysis <- function(
     select(token, obsFreq, expFreq) %>%
     distinct() %>%
     ungroup() %>%
-    drop_na()
+    # replace NA in expFreq with 1
+    dplyr::mutate(
+      expFreq = ifelse(is.na(expFreq), 1, expFreq)
+    )
+  #drop_na()
 
   # Calculate contingency table statistics
   stats_tb2 <- freq_table %>%
@@ -2690,7 +2694,7 @@ plot_tall_keyness <- function(assoc_tb3, measure = "G2", N = 10) {
     theme(legend.position = "none") +
     scale_fill_manual(values = c("antitype" = "#D73027", "type" = "#4575B4")) +
     labs(
-      title = "Top 10 keywords for Target vs General Corpus",
+      title = paste0("Top ", N, " keywords for Target vs General Corpus"),
       x = "Keyword",
       y = paste0("Keyness (", measure, ")")
     )
@@ -2714,9 +2718,14 @@ plot_tall_keyness <- function(assoc_tb3, measure = "G2", N = 10) {
     textfont = list(color = "white", size = 12)
   ) %>%
     plotly::layout(
-      title = "Top 10 keywords for Target vs General Corpus",
+      title = paste0("Top ", N, " keywords for Target vs General Corpus"),
       xaxis = list(title = paste0("Keyness (", measure, ")")),
-      yaxis = list(title = "Keyword"),
+      yaxis = list(
+        title = "Keyword",
+        tickmode = "linear",
+        categoryorder = "trace",
+        autorange = "reversed"
+      ),
       showlegend = FALSE,
       margin = list(l = 100)
     )

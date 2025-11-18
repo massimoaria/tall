@@ -2423,7 +2423,7 @@ body <- dashboardBody(
                   numericInput(
                     inputId = "keyness_n",
                     label = "Max Number of Terms:",
-                    value = 2000,
+                    value = 1000,
                     min = 100,
                     max = 10000,
                     step = 100
@@ -2493,7 +2493,7 @@ body <- dashboardBody(
                         numericInput(
                           "Keyness_Nwc",
                           label = "Wordcloud",
-                          value = 50,
+                          value = 100,
                           min = 10,
                           step = 1,
                           max = 200
