@@ -1,5 +1,89 @@
 ### UTILS functions ----
 
+# Scroll to Top Button (Font Awesome version)
+
+scrollToTopButton <- function() {
+  tags$div(
+    # CSS per il pulsante
+    tags$head(
+      tags$style(HTML(
+        "
+        #scrollToTopBtn {
+          display: none;
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          z-index: 99999;
+          border: none;
+          outline: none;
+          background-color: rgba(68, 68, 68, 0.7);
+          color: white;
+          cursor: pointer;
+          padding: 12px;
+          border-radius: 4px;
+          font-size: 16px;
+          width: 45px;
+          height: 45px;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+          transition: all 0.3s ease;
+          backdrop-filter: blur(4px);
+        }
+
+        #scrollToTopBtn:hover {
+          background-color: rgba(79, 121, 66, 0.85);
+          transform: translateY(-3px);
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        #scrollToTopBtn:active {
+          transform: translateY(-1px);
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        #scrollToTopBtn i {
+          margin: 0;
+          padding: 0;
+          line-height: 1;
+        }
+      "
+      ))
+    ),
+
+    # Il pulsante HTML
+    tags$button(
+      id = "scrollToTopBtn",
+      icon("arrow-up", lib = "glyphicon"),
+      onclick = "scrollToTop()",
+      title = "Back to top"
+    ),
+
+    # JavaScript per gestire lo scroll
+    tags$script(HTML(
+      "
+      // Funzione per mostrare/nascondere il pulsante
+      window.onscroll = function() {scrollFunction()};
+
+      function scrollFunction() {
+        var btn = document.getElementById('scrollToTopBtn');
+        if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+          btn.style.display = 'block';
+        } else {
+          btn.style.display = 'none';
+        }
+      }
+
+      // Funzione per scrollare in alto con animazione smooth
+      function scrollToTop() {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      }
+    "
+    ))
+  )
+}
+
 ## CPU cores ------
 coresCPU <- function() {
   ## set cores for parallel computing
@@ -38,6 +122,7 @@ trim_text_columns <- function(df) {
       ~ trimws(.x)
     ))
 }
+
 
 clean_text <- function(
   df,
@@ -99,6 +184,11 @@ clean_text <- function(
             ) # Remove quotes
             text_cleaned <- stringr::str_replace_all(
               text_cleaned,
+              "([a-z])\\.([A-Z])",
+              "\\1. \\2"
+            ) # Add space between lowercase.Uppercase
+            text_cleaned <- stringr::str_replace_all(
+              text_cleaned,
               punctuation_regex,
               " \\1 "
             ) # Add spaces around punctuation
@@ -107,6 +197,7 @@ clean_text <- function(
               EMOJI,
               " \\0 "
             ) # Add spaces around emojis
+
             # Remove extra spaces but preserve newlines
             text_cleaned <- stringr::str_replace_all(
               text_cleaned,
@@ -119,6 +210,11 @@ clean_text <- function(
           {
             text_cleaned <- stringr::str_replace_all(
               .data[[text_column]],
+              "([a-z])\\.([A-Z])",
+              "\\1. \\2"
+            ) # Add space between lowercase.Uppercase
+            text_cleaned <- stringr::str_replace_all(
+              text_cleaned,
               punctuation_regex,
               " \\1 "
             )
@@ -143,30 +239,6 @@ clean_text <- function(
       )
     )
 }
-# clean_text <- function(df, text_column = "text",
-#                        add_space = TRUE,
-#                        remove_quotes = TRUE,
-#                        punctuation_marks = c(",", ";", "!", "_", "»", "«" ,"&", "(", ")","--",
-#                        "..","...","....","--","---",".#","“","‘","”","’", "??","???")) {
-
-#   # Sort punctuation marks by length (longest first) to prioritize sequences
-#   punctuation_marks <- punctuation_marks[order(nchar(punctuation_marks), decreasing = TRUE)]
-
-#   # Escape special regex characters
-#   punctuation_marks <- sapply(punctuation_marks, function(x) gsub("([\\^$.|?*+(){}])", "\\\\\\1", x))
-
-#   # Create a regex pattern for punctuation sequences
-#   punctuation_regex <- paste0("(", paste0(punctuation_marks, collapse = "|"), ")")
-
-#   df %>%
-#     mutate(!!text_column := case_when(
-#       add_space & remove_quotes ~ gsub("\\s+", " ", gsub(punctuation_regex, " \\1 ", gsub('\"|\'', '', .data[[text_column]]), perl = TRUE)),
-#       add_space ~ gsub("\\s+", " ", gsub(punctuation_regex, " \\1 ", .data[[text_column]], perl = TRUE)),
-#       remove_quotes ~ gsub('"|\'', '', .data[[text_column]]),
-#       TRUE ~ .data[[text_column]]
-#     ))
-
-# }
 
 ### DATA ----
 # IMPORT TEXT FUNCTIONS ----

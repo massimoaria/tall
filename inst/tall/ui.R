@@ -852,15 +852,15 @@ body <- dashboardBody(
 
     tabItem(
       tabName = "tokPos",
-      fluidPage(
-        fluidRow(
-          column(
-            12,
-            h3(strong("Tokenization & PoS Tagging"), align = "center"),
-            br(),
-          )
-        )
-      ),
+      # fluidPage(
+      #   fluidRow(
+      #     column(
+      #       12,
+      #       h3(strong("Tokenization & PoS Tagging"), align = "center"),
+      #       br(),
+      #     )
+      #   )
+      # ),
       tabsetPanel(
         type = "tabs",
         tabPanel(
@@ -868,6 +868,8 @@ body <- dashboardBody(
           fluidRow(
             column(
               8,
+              h3(strong("Tokenization & PoS Tagging"), align = "center"),
+              br(),
               shinycssloaders::withSpinner(
                 DT::DTOutput("tokPosTagData"),
                 color = getOption("spinner.color", default = "#4F7942")
@@ -961,6 +963,32 @@ body <- dashboardBody(
                   tags$hr(),
                   uiOutput("info_treebank"),
                   tags$hr(),
+                  div(
+                    style = "margin-top: 12px; margin-bottom: 12px; background: linear-gradient(135deg, #e0f7f4 0%, #e8f6f3 100%); padding: 15px; border-radius: 6px; border-left: 4px solid #1ABC9C;",
+                    div(
+                      style = "display: flex; align-items: center; gap: 10px;",
+                      div(
+                        style = "flex-shrink: 0;",
+                        checkboxInput(
+                          "token_lowercase",
+                          label = NULL,
+                          value = FALSE,
+                          width = "auto"
+                        )
+                      ),
+                      div(
+                        style = "display: flex; align-items: center; flex-grow: 1;",
+                        icon(
+                          "arrows-alt-v",
+                          style = "color: #1ABC9C; margin-right: 10px; font-size: 22px;"
+                        ),
+                        span(
+                          "Token Normalization (Lowercase)",
+                          style = "font-weight: bold; color: #16A085; font-size: 15px;"
+                        )
+                      )
+                    )
+                  ),
                   uiOutput("unitAnalysis")
                 )
               ),
@@ -5907,4 +5935,7 @@ body <- dashboardBody(
 
 
 ## UserInterface ####
-ui <- dashboardPage(header, sidebar, body)
+ui <- tagList(
+  dashboardPage(header, sidebar, body),
+  scrollToTopButton()
+)
