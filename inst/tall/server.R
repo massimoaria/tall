@@ -3160,6 +3160,18 @@ server <- function(input, output, session) {
           plot_tall_keyness(results$results, measure = measure, N = Nbarplot)
         )
 
+        plot_frequency <- frequency_context_analysis(
+          results$results,
+          top_n = 20,
+          g2_threshold = quantile(results$results$G2, 0.95),
+          label_spacing = 0.15
+        )
+
+        results <- c(
+          results,
+          plot_frequency = list(plot_frequency)
+        )
+
         if (is.null(input$Keyness_Nwc)) {
           Nwc = 100
         } else {
@@ -3227,6 +3239,11 @@ server <- function(input, output, session) {
   output$keyness_barplot_plotly <- plotly::renderPlotly({
     req(keyness_results())
     values$keyness_results$plot_plotly_bar
+  })
+
+  output$keyness_frequency_plotly <- plotly::renderPlotly({
+    req(keyness_results())
+    values$keyness_results$plot_frequency
   })
 
   # Keyness WordCloud
@@ -4635,7 +4652,7 @@ server <- function(input, output, session) {
         },
         {
           word_search <- values$network$nodes$label[
-            values$network$nodes$id == id
+            values$network$nodes$id %in% id # to check for warning
           ]
           sentences <- values$dfTag %>%
             filter(docSelected) %>%

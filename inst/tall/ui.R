@@ -2567,8 +2567,22 @@ body <- dashboardBody(
               shinycssloaders::withSpinner(
                 wordcloud2::wordcloud2Output(
                   outputId = "keyness_wordcloud",
-                  height = "85vh", # Increased height to use more vertical space
-                  width = "100%" # Changed to 100% to fill horizontal space
+                  height = "80vh", # Increased height to use more vertical space
+                  width = "95%" # Changed to 100% to fill horizontal space
+                ),
+                color = getOption("spinner.color", default = "#4F7942")
+              )
+            ),
+            tabPanel(
+              br(),
+              title = "Frequency Context Plot",
+              icon = icon("chart-column"),
+
+              shinycssloaders::withSpinner(
+                plotlyOutput(
+                  outputId = "keyness_frequency_plotly",
+                  height = "75vh",
+                  width = "95.0%"
                 ),
                 color = getOption("spinner.color", default = "#4F7942")
               )
@@ -2581,6 +2595,23 @@ body <- dashboardBody(
                 color = getOption("spinner.color", default = "#4F7942")
               ),
               align = "center"
+            ),
+            tabPanel(
+              "Info & References",
+              fluidPage(
+                fluidRow(
+                  column(1),
+                  column(
+                    10,
+                    div(
+                      style = "padding: 30px; background: white; border-radius: 8px;
+                         box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-top: 20px;",
+                      HTML(infoTexts$keyness)
+                    )
+                  ),
+                  column(1)
+                )
+              )
             )
           )
         )

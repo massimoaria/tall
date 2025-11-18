@@ -1,4 +1,5 @@
 helpContent <- function() {
+  ## import ----
   importmenu <- "
   <body>
 
@@ -71,6 +72,7 @@ helpContent <- function() {
 </body>
 "
 
+  ## split ----
   split <- "<body>
 
     <h3><strong>Splitting the Corpus in TALL</strong></strong></h3>
@@ -95,6 +97,7 @@ helpContent <- function() {
 
 </body>"
 
+  # random sample ----
   random <- "<body>
 
     <h3><strong>Random Text Selection in TALL</strong></strong></h3>
@@ -118,6 +121,7 @@ helpContent <- function() {
     <p>By enabling controlled sampling, TALL helps users balance efficiency and analytical depth, making text exploration more manageable and meaningful.</p>
     </body>"
 
+  ## external info ----
   externalinfo <- "<body>
 
     <h3><strong>Importing External Information in TALL</strong></strong></h3>
@@ -144,6 +148,7 @@ helpContent <- function() {
 
     </body>"
 
+  ## tokenization ----
   tokenization <- "<body>
 
     <h3><strong>Tokenization, Lemmatization, and PoS Tagging in TALL</strong></strong></h3>
@@ -183,6 +188,7 @@ helpContent <- function() {
 
                   </body>"
 
+  ## special entities ----
   specialentities <- "<body>
 
     <h3><strong>Tagging Special Entities in TALL</strong></strong></h3>
@@ -213,6 +219,7 @@ helpContent <- function() {
 
     </body>"
 
+  ## multiword creation ----
   multiwordcreation <- "
   <body>
 
@@ -251,6 +258,7 @@ helpContent <- function() {
   </body>
   "
 
+  ## multiword list ----
   multiwordlist <- "<body>
 
     <h3><strong>Multi-Word Creation by a List in TALL</strong></strong></h3>
@@ -276,6 +284,7 @@ helpContent <- function() {
 
     </body>"
 
+  ## custom pos ----
   customterm <- "<body>
 
     <h3><strong>Custom PoS List in TALL</strong></strong></h3>
@@ -335,6 +344,7 @@ helpContent <- function() {
 
     </body>"
 
+  ## pos selection ----
   posselection <- "<body>
 
     <h3><strong>PoS Tagging Selection in TALL</strong></strong></h3>
@@ -404,6 +414,7 @@ helpContent <- function() {
 
 </body>"
 
+  ## overview ----
   overview <- "<body>
   <div class='container'>
     <h3><strong>Corpus Metrics in TALL</strong></h3>
@@ -572,6 +583,7 @@ helpContent <- function() {
                                       </div>
                                       </body>"
 
+  ## word in context ----
   wordincontext <- "<body>
 
     <h3><strong>Words in Context in TALL</strong></h3>
@@ -628,6 +640,181 @@ helpContent <- function() {
 
           </body>"
 
+  ## keyness ----
+  keyness <- "<body>
+
+    <h3><strong>Keyness Analysis in TALL</strong></h3>
+
+    <p>Keyness analysis is a statistical technique used to identify words that are <strong>significantly more or less frequent</strong> in a target corpus compared to a reference corpus. This method enables researchers to <strong>detect distinctive vocabulary</strong> and <strong>linguistic features</strong> that characterize specific texts, genres, or discourse communities (<strong>Scott, 1997; Gabrielatos, 2018</strong>).</p>
+
+    <p>In TALL, keyness is computed by comparing the word frequencies in your corpus against <strong>reference word frequency lists</strong> derived from large, general-purpose language datasets. This allows users to identify words that are <strong>overused</strong> or <strong>underused</strong> in their texts relative to typical language usage patterns.</p>
+    <hr>
+
+    <h4><strong>Reference Word Frequency Lists</strong></h4>
+
+    <p>TALL uses word frequency lists calculated from the <strong>OpenSubtitles corpus</strong>, a large collection of subtitle files from movies and TV series across multiple languages. This data is sourced from the <strong>OPUS NLPL project</strong> (<strong>Tiedemann, 2012; Lison & Tiedemann, 2016</strong>), available at <a href='https://opus.nlpl.eu' target='_blank'>https://opus.nlpl.eu</a>.</p>
+
+    <p>The OpenSubtitles corpus provides a <strong>balanced representation of everyday spoken language</strong> across diverse contexts, making it an ideal baseline for keyness analysis. By comparing specialized or domain-specific texts against this general-purpose reference, users can identify <strong>terminological distinctiveness</strong> and <strong>stylistic features</strong> that set their corpus apart.</p>
+    <hr>
+
+    <h4><strong>Supported Languages</strong></h4>
+
+    <p>TALL currently supports keyness analysis for the following <strong>69 languages</strong>:</p>
+
+    <ul>
+      <li>Afrikaans, Albanian, Arabic, Armenian</li>
+      <li>Basque, Bengali, Bosnian, Breton, Bulgarian</li>
+      <li>Catalan, Chinese (Simplified), Chinese (Traditional), Chinese (English), Chinese (Pinyin), Classical Chinese, Croatian, Czech</li>
+      <li>Danish, Dutch</li>
+      <li>English, Esperanto, Estonian</li>
+      <li>Finnish, French</li>
+      <li>Galician, Georgian, German, Greek</li>
+      <li>Hebrew, Hindi, Hungarian</li>
+      <li>Icelandic, Indonesian, Italian</li>
+      <li>Japanese</li>
+      <li>Kazakh, Korean</li>
+      <li>Latvian, Lithuanian</li>
+      <li>Macedonian, Malay, Malayalam</li>
+      <li>Norwegian</li>
+      <li>Persian, Polish, Portuguese (European), Portuguese (Brazilian)</li>
+      <li>Romanian, Russian</li>
+      <li>Serbian, Sinhala, Slovak, Slovenian, Spanish, Swedish</li>
+      <li>Tagalog, Tamil, Telugu, Turkish</li>
+      <li>Ukrainian, Urdu</li>
+      <li>Vietnamese</li>
+    </ul>
+
+    <p>Each language is supported with a dedicated word frequency list computed from the corresponding OpenSubtitles dataset, ensuring <strong>language-specific reference data</strong> for accurate keyness calculations.</p>
+    <hr>
+
+    <h4><strong>Output Visualizations</strong></h4>
+
+    <p>TALL provides three complementary visualizations for keyness analysis results:</p>
+
+    <h4><em>1. Keyness Plot</em></h4>
+    <p>A horizontal bar chart displaying the <strong>Top keywords</strong> ranked by keyness scores. Words with <strong>positive keyness values</strong> (shown in blue) are overrepresented in the target corpus, while words with <strong>negative keyness values</strong> (shown in red) are underrepresented compared to the reference corpus. The length of each bar corresponds to the magnitude of the keyness score, providing an immediate visual indication of the most distinctive words.</p>
+
+    <h4><em>2. Word Cloud</em></h4>
+    <p>An interactive word cloud visualization where <strong>word size is proportional to keyness strength</strong>. This representation offers an intuitive overview of the most characteristic terms in the corpus, with larger words indicating higher keyness values. The word cloud is particularly useful for quickly identifying dominant themes and terminology.</p>
+
+    <h4><em>3. Statistical Table</em></h4>
+    <p>A comprehensive data table providing <strong>detailed statistical metrics</strong> for all analyzed words. The table includes multiple keyness measures and effect size indicators, allowing for in-depth quantitative analysis. Users can sort, filter, and export the results for further statistical processing or reporting.</p>
+    <hr>
+
+    <h4><strong>Statistical Indices in Keyness Analysis</strong></h4>
+
+    <p>TALL computes a comprehensive set of statistical measures to assess the significance and magnitude of lexical differences between the target and reference corpora. Each index provides unique insights into word distinctiveness:</p>
+
+    <h4><em>G² (Log-Likelihood Ratio)</em></h4>
+    <p>The <strong>Log-Likelihood test (G²)</strong> is the primary keyness measure used in TALL (<strong>Dunning, 1993</strong>). It assesses whether the observed frequency difference between the target and reference corpus is statistically significant. The G² statistic follows a chi-squared distribution and provides a robust measure of keyness that is less sensitive to corpus size than alternative methods. Higher absolute values indicate stronger keyness, with positive values representing overuse and negative values representing underuse.</p>
+
+    <h4><em>Sig_corrected (Statistical Significance)</em></h4>
+    <p>The <strong>corrected significance level</strong> indicates whether the keyness difference is statistically significant after applying <strong>multiple testing corrections</strong> (e.g., Bonferroni or FDR correction). This ensures that identified keywords are truly distinctive and not the result of random variation. Typical significance thresholds include p < .001, p < .01, and p < .05.</p>
+
+    <h4><em>Obs_Freq (Observed Frequency)</em></h4>
+    <p>The <strong>observed frequency</strong> represents the actual count of the word in the target corpus. This raw frequency provides context for understanding how prevalent a term is in the analyzed texts.</p>
+
+    <h4><em>Exp_Freq (Expected Frequency)</em></h4>
+    <p>The <strong>expected frequency</strong> is the count that would be anticipated in the target corpus based on the word's frequency in the reference corpus and the relative sizes of both corpora. Substantial deviations between observed and expected frequencies indicate keyness.</p>
+
+    <h4><em>RDF (Relative Document Frequency)</em></h4>
+    <p>The <strong>Relative Document Frequency</strong> measures the proportion of documents in the target corpus that contain the word. This metric helps distinguish between words that appear frequently in a few documents versus words that are distributed across many documents, providing insights into vocabulary consistency and dispersion.</p>
+
+    <h4><em>RateRatio</em></h4>
+    <p>The <strong>Rate Ratio</strong> (also known as the <strong>Relative Risk</strong>) is the ratio of the word's frequency rate in the target corpus to its frequency rate in the reference corpus. A RateRatio > 1 indicates overuse in the target corpus, while a RateRatio < 1 indicates underuse. This effect size measure provides an intuitive interpretation of the magnitude of difference.</p>
+
+    <h4><em>OddsRatio</em></h4>
+    <p>The <strong>Odds Ratio</strong> compares the odds of a word appearing in the target corpus versus the reference corpus (<strong>Everitt, 2002</strong>). It is calculated as:</p>
+    <p><code>OddsRatio = (a × d) / (b × c)</code></p>
+    <p>where <em>a</em> is the word's frequency in the target corpus, <em>b</em> is the frequency of other words in the target corpus, <em>c</em> is the word's frequency in the reference corpus, and <em>d</em> is the frequency of other words in the reference corpus. Values greater than 1 indicate overuse; values less than 1 indicate underuse.</p>
+
+    <h4><em>LogOddsRatio</em></h4>
+    <p>The <strong>Log Odds Ratio</strong> is the natural logarithm of the Odds Ratio, providing a <strong>symmetric measure</strong> of effect size. This transformation makes interpretation easier, as equal magnitudes of positive and negative values represent equivalent strengths of association in opposite directions. The Log Odds Ratio is particularly useful for comparing keyness across different studies and corpora.</p>
+
+    <h4><em>phi (Phi Coefficient)</em></h4>
+    <p>The <strong>Phi coefficient</strong> is a measure of association between two binary variables, in this case, whether a word appears in the target versus reference corpus. Values range from -1 to +1, with values closer to ±1 indicating stronger associations. The phi coefficient is related to the chi-squared statistic and provides a normalized effect size measure.</p>
+
+    <h4><em>MI (Mutual Information)</em></h4>
+    <p>The <strong>Mutual Information</strong> score quantifies the amount of information shared between a word's occurrence and corpus membership (<strong>Church & Hanks, 1990</strong>). Higher MI values indicate that the presence of a word is highly informative about whether a text belongs to the target corpus. MI is particularly useful for identifying highly specific terminology but can be biased toward low-frequency words.</p>
+
+    <h4><em>PMI (Pointwise Mutual Information)</em></h4>
+    <p>The <strong>Pointwise Mutual Information</strong> is a variant of MI that measures the association strength between a specific word and the target corpus. PMI values indicate how much more likely a word is to appear in the target corpus compared to chance. Positive PMI values suggest positive association (overuse), while negative values suggest negative association (underuse).</p>
+
+    <h4><em>DeltaP (Delta P)</em></h4>
+    <p>The <strong>Delta P statistic</strong> (<strong>Gries, 2013</strong>) measures the <strong>directional association strength</strong> between a word and corpus membership. It ranges from -1 to +1, where positive values indicate attraction to the target corpus and negative values indicate repulsion. Delta P is considered a robust measure of keyness that accounts for the asymmetric nature of word-corpus associations.</p>
+    <hr>
+
+    <h4><strong>Interpreting Keyness Results</strong></h4>
+
+    <p>When analyzing keyness results in TALL, consider the following guidelines:</p>
+
+    <ul>
+      <li><strong>Statistical Significance vs. Effect Size:</strong> A word may be statistically significant (low p-value) but have a small effect size, or vice versa. Always examine both significance tests (G², Sig_corrected) and effect size measures (RateRatio, LogOddsRatio, Delta P) for comprehensive interpretation.</li>
+      <li><strong>Positive vs. Negative Keyness:</strong> Positive keyness (blue bars) indicates words that are characteristic of your corpus, while negative keyness (red bars) reveals words that are markedly absent or underused compared to general language.</li>
+      <li><strong>Frequency Context:</strong> High keyness scores for low-frequency words (small Obs_Freq) may indicate specialized terminology, while high keyness for high-frequency words suggests fundamental stylistic or thematic differences.</li>
+      <li><strong>Multiple Indices:</strong> Different indices may highlight different aspects of keyness. G² emphasizes statistical significance, Log Odds Ratio provides symmetric effect size, and Delta P accounts for directional associations.</li>
+    </ul>
+    <hr>
+
+    <h4><strong>Applications of Keyness Analysis</strong></h4>
+
+    <ul>
+      <li><strong>Genre and Register Analysis:</strong> Identifying linguistic features that distinguish academic writing, legal texts, news articles, or social media discourse.</li>
+      <li><strong>Author Attribution and Stylometry:</strong> Detecting distinctive word usage patterns that characterize individual authors or writing styles.</li>
+      <li><strong>Comparative Corpus Linguistics:</strong> Comparing vocabulary across different time periods, regions, or social groups.</li>
+      <li><strong>Terminology Extraction:</strong> Identifying technical terms and domain-specific vocabulary in specialized corpora.</li>
+      <li><strong>Discourse Analysis:</strong> Revealing ideological or thematic emphases through the detection of overused keywords.</li>
+      <li><strong>Content Analysis:</strong> Characterizing the distinctive features of different text types, publications, or communication channels.</li>
+    </ul>
+    <hr>
+
+    <h4><strong>Advantages of Keyness Analysis in TALL</strong></h4>
+
+    <ul>
+      <li><strong>Multilingual Support:</strong> Provides reference frequency lists for 69 languages, enabling cross-lingual keyness studies.</li>
+      <li><strong>Large-Scale Reference Data:</strong> Uses the OpenSubtitles corpus, which contains millions of words per language, ensuring robust statistical comparisons.</li>
+      <li><strong>Comprehensive Statistical Measures:</strong> Computes multiple keyness indices, allowing users to select the most appropriate measure for their research questions.</li>
+      <li><strong>Multiple Visualization Options:</strong> Offers plot, word cloud, and table views to suit different analytical and presentation needs.</li>
+      <li><strong>Integration with TALL's NLP Pipeline:</strong> Works seamlessly with TALL's tokenization, lemmatization, and PoS-tagging infrastructure.</li>
+      <li><strong>Exportable Results:</strong> All statistical results can be exported to Excel for further analysis, reporting, or integration with other tools.</li>
+    </ul>
+
+    <p>By integrating keyness analysis with <strong>OpenSubtitles-based reference data</strong> and providing <strong>comprehensive statistical measures</strong>, TALL enables researchers to conduct <strong>rigorous comparative linguistic studies</strong> across a wide range of languages and text types.</p>
+    <hr>
+
+    <div class='references'>
+      <h4><strong>References</strong></h4>
+
+      <p><strong>Church, K. W., & Hanks, P.</strong></p>
+      <p><i>Word association norms, mutual information, and lexicography.</i> <strong>Computational Linguistics</strong>, 16(1), 22-29, 1990.</p>
+
+      <p><strong>Dunning, T.</strong></p>
+      <p><i>Accurate methods for the statistics of surprise and coincidence.</i> <strong>Computational Linguistics</strong>, 19(1), 61-74, 1993.</p>
+
+      <p><strong>Everitt, B. S.</strong></p>
+      <p><i>The Cambridge Dictionary of Statistics</i> (2nd ed.). Cambridge University Press, 2002.</p>
+
+      <p><strong>Gabrielatos, C.</strong></p>
+      <p><i>Keyness Analysis: Nature, metrics and techniques.</i> In C. Taylor & A. Marchi (Eds.), <strong>Corpus Approaches to Discourse: A Critical Review</strong> (pp. 225-258). Routledge, 2018.</p>
+
+      <p><strong>Gries, S. T.</strong></p>
+      <p><i>50-something years of work on collocations: What is or should be next...</i> <strong>International Journal of Corpus Linguistics</strong>, 18(1), 137-166, 2013. DOI: <a href='https://doi.org/10.1075/ijcl.18.1.09gri' target='_blank'>10.1075/ijcl.18.1.09gri</a></p>
+
+      <p><strong>Lison, P., & Tiedemann, J.</strong></p>
+      <p><i>OpenSubtitles2016: Extracting Large Parallel Corpora from Movie and TV Subtitles.</i> <strong>Proceedings of the 10th International Conference on Language Resources and Evaluation (LREC 2016)</strong>, 2016.</p>
+
+      <p><strong>Scott, M.</strong></p>
+      <p><i>PC analysis of key words—And key key words.</i> <strong>System</strong>, 25(2), 233-245, 1997. DOI: <a href='https://doi.org/10.1016/S0346-251X(97)00011-0' target='_blank'>10.1016/S0346-251X(97)00011-0</a></p>
+
+      <p><strong>Tiedemann, J.</strong></p>
+      <p><i>Parallel Data, Tools and Interfaces in OPUS.</i> <strong>Proceedings of the 8th International Conference on Language Resources and Evaluation (LREC 2012)</strong>, 2012.</p>
+
+      <p><strong>OPUS NLPL Project:</strong> <a href='https://opus.nlpl.eu' target='_blank'>https://opus.nlpl.eu</a></p>
+    </div>
+
+  </body>"
+
+  ## reinert ----
   reinert <- "<body>
 
     <h3><strong>Reinert Clustering in TALL</strong></h3>
@@ -726,6 +913,7 @@ helpContent <- function() {
 
 </body>"
 
+  ## correspondece analysis ----
   correspondenceanalysis <- "<body>
 
     <h3><strong>Correspondence Analysis in TALL</strong></strong></h3>
@@ -768,6 +956,7 @@ helpContent <- function() {
 
       </body>"
 
+  ## co-word analysis ----
   cowordanalysis <- "<body>
 
     <h3><strong>Co-Word Analysis in TALL</strong></strong></h3>
@@ -838,6 +1027,7 @@ helpContent <- function() {
 
               </body>"
 
+  ## thematic map ----
   thematicmap <- "
   <body>
 
@@ -917,6 +1107,7 @@ helpContent <- function() {
 
   "
 
+  ## embedding training ----
   embeddingtrain <- "
 
     <body>
@@ -976,6 +1167,7 @@ helpContent <- function() {
     </body>
   "
 
+  ## embedding similarity ----
   embeddingsimilarity <- "<body>
     <h3><strong>Word Similarity Network in TALL</strong></h3>
     <p>
@@ -1038,6 +1230,7 @@ helpContent <- function() {
 
     "
 
+  ## tm chioice ----
   tmkchoice <- "<body>
 
   <h3><strong>Topic Modeling in TALL: K Selection</strong></h3>
@@ -1100,6 +1293,7 @@ helpContent <- function() {
 
     </body>"
 
+  ## te estimation ----
   tmmodelestimation <- "<body>
 
     <h3><strong>Topic Modeling in TALL: Model Estimation</strong></strong></h3>
@@ -1147,6 +1341,7 @@ helpContent <- function() {
 
       </body>"
 
+  ## polarity detection ----
   polaritydetection <- "<body>
 
     <h3><strong>Polarity Detection in TALL</strong></strong></h3>
@@ -1215,6 +1410,7 @@ helpContent <- function() {
 
       </body>"
 
+  ## summarzation ----
   summarization <- "<body>
 
     <h3><strong>Summarization in TALL</strong></h3>
@@ -1312,6 +1508,7 @@ helpContent <- function() {
     customterm = customterm,
     posselection = posselection,
     overview = overview,
+    keyness = keyness,
     wordincontext = wordincontext,
     reinert = reinert,
     correspondenceanalysis = correspondenceanalysis,
