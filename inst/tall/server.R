@@ -531,7 +531,7 @@ server <- function(input, output, session) {
             subfolder = FALSE,
             line_sep = input$line_sep
           )
-          txt <- txt %>% clean_text() ## clean text before tokenization
+          txt <- txt %>% trim_text_columns() %>% clean_text() ## clean text before tokenization
           values$menu <- 0
           values$custom_lists <- NULL
           values$txt <- txt %>%
@@ -714,6 +714,7 @@ server <- function(input, output, session) {
           text = removeHTMLTags(!!sym(input$biblioChoice)),
           text_original = text
         ) %>%
+        trim_text_columns() %>%
         clean_text() %>% ## clean text before tokenization
         arrange(doc_id)
       values$menu <- 0
@@ -2591,13 +2592,13 @@ server <- function(input, output, session) {
     filterDATA()
     DTformat(
       LemmaSelection(values$dfTag) %>%
-        dplyr::filter(docSelected),
+        dplyr::filter(docSelected) %>%
+        select("doc_id", "sentence", "token", "lemma", "upos"),
       nrow = 3,
       size = "100%",
       title = paste0(
         "Filtered Data by ",
-        paste0(input$filterList, collapse = ", "),
-        col_to_remove = values$generalTerm
+        paste0(input$filterList, collapse = ", ")
       ),
       col_to_remove = values$generalTerm
     )

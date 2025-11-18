@@ -31,6 +31,13 @@ is_online <- function() {
 }
 
 ## clean raw text before apply tokenization ----
+trim_text_columns <- function(df) {
+  df %>%
+    dplyr::mutate(dplyr::across(
+      where(is.character),
+      ~ trimws(.x)
+    ))
+}
 
 clean_text <- function(
   df,
