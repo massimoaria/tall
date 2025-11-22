@@ -4,6 +4,8 @@ source("libraries.R", local = TRUE)
 source("tallFunctions.R", local = TRUE)
 source("helpContent.R", local = TRUE)
 source("cssTags.R", local = TRUE)
+source("featureroles.R", local = TRUE)
+source("keyness.R", local = TRUE)
 libraries()
 
 htmltools::findDependencies(selectizeInput(
@@ -1904,6 +1906,9 @@ body <- dashboardBody(
       )
     ),
 
+    ### FEATURE ROLES ----
+    featureRolesUI(),
+
     ### OVERVIEW ----
 
     tabItem(
@@ -2380,243 +2385,7 @@ body <- dashboardBody(
 
     ### KEYNESS ----
 
-    tabItem(
-      tabName = "keyness",
-      fluidPage(
-        fluidRow(
-          column(
-            8,
-            h3(strong("Keyness Analysis"), align = "center")
-          ),
-          div(
-            title = t_run,
-            column(
-              1,
-              do.call(
-                "actionButton",
-                c(
-                  run_bttn,
-                  list(
-                    inputId = "run_keyness"
-                  )
-                )
-              )
-            )
-          ),
-          div(
-            title = t_export,
-            column(
-              1,
-              do.call(
-                "actionButton",
-                c(
-                  export_bttn,
-                  list(
-                    inputId = "keynessExport"
-                  )
-                )
-              )
-            )
-          ),
-          div(
-            title = t_report,
-            column(
-              1,
-              do.call(
-                "actionButton",
-                c(
-                  report_bttn,
-                  list(
-                    inputId = "keynessReport"
-                  )
-                )
-              )
-            )
-          ),
-          div(
-            column(
-              1,
-              dropdown(
-                h4(strong("Options: ")),
-                br(),
-
-                # Main Configuration
-                div(
-                  class = "config-section",
-                  div(
-                    class = "config-section-header",
-                    icon("cog", lib = "glyphicon"),
-                    "Main Configuration"
-                  ),
-                  numericInput(
-                    inputId = "keyness_n",
-                    label = "Max Number of Terms:",
-                    value = 1000,
-                    min = 100,
-                    max = 10000,
-                    step = 100
-                  ),
-                  numericInput(
-                    inputId = "keyness_minchar",
-                    label = "Min Character Length:",
-                    value = 3,
-                    min = 1,
-                    max = 10,
-                    step = 1
-                  ),
-                  selectInput(
-                    inputId = "keyness_measure",
-                    label = "Keyness Measure:",
-                    choices = c(
-                      "G2" = "G2",
-                      "LogOddsRatio" = "LogOddsRatio",
-                      "Phi" = "phi",
-                      "Delta P" = "DeltaP"
-                    ),
-                    selected = "G2"
-                  ),
-                  checkboxGroupInput(
-                    inputId = "keyness_upos",
-                    label = "POS Tags:",
-                    choices = c("NOUN", "VERB", "ADJ", "ADV"),
-                    selected = c("NOUN", "VERB"),
-                    inline = FALSE
-                  )
-                ),
-                # Graphical Parameters Section
-                tags$details(
-                  class = "params-section",
-                  tags$summary(
-                    div(
-                      class = "params-section-header",
-                      style = "display: flex; justify-content: space-between; align-items: center;",
-                      div(
-                        icon("eye-open", lib = "glyphicon"),
-                        " Graphical Parameters"
-                      ),
-                      icon(
-                        "chevron-down",
-                        lib = "glyphicon",
-                        style = "font-size: 12px;"
-                      )
-                    )
-                  ),
-                  div(
-                    style = "margin-top: 10px;",
-                    h4("Number of Words:"),
-                    fluidRow(
-                      column(
-                        6,
-                        numericInput(
-                          "Keyness_Nbarplot",
-                          label = "BarPlot",
-                          value = 10,
-                          min = 1,
-                          max = 20,
-                          step = 1
-                        )
-                      ),
-                      column(
-                        6,
-                        numericInput(
-                          "Keyness_Nwc",
-                          label = "Wordcloud",
-                          value = 100,
-                          min = 10,
-                          step = 1,
-                          max = 200
-                        )
-                      )
-                    )
-                  )
-                ),
-                style = "gradient",
-                right = TRUE,
-                animate = TRUE,
-                circle = TRUE,
-                tooltip = tooltipOptions(title = "Options"),
-                icon = icon("sliders", lib = "font-awesome"),
-                width = "300px"
-              )
-            ),
-            style = style_opt
-          )
-        ),
-        fluidRow(
-          tabsetPanel(
-            type = "tabs",
-
-            tabPanel(
-              br(),
-              title = "Plot",
-              icon = icon("chart-column"),
-
-              shinycssloaders::withSpinner(
-                plotlyOutput(
-                  outputId = "keyness_barplot_plotly",
-                  height = "75vh",
-                  width = "95.0%"
-                ),
-                color = getOption("spinner.color", default = "#4F7942")
-              )
-            ),
-            tabPanel(
-              br(),
-              title = "WordCloud",
-              icon = icon("chart-column"),
-              shinycssloaders::withSpinner(
-                wordcloud2::wordcloud2Output(
-                  outputId = "keyness_wordcloud",
-                  height = "80vh", # Increased height to use more vertical space
-                  width = "95%" # Changed to 100% to fill horizontal space
-                ),
-                color = getOption("spinner.color", default = "#4F7942")
-              )
-            ),
-            tabPanel(
-              br(),
-              title = "Frequency Context Plot",
-              icon = icon("chart-column"),
-
-              shinycssloaders::withSpinner(
-                plotlyOutput(
-                  outputId = "keyness_frequency_plotly",
-                  height = "75vh",
-                  width = "95.0%"
-                ),
-                color = getOption("spinner.color", default = "#4F7942")
-              )
-            ),
-            tabPanel(
-              title = "Table",
-              icon = icon("table"),
-              shinycssloaders::withSpinner(
-                DT::DTOutput("keyness_table"),
-                color = getOption("spinner.color", default = "#4F7942")
-              ),
-              align = "center"
-            ),
-            tabPanel(
-              "Info & References",
-              fluidPage(
-                fluidRow(
-                  column(1),
-                  column(
-                    10,
-                    div(
-                      style = "padding: 30px; background: white; border-radius: 8px;
-                         box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-top: 20px;",
-                      HTML(infoTexts$keyness)
-                    )
-                  ),
-                  column(1)
-                )
-              )
-            )
-          )
-        )
-      )
-    ),
+    keynessUI(),
 
     ### WORDS ----
 

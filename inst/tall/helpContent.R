@@ -414,6 +414,102 @@ helpContent <- function() {
 
 </body>"
 
+  ## features ----
+  featureroles <- "<body>
+
+  <h3><strong>Feature Roles in TALL</strong></h3>
+
+  <p>The Feature Roles section allows users to assign specific roles to variables in their dataset. These role assignments enable sophisticated text analysis workflows across various TALL features, ensuring that the appropriate variables are used for different analytical purposes.</p>
+
+  <hr>
+
+  <h4><strong>Purpose</strong></h4>
+
+  <p>By explicitly defining feature roles, TALL can automatically configure and optimize analysis parameters based on the characteristics of your data. This structured approach ensures consistency across different analytical modules and reduces the need for repetitive variable selection.</p>
+
+  <hr>
+
+  <h4><strong>Available Feature Roles</strong></h4>
+
+  <h5><i class='glyphicon glyphicon-time' style='color: #3f51b5;'></i> <strong>Time Variable</strong></h5>
+
+  <p>A numeric or date variable that serves as a temporal indicator for diachronic text analysis.</p>
+
+  <p><strong>Primary Applications:</strong></p>
+  <ul>
+    <li><strong>Longitudinal Topic Modeling:</strong> Track how topics evolve over time periods</li>
+    <li><strong>Temporal Trend Analysis:</strong> Identify patterns and shifts in vocabulary usage across different time frames</li>
+    <li><strong>Time-Series Text Mining:</strong> Analyze textual data with temporal dependencies</li>
+    <li><strong>Diachronic Linguistic Studies:</strong> Examine language change and evolution</li>
+  </ul>
+
+  <p><strong>Requirements:</strong> The variable must be numeric (e.g., year, month number) or in date format (e.g., YYYY-MM-DD).</p>
+
+  <hr>
+
+  <h5><i class='glyphicon glyphicon-tag' style='color: #00bcd4;'></i> <strong>Label Variable</strong></h5>
+
+  <p>A categorical variable representing the response or target class in supervised text classification tasks.</p>
+
+  <p><strong>Primary Applications:</strong></p>
+  <ul>
+    <li><strong>Supervised Machine Learning:</strong> Train classification models such as Random Forest, Support Vector Machines (SVM), and Naive Bayes</li>
+    <li><strong>Text Categorization:</strong> Automatically assign documents to predefined categories</li>
+    <li><strong>Sentiment Classification:</strong> Predict sentiment labels (positive, negative, neutral)</li>
+    <li><strong>Document Classification:</strong> Classify documents based on topic, genre, or other categorical attributes</li>
+    <li><strong>Model Evaluation:</strong> Validate classification performance using labeled data</li>
+  </ul>
+
+  <p><strong>Requirements:</strong> The variable should contain discrete categorical values. For binary classification, two distinct categories are needed. For multi-class classification, multiple categories can be used.</p>
+
+  <hr>
+
+  <h5><i class='glyphicon glyphicon-transfer' style='color: #ff9800;'></i> <strong>Keyness Group Variable</strong></h5>
+
+  <p>A binary or categorical variable that divides the corpus into distinct groups for comparative analysis.</p>
+
+  <p><strong>Primary Applications:</strong></p>
+  <ul>
+    <li><strong>Keyness Analysis:</strong> Identify words and phrases that are statistically more characteristic of one group compared to another</li>
+    <li><strong>Comparative Corpus Linguistics:</strong> Compare vocabulary usage between different subcorpora</li>
+    <li><strong>Distinctive Vocabulary Identification:</strong> Discover words that differentiate groups</li>
+    <li><strong>Contrastive Analysis:</strong> Examine linguistic differences between categories (e.g., male vs. female authors, different time periods, geographic regions)</li>
+  </ul>
+
+  <p><strong>Requirements:</strong> The variable should ideally contain two distinct categories for binary comparison, though categorical variables with multiple groups can also be used (with pairwise comparisons).</p>
+
+  <hr>
+
+  <h4><strong>Usage Guidelines</strong></h4>
+
+  <ul>
+    <li><strong>Available Features:</strong> Only metadata columns are available for role assignment. Technical columns generated during text processing (e.g., <code>token_id</code>, <code>lemma</code>, <code>upos</code>) are automatically excluded by the <code>noGroupLabels()</code> function.</li>
+    <li><strong>Multiple Role Assignment:</strong> A single variable can be assigned to multiple roles if appropriate for your analysis workflow.</li>
+    <li><strong>Session Persistence:</strong> Role assignments are maintained throughout your TALL session until explicitly changed or reset.</li>
+    <li><strong>Flexible Configuration:</strong> Roles can be modified at any time to accommodate different analytical needs.</li>
+    <li><strong>No Mandatory Assignments:</strong> Not all roles need to be assigned. Only configure the roles relevant to your specific analysis objectives.</li>
+  </ul>
+
+  <hr>
+
+  <h4><strong>Best Practices</strong></h4>
+
+  <ul>
+    <li><strong>Data Quality:</strong> Ensure that selected variables contain valid, non-missing data appropriate for their assigned role.</li>
+    <li><strong>Temporal Consistency:</strong> For time variables, verify that temporal values are consistent and properly formatted.</li>
+    <li><strong>Balanced Labels:</strong> For label variables in classification tasks, consider class balance to avoid biased model performance.</li>
+    <li><strong>Clear Group Definitions:</strong> For keyness analysis, ensure group categories are well-defined and meaningful for comparison.</li>
+    <li><strong>Documentation:</strong> Keep track of which variables are assigned to which roles, especially in complex analytical workflows.</li>
+  </ul>
+
+  <hr>
+
+  <h4><strong>Technical Notes</strong></h4>
+
+  <p>Feature role assignments are stored in the reactive values object (<code>values$timeVariable</code>, <code>values$labelVariable</code>, <code>values$keynessVariable</code>) and can be accessed programmatically throughout the TALL application. These assignments inform downstream analytical functions about the appropriate variables to use for specific tasks.</p>
+
+</body>"
+
   ## overview ----
   overview <- "<body>
   <div class='container'>
@@ -1507,6 +1603,7 @@ helpContent <- function() {
     multiwordlist = multiwordlist,
     customterm = customterm,
     posselection = posselection,
+    featureroles = featureroles,
     overview = overview,
     keyness = keyness,
     wordincontext = wordincontext,

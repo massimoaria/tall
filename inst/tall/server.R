@@ -2,6 +2,8 @@
 source("tallFunctions.R", local = TRUE)
 source("tallShot.R", local = TRUE)
 source("tallAI.R", local = TRUE)
+source("featureroles.R", local = TRUE)
+source("keyness.R", local = TRUE)
 
 ## suppress warnings
 # options(warn = -1)
@@ -2774,6 +2776,9 @@ server <- function(input, output, session) {
     )
   })
 
+  ## FEATURE ROLES ----
+  featureRolesServer(input, output, session, values)
+
   ## OVERVIEW ----
 
   ## BOX ----
@@ -3129,128 +3134,7 @@ server <- function(input, output, session) {
   })
 
   ### KEYNESS ----
-
-  # Keyness Analysis
-  keyness_results <- eventReactive(
-    input$run_keyness,
-    {
-      withProgress(message = 'Running Keyness Analysis...', value = 0, {
-        incProgress(0.3, detail = "Calculating frequencies...")
-        results <- tall_keyness_analysis(
-          dfTag = values$dfTag,
-          language = values$language,
-          N = input$keyness_n,
-          min.char = input$keyness_minchar,
-          upos_list = input$keyness_upos
-        )
-
-        incProgress(0.7, detail = "Generating plots...")
-        if (is.null(input$keyness_measure)) {
-          measure = "G2"
-        } else {
-          measure = input$keyness_measure
-        }
-        if (is.null(input$Keyness_Nbarplot)) {
-          Nbarplot = 10
-        } else {
-          Nbarplot = input$Keyness_Nbarplot
-        }
-        results <- c(
-          results,
-          plot_tall_keyness(results$results, measure = measure, N = Nbarplot)
-        )
-
-        plot_frequency <- frequency_context_analysis(
-          results$results,
-          top_n = 20,
-          g2_threshold = quantile(results$results$G2, 0.95),
-          label_spacing = 0.15
-        )
-
-        results <- c(
-          results,
-          plot_frequency = list(plot_frequency)
-        )
-
-        if (is.null(input$Keyness_Nwc)) {
-          Nwc = 100
-        } else {
-          Nwc = input$Keyness_Nwc
-        }
-
-        data_target <- results$results %>%
-          ungroup() %>%
-          select(token, all_of(measure)) %>%
-          arrange(desc(.data[[measure]])) %>%
-          slice_head(n = Nwc) %>%
-          rename(word = token)
-
-        wc = wordcloud2::wordcloud2(
-          data_target,
-          color = "#4575B4",
-          size = ifelse(measure == "G2", 2, 0.7) # Adjust this value (0.5-2) to control word sizes relative to container
-        )
-        results <- c(
-          results,
-          wc = list(wc)
-        )
-
-        results$results <- results$results %>%
-          rename(Word = token, Obs_Freq = O11, Exp_Freq = O12) %>%
-          select(
-            Word,
-            Sig_corrected,
-            Obs_Freq,
-            Exp_Freq,
-            G2,
-            RDF,
-            RateRatio,
-            OddsRatio,
-            LogOddsRatio,
-            phi,
-            MI,
-            PMI,
-            DeltaP
-          ) %>%
-          mutate(
-            G2 = round(G2, 3),
-            RDF = round(RDF, 3),
-            RateRatio = round(RateRatio, 3),
-            OddsRatio = round(OddsRatio, 3),
-            LogOddsRatio = round(LogOddsRatio, 3),
-            phi = round(phi, 3),
-            MI = round(MI, 3),
-            PMI = round(PMI, 3),
-            DeltaP = round(DeltaP, 3)
-          )
-      })
-      values$keyness_results <- results
-    },
-    ignoreNULL = TRUE
-  )
-
-  # Keyness Table Output
-  output$keyness_table <- DT::renderDT({
-    req(keyness_results())
-    DTformat(values$keyness_results$results)
-  })
-
-  # Keyness Bar Plot plotly
-  output$keyness_barplot_plotly <- plotly::renderPlotly({
-    req(keyness_results())
-    values$keyness_results$plot_plotly_bar
-  })
-
-  output$keyness_frequency_plotly <- plotly::renderPlotly({
-    req(keyness_results())
-    values$keyness_results$plot_frequency
-  })
-
-  # Keyness WordCloud
-  output$keyness_wordcloud <- wordcloud2::renderWordcloud2({
-    req(keyness_results())
-    values$keyness_results$wc
-  })
+  keynessServer(input, output, session, values)
 
   ### WORDS ----
 

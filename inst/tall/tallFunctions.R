@@ -1835,7 +1835,8 @@ noGroupLabels <- function(label) {
       "token_original_nomultiwords",
       "lemma_original",
       "upos_specialentities",
-      "upos_original_custom"
+      "upos_original_custom",
+      "keyness_group"
     )
   )
 }
@@ -2449,15 +2450,6 @@ tall_download_wordlist <- function(
   overwrite = TRUE
 ) {
   filename <- paste0(language, "_word_frequency.keyness")
-  # switch(
-  #   language,
-  #   "english" = "en_word_frequency.keyness",
-  #   "spanish" = "es_word_frequency.keyness",
-  #   "french" = "fr_word_frequency.keyness",
-  #   "italian" = "it_word_frequency.keyness",
-  #   "german" = "de_word_frequency.keyness",
-  #   stop("Language not supported")
-  # ) -> filename
 
   if (is.null(file_dir)) {
     file_dir <- paste0(homeFolder(), "/tall/language_models")
@@ -2528,293 +2520,293 @@ tall_load_wordlist <- function(
   return(word_frequency)
 }
 
-tall_keyness_analysis <- function(
-  dfTag,
-  language = "english",
-  N = 2000,
-  min.char = 3,
-  upos_list = c("NOUN", "VERB")
-) {
-  # Load word frequency list for the specified language
-  word_frequency <- tall_load_wordlist(language = language)
+# tall_keyness_analysis <- function(
+#   dfTag,
+#   language = "english",
+#   N = 2000,
+#   min.char = 3,
+#   upos_list = c("NOUN", "VERB")
+# ) {
+#   # Load word frequency list for the specified language
+#   word_frequency <- tall_load_wordlist(language = language)
+#
+#   # Calculate observed frequencies by filtering and aggregating tokens
+#   x <- dfTag %>%
+#     dplyr::filter(upos %in% upos_list) %>%
+#     mutate(token = tolower(token)) %>%
+#     dplyr::group_by(token) %>%
+#     dplyr::summarise(n = n()) %>%
+#     ungroup() %>%
+#     dplyr::filter(nchar(token) > min.char) %>%
+#     slice_max(order_by = n, n = N) %>%
+#     rename(obsFreq = n) %>%
+#     as_tibble()
+#
+#   # Calculate total number of words (excluding numbers and punctuation)
+#   total_words <- nrow(
+#     dfTag %>%
+#       dplyr::filter(!upos %in% c("NUM", "PUNCT"))
+#   )
+#
+#   # Calculate expected frequencies based on reference corpus
+#   df <- word_frequency %>%
+#     as_tibble() %>%
+#     mutate(token = tolower(token)) %>%
+#     group_by(token) %>%
+#     summarise(rel_freq = sum(rel_freq, na.rm = T)) %>%
+#     ungroup() %>%
+#     mutate(expFreq = round(rel_freq * total_words, 0))
+#
+#   # Create frequency table by joining observed and expected frequencies
+#   freq_table <- x %>%
+#     left_join(df, by = c("token")) %>%
+#     select(token, obsFreq, expFreq) %>%
+#     distinct() %>%
+#     ungroup() %>%
+#     # replace NA in expFreq with 1
+#     dplyr::mutate(
+#       expFreq = ifelse(is.na(expFreq), 1, expFreq)
+#     )
+#   #drop_na()
+#
+#   # Calculate contingency table statistics
+#   stats_tb2 <- freq_table %>%
+#     dplyr::mutate(
+#       C1 = sum(obsFreq),
+#       C2 = sum(expFreq),
+#       N = C1 + C2
+#     ) %>%
+#     dplyr::rowwise() %>%
+#     dplyr::mutate(
+#       R1 = obsFreq + expFreq,
+#       R2 = N - R1,
+#       O11 = obsFreq,
+#       O11 = ifelse(O11 == 0, O11 + 0.1, O11),
+#       O12 = R1 - O11,
+#       O21 = C1 - O11,
+#       O22 = C2 - O12
+#     ) %>%
+#     dplyr::mutate(
+#       E11 = (R1 * C1) / N,
+#       E12 = (R1 * C2) / N,
+#       E21 = (R2 * C1) / N,
+#       E22 = (R2 * C2) / N
+#     ) %>%
+#     dplyr::select(-obsFreq, -expFreq)
+#
+#   # Calculate association measures and keyness statistics
+#   assoc_tb3 <- stats_tb2 %>%
+#     dplyr::mutate(Rws = nrow(.)) %>%
+#     dplyr::rowwise() %>%
+#     # Calculate Fisher's exact test
+#     dplyr::mutate(
+#       p = as.vector(unlist(fisher.test(matrix(
+#         c(O11, O12, O21, O22),
+#         ncol = 2,
+#         byrow = T
+#       ))[1]))
+#     ) %>%
+#     # Calculate per thousand word frequencies
+#     dplyr::mutate(
+#       ptw_target = O11 / C1 * 1000,
+#       ptw_ref = O12 / C2 * 1000
+#     ) %>%
+#     # Calculate chi-square statistic
+#     dplyr::mutate(
+#       X2 = (O11 - E11)^2 /
+#         E11 +
+#         (O12 - E12)^2 / E12 +
+#         (O21 - E21)^2 / E21 +
+#         (O22 - E22)^2 / E22
+#     ) %>%
+#     # Calculate various keyness measures
+#     dplyr::mutate(
+#       phi = sqrt((X2 / N)),
+#       MI = log2(O11 / E11),
+#       t.score = (O11 - E11) / sqrt(O11),
+#       PMI = log2((O11 / N) / ((O11 + O12) / N) * ((O11 + O21) / N)),
+#       DeltaP = (O11 / R1) - (O21 / R2),
+#       LogOddsRatio = log(
+#         ((O11 + 0.5) * (O22 + 0.5)) / ((O12 + 0.5) * (O21 + 0.5))
+#       ),
+#       G2 = 2 *
+#         ((O11 + 0.001) *
+#           log((O11 + 0.001) / E11) +
+#           (O12 + 0.001) * log((O12 + 0.001) / E12) +
+#           O21 * log(O21 / E21) +
+#           O22 * log(O22 / E22)),
+#       # Traditional keyness measures
+#       RateRatio = ((O11 + 0.001) / (C1 * 1000)) / ((O12 + 0.001) / (C2 * 1000)),
+#       RateDifference = (O11 / (C1 * 1000)) - (O12 / (C2 * 1000)),
+#       DifferenceCoefficient = RateDifference /
+#         sum((O11 / (C1 * 1000)), (O12 / (C2 * 1000))),
+#       OddsRatio = ((O11 + 0.5) * (O22 + 0.5)) / ((O12 + 0.5) * (O21 + 0.5)),
+#       LLR = 2 * (O11 * (log((O11 / E11)))),
+#       RDF = abs((O11 / C1) - (O12 / C2)),
+#       PDiff = abs(ptw_target - ptw_ref) / ((ptw_target + ptw_ref) / 2) * 100,
+#       SignedDKL = sum(
+#         ifelse(O11 > 0, O11 * log(O11 / ((O11 + O12) / 2)), 0) -
+#           ifelse(O12 > 0, O12 * log(O12 / ((O11 + O12) / 2)), 0)
+#       )
+#     ) %>%
+#     # Determine Bonferroni corrected significance
+#     dplyr::mutate(
+#       Sig_corrected = dplyr::case_when(
+#         p / Rws > .05 ~ "n.s.",
+#         p / Rws > .01 ~ "p < .05*",
+#         p / Rws > .001 ~ "p < .01**",
+#         p / Rws <= .001 ~ "p < .001***",
+#         T ~ "N.A."
+#       )
+#     ) %>%
+#     # Round p-value and determine type/antitype
+#     dplyr::mutate(
+#       p = round(p, 5),
+#       type = ifelse(E11 > O11, "antitype", "type"),
+#       phi = ifelse(E11 > O11, -phi, phi),
+#       G2 = ifelse(E11 > O11, -G2, G2)
+#     ) %>%
+#     # Filter out non-significant results
+#     dplyr::filter(Sig_corrected != "n.s.") %>%
+#     # Arrange by G2 statistic
+#     dplyr::arrange(-G2) %>%
+#     # Remove superfluous columns
+#     dplyr::select(
+#       -any_of(c(
+#         "TermCoocFreq",
+#         "AllFreq",
+#         "NRows",
+#         "R1",
+#         "R2",
+#         "C1",
+#         "C2",
+#         "E12",
+#         "E21",
+#         "E22",
+#         "upp",
+#         "low",
+#         "op",
+#         "t.score",
+#         "z.score",
+#         "Rws"
+#       ))
+#     ) %>%
+#     # Relocate important columns to the front
+#     dplyr::relocate(any_of(c(
+#       "token",
+#       "type",
+#       "Sig_corrected",
+#       "O11",
+#       "O12",
+#       "ptw_target",
+#       "ptw_ref",
+#       "G2",
+#       "RDF",
+#       "RateRatio",
+#       "RateDifference",
+#       "DifferenceCoefficient",
+#       "LLR",
+#       "SignedDKL",
+#       "PDiff",
+#       "LogOddsRatio",
+#       "MI",
+#       "PMI",
+#       "phi",
+#       "X2",
+#       "OddsRatio",
+#       "DeltaP",
+#       "p",
+#       "E11",
+#       "O21",
+#       "O22"
+#     )))
+#
+#   return(list(
+#     results = assoc_tb3
+#   ))
+# }
 
-  # Calculate observed frequencies by filtering and aggregating tokens
-  x <- dfTag %>%
-    dplyr::filter(upos %in% upos_list) %>%
-    mutate(token = tolower(token)) %>%
-    dplyr::group_by(token) %>%
-    dplyr::summarise(n = n()) %>%
-    ungroup() %>%
-    dplyr::filter(nchar(token) > min.char) %>%
-    slice_max(order_by = n, n = N) %>%
-    rename(obsFreq = n) %>%
-    as_tibble()
-
-  # Calculate total number of words (excluding numbers and punctuation)
-  total_words <- nrow(
-    dfTag %>%
-      dplyr::filter(!upos %in% c("NUM", "PUNCT"))
-  )
-
-  # Calculate expected frequencies based on reference corpus
-  df <- word_frequency %>%
-    as_tibble() %>%
-    mutate(token = tolower(token)) %>%
-    group_by(token) %>%
-    summarise(rel_freq = sum(rel_freq, na.rm = T)) %>%
-    ungroup() %>%
-    mutate(expFreq = round(rel_freq * total_words, 0))
-
-  # Create frequency table by joining observed and expected frequencies
-  freq_table <- x %>%
-    left_join(df, by = c("token")) %>%
-    select(token, obsFreq, expFreq) %>%
-    distinct() %>%
-    ungroup() %>%
-    # replace NA in expFreq with 1
-    dplyr::mutate(
-      expFreq = ifelse(is.na(expFreq), 1, expFreq)
-    )
-  #drop_na()
-
-  # Calculate contingency table statistics
-  stats_tb2 <- freq_table %>%
-    dplyr::mutate(
-      C1 = sum(obsFreq),
-      C2 = sum(expFreq),
-      N = C1 + C2
-    ) %>%
-    dplyr::rowwise() %>%
-    dplyr::mutate(
-      R1 = obsFreq + expFreq,
-      R2 = N - R1,
-      O11 = obsFreq,
-      O11 = ifelse(O11 == 0, O11 + 0.1, O11),
-      O12 = R1 - O11,
-      O21 = C1 - O11,
-      O22 = C2 - O12
-    ) %>%
-    dplyr::mutate(
-      E11 = (R1 * C1) / N,
-      E12 = (R1 * C2) / N,
-      E21 = (R2 * C1) / N,
-      E22 = (R2 * C2) / N
-    ) %>%
-    dplyr::select(-obsFreq, -expFreq)
-
-  # Calculate association measures and keyness statistics
-  assoc_tb3 <- stats_tb2 %>%
-    dplyr::mutate(Rws = nrow(.)) %>%
-    dplyr::rowwise() %>%
-    # Calculate Fisher's exact test
-    dplyr::mutate(
-      p = as.vector(unlist(fisher.test(matrix(
-        c(O11, O12, O21, O22),
-        ncol = 2,
-        byrow = T
-      ))[1]))
-    ) %>%
-    # Calculate per thousand word frequencies
-    dplyr::mutate(
-      ptw_target = O11 / C1 * 1000,
-      ptw_ref = O12 / C2 * 1000
-    ) %>%
-    # Calculate chi-square statistic
-    dplyr::mutate(
-      X2 = (O11 - E11)^2 /
-        E11 +
-        (O12 - E12)^2 / E12 +
-        (O21 - E21)^2 / E21 +
-        (O22 - E22)^2 / E22
-    ) %>%
-    # Calculate various keyness measures
-    dplyr::mutate(
-      phi = sqrt((X2 / N)),
-      MI = log2(O11 / E11),
-      t.score = (O11 - E11) / sqrt(O11),
-      PMI = log2((O11 / N) / ((O11 + O12) / N) * ((O11 + O21) / N)),
-      DeltaP = (O11 / R1) - (O21 / R2),
-      LogOddsRatio = log(
-        ((O11 + 0.5) * (O22 + 0.5)) / ((O12 + 0.5) * (O21 + 0.5))
-      ),
-      G2 = 2 *
-        ((O11 + 0.001) *
-          log((O11 + 0.001) / E11) +
-          (O12 + 0.001) * log((O12 + 0.001) / E12) +
-          O21 * log(O21 / E21) +
-          O22 * log(O22 / E22)),
-      # Traditional keyness measures
-      RateRatio = ((O11 + 0.001) / (C1 * 1000)) / ((O12 + 0.001) / (C2 * 1000)),
-      RateDifference = (O11 / (C1 * 1000)) - (O12 / (C2 * 1000)),
-      DifferenceCoefficient = RateDifference /
-        sum((O11 / (C1 * 1000)), (O12 / (C2 * 1000))),
-      OddsRatio = ((O11 + 0.5) * (O22 + 0.5)) / ((O12 + 0.5) * (O21 + 0.5)),
-      LLR = 2 * (O11 * (log((O11 / E11)))),
-      RDF = abs((O11 / C1) - (O12 / C2)),
-      PDiff = abs(ptw_target - ptw_ref) / ((ptw_target + ptw_ref) / 2) * 100,
-      SignedDKL = sum(
-        ifelse(O11 > 0, O11 * log(O11 / ((O11 + O12) / 2)), 0) -
-          ifelse(O12 > 0, O12 * log(O12 / ((O11 + O12) / 2)), 0)
-      )
-    ) %>%
-    # Determine Bonferroni corrected significance
-    dplyr::mutate(
-      Sig_corrected = dplyr::case_when(
-        p / Rws > .05 ~ "n.s.",
-        p / Rws > .01 ~ "p < .05*",
-        p / Rws > .001 ~ "p < .01**",
-        p / Rws <= .001 ~ "p < .001***",
-        T ~ "N.A."
-      )
-    ) %>%
-    # Round p-value and determine type/antitype
-    dplyr::mutate(
-      p = round(p, 5),
-      type = ifelse(E11 > O11, "antitype", "type"),
-      phi = ifelse(E11 > O11, -phi, phi),
-      G2 = ifelse(E11 > O11, -G2, G2)
-    ) %>%
-    # Filter out non-significant results
-    dplyr::filter(Sig_corrected != "n.s.") %>%
-    # Arrange by G2 statistic
-    dplyr::arrange(-G2) %>%
-    # Remove superfluous columns
-    dplyr::select(
-      -any_of(c(
-        "TermCoocFreq",
-        "AllFreq",
-        "NRows",
-        "R1",
-        "R2",
-        "C1",
-        "C2",
-        "E12",
-        "E21",
-        "E22",
-        "upp",
-        "low",
-        "op",
-        "t.score",
-        "z.score",
-        "Rws"
-      ))
-    ) %>%
-    # Relocate important columns to the front
-    dplyr::relocate(any_of(c(
-      "token",
-      "type",
-      "Sig_corrected",
-      "O11",
-      "O12",
-      "ptw_target",
-      "ptw_ref",
-      "G2",
-      "RDF",
-      "RateRatio",
-      "RateDifference",
-      "DifferenceCoefficient",
-      "LLR",
-      "SignedDKL",
-      "PDiff",
-      "LogOddsRatio",
-      "MI",
-      "PMI",
-      "phi",
-      "X2",
-      "OddsRatio",
-      "DeltaP",
-      "p",
-      "E11",
-      "O21",
-      "O22"
-    )))
-
-  return(list(
-    results = assoc_tb3
-  ))
-}
-
-plot_tall_keyness <- function(assoc_tb3, measure = "G2", N = 10) {
-  # Get top 10 and bottom 10 keywords
-  top <- assoc_tb3 %>%
-    dplyr::ungroup() %>%
-    dplyr::arrange(desc(.data[[measure]])) %>%
-    dplyr::slice_head(n = N)
-
-  bot <- assoc_tb3 %>%
-    dplyr::ungroup() %>%
-    dplyr::arrange(desc(.data[[measure]])) %>%
-    dplyr::slice_tail(n = N)
-
-  names(top)[which(names(top) %in% measure)] <- "Measure"
-  names(bot)[which(names(bot) %in% measure)] <- "Measure"
-
-  combined_data <- rbind(top, bot)
-
-  # Create ggplot bar plot for top/bottom keywords
-  plot_gg_bar <- combined_data %>%
-    ggplot(aes(
-      x = reorder(token, Measure, mean),
-      y = Measure,
-      label = Measure,
-      fill = type
-    )) +
-    geom_bar(stat = "identity") +
-    geom_text(
-      aes(
-        y = ifelse(Measure > 0, Measure - 50, Measure + 50),
-        label = round(Measure, 1)
-      ),
-      color = "white",
-      size = 3
-    ) +
-    coord_flip() +
-    theme_bw() +
-    theme(legend.position = "none") +
-    scale_fill_manual(values = c("antitype" = "#D73027", "type" = "#4575B4")) +
-    labs(
-      title = paste0("Top ", N, " keywords for Target vs General Corpus"),
-      x = "Keyword",
-      y = paste0("Keyness (", measure, ")")
-    )
-
-  # Create plotly bar plot
-  combined_data <- combined_data %>%
-    dplyr::mutate(
-      token = reorder(token, Measure, mean),
-      color = ifelse(type == "antitype", "#D73027", "#4575B4")
-    )
-
-  plot_plotly_bar <- plotly::plot_ly(
-    data = combined_data,
-    y = ~token,
-    x = ~Measure,
-    type = "bar",
-    orientation = "h",
-    marker = list(color = ~color),
-    text = ~ round(Measure, 1),
-    textposition = "inside",
-    textfont = list(color = "white", size = 12)
-  ) %>%
-    plotly::layout(
-      title = paste0("Top ", N, " keywords for Target vs General Corpus"),
-      xaxis = list(title = paste0("Keyness (", measure, ")")),
-      yaxis = list(
-        title = "Keyword",
-        tickmode = "linear",
-        categoryorder = "trace",
-        autorange = "reversed"
-      ),
-      showlegend = FALSE,
-      margin = list(l = 100)
-    )
-
-  # Return results
-  return(list(
-    plot_ggplot_bar = plot_gg_bar,
-    plot_plotly_bar = plot_plotly_bar
-  ))
-}
+# plot_tall_keyness <- function(assoc_tb3, measure = "G2", N = 10) {
+#   # Get top 10 and bottom 10 keywords
+#   top <- assoc_tb3 %>%
+#     dplyr::ungroup() %>%
+#     dplyr::arrange(desc(.data[[measure]])) %>%
+#     dplyr::slice_head(n = N)
+#
+#   bot <- assoc_tb3 %>%
+#     dplyr::ungroup() %>%
+#     dplyr::arrange(desc(.data[[measure]])) %>%
+#     dplyr::slice_tail(n = N)
+#
+#   names(top)[which(names(top) %in% measure)] <- "Measure"
+#   names(bot)[which(names(bot) %in% measure)] <- "Measure"
+#
+#   combined_data <- rbind(top, bot)
+#
+#   # Create ggplot bar plot for top/bottom keywords
+#   plot_gg_bar <- combined_data %>%
+#     ggplot(aes(
+#       x = reorder(token, Measure, mean),
+#       y = Measure,
+#       label = Measure,
+#       fill = type
+#     )) +
+#     geom_bar(stat = "identity") +
+#     geom_text(
+#       aes(
+#         y = ifelse(Measure > 0, Measure - 50, Measure + 50),
+#         label = round(Measure, 1)
+#       ),
+#       color = "white",
+#       size = 3
+#     ) +
+#     coord_flip() +
+#     theme_bw() +
+#     theme(legend.position = "none") +
+#     scale_fill_manual(values = c("antitype" = "#D73027", "type" = "#4575B4")) +
+#     labs(
+#       title = paste0("Top ", N, " keywords for Target vs General Corpus"),
+#       x = "Keyword",
+#       y = paste0("Keyness (", measure, ")")
+#     )
+#
+#   # Create plotly bar plot
+#   combined_data <- combined_data %>%
+#     dplyr::mutate(
+#       token = reorder(token, Measure, mean),
+#       color = ifelse(type == "antitype", "#D73027", "#4575B4")
+#     )
+#
+#   plot_plotly_bar <- plotly::plot_ly(
+#     data = combined_data,
+#     y = ~token,
+#     x = ~Measure,
+#     type = "bar",
+#     orientation = "h",
+#     marker = list(color = ~color),
+#     text = ~ round(Measure, 1),
+#     textposition = "inside",
+#     textfont = list(color = "white", size = 12)
+#   ) %>%
+#     plotly::layout(
+#       title = paste0("Top ", N, " keywords for Target vs General Corpus"),
+#       xaxis = list(title = paste0("Keyness (", measure, ")")),
+#       yaxis = list(
+#         title = "Keyword",
+#         tickmode = "linear",
+#         categoryorder = "trace",
+#         autorange = "reversed"
+#       ),
+#       showlegend = FALSE,
+#       margin = list(l = 100)
+#     )
+#
+#   # Return results
+#   return(list(
+#     plot_ggplot_bar = plot_gg_bar,
+#     plot_plotly_bar = plot_plotly_bar
+#   ))
+# }
 
 #' Identify and Visualize Frequency Context in Keyness Results
 #'
@@ -7946,6 +7938,14 @@ To ensure the functionality of Biblioshiny,
 
   values$abstractivePrompt <- NULL
 
+  # Initialize Feature Roles values
+  values$timeVariable <- NULL
+  values$labelVariable <- NULL
+  values$keynessVariable <- NULL
+  values$keynessGroup1 <- NULL
+  values$keynessGroup2 <- NULL
+  values$keynessGroupsApplied <- FALSE
+
   return(values)
 }
 
@@ -8473,15 +8473,22 @@ menuList <- function(menu) {
     )
   )
 
-  filter_menu <- menuItem(
-    "Filter",
-    tabName = "filter_text",
-    icon = icon("filter")
-  )
-  group_menu <- menuItem(
-    "Groups",
-    tabName = "defineGroups",
-    icon = icon("th", lib = "glyphicon")
+  features_menu <- list(
+    menuItem(
+      "Filter",
+      tabName = "filter_text",
+      icon = icon("filter")
+    ),
+    menuItem(
+      "Groups",
+      tabName = "defineGroups",
+      icon = icon("th", lib = "glyphicon")
+    ),
+    menuItem(
+      "Feature Roles",
+      tabName = "feature_roles",
+      icon = icon("tags", lib = "glyphicon")
+    )
   )
 
   setting_menu <- tags$div(
@@ -8550,8 +8557,7 @@ menuList <- function(menu) {
         PREPROCESSING,
         preprocessing_menu1,
         FEATURES,
-        filter_menu,
-        group_menu,
+        features_menu,
         ANALYSIS,
         overview_menu,
         keyness_menu,
