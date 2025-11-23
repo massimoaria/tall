@@ -593,7 +593,7 @@ keynessServer <- function(input, output, session, values) {
             random.order = FALSE,
             rot.per = 0.35,
             colors = colorlist(),
-            scale = c(15, 0.5),
+            scale = c(9, 0.8),
             family = "sans"
           )
         },
@@ -669,7 +669,7 @@ keynessServer <- function(input, output, session, values) {
             random.order = FALSE,
             rot.per = 0.35,
             colors = "#4575B4",
-            scale = c(6, 0.5),
+            scale = c(8, 0.8),
             family = "sans"
           )
         },
@@ -745,7 +745,7 @@ keynessServer <- function(input, output, session, values) {
             random.order = FALSE,
             rot.per = 0.35,
             colors = "#D73027",
-            scale = c(6 * values$keyness_results$normalization_ratio, 0.5),
+            scale = c(8 * values$keyness_results$normalization_ratio, 0.8),
             family = "sans"
           )
         },
