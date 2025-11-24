@@ -108,14 +108,15 @@ keynessUI <- function() {
                     "Delta P" = "DeltaP"
                   ),
                   selected = "G2"
-                ),
-                checkboxGroupInput(
-                  inputId = "keyness_upos",
-                  label = "POS Tags:",
-                  choices = c("NOUN", "VERB", "ADJ", "ADV"),
-                  selected = c("NOUN", "VERB"),
-                  inline = FALSE
                 )
+                # ,
+                # checkboxGroupInput(
+                #   inputId = "keyness_upos",
+                #   label = "POS Tags:",
+                #   choices = c("NOUN", "VERB", "ADJ", "ADV"),
+                #   selected = c("NOUN", "VERB"),
+                #   inline = FALSE
+                # )
               ),
               # Graphical Parameters Section
               tags$details(
@@ -350,6 +351,48 @@ keynessServer <- function(input, output, session, values) {
       # Get approach
       approach <- input$keyness_approach
 
+      if (approach == "refrence_corpus") {
+        upos <- intersect(
+          values$dfTag %>%
+            dplyr::filter(POSSelected) %>%
+            distinct(upos) %>%
+            pull(upos),
+          c("NOUN", "VERB", "ADJ", "ADV")
+        )
+      } else {
+        upos <- intersect(
+          values$dfTag %>%
+            dplyr::filter(POSSelected) %>%
+            distinct(upos) %>%
+            pull(upos),
+          c(
+            "ADJ",
+            "ADP",
+            "ADV",
+            "AUX",
+            "CCONJ",
+            "DET",
+            "EMAIL",
+            "EMOJI",
+            "HASH",
+            "INTJ",
+            "IP_ADDRESS",
+            "MENTION",
+            "MULTIWORD",
+            "NOUN",
+            "NUM",
+            "PRON",
+            "PROPN",
+            "PUNCT",
+            "SCONJ",
+            "SYM",
+            "TO_REMOVE",
+            "URL",
+            "VERB"
+          )
+        )
+      }
+
       # Increment counter to force re-rendering
       render_counter(render_counter() + 1)
 
@@ -359,6 +402,15 @@ keynessServer <- function(input, output, session, values) {
       ) {
         showNotification(
           "Error: 'keyness_group' variable not found. Please define it in Feature Roles menu.",
+          type = "error",
+          duration = 10
+        )
+        return(NULL)
+      }
+
+      if (length(upos) == 0) {
+        showNotification(
+          "Error: No valid PoS Tag selected.",
           type = "error",
           duration = 10
         )
@@ -375,7 +427,12 @@ keynessServer <- function(input, output, session, values) {
           language = values$language,
           N = input$keyness_n,
           min.char = input$keyness_minchar,
-          upos_list = input$keyness_upos
+          upos_list = upos,
+          term = ifelse(
+            approach == "reference_corpus",
+            "token",
+            values$generalTerm
+          )
         )
 
         incProgress(0.7, detail = "Generating plots...")
@@ -620,7 +677,8 @@ tall_keyness_analysis <- function(
   language = "english",
   N = 2000,
   min.char = 3,
-  upos_list = c("NOUN", "VERB")
+  upos_list = c("NOUN", "VERB"),
+  term = "token"
 ) {
   # Match the approach argument
   approach <- match.arg(approach)
@@ -710,22 +768,43 @@ tall_keyness_analysis <- function(
     # Calculate frequencies for corpus 1
     freq_corpus1 <- dfTag %>%
       dplyr::filter(keyness_group == 1 & upos %in% upos_list) %>%
-      mutate(token = tolower(token)) %>%
-      dplyr::group_by(token) %>%
+      dplyr::rename(term_col = all_of(term)) %>%
+      mutate(term_col = tolower(term_col)) %>%
+      dplyr::group_by(term_col) %>%
       dplyr::summarise(obsFreq = n()) %>%
       ungroup() %>%
-      dplyr::filter(nchar(token) > min.char)
+      dplyr::filter(nchar(term_col) > min.char) %>%
+      dplyr::rename(token = term_col)
+
+    # freq_corpus1 <- dfTag %>%
+    #   dplyr::filter(keyness_group == 1 & upos %in% upos_list) %>%
+    #   mutate(token = tolower(token)) %>%
+    #   dplyr::group_by(token) %>%
+    #   dplyr::summarise(obsFreq = n()) %>%
+    #   ungroup() %>%
+    #   dplyr::filter(nchar(token) > min.char)
 
     # Calculate frequencies for corpus 2
     freq_corpus2 <- dfTag %>%
       dplyr::filter(keyness_group == 2 & upos %in% upos_list) %>%
-      mutate(token = tolower(token)) %>%
-      dplyr::group_by(token) %>%
+      dplyr::rename(term_col = all_of(term)) %>%
+      mutate(term_col = tolower(term_col)) %>%
+      dplyr::group_by(term_col) %>%
       dplyr::summarise(expFreq_raw = n()) %>%
       ungroup() %>%
-      dplyr::filter(nchar(token) > min.char) %>%
-      # Normalize frequencies of corpus 2 by scaling to corpus 1 size
+      dplyr::filter(nchar(term_col) > min.char) %>%
+      dplyr::rename(token = term_col) %>%
       dplyr::mutate(expFreq = expFreq_raw * normalization_ratio)
+
+    # freq_corpus2 <- dfTag %>%
+    #   dplyr::filter(keyness_group == 2 & upos %in% upos_list) %>%
+    #   mutate(token = tolower(token)) %>%
+    #   dplyr::group_by(token) %>%
+    #   dplyr::summarise(expFreq_raw = n()) %>%
+    #   ungroup() %>%
+    #   dplyr::filter(nchar(token) > min.char) %>%
+    #   # Normalize frequencies of corpus 2 by scaling to corpus 1 size
+    #   dplyr::mutate(expFreq = expFreq_raw * normalization_ratio)
 
     # Join the two frequency tables
     # Keep all tokens from both corpora
