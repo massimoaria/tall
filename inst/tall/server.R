@@ -115,7 +115,7 @@ server <- function(input, output, session) {
   values$h <- 7
   values$zoom <- 2
   dpi <- 300
-  set.seed(5)
+  #set.seed(5)
   # load("data/regex_list.tall")
 
   saved_message <- "Done!"
@@ -3078,15 +3078,20 @@ server <- function(input, output, session) {
           label = term,
           value = n
         )
-      values$WC2VIS <- wordcloud2vis(
+
+      values$WC2VIS <- wordcloud(
         values$wcDfPlot,
-        labelsize = input$labelsizeWC,
-        opacity = 1
+        shape = "circle",
+        rot_per = 0.2,
+        eccentricity = 1.5,
+        colors = sample(colorlist(), nrow(values$wcDfPlot), replace = T),
+        seed = values$random_seed,
+        max_size = input$labelsizeWC * 10
       )
     }
   )
 
-  output$wordcloudPlot <- renderVisNetwork({
+  output$wordcloudPlot <- renderPlot({
     wcData()
     values$WC2VIS
   })
@@ -6729,6 +6734,7 @@ server <- function(input, output, session) {
   # Random Seed Management
   observeEvent(input$random_seed, {
     if (!is.null(input$random_seed)) {
+      set.seed(input$random_seed)
       values$random_seed <- input$random_seed
     }
   })

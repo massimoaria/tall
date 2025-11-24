@@ -2151,15 +2151,15 @@ body <- dashboardBody(
               "WordCloud",
               column(
                 9,
+                br(),
                 shinycssloaders::withSpinner(
-                  visNetworkOutput(
-                    "wordcloudPlot",
-                    width = "auto",
-                    height = "75vh"
+                  plotOutput(
+                    outputId = "wordcloudPlot",
+                    height = "700px",
+                    width = "100%"
                   ),
                   color = getOption("spinner.color", default = "#4F7942")
                 )
-                # wordcloud2::wordcloud2Output("wordcloudPlot", height = "75vh")
               ),
               column(
                 3,

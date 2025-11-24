@@ -31,8 +31,9 @@
 #' @import shinyFiles
 #' @import ggraph
 #' @import word2vec
-#' @import wordcloud2
+#' @import ggwordcloud
 #' @import umap
+#' @importFrom ggplot2 ggplot
 #' @importFrom readr write_csv
 #' @importFrom strucchange breakpoints
 #' @importFrom shinyjs useShinyjs

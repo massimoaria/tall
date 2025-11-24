@@ -37,6 +37,7 @@ libraries <- function() {
   suppressPackageStartupMessages(require(word2vec))
   suppressPackageStartupMessages(require(umap))
   suppressPackageStartupMessages(require(httr2))
+  suppressPackageStartupMessages(require(ggwordcloud))
 }
 
 messageItem2 <- function(

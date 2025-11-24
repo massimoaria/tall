@@ -119,7 +119,7 @@ keynessUI <- function() {
               ),
               # Graphical Parameters Section
               tags$details(
-                class = "params-section",
+                class = "advanced-section",
                 tags$summary(
                   div(
                     class = "params-section-header",
@@ -137,28 +137,68 @@ keynessUI <- function() {
                 ),
                 div(
                   style = "margin-top: 10px;",
-                  h4("Number of Words:"),
+                  h4("Bar Plot:"),
+                  numericInput(
+                    "Keyness_Nbarplot",
+                    label = "N. of Words",
+                    value = 10,
+                    min = 1,
+                    max = 20,
+                    step = 1
+                  )
+                ),
+                div(
+                  style = "margin-top: 10px;",
+                  h4("Wordcloud:"),
                   fluidRow(
                     column(
                       6,
                       numericInput(
-                        "Keyness_Nbarplot",
-                        label = "BarPlot",
-                        value = 10,
-                        min = 1,
-                        max = 20,
-                        step = 1
+                        "Keyness_Nwc",
+                        label = "N. of Words",
+                        value = 50,
+                        min = 10,
+                        step = 1,
+                        max = 200
                       )
                     ),
                     column(
                       6,
                       numericInput(
-                        "Keyness_Nwc",
-                        label = "Wordcloud",
+                        "Keyness_size",
+                        label = "Label Size",
                         value = 100,
                         min = 10,
                         step = 1,
                         max = 200
+                      )
+                    )
+                  )
+                ),
+                div(
+                  style = "margin-top: 10px;",
+                  h4("Frequency Context:"),
+                  fluidRow(
+                    column(
+                      6,
+                      numericInput(
+                        "Keyness_freq_words",
+                        label = "N. of Words",
+                        value = 20,
+                        min = 1,
+                        step = 1,
+                        max = 100
+                      )
+                    ),
+                    column(
+                      6,
+                      numericInput(
+                        "Keyness_label_spacing",
+                        label = "Label spacing",
+                        value = 0.15,
+                        min = 0,
+                        step = 0.01,
+                        max = 1
                       )
                     )
                   )
@@ -199,9 +239,23 @@ keynessUI <- function() {
             title = "WordCloud",
             icon = icon("chart-column"),
             # Use renderUI to dynamically create wordcloud containers
-            shinycssloaders::withSpinner(
-              uiOutput("keyness_wordcloud_ui"),
-              color = getOption("spinner.color", default = "#4F7942")
+            fluidRow(
+              conditionalPanel(
+                condition = "input.keyness_approach == 'reference_corpus'",
+                h4(
+                  "Target Corpus: High Keyness Words",
+                  align = "center",
+                  style = "color: #4F7942; margin-bottom: 20px;"
+                )
+              ),
+              shinycssloaders::withSpinner(
+                plotOutput(
+                  outputId = "keyness_wordcloud_plot",
+                  height = "600px",
+                  width = "100%"
+                ),
+                color = getOption("spinner.color", default = "#4F7942")
+              )
             )
           ),
           tabPanel(
@@ -351,9 +405,9 @@ keynessServer <- function(input, output, session, values) {
         if (approach == "reference_corpus") {
           plot_frequency <- frequency_context_analysis(
             results$results,
-            top_n = 20,
+            top_n = input$Keyness_freq_words,
             g2_threshold = quantile(results$results$G2, 0.95),
-            label_spacing = 0.15
+            label_spacing = input$Keyness_label_spacing
           )
 
           results <- c(
@@ -380,6 +434,15 @@ keynessServer <- function(input, output, session, values) {
           results <- c(
             results,
             wc_data = list(data_target)
+          )
+          values$keyness_wordcloud_plot <- wordcloud(
+            data_target,
+            shape = "circle",
+            rot_per = 0.2,
+            eccentricity = 1.3,
+            colors = sample(colorlist(), nrow(data_target), replace = T),
+            seed = values$random_seed,
+            max_size = input$Keyness_size
           )
         } else if (approach == "two_corpus") {
           # For two corpus: create static wordcloud data
@@ -419,15 +482,32 @@ keynessServer <- function(input, output, session, values) {
 
           # Prepare final data frames
           data_corpus1 <- data_positive %>%
-            rename(word = token, freq = all_of(measure))
+            rename(word = token, freq = all_of(measure)) %>%
+            mutate(Corpus = "Corpus 1")
 
           data_corpus2 <- data_negative %>%
-            rename(word = token, freq = all_of(measure))
+            rename(word = token, freq = all_of(measure)) %>%
+            mutate(Corpus = "Corpus 2")
 
           results <- c(
             results,
             wc1_data = list(data_corpus1),
             wc2_data = list(data_corpus2)
+          )
+
+          values$keyness_wordcloud_plot <- wordcloud(
+            bind_rows(
+              data_corpus1,
+              data_corpus2
+            ),
+            shape = "circle",
+            rot_per = 0.2,
+            eccentricity = 1.3,
+            colors = c("#4575B4", "#D73027"),
+            seed = values$random_seed,
+            max_size = input$Keyness_size * 0.7,
+            facet_by = "Corpus",
+            facet_ncol = 2
           )
         }
 
@@ -484,91 +564,21 @@ keynessServer <- function(input, output, session, values) {
     values$keyness_results$plot_frequency
   })
 
-  # Dynamic UI for wordcloud based on approach
-  output$keyness_wordcloud_ui <- renderUI({
-    req(keyness_results())
-    approach <- input$keyness_approach
-    counter <- render_counter() # Track counter for invalidation
-
-    if (approach == "reference_corpus") {
-      # Single interactive wordcloud for reference corpus
-      fluidRow(
-        h4(
-          "Target Corpus:High Keyness Words",
-          align = "center",
-          style = "color: #4F7942; margin-bottom: 20px;"
-        ),
-        plotOutput(
-          outputId = "keyness_wordcloud_plot",
-          height = "600px",
-          width = "100%"
-        )
-      )
-    } else if (approach == "two_corpus") {
-      # Two static wordcloud plots side by side
-      fluidRow(
-        column(
-          6,
-          h4(
-            "Corpus 1",
-            align = "center",
-            style = "color: #4575B4; margin-bottom: 20px;"
-          ),
-          plotOutput(
-            outputId = "keyness_wordcloud_plot1",
-            height = "600px",
-            width = "100%"
-          )
-        ),
-        column(
-          6,
-          h4(
-            "Corpus 2",
-            align = "center",
-            style = "color: #D73027; margin-bottom: 20px;"
-          ),
-          plotOutput(
-            outputId = "keyness_wordcloud_plot2",
-            height = "600px",
-            width = "100%"
-          )
-        )
-      )
-    }
-  })
-
   output$keyness_wordcloud_plot <- renderPlot(
     {
       req(keyness_results())
-      req(input$keyness_approach == "reference_corpus")
+      req(input$keyness_approach %in% c("reference_corpus", "two_corpus"))
 
-      # Make counter a direct dependency to force re-render
-      counter <- render_counter()
-
-      req(values$keyness_results$wc_data)
-      data <- values$keyness_results$wc_data
-
-      # Debug message
-      message(sprintf(
-        "Rendering Target Corpus wordcloud: %d words, counter: %d",
-        nrow(data),
-        counter
-      ))
-
-      # Load wordcloud package for static plots
-      if (!requireNamespace("wordcloud", quietly = TRUE)) {
-        plot.new()
-        text(
-          0.5,
-          0.5,
-          "Please install 'wordcloud' package:\ninstall.packages('wordcloud')",
-          cex = 1.2,
-          col = "red"
-        )
-        return()
+      if (input$keyness_approach == "reference_corpus") {
+        req(values$keyness_results$wc_data)
+        nrowdata <- nrow(values$keyness_results$wc_data)
+      } else if (input$keyness_approach == "two_corpus") {
+        req(values$keyness_results$wc1_data)
+        nrowdata <- nrow(values$keyness_results$wc1_data) +
+          nrow(values$keyness_results$wc2_data)
       }
 
-      if (nrow(data) == 0) {
+      if (nrowdata == 0) {
         plot.new()
         text(
           0.5,
@@ -583,178 +593,14 @@ keynessServer <- function(input, output, session, values) {
       # Use wordcloud package for static plot
       tryCatch(
         {
-          #par(mar = c(0, 0, 0, 0), bg = "white")
-          set.seed(123 + counter)
-          wordcloud::wordcloud(
-            words = data$word,
-            freq = data$freq,
-            min.freq = 1,
-            max.words = nrow(data),
-            random.order = FALSE,
-            rot.per = 0.35,
-            colors = colorlist(),
-            scale = c(9, 0.8),
-            family = "sans"
-          )
+          values$keyness_wordcloud_plot
         },
         error = function(e) {
           plot.new()
           text(
             0.5,
             0.5,
-            paste("Error rendering Corpus 1:\n", e$message),
-            cex = 1,
-            col = "red"
-          )
-        }
-      )
-    },
-    bg = "white"
-  )
-
-  # Keyness WordCloud Plot 1 - static plot for two_corpus
-  output$keyness_wordcloud_plot1 <- renderPlot(
-    {
-      req(keyness_results())
-      req(input$keyness_approach == "two_corpus")
-
-      # Make counter a direct dependency to force re-render
-      counter <- render_counter()
-
-      req(values$keyness_results$wc1_data)
-      data <- values$keyness_results$wc1_data
-
-      # Debug message
-      message(sprintf(
-        "Rendering Corpus 1 wordcloud: %d words, counter: %d",
-        nrow(data),
-        counter
-      ))
-
-      # Load wordcloud package for static plots
-      if (!requireNamespace("wordcloud", quietly = TRUE)) {
-        plot.new()
-        text(
-          0.5,
-          0.5,
-          "Please install 'wordcloud' package:\ninstall.packages('wordcloud')",
-          cex = 1.2,
-          col = "red"
-        )
-        return()
-      }
-
-      if (nrow(data) == 0) {
-        plot.new()
-        text(
-          0.5,
-          0.5,
-          "No keywords found for Corpus 1",
-          cex = 1.5,
-          col = "gray"
-        )
-        return()
-      }
-
-      # Use wordcloud package for static plot
-      tryCatch(
-        {
-          par(mar = c(0, 0, 0, 0), bg = "white")
-          set.seed(123 + counter)
-          wordcloud::wordcloud(
-            words = data$word,
-            freq = data$freq,
-            min.freq = 1,
-            max.words = nrow(data),
-            random.order = FALSE,
-            rot.per = 0.35,
-            colors = "#4575B4",
-            scale = c(8, 0.8),
-            family = "sans"
-          )
-        },
-        error = function(e) {
-          plot.new()
-          text(
-            0.5,
-            0.5,
-            paste("Error rendering Corpus 1:\n", e$message),
-            cex = 1,
-            col = "red"
-          )
-        }
-      )
-    },
-    bg = "white"
-  )
-
-  # Keyness WordCloud Plot 2 - static plot for two_corpus
-  output$keyness_wordcloud_plot2 <- renderPlot(
-    {
-      req(keyness_results())
-      req(input$keyness_approach == "two_corpus")
-
-      # Make counter a direct dependency to force re-render
-      counter <- render_counter()
-
-      req(values$keyness_results$wc2_data)
-      data <- values$keyness_results$wc2_data
-
-      # Debug message
-      message(sprintf(
-        "Rendering Corpus 2 wordcloud: %d words, counter: %d",
-        nrow(data),
-        counter
-      ))
-
-      # Load wordcloud package for static plots
-      if (!requireNamespace("wordcloud", quietly = TRUE)) {
-        plot.new()
-        text(
-          0.5,
-          0.5,
-          "Please install 'wordcloud' package:\ninstall.packages('wordcloud')",
-          cex = 1.2,
-          col = "red"
-        )
-        return()
-      }
-
-      if (nrow(data) == 0) {
-        plot.new()
-        text(
-          0.5,
-          0.5,
-          "No keywords found for Corpus 2",
-          cex = 1.5,
-          col = "gray"
-        )
-        return()
-      }
-
-      # Use wordcloud package for static plot
-      tryCatch(
-        {
-          par(mar = c(0, 0, 0, 0), bg = "white")
-          set.seed(456 + counter)
-          wordcloud::wordcloud(
-            words = data$word,
-            freq = data$freq,
-            min.freq = 1,
-            max.words = nrow(data),
-            random.order = FALSE,
-            rot.per = 0.35,
-            colors = "#D73027",
-            scale = c(8 * values$keyness_results$normalization_ratio, 0.8),
-            family = "sans"
-          )
-        },
-        error = function(e) {
-          plot.new()
-          text(
-            0.5,
-            0.5,
-            paste("Error rendering Corpus 2:\n", e$message),
+            paste("Error rendering Corpus :\n", e$message),
             cex = 1,
             col = "red"
           )
@@ -1067,6 +913,85 @@ tall_keyness_analysis <- function(
   ))
 }
 
+### Keyness Wordlist Functions ----
+tall_download_wordlist <- function(
+  language,
+  file_dir = NULL,
+  overwrite = TRUE
+) {
+  filename <- paste0(language, "_word_frequency.keyness")
+
+  if (is.null(file_dir)) {
+    file_dir <- paste0(homeFolder(), "/tall/language_models")
+  }
+
+  url <- file.path(
+    "https://raw.githubusercontent.com/massimoaria/tall.language.models/main/word.frequency.data",
+    filename
+  )
+  to <- file.path(file_dir, filename)
+  download_failed <- FALSE
+  download_message <- "OK"
+  dl <- suppressWarnings(try(
+    utils::download.file(url = url, destfile = to, mode = "wb"),
+    silent = TRUE
+  ))
+  if (inherits(dl, "try-error")) {
+    download_failed <- TRUE
+    download_message <- as.character(dl)
+  } else if (inherits(dl, "integer") && dl != 0) {
+    download_failed <- TRUE
+    download_message <- "Download failed. Please check internet connectivity"
+  }
+  if (download_failed) {
+    message("Something went wrong")
+    message(download_message)
+  } else {
+    message(sprintf("Downloading finished, model stored at '%s'", to))
+  }
+
+  return(list(
+    download_failed = download_failed,
+    download_message = download_message,
+    file_wordlist = to
+  ))
+}
+
+tall_load_wordlist <- function(
+  language,
+  file_dir = NULL
+) {
+  wordlist_path <- paste0(homeFolder(), "/tall/language_models/")
+  if (!dir.exists(wordlist_path)) {
+    dir.create(wordlist_path, recursive = TRUE)
+  }
+
+  filename <- paste0(language, "_word_frequency.keyness")
+
+  file_path <- file.path(wordlist_path, filename)
+
+  if (!file.exists(file_path)) {
+    message(sprintf(
+      "Wordlist for language '%s' not found locally. Downloading...",
+      language
+    ))
+    info <- tall_download_wordlist(
+      language = language,
+      file_dir = file_dir,
+      overwrite = FALSE
+    )
+    if (info$download_failed) {
+      return(NULL)
+    }
+  }
+
+  load(file_path)
+
+  return(word_frequency)
+}
+
+
+### Keyness Plotting Function ----
 plot_tall_keyness <- function(
   assoc_tb3,
   measure = "G2",
@@ -1159,4 +1084,353 @@ plot_tall_keyness <- function(
     plot_ggplot_bar = plot_gg_bar,
     plot_plotly_bar = plot_plotly_bar
   ))
+}
+
+### Frequency Plotting Function ----
+
+#' Identify and Visualize Frequency Context in Keyness Results
+#'
+#' This function analyzes keyness results to identify specialized terminology
+#' (high keyness, low frequency) versus fundamental stylistic/thematic differences
+#' (high keyness, high frequency).
+#'
+#' @param keyness_results A data frame containing keyness analysis results with
+#'        columns: Word, G2, Obs_Freq (observed frequency in target corpus)
+#' @param top_n Number of top high-frequency and low-frequency words to select (default: 15)
+#' @param g2_threshold Minimum G2 score to consider (default: 10.83, p < 0.001)
+#' @param title Plot title (default: "Frequency Context Analysis")
+#' @param label_spacing Spacing factor for labels to avoid overlap (default: 0.08)
+#' @param freq_threshold Frequency threshold to separate low/high frequency zones (default: NULL, uses median)
+#' @return A plotly scatter plot object
+#'
+frequency_context_analysis <- function(
+  keyness_results,
+  top_n = 15,
+  g2_threshold = 10.83,
+  title = "Frequency Context Analysis",
+  label_spacing = 0.08,
+  freq_threshold = NULL
+) {
+  # Load required libraries
+  require(plotly)
+  require(dplyr)
+
+  # Filter words with high keyness scores (significant keywords)
+  high_keyness <- keyness_results %>%
+    dplyr::filter(G2 >= g2_threshold) %>%
+    arrange(desc(G2)) %>%
+    rename(
+      Word = token,
+      Obs_Freq = O11
+    )
+
+  # Identify top N high-frequency words (fundamental differences)
+  high_freq_words <- high_keyness %>%
+    arrange(desc(Obs_Freq)) %>%
+    head(top_n) %>%
+    mutate(Category = "High Frequency\n(Fundamental Differences)")
+
+  # Identify top N low-frequency words (specialized terminology)
+  low_freq_words <- high_keyness %>%
+    arrange(Obs_Freq) %>%
+    head(top_n) %>%
+    anti_join(high_freq_words, by = "Word") %>%
+    mutate(Category = "Low Frequency\n(Specialized Terminology)")
+
+  # Combine selected words
+  selected_words <- bind_rows(high_freq_words, low_freq_words)
+
+  # Calculate frequency threshold if not provided
+  if (is.null(freq_threshold)) {
+    freq_threshold <- mean(
+      min(high_freq_words$Obs_Freq),
+      max(low_freq_words$Obs_Freq)
+    ) #median(selected_words$Obs_Freq)
+  }
+
+  # Transform coordinates to log scale for calculations
+  selected_words <- selected_words %>%
+    mutate(
+      log_freq = log10(Obs_Freq),
+      log_g2 = log10(G2)
+    )
+
+  # Calculate axis ranges for background zones (in original scale)
+  x_range_orig <- range(selected_words$Obs_Freq)
+  y_range_orig <- range(selected_words$G2)
+
+  # Extend ranges for better visualization
+  x_min <- x_range_orig[1] * 0.5
+  x_max <- x_range_orig[2] * 2
+  y_min <- y_range_orig[1] * 0.5
+  y_max <- y_range_orig[2] * 2
+
+  # Algorithm to adjust label positions alternating above/below for nearby points
+  # with increased spacing for low frequency words
+  adjust_labels_alternating <- function(df, spacing = label_spacing) {
+    df <- df %>% arrange(log_freq, log_g2)
+
+    # Initialize adjusted positions and anchor positions
+    df$label_x <- df$log_freq
+    df$label_y <- df$log_g2
+    df$yanchor <- "bottom" # Default: label above point
+
+    # Set spacing multiplier based on category (more space for low frequency)
+    df$spacing_mult <- ifelse(
+      df$Category == "Low Frequency\n(Specialized Terminology)",
+      2.5,
+      1.0
+    )
+
+    # Identify clusters of nearby points
+    clusters <- list()
+    current_cluster <- c(1)
+
+    for (i in 2:nrow(df)) {
+      # Check if point i is close to any point in current cluster
+      is_close <- FALSE
+      for (j in current_cluster) {
+        dx <- df$log_freq[i] - df$log_freq[j]
+        dy <- df$log_g2[i] - df$log_g2[j]
+        dist <- sqrt(dx^2 + dy^2)
+        if (dist < spacing * 2) {
+          is_close <- TRUE
+          break
+        }
+      }
+
+      if (is_close) {
+        current_cluster <- c(current_cluster, i)
+      } else {
+        if (length(current_cluster) > 1) {
+          clusters[[length(clusters) + 1]] <- current_cluster
+        }
+        current_cluster <- c(i)
+      }
+    }
+    # Add last cluster
+    if (length(current_cluster) > 1) {
+      clusters[[length(clusters) + 1]] <- current_cluster
+    }
+
+    # For each cluster, alternate labels above and below with increased distance for low freq
+    for (cluster in clusters) {
+      # Sort cluster by G2 value (vertical position)
+      cluster_sorted <- cluster[order(df$log_g2[cluster])]
+
+      # Alternate anchor positions
+      for (idx in seq_along(cluster_sorted)) {
+        i <- cluster_sorted[idx]
+        mult <- df$spacing_mult[i]
+
+        if (idx %% 2 == 0) {
+          df$yanchor[i] <- "top" # Label below point
+          df$label_y[i] <- df$log_g2[i] - spacing * 0.5 * mult
+        } else {
+          df$yanchor[i] <- "bottom" # Label above point
+          df$label_y[i] <- df$log_g2[i] + spacing * 0.5 * mult
+        }
+      }
+    }
+
+    # Additional refinement: push labels apart if still overlapping
+    for (iter in 1:30) {
+      moved <- FALSE
+      for (i in 1:nrow(df)) {
+        for (j in 1:nrow(df)) {
+          if (i >= j) {
+            next
+          }
+
+          dx <- df$label_x[i] - df$label_x[j]
+          dy <- df$label_y[i] - df$label_y[j]
+          dist <- sqrt(dx^2 + dy^2)
+
+          # Use max spacing multiplier for the pair
+          max_mult <- max(df$spacing_mult[i], df$spacing_mult[j])
+          min_dist <- spacing * 0.8 * max_mult
+
+          # If labels are still too close, push them apart
+          if (dist < min_dist && dist > 0) {
+            push_x <- dx / dist * (min_dist - dist) / 2
+            push_y <- dy / dist * (min_dist - dist) / 2
+
+            df$label_x[i] <- df$label_x[i] + push_x
+            df$label_x[j] <- df$label_x[j] - push_x
+            df$label_y[i] <- df$label_y[i] + push_y
+            df$label_y[j] <- df$label_y[j] - push_y
+            moved <- TRUE
+          }
+        }
+      }
+      if (!moved) break
+    }
+
+    return(df)
+  }
+
+  # Adjust label positions with alternating strategy
+  selected_words <- adjust_labels_alternating(
+    selected_words,
+    spacing = label_spacing
+  )
+
+  # Create base scatter plot
+  p <- plot_ly() %>%
+    # Add data points for high frequency words
+    add_trace(
+      data = selected_words %>%
+        filter(Category == "High Frequency\n(Fundamental Differences)"),
+      x = ~Obs_Freq,
+      y = ~G2,
+      type = "scatter",
+      mode = "markers",
+      name = "High Frequency<br>(Fundamental Differences)",
+      marker = list(
+        size = 12,
+        color = "#FF8C00",
+        line = list(color = "white", width = 1.5),
+        opacity = 0.8
+      ),
+      text = ~Word,
+      hovertemplate = paste(
+        "<b>%{text}</b><br>",
+        "Frequency: %{x}<br>",
+        "G² Score: %{y:.2f}<br>",
+        "<extra></extra>"
+      )
+    ) %>%
+    # Add data points for low frequency words
+    add_trace(
+      data = selected_words %>%
+        filter(Category == "Low Frequency\n(Specialized Terminology)"),
+      x = ~Obs_Freq,
+      y = ~G2,
+      type = "scatter",
+      mode = "markers",
+      name = "Low Frequency<br>(Specialized Terminology)",
+      marker = list(
+        size = 12,
+        color = "#8B4789",
+        line = list(color = "white", width = 1.5),
+        opacity = 0.8
+      ),
+      text = ~Word,
+      hovertemplate = paste(
+        "<b>%{text}</b><br>",
+        "Frequency: %{x}<br>",
+        "G² Score: %{y:.2f}<br>",
+        "<extra></extra>"
+      )
+    )
+
+  # Add annotations for labels with adjusted positions and alternating anchors
+  annotations_list <- lapply(1:nrow(selected_words), function(i) {
+    row <- selected_words[i, ]
+
+    list(
+      x = log10(row$Obs_Freq),
+      y = log10(row$G2),
+      xref = "x",
+      yref = "y",
+      text = row$Word,
+      xanchor = "center",
+      yanchor = row$yanchor, # Alternating between "top" and "bottom"
+      showarrow = TRUE,
+      arrowhead = 0,
+      arrowsize = 0.5,
+      arrowwidth = 1,
+      arrowcolor = "rgba(128,128,128,0.5)",
+      ax = (row$label_x - log10(row$Obs_Freq)) * 100,
+      ay = (row$label_y - log10(row$G2)) * 100,
+      font = list(size = 10, color = "black"),
+      bgcolor = "rgba(255,255,255,0.5)",
+      bordercolor = "rgba(128,128,128,0.6)",
+      borderwidth = 0.5,
+      borderpad = 2
+    )
+  })
+
+  # Finalize layout with background shapes and legend
+  p <- p %>%
+    layout(
+      xaxis = list(
+        title = "Observed Frequency (Target Corpus)",
+        type = "log",
+        gridcolor = "#E0E0E0",
+        showline = TRUE,
+        linecolor = "#CCCCCC"
+      ),
+      yaxis = list(
+        title = "G² Keyness Score",
+        type = "log",
+        gridcolor = "#E0E0E0",
+        showline = TRUE,
+        linecolor = "#CCCCCC"
+      ),
+      plot_bgcolor = "#F8F9FA",
+      paper_bgcolor = "white",
+      hovermode = "closest",
+      showlegend = TRUE,
+      legend = list(
+        x = 0.02,
+        y = 0.98,
+        xanchor = "left",
+        yanchor = "top",
+        bgcolor = "rgba(255,255,255,0.8)",
+        bordercolor = "#CCCCCC",
+        borderwidth = 1
+      ),
+      # Add background rectangles using shapes (coordinates in original scale for log axes)
+      shapes = list(
+        # Low frequency zone (specialized terminology) - light purple
+        list(
+          type = "rect",
+          xref = "x",
+          yref = "y",
+          x0 = x_min,
+          y0 = y_min,
+          x1 = freq_threshold,
+          y1 = y_max,
+          fillcolor = "rgba(139, 71, 137, 0.08)", # Purple shade matching the points
+          line = list(width = 0),
+          layer = "below"
+        ),
+        # High frequency zone (fundamental differences) - light orange
+        list(
+          type = "rect",
+          xref = "x",
+          yref = "y",
+          x0 = freq_threshold,
+          y0 = y_min,
+          x1 = x_max,
+          y1 = y_max,
+          fillcolor = "rgba(255, 140, 0, 0.08)", # Orange shade matching the points
+          line = list(width = 0),
+          layer = "below"
+        )
+      ),
+      margin = list(r = 80, b = 100, l = 80, t = 80),
+      annotations = c(
+        annotations_list,
+        list(
+          list(
+            text = paste(
+              "High keyness threshold: G² ≥",
+              round(g2_threshold, 1)
+            ),
+            xref = "paper",
+            yref = "paper",
+            x = 0.01,
+            y = -0.15,
+            xanchor = "left",
+            yanchor = "top",
+            showarrow = FALSE,
+            font = list(size = 10, color = "gray")
+          )
+        )
+      )
+    )
+
+  return(p)
 }

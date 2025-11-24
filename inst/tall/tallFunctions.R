@@ -2443,718 +2443,367 @@ tfidf <- function(dfTag, term = "lemma", document = "doc_id") {
     arrange(desc(tfidf))
 }
 
-### KEYNESS ----
-tall_download_wordlist <- function(
-  language,
-  file_dir = NULL,
-  overwrite = TRUE
+### WORDCLOUD ----
+#' Create a word cloud using ggwordcloud
+#'
+#' This function creates customizable word clouds using the ggwordcloud package.
+#' It supports various shapes, colors, rotations, and faceting for comparative visualizations.
+#'
+#' @param data A data frame with at least two columns: the first column contains words,
+#'   the second column contains the size/frequency of words. Additional columns can be
+#'   used for faceting.
+#' @param col_names Optional character vector of length 2 specifying column names
+#'   for words and sizes. If NULL, uses first two columns (default: NULL)
+#' @param max_size Maximum font size for words (default: 20)
+#' @param min_size Minimum font size for words (default: 2)
+#' @param eccentricity Eccentricity of the spiral (default: 0.65).
+#'   Values > 1 make it wider, < 1 make it taller
+#' @param shape Shape of the word cloud. One of "circle", "cardioid", "diamond",
+#'   "square", "triangle-forward", "triangle-upright", "pentagon", "star" (default: "circle")
+#' @param rm_outside Remove words that don't fit (default: FALSE)
+#' @param rot_per Proportion of words with 90 degree rotation (default: 0.1)
+#' @param colors Color palette or single color for words (default: "black").
+#'   When faceting and length(colors) equals the number of facets, each facet
+#'   will use a single color. Otherwise, colors are assigned to individual words.
+#' @param color_by_size If TRUE, color words by their size using a gradient (default: FALSE)
+#' @param color_gradient_low Low end of color gradient when color_by_size = TRUE (default: "darkblue")
+#' @param color_gradient_high High end of color gradient when color_by_size = TRUE (default: "lightblue")
+#' @param seed Random seed for reproducibility (default: NA)
+#' @param area_corr Use area correction - font size proportional to sqrt of size (default: TRUE)
+#' @param rstep Radial step size for spiral (default: 0.01)
+#' @param tstep Angular step size for spiral (default: 0.02)
+#' @param grid_size Grid size for collision detection (default: 4)
+#' @param max_steps Maximum number of steps to find position for each word (default: 10)
+#' @param xlim X-axis limits as c(min, max) (default: c(NA, NA))
+#' @param ylim Y-axis limits as c(min, max) (default: c(NA, NA))
+#' @param mask Optional mask image (PNG array) for custom shapes (default: NA)
+#' @param show_boxes Show bounding boxes for debugging (default: FALSE)
+#' @param background_color Background color of the plot (default: "white")
+#' @param facet_by Optional column name for faceting. Creates separate word clouds
+#'   for each unique value in this column (default: NULL)
+#' @param facet_ncol Number of columns in facet layout (default: NULL, automatic)
+#' @param facet_nrow Number of rows in facet layout (default: NULL, automatic)
+#' @param facet_scales Control facet scales: "fixed", "free", "free_x", or "free_y" (default: "fixed")
+#' @param facet_labeller Labeller for facet titles (default: "label_value")
+#' @param facet_text_size Font size for facet titles (default: 16)
+#' @param facet_text_face Font face for facet titles: "plain", "bold", "italic", or "bold.italic" (default: "bold")
+#' @param facet_text_color Color for facet titles (default: "black")
+#' @param ... Additional arguments passed to geom_text_wordcloud_area or geom_text_wordcloud
+#'
+#' @return A ggplot object with the word cloud visualization
+#'
+#' @examples
+#' library(ggwordcloud)
+#' library(dplyr)
+#'
+#' # Simple word cloud
+#' df <- data.frame(
+#'   word = c("statistics", "machine learning", "data", "analysis", "visualization"),
+#'   freq = c(50, 45, 40, 30, 25)
+#' )
+#' wordcloud(df)
+#'
+#' # With custom colors and rotation
+#' wordcloud(df,
+#'           colors = "darkblue",
+#'           rot_per = 0.3,
+#'           shape = "diamond",
+#'           max_size = 30)
+#'
+#' # With color gradient by size
+#' wordcloud(df,
+#'           color_by_size = TRUE,
+#'           color_gradient_low = "blue",
+#'           color_gradient_high = "red",
+#'           seed = 42)
+#'
+#' # Multiple colors for individual words
+#' colors <- c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00")
+#' wordcloud(df,
+#'           colors = colors,
+#'           seed = 123)
+#'
+#' # With faceting - comparing two groups
+#' df_facet <- data.frame(
+#'   word = c("research", "analysis", "study", "data", "method",
+#'            "treatment", "patient", "disease", "clinical", "therapy"),
+#'   freq = c(100, 85, 75, 60, 55, 90, 80, 70, 65, 50),
+#'   category = c(rep("Research", 5), rep("Clinical", 5))
+#' )
+#'
+#' # One color per facet
+#' wordcloud(df_facet,
+#'           facet_by = "category",
+#'           facet_ncol = 2,
+#'           colors = c("#4575B4", "#D73027"),  # 2 colors for 2 facets
+#'           facet_text_size = 16,
+#'           seed = 42)
+#'
+#' # With larger facet titles
+#' wordcloud(df_facet,
+#'           facet_by = "category",
+#'           facet_nrow = 1,
+#'           colors = c("#E41A1C", "#377EB8"),
+#'           facet_text_size = 18,
+#'           facet_text_face = "bold",
+#'           facet_text_color = "darkblue",
+#'           max_size = 25,
+#'           seed = 42)
+#'
+#' # Different shapes and eccentricity
+#' wordcloud(df,
+#'           shape = "star",
+#'           eccentricity = 1.5,
+#'           rot_per = 0.2,
+#'           colors = "#FF7F00",
+#'           max_size = 35,
+#'           seed = 42)
+#'
+#' # Using bind_rows for comparative analysis
+#' corpus1 <- data.frame(word = c("land", "restoration", "ecosystem"),
+#'                       freq = c(50, 45, 40),
+#'                       corpus = "Corpus 1")
+#' corpus2 <- data.frame(word = c("disease", "treatment", "patient"),
+#'                       freq = c(55, 50, 45),
+#'                       corpus = "Corpus 2")
+#'
+#' wordcloud(bind_rows(corpus1, corpus2),
+#'           facet_by = "corpus",
+#'           facet_ncol = 2,
+#'           colors = c("#1B9E77", "#D95F02"),
+#'           facet_text_size = 16,
+#'           max_size = 30,
+#'           seed = 123)
+wordcloud <- function(
+  data,
+  col_names = NULL,
+  max_size = 20,
+  min_size = 2,
+  eccentricity = 0.65,
+  shape = "circle",
+  rm_outside = FALSE,
+  rot_per = 0.1,
+  colors = "black",
+  color_by_size = FALSE,
+  color_gradient_low = "darkblue",
+  color_gradient_high = "lightblue",
+  seed = NA,
+  area_corr = TRUE,
+  rstep = 0.01,
+  tstep = 0.02,
+  grid_size = 4,
+  max_steps = 10,
+  xlim = c(NA, NA),
+  ylim = c(NA, NA),
+  mask = NA,
+  show_boxes = FALSE,
+  background_color = "white",
+  facet_by = NULL,
+  facet_ncol = NULL,
+  facet_nrow = NULL,
+  facet_scales = "fixed",
+  facet_labeller = "label_value",
+  facet_text_size = 16,
+  facet_text_face = "bold",
+  facet_text_color = "black",
+  ...
 ) {
-  filename <- paste0(language, "_word_frequency.keyness")
-
-  if (is.null(file_dir)) {
-    file_dir <- paste0(homeFolder(), "/tall/language_models")
+  # Validate input
+  if (!is.data.frame(data)) {
+    stop("'data' must be a data frame")
   }
 
-  url <- file.path(
-    "https://raw.githubusercontent.com/massimoaria/tall.language.models/main/word.frequency.data",
-    filename
-  )
-  to <- file.path(file_dir, filename)
-  download_failed <- FALSE
-  download_message <- "OK"
-  dl <- suppressWarnings(try(
-    utils::download.file(url = url, destfile = to, mode = "wb"),
-    silent = TRUE
-  ))
-  if (inherits(dl, "try-error")) {
-    download_failed <- TRUE
-    download_message <- as.character(dl)
-  } else if (inherits(dl, "integer") && dl != 0) {
-    download_failed <- TRUE
-    download_message <- "Download failed. Please check internet connectivity"
+  if (ncol(data) < 2) {
+    stop("'data' must have at least 2 columns")
   }
-  if (download_failed) {
-    message("Something went wrong")
-    message(download_message)
+
+  # Handle column names
+  if (is.null(col_names)) {
+    words_col <- names(data)[1]
+    size_col <- names(data)[2]
   } else {
-    message(sprintf("Downloading finished, model stored at '%s'", to))
+    if (length(col_names) != 2) {
+      stop("'col_names' must be a character vector of length 2")
+    }
+    if (!all(col_names %in% names(data))) {
+      stop("Column names specified in 'col_names' not found in data")
+    }
+    words_col <- col_names[1]
+    size_col <- col_names[2]
   }
 
-  return(list(
-    download_failed = download_failed,
-    download_message = download_message,
-    file_wordlist = to
-  ))
-}
-
-tall_load_wordlist <- function(
-  language,
-  file_dir = NULL
-) {
-  wordlist_path <- paste0(homeFolder(), "/tall/language_models/")
-  if (!dir.exists(wordlist_path)) {
-    dir.create(wordlist_path, recursive = TRUE)
-  }
-
-  filename <- paste0(language, "_word_frequency.keyness")
-
-  file_path <- file.path(wordlist_path, filename)
-
-  if (!file.exists(file_path)) {
-    message(sprintf(
-      "Wordlist for language '%s' not found locally. Downloading...",
-      language
-    ))
-    info <- tall_download_wordlist(
-      language = language,
-      file_dir = file_dir,
-      overwrite = FALSE
-    )
-    if (info$download_failed) {
-      return(NULL)
+  # Validate facet_by if provided
+  if (!is.null(facet_by)) {
+    if (!facet_by %in% names(data)) {
+      stop("Column '", facet_by, "' specified in 'facet_by' not found in data")
     }
   }
 
-  load(file_path)
-
-  return(word_frequency)
-}
-
-# tall_keyness_analysis <- function(
-#   dfTag,
-#   language = "english",
-#   N = 2000,
-#   min.char = 3,
-#   upos_list = c("NOUN", "VERB")
-# ) {
-#   # Load word frequency list for the specified language
-#   word_frequency <- tall_load_wordlist(language = language)
-#
-#   # Calculate observed frequencies by filtering and aggregating tokens
-#   x <- dfTag %>%
-#     dplyr::filter(upos %in% upos_list) %>%
-#     mutate(token = tolower(token)) %>%
-#     dplyr::group_by(token) %>%
-#     dplyr::summarise(n = n()) %>%
-#     ungroup() %>%
-#     dplyr::filter(nchar(token) > min.char) %>%
-#     slice_max(order_by = n, n = N) %>%
-#     rename(obsFreq = n) %>%
-#     as_tibble()
-#
-#   # Calculate total number of words (excluding numbers and punctuation)
-#   total_words <- nrow(
-#     dfTag %>%
-#       dplyr::filter(!upos %in% c("NUM", "PUNCT"))
-#   )
-#
-#   # Calculate expected frequencies based on reference corpus
-#   df <- word_frequency %>%
-#     as_tibble() %>%
-#     mutate(token = tolower(token)) %>%
-#     group_by(token) %>%
-#     summarise(rel_freq = sum(rel_freq, na.rm = T)) %>%
-#     ungroup() %>%
-#     mutate(expFreq = round(rel_freq * total_words, 0))
-#
-#   # Create frequency table by joining observed and expected frequencies
-#   freq_table <- x %>%
-#     left_join(df, by = c("token")) %>%
-#     select(token, obsFreq, expFreq) %>%
-#     distinct() %>%
-#     ungroup() %>%
-#     # replace NA in expFreq with 1
-#     dplyr::mutate(
-#       expFreq = ifelse(is.na(expFreq), 1, expFreq)
-#     )
-#   #drop_na()
-#
-#   # Calculate contingency table statistics
-#   stats_tb2 <- freq_table %>%
-#     dplyr::mutate(
-#       C1 = sum(obsFreq),
-#       C2 = sum(expFreq),
-#       N = C1 + C2
-#     ) %>%
-#     dplyr::rowwise() %>%
-#     dplyr::mutate(
-#       R1 = obsFreq + expFreq,
-#       R2 = N - R1,
-#       O11 = obsFreq,
-#       O11 = ifelse(O11 == 0, O11 + 0.1, O11),
-#       O12 = R1 - O11,
-#       O21 = C1 - O11,
-#       O22 = C2 - O12
-#     ) %>%
-#     dplyr::mutate(
-#       E11 = (R1 * C1) / N,
-#       E12 = (R1 * C2) / N,
-#       E21 = (R2 * C1) / N,
-#       E22 = (R2 * C2) / N
-#     ) %>%
-#     dplyr::select(-obsFreq, -expFreq)
-#
-#   # Calculate association measures and keyness statistics
-#   assoc_tb3 <- stats_tb2 %>%
-#     dplyr::mutate(Rws = nrow(.)) %>%
-#     dplyr::rowwise() %>%
-#     # Calculate Fisher's exact test
-#     dplyr::mutate(
-#       p = as.vector(unlist(fisher.test(matrix(
-#         c(O11, O12, O21, O22),
-#         ncol = 2,
-#         byrow = T
-#       ))[1]))
-#     ) %>%
-#     # Calculate per thousand word frequencies
-#     dplyr::mutate(
-#       ptw_target = O11 / C1 * 1000,
-#       ptw_ref = O12 / C2 * 1000
-#     ) %>%
-#     # Calculate chi-square statistic
-#     dplyr::mutate(
-#       X2 = (O11 - E11)^2 /
-#         E11 +
-#         (O12 - E12)^2 / E12 +
-#         (O21 - E21)^2 / E21 +
-#         (O22 - E22)^2 / E22
-#     ) %>%
-#     # Calculate various keyness measures
-#     dplyr::mutate(
-#       phi = sqrt((X2 / N)),
-#       MI = log2(O11 / E11),
-#       t.score = (O11 - E11) / sqrt(O11),
-#       PMI = log2((O11 / N) / ((O11 + O12) / N) * ((O11 + O21) / N)),
-#       DeltaP = (O11 / R1) - (O21 / R2),
-#       LogOddsRatio = log(
-#         ((O11 + 0.5) * (O22 + 0.5)) / ((O12 + 0.5) * (O21 + 0.5))
-#       ),
-#       G2 = 2 *
-#         ((O11 + 0.001) *
-#           log((O11 + 0.001) / E11) +
-#           (O12 + 0.001) * log((O12 + 0.001) / E12) +
-#           O21 * log(O21 / E21) +
-#           O22 * log(O22 / E22)),
-#       # Traditional keyness measures
-#       RateRatio = ((O11 + 0.001) / (C1 * 1000)) / ((O12 + 0.001) / (C2 * 1000)),
-#       RateDifference = (O11 / (C1 * 1000)) - (O12 / (C2 * 1000)),
-#       DifferenceCoefficient = RateDifference /
-#         sum((O11 / (C1 * 1000)), (O12 / (C2 * 1000))),
-#       OddsRatio = ((O11 + 0.5) * (O22 + 0.5)) / ((O12 + 0.5) * (O21 + 0.5)),
-#       LLR = 2 * (O11 * (log((O11 / E11)))),
-#       RDF = abs((O11 / C1) - (O12 / C2)),
-#       PDiff = abs(ptw_target - ptw_ref) / ((ptw_target + ptw_ref) / 2) * 100,
-#       SignedDKL = sum(
-#         ifelse(O11 > 0, O11 * log(O11 / ((O11 + O12) / 2)), 0) -
-#           ifelse(O12 > 0, O12 * log(O12 / ((O11 + O12) / 2)), 0)
-#       )
-#     ) %>%
-#     # Determine Bonferroni corrected significance
-#     dplyr::mutate(
-#       Sig_corrected = dplyr::case_when(
-#         p / Rws > .05 ~ "n.s.",
-#         p / Rws > .01 ~ "p < .05*",
-#         p / Rws > .001 ~ "p < .01**",
-#         p / Rws <= .001 ~ "p < .001***",
-#         T ~ "N.A."
-#       )
-#     ) %>%
-#     # Round p-value and determine type/antitype
-#     dplyr::mutate(
-#       p = round(p, 5),
-#       type = ifelse(E11 > O11, "antitype", "type"),
-#       phi = ifelse(E11 > O11, -phi, phi),
-#       G2 = ifelse(E11 > O11, -G2, G2)
-#     ) %>%
-#     # Filter out non-significant results
-#     dplyr::filter(Sig_corrected != "n.s.") %>%
-#     # Arrange by G2 statistic
-#     dplyr::arrange(-G2) %>%
-#     # Remove superfluous columns
-#     dplyr::select(
-#       -any_of(c(
-#         "TermCoocFreq",
-#         "AllFreq",
-#         "NRows",
-#         "R1",
-#         "R2",
-#         "C1",
-#         "C2",
-#         "E12",
-#         "E21",
-#         "E22",
-#         "upp",
-#         "low",
-#         "op",
-#         "t.score",
-#         "z.score",
-#         "Rws"
-#       ))
-#     ) %>%
-#     # Relocate important columns to the front
-#     dplyr::relocate(any_of(c(
-#       "token",
-#       "type",
-#       "Sig_corrected",
-#       "O11",
-#       "O12",
-#       "ptw_target",
-#       "ptw_ref",
-#       "G2",
-#       "RDF",
-#       "RateRatio",
-#       "RateDifference",
-#       "DifferenceCoefficient",
-#       "LLR",
-#       "SignedDKL",
-#       "PDiff",
-#       "LogOddsRatio",
-#       "MI",
-#       "PMI",
-#       "phi",
-#       "X2",
-#       "OddsRatio",
-#       "DeltaP",
-#       "p",
-#       "E11",
-#       "O21",
-#       "O22"
-#     )))
-#
-#   return(list(
-#     results = assoc_tb3
-#   ))
-# }
-
-# plot_tall_keyness <- function(assoc_tb3, measure = "G2", N = 10) {
-#   # Get top 10 and bottom 10 keywords
-#   top <- assoc_tb3 %>%
-#     dplyr::ungroup() %>%
-#     dplyr::arrange(desc(.data[[measure]])) %>%
-#     dplyr::slice_head(n = N)
-#
-#   bot <- assoc_tb3 %>%
-#     dplyr::ungroup() %>%
-#     dplyr::arrange(desc(.data[[measure]])) %>%
-#     dplyr::slice_tail(n = N)
-#
-#   names(top)[which(names(top) %in% measure)] <- "Measure"
-#   names(bot)[which(names(bot) %in% measure)] <- "Measure"
-#
-#   combined_data <- rbind(top, bot)
-#
-#   # Create ggplot bar plot for top/bottom keywords
-#   plot_gg_bar <- combined_data %>%
-#     ggplot(aes(
-#       x = reorder(token, Measure, mean),
-#       y = Measure,
-#       label = Measure,
-#       fill = type
-#     )) +
-#     geom_bar(stat = "identity") +
-#     geom_text(
-#       aes(
-#         y = ifelse(Measure > 0, Measure - 50, Measure + 50),
-#         label = round(Measure, 1)
-#       ),
-#       color = "white",
-#       size = 3
-#     ) +
-#     coord_flip() +
-#     theme_bw() +
-#     theme(legend.position = "none") +
-#     scale_fill_manual(values = c("antitype" = "#D73027", "type" = "#4575B4")) +
-#     labs(
-#       title = paste0("Top ", N, " keywords for Target vs General Corpus"),
-#       x = "Keyword",
-#       y = paste0("Keyness (", measure, ")")
-#     )
-#
-#   # Create plotly bar plot
-#   combined_data <- combined_data %>%
-#     dplyr::mutate(
-#       token = reorder(token, Measure, mean),
-#       color = ifelse(type == "antitype", "#D73027", "#4575B4")
-#     )
-#
-#   plot_plotly_bar <- plotly::plot_ly(
-#     data = combined_data,
-#     y = ~token,
-#     x = ~Measure,
-#     type = "bar",
-#     orientation = "h",
-#     marker = list(color = ~color),
-#     text = ~ round(Measure, 1),
-#     textposition = "inside",
-#     textfont = list(color = "white", size = 12)
-#   ) %>%
-#     plotly::layout(
-#       title = paste0("Top ", N, " keywords for Target vs General Corpus"),
-#       xaxis = list(title = paste0("Keyness (", measure, ")")),
-#       yaxis = list(
-#         title = "Keyword",
-#         tickmode = "linear",
-#         categoryorder = "trace",
-#         autorange = "reversed"
-#       ),
-#       showlegend = FALSE,
-#       margin = list(l = 100)
-#     )
-#
-#   # Return results
-#   return(list(
-#     plot_ggplot_bar = plot_gg_bar,
-#     plot_plotly_bar = plot_plotly_bar
-#   ))
-# }
-
-#' Identify and Visualize Frequency Context in Keyness Results
-#'
-#' This function analyzes keyness results to identify specialized terminology
-#' (high keyness, low frequency) versus fundamental stylistic/thematic differences
-#' (high keyness, high frequency).
-#'
-#' @param keyness_results A data frame containing keyness analysis results with
-#'        columns: Word, G2, Obs_Freq (observed frequency in target corpus)
-#' @param top_n Number of top high-frequency and low-frequency words to select (default: 15)
-#' @param g2_threshold Minimum G2 score to consider (default: 10.83, p < 0.001)
-#' @param title Plot title (default: "Frequency Context Analysis")
-#' @param label_spacing Spacing factor for labels to avoid overlap (default: 0.08)
-#' @param freq_threshold Frequency threshold to separate low/high frequency zones (default: NULL, uses median)
-#' @return A plotly scatter plot object
-#'
-frequency_context_analysis <- function(
-  keyness_results,
-  top_n = 15,
-  g2_threshold = 10.83,
-  title = "Frequency Context Analysis",
-  label_spacing = 0.08,
-  freq_threshold = NULL
-) {
-  # Load required libraries
-  require(plotly)
-  require(dplyr)
-
-  # Filter words with high keyness scores (significant keywords)
-  high_keyness <- keyness_results %>%
-    dplyr::filter(G2 >= g2_threshold) %>%
-    arrange(desc(G2)) %>%
-    rename(
-      Word = token,
-      Obs_Freq = O11
-    )
-
-  # Identify top N high-frequency words (fundamental differences)
-  high_freq_words <- high_keyness %>%
-    arrange(desc(Obs_Freq)) %>%
-    head(top_n) %>%
-    mutate(Category = "High Frequency\n(Fundamental Differences)")
-
-  # Identify top N low-frequency words (specialized terminology)
-  low_freq_words <- high_keyness %>%
-    arrange(Obs_Freq) %>%
-    head(top_n) %>%
-    mutate(Category = "Low Frequency\n(Specialized Terminology)")
-
-  # Combine selected words
-  selected_words <- bind_rows(high_freq_words, low_freq_words)
-
-  # Calculate frequency threshold if not provided (use median)
-  if (is.null(freq_threshold)) {
-    freq_threshold <- median(selected_words$Obs_Freq)
-  }
-
-  # Transform coordinates to log scale for calculations
-  selected_words <- selected_words %>%
-    mutate(
-      log_freq = log10(Obs_Freq),
-      log_g2 = log10(G2)
-    )
-
-  # Calculate axis ranges for background zones (in original scale)
-  x_range_orig <- range(selected_words$Obs_Freq)
-  y_range_orig <- range(selected_words$G2)
-
-  # Extend ranges for better visualization
-  x_min <- x_range_orig[1] * 0.5
-  x_max <- x_range_orig[2] * 2
-  y_min <- y_range_orig[1] * 0.5
-  y_max <- y_range_orig[2] * 2
-
-  # Algorithm to adjust label positions alternating above/below for nearby points
-  # with increased spacing for low frequency words
-  adjust_labels_alternating <- function(df, spacing = label_spacing) {
-    df <- df %>% arrange(log_freq, log_g2)
-
-    # Initialize adjusted positions and anchor positions
-    df$label_x <- df$log_freq
-    df$label_y <- df$log_g2
-    df$yanchor <- "bottom" # Default: label above point
-
-    # Set spacing multiplier based on category (more space for low frequency)
-    df$spacing_mult <- ifelse(
-      df$Category == "Low Frequency\n(Specialized Terminology)",
-      2.5,
-      1.0
-    )
-
-    # Identify clusters of nearby points
-    clusters <- list()
-    current_cluster <- c(1)
-
-    for (i in 2:nrow(df)) {
-      # Check if point i is close to any point in current cluster
-      is_close <- FALSE
-      for (j in current_cluster) {
-        dx <- df$log_freq[i] - df$log_freq[j]
-        dy <- df$log_g2[i] - df$log_g2[j]
-        dist <- sqrt(dx^2 + dy^2)
-        if (dist < spacing * 2) {
-          is_close <- TRUE
-          break
-        }
-      }
-
-      if (is_close) {
-        current_cluster <- c(current_cluster, i)
-      } else {
-        if (length(current_cluster) > 1) {
-          clusters[[length(clusters) + 1]] <- current_cluster
-        }
-        current_cluster <- c(i)
-      }
-    }
-    # Add last cluster
-    if (length(current_cluster) > 1) {
-      clusters[[length(clusters) + 1]] <- current_cluster
-    }
-
-    # For each cluster, alternate labels above and below with increased distance for low freq
-    for (cluster in clusters) {
-      # Sort cluster by G2 value (vertical position)
-      cluster_sorted <- cluster[order(df$log_g2[cluster])]
-
-      # Alternate anchor positions
-      for (idx in seq_along(cluster_sorted)) {
-        i <- cluster_sorted[idx]
-        mult <- df$spacing_mult[i]
-
-        if (idx %% 2 == 0) {
-          df$yanchor[i] <- "top" # Label below point
-          df$label_y[i] <- df$log_g2[i] - spacing * 0.5 * mult
-        } else {
-          df$yanchor[i] <- "bottom" # Label above point
-          df$label_y[i] <- df$log_g2[i] + spacing * 0.5 * mult
-        }
-      }
-    }
-
-    # Additional refinement: push labels apart if still overlapping
-    for (iter in 1:30) {
-      moved <- FALSE
-      for (i in 1:nrow(df)) {
-        for (j in 1:nrow(df)) {
-          if (i >= j) {
-            next
-          }
-
-          dx <- df$label_x[i] - df$label_x[j]
-          dy <- df$label_y[i] - df$label_y[j]
-          dist <- sqrt(dx^2 + dy^2)
-
-          # Use max spacing multiplier for the pair
-          max_mult <- max(df$spacing_mult[i], df$spacing_mult[j])
-          min_dist <- spacing * 0.8 * max_mult
-
-          # If labels are still too close, push them apart
-          if (dist < min_dist && dist > 0) {
-            push_x <- dx / dist * (min_dist - dist) / 2
-            push_y <- dy / dist * (min_dist - dist) / 2
-
-            df$label_x[i] <- df$label_x[i] + push_x
-            df$label_x[j] <- df$label_x[j] - push_x
-            df$label_y[i] <- df$label_y[i] + push_y
-            df$label_y[j] <- df$label_y[j] - push_y
-            moved <- TRUE
-          }
-        }
-      }
-      if (!moved) break
-    }
-
-    return(df)
-  }
-
-  # Adjust label positions with alternating strategy
-  selected_words <- adjust_labels_alternating(
-    selected_words,
-    spacing = label_spacing
+  # Prepare data
+  plot_data <- data.frame(
+    label = as.character(data[[words_col]]),
+    size = as.numeric(data[[size_col]]),
+    stringsAsFactors = FALSE
   )
 
-  # Create base scatter plot
-  p <- plot_ly() %>%
-    # Add data points for high frequency words
-    add_trace(
-      data = selected_words %>%
-        filter(Category == "High Frequency\n(Fundamental Differences)"),
-      x = ~Obs_Freq,
-      y = ~G2,
-      type = "scatter",
-      mode = "markers",
-      name = "High Frequency<br>(Fundamental Differences)",
-      marker = list(
-        size = 12,
-        color = "#FF8C00",
-        line = list(color = "white", width = 1.5),
-        opacity = 0.8
-      ),
-      text = ~Word,
-      hovertemplate = paste(
-        "<b>%{text}</b><br>",
-        "Frequency: %{x}<br>",
-        "G² Score: %{y:.2f}<br>",
-        "<extra></extra>"
+  # Add facet variable if specified
+  if (!is.null(facet_by)) {
+    plot_data$facet_var <- data[[facet_by]]
+  }
+
+  # Remove NA values
+  plot_data <- plot_data[!is.na(plot_data$label) & !is.na(plot_data$size), ]
+
+  if (nrow(plot_data) == 0) {
+    stop("No valid data to plot after removing NAs")
+  }
+
+  # Add rotation angle if rot_per > 0
+  if (rot_per > 0) {
+    n <- nrow(plot_data)
+    plot_data$angle <- 90 *
+      sample(c(0, 1), n, replace = TRUE, prob = c(1 - rot_per, rot_per))
+  } else {
+    plot_data$angle <- 0
+  }
+
+  # Handle colors
+  if (color_by_size) {
+    # Use size for color gradient
+    plot_data$color_var <- plot_data$size
+  } else {
+    # Check if we have faceting and colors match number of facets
+    if (!is.null(facet_by) && length(colors) > 1) {
+      # Get unique facets
+      unique_facets <- unique(plot_data$facet_var)
+      n_facets <- length(unique_facets)
+
+      # If number of colors equals number of facets, assign one color per facet
+      if (length(colors) == n_facets) {
+        # Create a named vector mapping facets to colors
+        facet_colors <- setNames(colors, unique_facets)
+        # Assign colors based on facet
+        plot_data$color_var <- facet_colors[as.character(plot_data$facet_var)]
+      } else {
+        # Otherwise, assign colors to individual words
+        plot_data$color_var <- rep_len(colors, nrow(plot_data))
+      }
+    } else {
+      # No faceting or single color
+      if (length(colors) == 1) {
+        plot_data$color_var <- colors
+      } else {
+        # If colors vector is shorter than data, recycle it
+        plot_data$color_var <- rep_len(colors, nrow(plot_data))
+      }
+    }
+  }
+
+  # Set seed if provided
+  if (!is.na(seed)) {
+    set.seed(seed)
+  }
+
+  # Build the base plot with color aesthetic
+  p <- ggplot2::ggplot(
+    plot_data,
+    ggplot2::aes(label = label, size = size, angle = angle, color = color_var)
+  )
+
+  # Choose geom based on area_corr
+  if (area_corr) {
+    p <- p +
+      ggwordcloud::geom_text_wordcloud_area(
+        eccentricity = eccentricity,
+        shape = shape,
+        rm_outside = rm_outside,
+        rstep = rstep,
+        tstep = tstep,
+        grid_size = grid_size,
+        max_steps = max_steps,
+        xlim = xlim,
+        ylim = ylim,
+        mask = mask,
+        area_corr = TRUE,
+        show_boxes = show_boxes,
+        ...
       )
-    ) %>%
-    # Add data points for low frequency words
-    add_trace(
-      data = selected_words %>%
-        filter(Category == "Low Frequency\n(Specialized Terminology)"),
-      x = ~Obs_Freq,
-      y = ~G2,
-      type = "scatter",
-      mode = "markers",
-      name = "Low Frequency<br>(Specialized Terminology)",
-      marker = list(
-        size = 12,
-        color = "#8B4789",
-        line = list(color = "white", width = 1.5),
-        opacity = 0.8
-      ),
-      text = ~Word,
-      hovertemplate = paste(
-        "<b>%{text}</b><br>",
-        "Frequency: %{x}<br>",
-        "G² Score: %{y:.2f}<br>",
-        "<extra></extra>"
+  } else {
+    p <- p +
+      ggwordcloud::geom_text_wordcloud(
+        eccentricity = eccentricity,
+        shape = shape,
+        rm_outside = rm_outside,
+        rstep = rstep,
+        tstep = tstep,
+        grid_size = grid_size,
+        max_steps = max_steps,
+        xlim = xlim,
+        ylim = ylim,
+        mask = mask,
+        area_corr = FALSE,
+        show_boxes = show_boxes,
+        ...
       )
-    )
+  }
 
-  # Add annotations for labels with adjusted positions and alternating anchors
-  annotations_list <- lapply(1:nrow(selected_words), function(i) {
-    row <- selected_words[i, ]
+  # Add size scale
+  p <- p + ggplot2::scale_size_area(max_size = max_size)
 
-    list(
-      x = log10(row$Obs_Freq),
-      y = log10(row$G2),
-      xref = "x",
-      yref = "y",
-      text = row$Word,
-      xanchor = "center",
-      yanchor = row$yanchor, # Alternating between "top" and "bottom"
-      showarrow = TRUE,
-      arrowhead = 0,
-      arrowsize = 0.5,
-      arrowwidth = 1,
-      arrowcolor = "rgba(128,128,128,0.5)",
-      ax = (row$label_x - log10(row$Obs_Freq)) * 100,
-      ay = (row$label_y - log10(row$G2)) * 100,
-      font = list(size = 10, color = "black"),
-      bgcolor = "rgba(255,255,255,0.5)",
-      bordercolor = "rgba(128,128,128,0.6)",
-      borderwidth = 0.5,
-      borderpad = 2
-    )
-  })
+  # Add color scale
+  if (color_by_size) {
+    p <- p +
+      ggplot2::scale_color_gradient(
+        low = color_gradient_low,
+        high = color_gradient_high,
+        guide = "none"
+      )
+  } else {
+    if (length(colors) == 1) {
+      p <- p + ggplot2::scale_color_identity()
+    } else {
+      p <- p + ggplot2::scale_color_identity()
+    }
+  }
 
-  # Finalize layout with background shapes and legend
-  p <- p %>%
-    layout(
-      # title = list(
-      #   text = title,
-      #   font = list(size = 16, family = "Arial", weight = "bold")
-      # ),
-      xaxis = list(
-        title = "Observed Frequency (Target Corpus)",
-        type = "log",
-        gridcolor = "#E0E0E0",
-        showline = TRUE,
-        linecolor = "#CCCCCC"
+  # Add faceting if specified
+  if (!is.null(facet_by)) {
+    p <- p +
+      ggplot2::facet_wrap(
+        ~facet_var,
+        ncol = facet_ncol,
+        nrow = facet_nrow,
+        scales = facet_scales,
+        labeller = facet_labeller
+      )
+  }
+
+  # Add theme
+  p <- p +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      panel.background = ggplot2::element_rect(
+        fill = background_color,
+        color = NA
       ),
-      yaxis = list(
-        title = "G² Keyness Score",
-        type = "log",
-        gridcolor = "#E0E0E0",
-        showline = TRUE,
-        linecolor = "#CCCCCC"
+      plot.background = ggplot2::element_rect(
+        fill = background_color,
+        color = NA
       ),
-      plot_bgcolor = "#F8F9FA",
-      paper_bgcolor = "white",
-      hovermode = "closest",
-      showlegend = TRUE,
-      legend = list(
-        x = 0.02,
-        y = 0.98,
-        xanchor = "left",
-        yanchor = "top",
-        bgcolor = "rgba(255,255,255,0.8)",
-        bordercolor = "#CCCCCC",
-        borderwidth = 1
-      ),
-      # Add background rectangles using shapes (coordinates in original scale for log axes)
-      shapes = list(
-        # Low frequency zone (specialized terminology) - light purple
-        list(
-          type = "rect",
-          xref = "x",
-          yref = "y",
-          x0 = x_min,
-          y0 = y_min,
-          x1 = freq_threshold,
-          y1 = y_max,
-          fillcolor = "rgba(139, 71, 137, 0.08)", # Purple shade matching the points
-          line = list(width = 0),
-          layer = "below"
-        ),
-        # High frequency zone (fundamental differences) - light orange
-        list(
-          type = "rect",
-          xref = "x",
-          yref = "y",
-          x0 = freq_threshold,
-          y0 = y_min,
-          x1 = x_max,
-          y1 = y_max,
-          fillcolor = "rgba(255, 140, 0, 0.08)", # Orange shade matching the points
-          line = list(width = 0),
-          layer = "below"
-        )
-      ),
-      margin = list(r = 80, b = 100, l = 80, t = 80),
-      annotations = c(
-        annotations_list,
-        list(
-          list(
-            text = paste(
-              "High keyness threshold: G² ≥",
-              round(g2_threshold, 1)
-            ),
-            xref = "paper",
-            yref = "paper",
-            x = 0.01,
-            y = -0.15,
-            xanchor = "left",
-            yanchor = "top",
-            showarrow = FALSE,
-            font = list(size = 10, color = "gray")
-          )
-        )
+      panel.grid = ggplot2::element_blank(),
+      axis.text = ggplot2::element_blank(),
+      axis.title = ggplot2::element_blank(),
+      axis.ticks = ggplot2::element_blank(),
+      legend.position = "none",
+      strip.text = ggplot2::element_text(
+        size = facet_text_size,
+        face = facet_text_face,
+        color = facet_text_color
       )
     )
 
   return(p)
 }
-
 
 ### WORD IN CONTEXT ----
 get_context_window <- function(
