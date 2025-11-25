@@ -110,6 +110,7 @@ server <- function(input, output, session) {
 
   ### Initial values ----
   values <- resetValues()
+  statsValues <- updateStats(NULL, "token")
 
   ## Setting plot values
   values$h <- 7
@@ -578,6 +579,11 @@ server <- function(input, output, session) {
         values$D <- D
         values$where <- where
         values$corpus_description <- corpus_description
+        statsValues <- updateStats(
+          values$dfTag,
+          term = values$generalTerm,
+          statsValues
+        )
         if (exists("generalTerm")) {
           values$generalTerm <- generalTerm
         }
@@ -608,6 +614,12 @@ server <- function(input, output, session) {
             values$where <- where
             values$corpus_description <- "The dataset is composed of a collection of 444 scientific articles written in English in which the authors used the Bibliometrix R package to perform systematic literature reviews.\n The textual data consists of the article abstracts, while the additional information includes metadata such as the list of co-authors, the first author, the year of publication, and the journal name."
             values$resetNeed <- TRUE
+            statsValues <- updateStats(
+              values$dfTag,
+              term = values$generalTerm,
+              statsValues
+            )
+
             if (values$menu == 1) {
               updateTabItems(session, "sidebarmenu", "custTermList")
             }
@@ -1606,6 +1618,11 @@ server <- function(input, output, session) {
 
       values$dfTag$docSelected <- TRUE
       values$menu <- 1
+      statsValues <- updateStats(
+        values$dfTag,
+        term = values$generalTerm,
+        statsValues
+      )
     }
   )
 
@@ -1630,6 +1647,11 @@ server <- function(input, output, session) {
   output$termSelected <- renderText({
     if (!is.null(input$generalTerm)) {
       values$generalTerm <- input$generalTerm
+      statsValues <- updateStats(
+        values$dfTag,
+        term = values$generalTerm,
+        statsValues
+      )
     }
     if (values$menu >= 1) {
       HTML(paste(
@@ -1701,7 +1723,11 @@ server <- function(input, output, session) {
 
       values$dfTag <- res$x %>% filter(!token %in% c("#", "@")) # remove empty hashs and tags
       values$posSpecialData <- res$resList %>% filter(!item %in% c("#", "@"))
-
+      statsValues <- updateStats(
+        values$dfTag,
+        term = values$generalTerm,
+        statsValues
+      )
       rm(res)
       values$posSpecialTaggingDT <- DTformat(
         values$posSpecialData %>%
@@ -1763,7 +1789,11 @@ server <- function(input, output, session) {
   ## back to the original txt
   observeEvent(input$posSpecialBack, {
     values$dfTag <- resetSpecialEntities(values$dfTag)
-
+    statsValues <- updateStats(
+      values$dfTag,
+      term = values$generalTerm,
+      statsValues
+    )
     replaceData(
       proxy2,
       data.frame(
@@ -1930,6 +1960,11 @@ server <- function(input, output, session) {
         values$custom_lists,
         values$generalTerm
       )
+      statsValues <- updateStats(
+        values$dfTag,
+        term = values$generalTerm,
+        statsValues
+      )
       # Update the DT proxy
 
       replaceData(proxy1, values$dfTag, resetPaging = FALSE)
@@ -2019,6 +2054,11 @@ server <- function(input, output, session) {
   observeEvent(input$custTermListBack, {
     values$custom_list <- NULL
     values$dfTag <- customListsReset(values$dfTag)
+    statsValues <- updateStats(
+      values$dfTag,
+      term = values$generalTerm,
+      statsValues
+    )
 
     popUpGeneric(
       title = "Custom List Removed",
@@ -2187,6 +2227,11 @@ server <- function(input, output, session) {
       )
 
       values$menu <- 2
+      statsValues <- updateStats(
+        values$dfTag,
+        term = values$generalTerm,
+        statsValues
+      )
 
       show_alert(
         title = "Success",
@@ -2473,6 +2518,11 @@ server <- function(input, output, session) {
         term = values$generalTerm,
         upos = "MULTIWORD"
       )
+      statsValues <- updateStats(
+        values$dfTag,
+        term = values$generalTerm,
+        statsValues
+      )
 
       replaceData(proxy4, values$dfTag, resetPaging = FALSE)
 
@@ -2586,6 +2636,11 @@ server <- function(input, output, session) {
       )
 
       values$dfTag <- highlight(values$dfTag, term = term, upos = "MULTIWORD")
+      statsValues <- updateStats(
+        values$dfTag,
+        term = values$generalTerm,
+        statsValues
+      )
     }
   )
 
@@ -2662,15 +2717,230 @@ server <- function(input, output, session) {
   ## PoS Tag Selection ----
   observe({
     output$posTagListsUI <- renderUI({
-      checkboxGroupInput(
-        "posTagLists",
-        label = NULL,
-        choices = posTagAll(values$dfTag)$description,
-        selected = (posTagAll(
-          values$dfTag %>% dplyr::filter(POSSelected)
-        ))$description
+      # Ottieni tutti i PoS tags
+      all_pos <- posTagAll(values$dfTag)
+      selected_pos <- (posTagAll(
+        values$dfTag %>% dplyr::filter(POSSelected)
+      ))$description
+
+      # Identifica dinamicamente le categorie
+      classic_available <- all_pos$description[
+        !grepl("Special Entity$|Custom PoS$", all_pos$description)
+      ]
+
+      special_available <- all_pos$description[
+        grepl("Special Entity$", all_pos$description)
+      ]
+
+      custom_available <- all_pos$description[
+        grepl("Custom PoS$", all_pos$description)
+      ]
+
+      # Funzione per creare etichette pulite
+      clean_labels <- function(items, pattern) {
+        labels <- gsub(pattern, "", items)
+        labels <- trimws(labels)
+        return(list(
+          names = unname(as.list(labels)),
+          values = unname(as.list(items))
+        ))
+      }
+
+      special_clean <- if (length(special_available) > 0) {
+        clean_labels(special_available, ": Special Entity$")
+      } else {
+        NULL
+      }
+
+      custom_clean <- if (length(custom_available) > 0) {
+        clean_labels(custom_available, ": Custom PoS$")
+      } else {
+        NULL
+      }
+
+      tagList(
+        # Classic PoS Card
+        if (length(classic_available) > 0) {
+          div(
+            style = "background: white; border: 2px solid #3498db; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); width: 100%;",
+
+            # Header
+            div(
+              style = "display: flex; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #3498db;",
+              div(
+                style = "width: 35px; height: 35px; border-radius: 50%; background: #3498db; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0;",
+                icon("tag", style = "color: white; font-size: 16px;")
+              ),
+              div(
+                strong(
+                  "Classic PoS Tags",
+                  style = "color: #2c3e50; font-size: 15px;"
+                ),
+                div(
+                  sprintf("%d tags", length(classic_available)),
+                  style = "color: #7f8c8d; font-size: 11px; margin-top: 2px;"
+                )
+              )
+            ),
+
+            # Checkboxes in due colonne
+            div(
+              style = "column-count: 2; column-gap: 20px;",
+              checkboxGroupInput(
+                "posTagLists_classic",
+                label = NULL,
+                choices = classic_available,
+                selected = intersect(selected_pos, classic_available)
+              )
+            )
+          )
+        },
+
+        # Special Entities Card
+        if (length(special_available) > 0) {
+          div(
+            style = "background: white; border: 2px solid #f39c12; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); width: 100%;",
+
+            # Header
+            div(
+              style = "display: flex; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #f39c12;",
+              div(
+                style = "width: 35px; height: 35px; border-radius: 50%; background: #f39c12; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0;",
+                icon("star", style = "color: white; font-size: 16px;")
+              ),
+              div(
+                strong(
+                  "Special Entities",
+                  style = "color: #2c3e50; font-size: 15px;"
+                ),
+                div(
+                  sprintf("%d entities", length(special_available)),
+                  style = "color: #7f8c8d; font-size: 11px; margin-top: 2px;"
+                )
+              )
+            ),
+
+            # Checkboxes con etichette pulite
+            div(
+              style = "column-count: 2; column-gap: 20px;",
+              checkboxGroupInput(
+                "posTagLists_special",
+                label = NULL,
+                choiceNames = special_clean$names,
+                choiceValues = special_clean$values,
+                selected = intersect(selected_pos, special_available)
+              )
+            )
+          )
+        },
+
+        # Custom PoS Card
+        if (length(custom_available) > 0) {
+          div(
+            style = "background: white; border: 2px solid #1abc9c; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); width: 100%;",
+
+            # Header
+            div(
+              style = "display: flex; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #1abc9c;",
+              div(
+                style = "width: 35px; height: 35px; border-radius: 50%; background: #1abc9c; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0;",
+                icon("wrench", style = "color: white; font-size: 16px;")
+              ),
+              div(
+                strong(
+                  "Custom PoS",
+                  style = "color: #2c3e50; font-size: 15px;"
+                ),
+                div(
+                  sprintf("%d custom tags", length(custom_available)),
+                  style = "color: #7f8c8d; font-size: 11px; margin-top: 2px;"
+                )
+              )
+            ),
+
+            # Checkboxes con etichette pulite
+            div(
+              style = "column-count: 2; column-gap: 20px;",
+              checkboxGroupInput(
+                "posTagLists_custom",
+                label = NULL,
+                choiceNames = custom_clean$names,
+                choiceValues = custom_clean$values,
+                selected = intersect(selected_pos, custom_available)
+              )
+            )
+          )
+        }
       )
     })
+  })
+
+  # Renderizza la box delle statistiche
+  output$posStatsUI <- renderUI({
+    # Inizializza con i valori totali se non ancora aggiornato
+    n_docs <- if (statsValues$n_docs == 0) {
+      length(unique(values$df$D_id))
+    } else {
+      statsValues$n_docs
+    }
+
+    n_tokens <- if (statsValues$n_tokens == 0) {
+      nrow(values$df)
+    } else {
+      statsValues$n_tokens
+    }
+
+    div(
+      style = "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);",
+
+      # Titolo
+      div(
+        style = "color: white; font-size: 14px; font-weight: 600; margin-bottom: 15px; text-align: center; opacity: 0.95;",
+        icon("chart-bar", style = "margin-right: 8px;"),
+        "Selection Statistics"
+      ),
+
+      # Statistiche in griglia
+      div(
+        style = "display: grid; grid-template-columns: 1fr 1fr; gap: 15px;",
+
+        # Documenti
+        div(
+          style = "background: rgba(255,255,255,0.15); border-radius: 6px; padding: 12px; text-align: center;",
+          div(
+            style = "color: rgba(255,255,255,0.9); font-size: 11px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px;",
+            "Documents"
+          ),
+          div(
+            style = "color: white; font-size: 24px; font-weight: bold;",
+            format(n_docs, big.mark = ",")
+          )
+        ),
+
+        # Token/Lemma
+        div(
+          style = "background: rgba(255,255,255,0.15); border-radius: 6px; padding: 12px; text-align: center;",
+          div(
+            style = "color: rgba(255,255,255,0.9); font-size: 11px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px;",
+            ifelse(values$generalTerm == "token", "Tokens", "Lemma")
+          ),
+          div(
+            style = "color: white; font-size: 24px; font-weight: bold;",
+            format(n_tokens, big.mark = ",")
+          )
+        )
+      ),
+
+      # Timestamp ultimo aggiornamento (opzionale)
+      if (!is.null(statsValues$last_update)) {
+        div(
+          style = "margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.2); text-align: center; color: rgba(255,255,255,0.8); font-size: 10px;",
+          icon("sync-alt", style = "margin-right: 5px;"),
+          "Updated: ",
+          format(statsValues$last_update, "%H:%M:%S")
+        )
+      }
+    )
   })
 
   PosFilterData <- eventReactive(
@@ -2678,8 +2948,14 @@ server <- function(input, output, session) {
       input$posTagSelectRun
     },
     {
+      posTagLists_combined <- c(
+        input$posTagLists_classic,
+        input$posTagLists_special,
+        input$posTagLists_custom
+      )
+      print(posTagLists_combined)
       selected <- (posTagAll(values$dfTag) %>%
-        dplyr::filter(description %in% (input$posTagLists)))$pos
+        dplyr::filter(description %in% (posTagLists_combined)))$pos
       values$dfTag <- removeHapaxFreq(
         values$dfTag,
         input$posTagHapax,
@@ -2687,6 +2963,12 @@ server <- function(input, output, session) {
       )
       values$dfTag <- posSel(values$dfTag, pos = selected)
       values$menu <- 2
+
+      statsValues <- updateStats(
+        values$dfTag,
+        term = values$generalTerm,
+        statsValues
+      )
 
       # Update the DT proxy
       proxy <- dataTableProxy("posTagSelectData")

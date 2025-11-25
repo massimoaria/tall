@@ -47,6 +47,39 @@ cssTags <- function() {
       ))
     ),
 
+    ## pos tag selection style
+    tags$head(
+      tags$style(HTML(
+        "
+    /* Assicura che le checkbox siano visibili */
+    .checkbox {
+      break-inside: avoid-column;
+      page-break-inside: avoid;
+      margin-bottom: 8px;
+    }
+
+    .checkbox label {
+      font-size: 13px;
+      color: #2c3e50;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+    }
+
+    .checkbox input[type='checkbox'] {
+      margin-right: 8px;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    .checkbox input[type='checkbox']:checked + span {
+      font-weight: 600;
+      color: #3498db;
+    }
+  "
+      ))
+    ),
+
     ## workaround to solve visualization issues in Data Table
     tags$head(tags$style(HTML(
       ".has-feedback .form-control { padding-right: 0px;}"

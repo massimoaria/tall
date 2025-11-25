@@ -66,6 +66,147 @@ createAuthorCard <- function(
 
 
 ### UTILS functions ----
+# check Internet connection
+
+check_online <- function(
+  host = "8.8.8.8",
+  timeout = 5,
+  # min_success = 1,
+  method = "ping" # method = c("ping", "socket", "http")
+) {
+  #method <- match.arg(method)
+
+  if (method == "ping") {
+    # Usa solo il codice di ritorno, non analizza l'output
+    ping_cmd <- if (.Platform$OS.type == "windows") {
+      sprintf("ping -n 1 -w %d %s", timeout * 1000, host)
+    } else {
+      sprintf("ping -c 1 -W %d %s", timeout, host)
+    }
+    exit_code <- suppressWarnings(system(
+      ping_cmd,
+      ignore.stdout = TRUE,
+      ignore.stderr = TRUE
+    ))
+    return(exit_code == 0)
+  } else if (method == "socket") {
+    # Connessione TCP a DNS Google (porta 53)
+    tryCatch(
+      {
+        con <- socketConnection(
+          host = host,
+          port = 53,
+          blocking = TRUE,
+          open = "r+",
+          timeout = timeout
+        )
+        close(con)
+        return(TRUE)
+      },
+      error = function(e) {
+        return(FALSE)
+      }
+    )
+  } else if (method == "http") {
+    # Richiesta HTTP
+    tryCatch(
+      {
+        # check if host start with http or https and add if missing
+        if (!grepl("^https?://", host)) {
+          host <- paste0("https://", host)
+        }
+
+        # con <- url("https://www.google.com", open = "rb")
+        con <- url(host, open = "rb")
+        on.exit(close(con))
+        readLines(con, n = 1, warn = FALSE)
+        return(TRUE)
+      },
+      error = function(e) {
+        return(FALSE)
+      }
+    )
+  }
+}
+
+
+# Number format abbreviated
+format_abbreviated <- function(x) {
+  if (is.na(x)) {
+    return("--")
+  }
+  if (x >= 1e6) {
+    return(paste0(format(round(x / 1e6, 2), nsmall = 2), "M"))
+  } else if (x >= 1e3) {
+    return(paste0(format(round(x / 1e3, 0), nsmall = 0), "K"))
+  } else {
+    return(as.character(x))
+  }
+}
+
+# total package download
+total_downloads <- function(
+  pkg_name = "tall",
+  from = "2025-01-01",
+  to = Sys.Date()
+) {
+  # Function to get total downloads of a package from CRAN logs
+  # Args:
+  #   pkg_name: Name of the package as a string
+  # Returns:
+  #   Total number of downloads as an integer
+
+  # if (!is_Online()) {
+  #   return(NA)
+  # }
+
+  #today <- Sys.Date()
+  if (!is.character(pkg_name) || length(pkg_name) != 1) {
+    stop("pkg_name must be a single string.")
+  }
+
+  url <- paste0(
+    "https://cranlogs.r-pkg.org/downloads/total/",
+    from,
+    ":",
+    to,
+    "/",
+    pkg_name
+  )
+
+  # if (!is_Online(timeout = 1, url)) {
+  #   return(NA)
+  # }
+  if (!check_online(host = url, timeout = 1, method = "http")) {
+    return(NA)
+  }
+
+  json_text <- tryCatch(
+    {
+      readLines(url, warn = FALSE)
+    },
+    error = function(e) {
+      return(NA)
+    }
+  )
+
+  # Se già nel tryCatch è tornato "NA", esci subito
+  if (identical(json_text, "NA")) {
+    return(NA)
+  }
+
+  # Extract the number manually (not robust)
+  txt <- unlist(strsplit(json_text, ","))
+  txt <- txt[grepl("downloads", txt)]
+
+  if (length(txt) == 0) {
+    return(NA)
+  }
+
+  downloads <- gsub("[^0-9]", "", txt)
+
+  return(as.integer(downloads))
+}
 
 # Scroll to Top Button (Font Awesome version)
 
@@ -1206,6 +1347,30 @@ tall_download_model <- function(
     download_message = download_message,
     stringsAsFactors = FALSE
   )
+}
+
+updateStats <- function(dfTag, term, statsValues = NULL) {
+  if (!is.null(dfTag)) {
+    statsValues$n_docs <- dfTag %>%
+      LemmaSelection() %>%
+      dplyr::filter(docSelected) %>%
+      distinct(doc_id) %>%
+      nrow()
+    statsValues$n_tokens <- dfTag %>%
+      LemmaSelection() %>%
+      dplyr::filter(docSelected) %>%
+      #distinct(.data[[term]]) %>%
+      nrow()
+    statsValues$last_update <- Sys.time()
+  } else {
+    # Reactive value per le statistiche
+    statsValues <- reactiveValues(
+      n_docs = 0,
+      n_tokens = 0,
+      last_update = NULL
+    )
+  }
+  return(statsValues)
 }
 
 ## Tagging Special Entites ----

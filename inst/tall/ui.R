@@ -114,7 +114,19 @@ header <- shinydashboardPlus::dashboardHeader(
       title = "PoS Tagging"
     )
   ),
-
+  tags$li(
+    class = "dropdown",
+    tags$a(
+      title = "Total downloads from CRAN", # ← Tooltip
+      icon("cloud-arrow-down", lib = "font-awesome"),
+      tags$span(
+        HTML(suppressWarnings(format_abbreviated(total_downloads(
+          "tall"
+        )))),
+        style = "margin-left: 5px; font-weight: bold;"
+      )
+    )
+  ),
   tags$li(
     class = "dropdown",
     actionButton(
@@ -836,15 +848,6 @@ body <- dashboardBody(
 
     tabItem(
       tabName = "tokPos",
-      # fluidPage(
-      #   fluidRow(
-      #     column(
-      #       12,
-      #       h3(strong("Tokenization & PoS Tagging"), align = "center"),
-      #       br(),
-      #     )
-      #   )
-      # ),
       tabsetPanel(
         type = "tabs",
         tabPanel(
@@ -1826,15 +1829,10 @@ body <- dashboardBody(
       fluidPage(
         fluidRow(
           column(
-            12,
-            h3(strong("PoS Tag Selection"), align = "center")
-          )
-        ),
-        br(),
-        br(),
-        fluidRow(
-          column(
             8,
+            h3(strong("PoS Tag Selection"), align = "center"),
+            br(),
+            br(),
             tabsetPanel(
               type = "tabs",
               tabPanel(
@@ -1865,32 +1863,62 @@ body <- dashboardBody(
             div(
               box(
                 width = 12,
-                div(h3(strong(em("Select:"))), style = "margin-top:-57px"),
-                tags$hr(),
-                fluidRow(column(
-                  12,
-                  div(
-                    class = "multicol",
-                    uiOutput("posTagListsUI")
-                  ),
-                  # h3(strong(em("Select Hapax:"))),
-                  hr(),
-                  div(
-                    class = "multicol",
-                    checkboxGroupInput(
-                      "posTagHapax",
-                      label = NULL,
-                      choices = c("Hapax"),
-                      selected = "Hapax"
+                style = "padding-top: 0px; margin-top: 0px;", # Azzera completamente
+
+                fluidRow(
+                  style = "margin-top: 0px;", # Azzera anche la fluidRow
+                  column(
+                    12,
+                    style = "padding-top: 0px;", # Azzera anche la column
+
+                    uiOutput("posStatsUI"),
+
+                    # PoS Tags UI
+                    div(
+                      uiOutput("posTagListsUI")
                     ),
-                    checkboxGroupInput(
-                      "posTagSingleChar",
-                      label = NULL,
-                      choices = c("Single Character"),
-                      selected = NULL
+
+                    # Filters Box (Hapax e Single Character)
+                    div(
+                      style = "background: white; border: 2px solid #95a5a6; border-radius: 8px; padding: 15px; margin-top: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); width: 100%;",
+
+                      # Header
+                      div(
+                        style = "display: flex; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #95a5a6;",
+                        div(
+                          style = "width: 35px; height: 35px; border-radius: 50%; background: #95a5a6; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0;",
+                          icon(
+                            "filter",
+                            style = "color: white; font-size: 16px;"
+                          )
+                        ),
+                        div(
+                          strong(
+                            "Additional Filters",
+                            style = "color: #2c3e50; font-size: 15px;"
+                          )
+                        )
+                      ),
+
+                      # Checkboxes affiancati con column-count
+                      div(
+                        style = "column-count: 2; column-gap: 20px;",
+                        checkboxGroupInput(
+                          "posTagHapax",
+                          label = NULL,
+                          choices = c("Hapax"),
+                          selected = "Hapax"
+                        ),
+                        checkboxGroupInput(
+                          "posTagSingleChar",
+                          label = NULL,
+                          choices = c("Single Character"),
+                          selected = NULL
+                        )
+                      )
                     )
                   )
-                )),
+                ),
                 div(
                   hr(),
                   div(
@@ -1931,12 +1959,12 @@ body <- dashboardBody(
                         )
                       )
                     ),
-                    style = "margin-top:-15px"
+                    style = "margin-top:-1px"
                   ),
-                  style = "margin-top:-15px"
+                  style = "margin-top:-1px"
                 )
               ),
-              style = "margin-top:40px"
+              style = "margin-top:0px"
             )
           )
         )
