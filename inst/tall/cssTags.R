@@ -1,5 +1,52 @@
 cssTags <- function() {
   tagList(
+    ## Team Card Style
+    tags$head(
+      tags$style(HTML(
+        "
+    .modal-lg {
+      max-width: 900px;
+    }
+
+    .modal-dialog {
+      margin-top: 40px;
+    }
+
+    .modal-content {
+      border-radius: 15px;
+      border: none;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+
+    .modal-header {
+      border-bottom: none;
+      padding: 25px 25px 10px 25px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 15px 15px 0 0;
+    }
+
+    .modal-header .close {
+      color: white;
+      opacity: 0.8;
+    }
+
+    .modal-header span {
+      color: white !important;
+    }
+
+    .modal-body {
+      padding: 10px 25px 25px 25px;
+      background: #ffffff;
+    }
+
+    .modal-footer {
+      border-top: none;
+      padding: 15px 25px;
+    }
+  "
+      ))
+    ),
+
     ## workaround to solve visualization issues in Data Table
     tags$head(tags$style(HTML(
       ".has-feedback .form-control { padding-right: 0px;}"

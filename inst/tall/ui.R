@@ -78,17 +78,12 @@ x_bttn <- list(
 
 title_tall <- tags$link(
   tags$a(
-    href = "https://github.com/massimoaria/tall",
+    href = "https://tall-app.com",
     target = "_blank",
     tags$img(src = "logo_white.jpg", height = "30", width = "30")
   ),
   strong(" TALL", style = "font-size:17px;")
 )
-
-donation <- "https://www.bibliometrix.org/home/index.php/donation"
-# tallWeb <- 'https://github.com/massimoaria/tall'
-k_synth <- "https://www.k-synth.unina.it"
-github_aria <- "https://github.com/massimoaria/tall"
 
 infoTexts <- helpContent()
 
@@ -99,75 +94,62 @@ header <- shinydashboardPlus::dashboardHeader(
   tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("dataGroupedBy"))))),
   tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("dataFilteredBy"))))),
   tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("termSelected"))))),
-  # tags$li(class = "dropdown", tags$a(HTML(paste(uiOutput("resetButton"))))),
-  dropdownMenu(
-    type = "messages",
-    icon = icon("comment-dollar", lib = "font-awesome"),
-    badgeStatus = NULL,
-    headerText = strong("Donate"),
-    messageItem2(
-      from = "Donation",
-      message = "",
-      href = donation,
-      icon = icon("share-alt", lib = "glyphicon")
+  tags$li(
+    class = "dropdown",
+    actionButton(
+      inputId = "go_to_postagging",
+      label = tags$a(
+        HTML(
+          paste(uiOutput("termSelected"))
+        ),
+        style = "color: #fff;"
+      ),
+      # icon = icon("gear", lib = "font-awesome"),
+      style = "background: transparent;
+               border: none;
+               color: #fff;
+               font-size: 16px;  /* Increased from 16px to 20px */
+               margin-top: 7px;
+               cursor: pointer;",
+      title = "PoS Tagging"
     )
   ),
-  dropdownMenu(
-    type = "messages",
-    icon = fa_i(name = "users"),
-    badgeStatus = NULL,
-    headerText = "",
-    shiny::tags$li(strong("Creators")),
-    messageItem2(
-      from = "Massimo Aria",
-      message = "",
-      href = "https://www.massimoaria.com",
-      icon = fa_i(name = "user-tie")
-    ),
-    messageItem2(
-      from = "Corrado Cuccurullo",
-      message = "",
-      href = "https://www.corradocuccurullo.com/",
-      icon = fa_i(name = "user-tie")
-    ),
-    messageItemCustom(
-      from = "Maria Spano",
-      message = "",
-      href = "https://scholar.google.com/citations?user=kh_hGT0AAAAJ&hl=it&oi=ao",
-      icon = "businesswoman"
-    ),
-    messageItem2(
-      from = "Luca D'Aniello",
-      message = "",
-      href = "https://scholar.google.com/citations?user=IXJxh0MAAAAJ&hl=it&oi=ao",
-      icon = fa_i(name = "user-tie")
-    ),
-    shiny::tags$li(strong("Contributors")),
-    messageItem2(
-      from = "Michelangelo Misuraca",
-      message = "",
-      href = "https://scholar.google.com/citations?user=WdivjAUAAAAJ&hl=it",
-      icon = fa_i(name = "user-tie")
+
+  tags$li(
+    class = "dropdown",
+    actionButton(
+      "show_donate",
+      label = NULL,
+      icon = icon("heart"),
+      style = "background: none; border: none; color: white; font-size: 15px; padding: 15px; margin: 0; transition: background 0.3s;",
+      onmouseover = "this.style.background='rgba(0,0,0,0.1)';",
+      onmouseout = "this.style.background='none';"
     )
   ),
-  dropdownMenu(
-    type = "messages",
-    icon = fa_i(name = "cube"),
-    badgeStatus = NULL,
-    headerText = strong("Credits"),
-    messageItem2(
-      from = "K-Synth",
-      message = "",
-      href = k_synth,
-      icon = fa_i(name = "watchman-monitoring")
-    ),
-    messageItem2(
-      from = "Github",
-      message = "",
-      href = github_aria,
-      icon = fa_i(name = "github")
+
+  # Author CARD ----
+  tags$li(
+    class = "dropdown",
+    actionButton(
+      "show_team",
+      label = NULL,
+      icon = icon("users"),
+      style = "background: none; border: none; color: white; font-size: 15px; padding: 15px; margin: 0;"
     )
   ),
+
+  tags$li(
+    class = "dropdown",
+    actionButton(
+      "show_credits",
+      label = NULL,
+      icon = icon("cube"),
+      style = "background: none; border: none; color: white; font-size: 15px; padding: 15px; margin: 0; transition: background 0.3s;",
+      onmouseover = "this.style.background='rgba(0,0,0,0.1)';",
+      onmouseout = "this.style.background='none';"
+    )
+  ),
+
   # Settings Button - uses actionLink to trigger server-side tab change
   tags$li(
     class = "dropdown",
