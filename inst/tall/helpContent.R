@@ -344,6 +344,89 @@ helpContent <- function() {
 
     </body>"
 
+  ## synonyms ----
+  synonyms <- "
+                        <div style=\'padding: 20px; background-color: #f8f9fa; border-radius: 8px;\'>
+                          <h4 style=\'color: #4F7942; margin-bottom: 15px;\'><strong>Synonyms Merging Instructions</strong></h4>
+
+                          <h5 style=\'color: #333; margin-top: 20px;\'>📋 File Format Requirements</h5>
+                          <p>Your synonyms file must be in <strong>CSV</strong> or <strong>XLSX</strong> format with the following structure:</p>
+                          <ul>
+                            <li><strong>Column 1 (target_term):</strong> The standardized term that will replace all synonyms</li>
+                            <li><strong>Column 2 (upos):</strong> The Part-of-Speech tag to assign to the target term (e.g., NOUN, VERB, ADJ)</li>
+                            <li><strong>Columns 3+ (synonym1, synonym2, ...):</strong> Alternative terms to be replaced</li>
+                          </ul>
+
+                          <h5 style=\'color: #333; margin-top: 20px;\'>📝 Example File Structure</h5>
+                          <table style=\'border-collapse: collapse; width: 100%; margin: 10px 0;\'>
+                            <thead>
+                              <tr style=\'background-color: #4F7942; color: white;\'>
+                                <th style=\'border: 1px solid #ddd; padding: 8px;\'>target_term</th>
+                                <th style=\'border: 1px solid #ddd; padding: 8px;\'>upos</th>
+                                <th style=\'border: 1px solid #ddd; padding: 8px;\'>synonym1</th>
+                                <th style=\'border: 1px solid #ddd; padding: 8px;\'>synonym2</th>
+                                <th style=\'border: 1px solid #ddd; padding: 8px;\'>synonym3</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>machine_learning</td>
+                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>NOUN</td>
+                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>ml</td>
+                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>ML</td>
+                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>machine learning</td>
+                              </tr>
+                              <tr style=\'background-color: #f8f9fa;\'>
+                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>artificial_intelligence</td>
+                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>NOUN</td>
+                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>ai</td>
+                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>AI</td>
+                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>A.I.</td>
+                              </tr>
+                            </tbody>
+                          </table>
+
+                          <h5 style=\'color: #333; margin-top: 20px;\'>⚙️ How It Works</h5>
+                          <ol>
+                            <li><strong>Upload your synonyms file</strong> (CSV or Excel format)</li>
+                            <li><strong>Select the type:</strong> Choose whether to replace <em>tokens</em> or <em>lemmas</em></li>
+                            <li><strong>Preview:</strong> Check your synonyms list in the \'Synonyms List Preview\' tab</li>
+                            <li><strong>Apply:</strong> Click <strong>Run</strong> to replace all synonyms with target terms</li>
+                            <li><strong>Review:</strong> See processed data in \'Processed Data with Synonyms\' tab</li>
+                          </ol>
+
+                          <h5 style=\'color: #333; margin-top: 20px;\'>🎯 Processing Logic</h5>
+                          <ul>
+                            <li><strong>Token-based:</strong> Searches and replaces synonym tokens, updates their <code>upos</code> value</li>
+                            <li><strong>Lemma-based:</strong> Searches and replaces synonym lemmas, updates their <code>upos</code> value</li>
+                            <li><strong>Case-insensitive:</strong> Matching ignores case differences</li>
+                            <li><strong>PoS Update:</strong> When a synonym is replaced, its Part-of-Speech tag is also updated to the specified <code>upos</code></li>
+                          </ul>
+
+                          <h5 style=\'color: #333; margin-top: 20px;\'>📚 Valid PoS Tags</h5>
+                          <p>Common Universal Part-of-Speech tags you can use:</p>
+                          <ul>
+                            <li><strong>NOUN:</strong> Noun (e.g., machine_learning, data)</li>
+                            <li><strong>VERB:</strong> Verb (e.g., analyze, compute)</li>
+                            <li><strong>ADJ:</strong> Adjective (e.g., statistical, significant)</li>
+                            <li><strong>ADV:</strong> Adverb (e.g., significantly, approximately)</li>
+                            <li><strong>PROPN:</strong> Proper noun (e.g., Python, R)</li>
+                            <li>Other tags: PRON, DET, ADP, NUM, CONJ, INTJ, etc.</li>
+                          </ul>
+
+                          <div style=\'background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; margin-top: 20px;\'>
+                            <strong>⚠️ Important Notes:</strong>
+                            <ul style=\'margin: 5px 0;\'>
+                              <li>The process is <strong>irreversible</strong> after saving</li>
+                              <li>Always verify your synonyms list in the preview tab</li>
+                              <li>Ensure <code>upos</code> values are valid PoS tags</li>
+                              <li>Empty cells in synonym columns are ignored</li>
+                              <li>The <code>upos</code> column in <code>dfTag</code> will be updated for matched terms</li>
+                            </ul>
+                          </div>
+                        </div>
+                      "
+
   ## pos selection ----
   posselection <- "<body>
 
@@ -1602,6 +1685,7 @@ helpContent <- function() {
     multiwordcreation = multiwordcreation,
     multiwordlist = multiwordlist,
     customterm = customterm,
+    synonyms = synonyms,
     posselection = posselection,
     featureroles = featureroles,
     overview = overview,

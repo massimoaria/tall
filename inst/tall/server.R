@@ -1588,6 +1588,12 @@ server <- function(input, output, session) {
             token = tolower(token)
           )
       }
+      if (input$lemma_lowercase) {
+        values$dfTag <- values$dfTag %>%
+          mutate(
+            lemma = tolower(lemma)
+          )
+      }
 
       values$dfTag$docSelected <- TRUE
       values$menu <- 1
@@ -1991,7 +1997,7 @@ server <- function(input, output, session) {
         values$language,
         values$treebank,
         values$menu,
-        "Custom Term Lists",
+        "Custom PoS Lists",
         file_path,
         values$generalTerm,
         values$corpus_description
@@ -2017,6 +2023,307 @@ server <- function(input, output, session) {
     # Update the DT proxy
     replaceData(proxy1, values$dfTag, resetPaging = FALSE)
   })
+
+  ## Synonyms Merging -----
+
+  observeEvent(input$synonymsRun, {
+    updateTabItems(session, "sidebarmenu", "synonymsMgmt")
+  })
+
+  observeEvent(input$synonymsBack, {
+    # Restore previous state if backup exists
+    if (!is.null(values$dfTag_backup_synonyms)) {
+      values$dfTag <- values$dfTag_backup_synonyms
+      show_alert(
+        title = "Restored",
+        text = "Previous state has been restored",
+        type = "info",
+        btn_labels = "OK",
+        btn_colors = "#6CC283"
+      )
+    }
+  })
+
+  observeEvent(
+    eventExpr = {
+      input$synonymsSave
+    },
+    handlerExpr = {
+      file <- paste("Tall-Export-File-", sys.time(), ".tall", sep = "")
+      file_path <- destFolder(file, values$wdTall)
+      saveTall(
+        values$dfTag,
+        values$custom_lists,
+        values$language,
+        values$treebank,
+        values$menu,
+        "Synonyms Merging",
+        file_path,
+        values$generalTerm,
+        values$corpus_description
+      )
+      popUp(title = "Saved in your working folder", type = "saved")
+    }
+  )
+
+  synonyms_data <- reactive({
+    req(input$synonyms_file)
+
+    file_path <- input$synonyms_file$datapath
+    file_ext <- tools::file_ext(input$synonyms_file$name)
+
+    tryCatch(
+      {
+        if (file_ext %in% c("xlsx", "xls")) {
+          data <- readxl::read_excel(file_path)
+        } else if (file_ext == "csv") {
+          data <- read.csv(file_path, stringsAsFactors = FALSE)
+        } else {
+          show_alert(
+            title = "Error",
+            text = "Unsupported file format. Please use CSV or Excel.",
+            type = "error"
+          )
+          return(NULL)
+        }
+
+        # Validate file structure
+        if (ncol(data) < 3) {
+          show_alert(
+            title = "Error",
+            text = "File must have at least 3 columns: target_term, upos, and at least one synonym.",
+            type = "error"
+          )
+          return(NULL)
+        }
+
+        # Check if second column looks like upos
+        valid_upos <- dfTag %>% distinct(upos) %>% pull(upos)
+
+        if (!any(toupper(data[[2]]) %in% valid_upos)) {
+          show_alert(
+            title = "Warning",
+            text = paste(
+              "Column 2 should contain PoS tags (upos) like NOUN, VERB, ADJ, etc.",
+              "Please verify your file structure."
+            ),
+            type = "warning"
+          )
+        }
+
+        return(data)
+      },
+      error = function(e) {
+        show_alert(
+          title = "Error",
+          text = paste("Error reading file:", e$message),
+          type = "error"
+        )
+        return(NULL)
+      }
+    )
+  })
+
+  output$synonymsListPreview <- DT::renderDT({
+    req(synonyms_data())
+
+    DTformat(
+      synonyms_data(),
+      nrow = 20,
+      filename = "synonyms_list"
+    )
+  })
+
+  output$synonymsStats <- renderUI({
+    if (is.null(synonyms_data())) {
+      return("No file loaded")
+    }
+
+    data <- synonyms_data()
+    n_targets <- nrow(data)
+    n_synonyms <- sum(!is.na(data[, -(1:2)]))
+
+    tagList(
+      h5(strong("Statistics"), style = "color: #4F7942;"),
+      HTML(paste0(
+        "Target terms: ",
+        n_targets,
+        "<br/>",
+        "Total synonyms: ",
+        n_synonyms
+      ))
+    )
+  })
+
+  synonymsProcessing <- eventReactive(
+    input$synonymsRun,
+    {
+      req(synonyms_data())
+
+      # Create backup before processing
+      values$dfTag_backup_synonyms <- values$dfTag
+
+      show_toast(
+        title = "Processing...",
+        text = "Applying synonym replacements and updating PoS tags",
+        type = "info",
+        timer = 2000
+      )
+
+      # Apply synonyms replacement
+      values$dfTag <- applySynonymsReplacement(
+        dfTag = values$dfTag,
+        synonyms_df = synonyms_data(),
+        term_type = values$generalTerm
+      )
+
+      values$menu <- 2
+
+      show_alert(
+        title = "Success",
+        text = paste(
+          "Synonyms replacement completed!",
+          "Modified column:",
+          input$synonymsTermType,
+          "\\nPoS tags (upos) have been updated for replaced terms."
+        ),
+        type = "success",
+        btn_labels = "OK",
+        btn_colors = "#6CC283"
+      )
+
+      return(values$dfTag)
+    }
+  )
+
+  output$synonymsProcessedData <- DT::renderDT({
+    synonymsProcessing()
+
+    if (!is.null(values$dfTag)) {
+      DTformat(
+        values$dfTag %>%
+          select(doc_id, sentence_id, sentence, token, lemma, upos) %>%
+          rename(
+            D_id = doc_id,
+            S_id = sentence_id,
+            Sentence = sentence,
+            Token = token,
+            Lemma = lemma,
+            PoS = upos
+          ),
+        nrow = 20,
+        filename = "processed_with_synonyms"
+      )
+    }
+  })
+
+  ## Download Template Excel -----
+  output$downloadSynonymsTemplate <- downloadHandler(
+    filename = function() {
+      paste0("synonyms_template_", Sys.Date(), ".xlsx")
+    },
+    content = function(file) {
+      # Create template dataframe with example structure
+      template_df <- data.frame(
+        target_term = c(
+          "machine_learning",
+          "artificial_intelligence",
+          "statistical_analysis",
+          "",
+          ""
+        ),
+        upos = c("NOUN", "NOUN", "NOUN", "", ""),
+        synonym1 = c("ml", "ai", "statistics", "", ""),
+        synonym2 = c("ML", "AI", "stats", "", ""),
+        synonym3 = c("machine learning", "A.I.", "statistical method", "", ""),
+        synonym4 = c("", "", "", "", ""),
+        stringsAsFactors = FALSE
+      )
+
+      # Create instructions dataframe
+      instructions_df <- data.frame(
+        Instructions = c(
+          "HOW TO USE THIS TEMPLATE:",
+          "",
+          "1. Column 'target_term': Enter the standardized term to use",
+          "2. Column 'upos': Enter the Part-of-Speech tag (NOUN, VERB, ADJ, ADV, PROPN, etc.)",
+          "3. Columns 'synonym1', 'synonym2', etc.: List all synonyms to replace",
+          "",
+          "IMPORTANT:",
+          "- The upos value will be assigned to all occurrences of the target term",
+          "- Matching is case-insensitive",
+          "- Empty cells are ignored",
+          "- You can add more synonym columns if needed",
+          "",
+          "EXAMPLE:",
+          "target_term: machine_learning | upos: NOUN | synonym1: ml | synonym2: ML",
+          "",
+          "Valid PoS tags: NOUN, VERB, ADJ, ADV, PRON, DET, ADP, NUM, CONJ, PROPN, etc."
+        )
+      )
+
+      # Write to Excel file with two sheets
+      openxlsx::write.xlsx(
+        list(
+          Template = template_df,
+          Instructions = instructions_df
+        ),
+        file = file
+      )
+    }
+  )
+
+  ## Download Vocabulary (Frequency Distribution) -----
+  output$downloadVocabulary <- downloadHandler(
+    filename = function() {
+      paste0("vocabulary_", values$generalTerm, "_", Sys.Date(), ".xlsx")
+    },
+    content = function(file) {
+      req(values$dfTag)
+
+      # Get the term column based on generalTerm (token or lemma)
+      term_col <- values$generalTerm
+
+      # Calculate frequency distribution
+      vocabulary <- values$dfTag %>%
+        group_by(!!sym(term_col), upos) %>%
+        summarise(frequency = n(), .groups = "drop") %>%
+        arrange(desc(frequency)) %>%
+        rename(
+          term = !!sym(term_col),
+          pos_tag = upos
+        )
+
+      # Create summary statistics
+      summary_df <- data.frame(
+        Metric = c(
+          "Total unique terms",
+          "Total occurrences",
+          "Most frequent term",
+          "Most frequent PoS tag",
+          "Date generated",
+          "Term type"
+        ),
+        Value = c(
+          nrow(vocabulary),
+          sum(vocabulary$frequency),
+          vocabulary$term[1],
+          names(sort(table(vocabulary$pos_tag), decreasing = TRUE))[1],
+          as.character(Sys.Date()),
+          values$generalTerm
+        )
+      )
+
+      # Write to Excel file with two sheets
+      writexl::write_xlsx(
+        list(
+          Vocabulary = vocabulary,
+          Summary = summary_df
+        ),
+        path = file
+      )
+    }
+  )
 
   ## Multi-Word Creation ----
 

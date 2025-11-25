@@ -354,7 +354,8 @@ keynessServer <- function(input, output, session, values) {
       if (approach == "refrence_corpus") {
         upos <- intersect(
           values$dfTag %>%
-            dplyr::filter(POSSelected) %>%
+            LemmaSelection() %>%
+            dplyr::filter(docSelected) %>%
             distinct(upos) %>%
             pull(upos),
           c("NOUN", "VERB", "ADJ", "ADV")
@@ -362,7 +363,8 @@ keynessServer <- function(input, output, session, values) {
       } else {
         upos <- intersect(
           values$dfTag %>%
-            dplyr::filter(POSSelected) %>%
+            LemmaSelection() %>%
+            dplyr::filter(docSelected) %>%
             distinct(upos) %>%
             pull(upos),
           c(

@@ -966,27 +966,54 @@ body <- dashboardBody(
                   uiOutput("info_treebank"),
                   tags$hr(),
                   div(
-                    style = "margin-top: 12px; margin-bottom: 12px; background: linear-gradient(135deg, #e0f7f4 0%, #e8f6f3 100%); padding: 15px; border-radius: 6px; border-left: 4px solid #1ABC9C;",
+                    style = "margin-top: 12px; margin-bottom: 12px; padding: 15px; border-radius: 6px;",
+
+                    # Token Normalization section (Teal theme)
                     div(
-                      style = "display: flex; align-items: center; gap: 10px;",
-                      div(
-                        style = "flex-shrink: 0;",
-                        checkboxInput(
-                          "token_lowercase",
-                          label = NULL,
-                          value = FALSE,
-                          width = "auto"
-                        )
-                      ),
+                      style = "display: flex; align-items: center; gap: 15px; padding: 12px; background: linear-gradient(135deg, #e0f7f4 0%, #e8f6f3 100%); border-radius: 6px; border-left: 4px solid #1ABC9C; margin-bottom: 10px;",
                       div(
                         style = "display: flex; align-items: center; flex-grow: 1;",
                         icon(
-                          "arrows-alt-v",
+                          "sort-alpha-down",
                           style = "color: #1ABC9C; margin-right: 10px; font-size: 22px;"
                         ),
                         span(
                           "Token Normalization (Lowercase)",
                           style = "font-weight: bold; color: #16A085; font-size: 15px;"
+                        )
+                      ),
+                      div(
+                        style = "flex-shrink: 0;",
+                        materialSwitch(
+                          inputId = "token_lowercase",
+                          label = NULL,
+                          value = TRUE,
+                          status = "success"
+                        )
+                      )
+                    ),
+
+                    # Lemma Normalization section (Blue theme)
+                    div(
+                      style = "display: flex; align-items: center; gap: 15px; padding: 12px; background: linear-gradient(135deg, #e3f2fd 0%, #e8eaf6 100%); border-radius: 6px; border-left: 4px solid #3498DB;",
+                      div(
+                        style = "display: flex; align-items: center; flex-grow: 1;",
+                        icon(
+                          "exchange-alt",
+                          style = "color: #3498DB; margin-right: 10px; font-size: 22px;"
+                        ),
+                        span(
+                          "Lemma Normalization (Lowercase)",
+                          style = "font-weight: bold; color: #2980B9; font-size: 15px;"
+                        )
+                      ),
+                      div(
+                        style = "flex-shrink: 0;",
+                        materialSwitch(
+                          inputId = "lemma_lowercase",
+                          label = NULL,
+                          value = TRUE,
+                          status = "primary"
                         )
                       )
                     )
@@ -1287,6 +1314,172 @@ body <- dashboardBody(
                 div(
                   helpText(
                     "Pressing Run Button will delete previous custom PoS"
+                  ),
+                  style = "text-align: center"
+                )
+              ),
+              style = "margin-top:40px"
+            )
+          )
+        )
+      )
+    ),
+
+    # Synonyms Management -----
+
+    tabItem(
+      tabName = "synonymsMgmt",
+      fluidPage(
+        fluidRow(
+          column(
+            12,
+            h3(strong("Synonyms Merging"), align = "center")
+          )
+        ),
+        br(),
+        br(),
+        fluidRow(
+          column(
+            9,
+            tabsetPanel(
+              type = "tabs",
+              tabPanel(
+                "Processed Data with Synonyms",
+                shinycssloaders::withSpinner(
+                  DT::DTOutput("synonymsProcessedData"),
+                  color = getOption("spinner.color", default = "#4F7942")
+                )
+              ),
+              tabPanel(
+                "Synonyms List Preview",
+                shinycssloaders::withSpinner(
+                  DT::DTOutput("synonymsListPreview"),
+                  color = getOption("spinner.color", default = "#4F7942")
+                )
+              ),
+              tabPanel(
+                "Info & Instructions",
+                fluidPage(
+                  fluidRow(
+                    column(1),
+                    column(
+                      10,
+                      br(),
+                      HTML(helpContent()$synonyms)
+                    ),
+                    column(1)
+                  )
+                )
+              )
+            )
+          ),
+          column(
+            3,
+            div(
+              box(
+                width = 12,
+                div(
+                  h3(strong(em("Import Synonyms File"))),
+                  style = "margin-top:-57px"
+                ),
+                hr(),
+                helpText(h5(
+                  "Upload a CSV or Excel file with your synonyms list. Column 2 must contain the PoS tag (upos) to assign."
+                )),
+                fileInput(
+                  "synonyms_file",
+                  label = NULL,
+                  multiple = FALSE,
+                  accept = c(
+                    ".csv",
+                    ".xls",
+                    ".xlsx"
+                  )
+                ),
+                hr(),
+                helpText(
+                  uiOutput("synonymsStats")
+                ),
+                hr(),
+                # Download buttons section
+                fluidRow(
+                  column(
+                    6,
+                    downloadButton(
+                      "downloadSynonymsTemplate",
+                      "Template",
+                      style = "width: 100%; margin-bottom: 10px; background-color: #6CC283; border-color: #4F7942;color: #ffffff;"
+                    )
+                  ),
+                  column(
+                    6,
+                    downloadButton(
+                      "downloadVocabulary",
+                      "Vocabulary",
+                      style = "width: 100%; margin-bottom: 10px; background-color: #6CC283; border-color: #4F7942;color: #ffffff;"
+                    )
+                  )
+                ),
+                hr(),
+                fluidRow(
+                  column(
+                    4,
+                    div(
+                      align = "center",
+                      style = "margin-top:-15px",
+                      width = 12,
+                      do.call(
+                        "actionButton",
+                        c(
+                          run_bttn,
+                          list(
+                            inputId = "synonymsRun"
+                          )
+                        )
+                      )
+                    )
+                  ),
+                  column(
+                    4,
+                    div(
+                      align = "center",
+                      style = "margin-top:-15px",
+                      width = 12,
+                      title = t_back,
+                      do.call(
+                        "actionButton",
+                        c(
+                          back_bttn,
+                          list(
+                            inputId = "synonymsBack"
+                          )
+                        )
+                      )
+                    )
+                  ),
+                  column(
+                    4,
+                    div(
+                      title = t_save,
+                      div(
+                        align = "center",
+                        do.call(
+                          "actionButton",
+                          c(
+                            save_bttn,
+                            list(
+                              inputId = "synonymsSave"
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                ),
+                hr(),
+                div(
+                  helpText(
+                    "Pressing Run will replace synonyms and update their PoS tags"
                   ),
                   style = "text-align: center"
                 )

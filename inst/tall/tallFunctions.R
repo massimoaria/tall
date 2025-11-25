@@ -1399,6 +1399,74 @@ customListsReset <- function(df) {
   return(df)
 }
 
+### SYNONYMS MERGING ----
+applySynonymsReplacement <- function(dfTag, synonyms_df, term_type = "lemma") {
+  #' Apply Synonyms Replacement with PoS Tag Update
+  #'
+  #' Replaces synonym terms with target terms and updates the upos column
+  #'
+  #' @param dfTag Data frame containing the tagged text data
+  #' @param synonyms_df Data frame with synonyms. First column is target term,
+  #'        second column is upos tag to assign, remaining columns are synonyms
+  #' @param term_type Character. Either "token" or "lemma"
+  #'
+  #' @return Modified dfTag with synonyms replaced and upos updated
+
+  if (is.null(dfTag) || is.null(synonyms_df)) {
+    return(dfTag)
+  }
+
+  if (!term_type %in% c("token", "lemma")) {
+    stop("term_type must be either \'token\' or \'lemma\'")
+  }
+
+  # Get column names
+  target_col <- names(synonyms_df)[1]
+  upos_col <- names(synonyms_df)[2] # PoS tag to assign
+  synonym_cols <- names(synonyms_df)[-(1:2)]
+
+  # Create replacement mapping: synonym -> list(target_term, upos_tag)
+  replacement_map <- list()
+
+  for (i in seq_len(nrow(synonyms_df))) {
+    target_term <- synonyms_df[[target_col]][i]
+    upos_tag <- synonyms_df[[upos_col]][i]
+
+    # Get all synonyms for this target (excluding NA values)
+    synonyms <- synonyms_df[i, synonym_cols]
+    synonyms <- unlist(synonyms[!is.na(synonyms) & synonyms != ""])
+
+    # Add each synonym to the replacement map with target and upos
+    for (syn in synonyms) {
+      replacement_map[[tolower(as.character(syn))]] <- list(
+        target = as.character(target_term),
+        upos = as.character(upos_tag)
+      )
+    }
+  }
+
+  # Apply replacements to the specified column AND update upos
+  if (term_type == "token") {
+    for (j in seq_len(nrow(dfTag))) {
+      token_lower <- tolower(as.character(dfTag$token[j]))
+      if (token_lower %in% names(replacement_map)) {
+        dfTag$token[j] <- replacement_map[[token_lower]]$target
+        dfTag$upos[j] <- replacement_map[[token_lower]]$upos
+      }
+    }
+  } else if (term_type == "lemma") {
+    for (j in seq_len(nrow(dfTag))) {
+      lemma_lower <- tolower(as.character(dfTag$lemma[j]))
+      if (lemma_lower %in% names(replacement_map)) {
+        dfTag$lemma[j] <- replacement_map[[lemma_lower]]$target
+        dfTag$upos[j] <- replacement_map[[lemma_lower]]$upos
+      }
+    }
+  }
+
+  return(dfTag)
+}
+
 
 ### MULTI-WORD CREATION ----
 
@@ -4297,7 +4365,7 @@ tallThematicmap <- function(
   seed = 1234
 ) {
   net <- network(
-    LemmaSelection(dfTag) %>% filter(docSelected),
+    LemmaSelection(dfTag) %>% dplyr::filter(docSelected),
     term = term,
     group = group,
     n = n,
@@ -8007,6 +8075,11 @@ menuList <- function(menu) {
       tabName = "custTermList",
       icon = icon("chevron-right"),
       selected = TRUE
+    ),
+    menuSubItem(
+      "Synonyms Merging",
+      tabName = "synonymsMgmt",
+      icon = icon("chevron-right")
     ),
     menuSubItem(
       "PoS Tag Selection",
