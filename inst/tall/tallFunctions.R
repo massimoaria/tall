@@ -2369,8 +2369,9 @@ freqPlotly <- function(
         "hoverClosestCartesian",
         "hoverCompareCartesian"
       )
-    ) %>%
-    event_register("plotly_selecting")
+    )
+  # %>%
+  #   event_register("plotly_selecting")
 
   fig1
 }
@@ -3856,8 +3857,9 @@ ca2plotly <- function(
         "hoverClosestCartesian",
         "hoverCompareCartesian"
       )
-    ) %>%
-    event_register("plotly_selecting")
+    )
+  # %>%
+  #   event_register("plotly_selecting")
   return(fig)
 }
 
@@ -5946,8 +5948,9 @@ tmTuningPlot <- function(result, metric) {
         "hoverClosestCartesian",
         "hoverCompareCartesian"
       )
-    ) %>%
-    event_register("plotly_selecting")
+    )
+  # %>%
+  #   event_register("plotly_selecting")
 
   return(fig)
 }
@@ -6487,8 +6490,9 @@ tmTopicPlot <- function(beta, topic = 1, nPlot = 10) {
         "hoverClosestCartesian",
         "hoverCompareCartesian"
       )
-    ) %>%
-    event_register("plotly_selecting")
+    )
+  # %>%
+  #   event_register("plotly_selecting")
 
   return(fig)
 }
@@ -6699,8 +6703,9 @@ freqPlotlySentiment <- function(
         "hoverClosestCartesian",
         "hoverCompareCartesian"
       )
-    ) %>%
-    event_register("plotly_selecting")
+    )
+  # %>%
+  #   event_register("plotly_selecting")
 
   fig1
 }
@@ -6896,8 +6901,9 @@ sentimentPieChart <- function(df) {
         "hoverClosestCartesian",
         "hoverCompareCartesian"
       )
-    ) %>%
-    event_register("plotly_click")
+    )
+  # %>%
+  #   event_register("plotly_click")
 }
 
 sentimentDensityPlot <- function(x, from = -1, to = 1) {
