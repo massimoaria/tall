@@ -3580,25 +3580,29 @@ caClustering <- function(
   method = "ward.D2",
   nDim = 2,
   nclusters = 1,
-  lim.contr
+  lim.contr = 2
 ) {
   vars <- "Dim"
 
   # filter by contribution
   contr <- results$contrib %>%
     select(1:nDim) %>%
-    filter_all(all_vars(. < lim.contr)) %>%
+    ## sum the square of all variables
+    mutate(contr_tot = rowSums(across(everything()))) %>%
+    filter(contr_tot <= lim.contr) %>%
     rownames_to_column() %>%
     select("rowname")
   #
 
+  dati <- results$wordCoord %>%
+    select(starts_with(vars)) %>%
+    select(all_of(1:nDim)) %>%
+    rownames_to_column() %>%
+    filter(rowname %in% contr$rowname) %>%
+    column_to_rownames()
+
   D <- dist(
-    results$wordCoord %>%
-      select(starts_with(vars)) %>%
-      select(all_of(1:nDim)) %>%
-      rownames_to_column() %>%
-      right_join(contr, by = "rowname") %>%
-      column_to_rownames(var = "rowname")
+    dati
   )
   h <- hclust(D, method = method)
 
@@ -3626,20 +3630,25 @@ ca2plotly <- function(
   threshold = 0.03,
   labelsize = 16,
   size = 5,
-  lim.contr
+  lim.contr = 2
 ) {
+  target_cols <- names(results$contrib)[c(dimX, dimY)]
   # filter by contribution
   contr <- results$contrib %>%
-    select(c(dimX, dimY)) %>%
-    filter_all(all_vars(. < lim.contr)) %>%
-    rownames_to_column() %>%
-    select("rowname")
+    as.data.frame() %>%
+    rownames_to_column("rowname") %>%
+    # Selezioniamo solo le colonne che ci interessano + il nome
+    select(rowname, all_of(target_cols)) %>%
+    # Calcoliamo la somma delle due colonne (senza quadrato!)
+    mutate(contr_tot = rowSums(across(all_of(target_cols)))) %>%
+    filter(contr_tot <= lim.contr) %>%
+    select(rowname, contr_tot)
   #
 
   results$contrib <- results$contrib %>%
-    rownames_to_column() %>%
-    right_join(contr, by = "rowname") %>%
-    column_to_rownames()
+    rownames_to_column("word") %>%
+    dplyr::filter(word %in% contr$rowname) %>%
+    select(!word)
 
   results$wordCoord <- results$wordCoord %>%
     rownames_to_column() %>%
@@ -3705,14 +3714,15 @@ ca2plotly <- function(
     mutate(id = row_number()) %>%
     arrange(groups, id)
 
-  hoverText <- paste(
+  hoverText <- paste0(
     " <b>",
     results$wordCoord$label,
     "</b>\n Inertia: ",
     round(results$wordCoord$inertia, 3),
     "\n Mass:   ",
     round(results$wordCoord$mass, 3),
-    sep = ""
+    "\n Contribute:   ",
+    round(results$wordCoord$contr_tot, 3)
   )
 
   ## Plot

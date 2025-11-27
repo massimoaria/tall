@@ -123,7 +123,7 @@ sidebar <- dashboardSidebar(
     menuItem(
       "TALL",
       tabName = "tall",
-      icon = icon("text-size", lib = "glyphicon")
+      icon = fa_i(name = "house-user")
     ),
     menuItemOutput("rest_of_sidebar")
   )

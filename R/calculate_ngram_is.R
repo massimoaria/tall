@@ -1,3 +1,15 @@
+utils::globalVariables(c(
+  "IS",
+  "IS_norm",
+  "n_length",
+  "n_lexical ngram",
+  "pos_sequence",
+  "sentence_id",
+  "sum_reciprocal_freq",
+  "term_col",
+  "token_id words"
+))
+
 #' Calculate IS index for n-grams
 #'
 #' This function calculates the IS (Absorption Index) from Morrone (1996)
