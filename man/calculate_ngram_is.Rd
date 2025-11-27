@@ -10,7 +10,7 @@ calculate_ngram_is(
   term = "lemma",
   pos = c("NOUN", "ADJ", "ADV", "VERB"),
   min_freq = 1,
-  min_IS = 0
+  min_IS_norm = 0
 )
 }
 \arguments{
@@ -25,24 +25,28 @@ sentence_id, token_id, lemma/token, upos}
 
 \item{min_freq}{Minimum frequency threshold for n-grams (default: 1)}
 
-\item{min_IS}{Minimum normalized IS value threshold for n-grams (default: 0)}
+\item{min_IS_norm}{Minimum normalized IS threshold for n-grams (default: 0)}
 }
 \value{
 A tibble with columns: ngram, n_length, ngram_freq, n_lexical, IS, IS_norm
 }
 \description{
 This function calculates the IS (Absorption Index) from Morrone (1996)
-for all n-grams in the corpus.
+for all n-grams in the corpus. Only n-grams that start AND end with
+lexical words are considered.
 }
 \details{
 The IS index is calculated as: IS = (Σ 1/freq_i) × freq_ngram × n_lexical
 where freq_i is the frequency of each word in the n-gram, freq_ngram is the
 frequency of the n-gram, and n_lexical is the number of lexical words.
 IS_norm is the normalized version: IS / L^2 where L is the n-gram length.
+
+OPTIMIZATION: Only n-grams that start AND end with lexical words (as defined by
+the 'pos' parameter) are generated, significantly reducing computation time.
 }
 \examples{
 \dontrun{
-IS <- calculate_ngram_is(dfTag, max_ngram = 4, term = "lemma", min_freq = 2, min_IS=0.3)
+IS <- calculate_ngram_is(dfTag, max_ngram = 4, term = "lemma", min_freq = 2)
 head(IS)
 }
 }

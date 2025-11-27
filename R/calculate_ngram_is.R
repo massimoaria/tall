@@ -1,7 +1,8 @@
 #' Calculate IS index for n-grams
 #'
 #' This function calculates the IS (Absorption Index) from Morrone (1996)
-#' for all n-grams in the corpus.
+#' for all n-grams in the corpus. Only n-grams that start AND end with
+#' lexical words are considered.
 #'
 #' @param dfTag A data frame with tagged text data containing columns: doc_id,
 #'   sentence_id, token_id, lemma/token, upos
@@ -9,7 +10,7 @@
 #' @param term Character string indicating which column to use: "lemma" or "token" (default: "lemma")
 #' @param pos Character vector of POS tags considered lexical (default: c("NOUN", "ADJ", "ADV", "VERB"))
 #' @param min_freq Minimum frequency threshold for n-grams (default: 1)
-#' @param min_IS Minimum normalized IS value threshold for n-grams (default: 0)
+#' @param min_IS_norm Minimum normalized IS threshold for n-grams (default: 0)
 #'
 #' @return A tibble with columns: ngram, n_length, ngram_freq, n_lexical, IS, IS_norm
 #'
@@ -19,10 +20,13 @@
 #' frequency of the n-gram, and n_lexical is the number of lexical words.
 #' IS_norm is the normalized version: IS / L^2 where L is the n-gram length.
 #'
+#' OPTIMIZATION: Only n-grams that start AND end with lexical words (as defined by
+#' the 'pos' parameter) are generated, significantly reducing computation time.
+#'
 #' @export
 #' @examples
 #' \dontrun{
-#' IS <- calculate_ngram_is(dfTag, max_ngram = 4, term = "lemma", min_freq = 2, min_IS=0.3)
+#' IS <- calculate_ngram_is(dfTag, max_ngram = 4, term = "lemma", min_freq = 2)
 #' head(IS)
 #' }
 calculate_ngram_is <- function(
@@ -31,7 +35,7 @@ calculate_ngram_is <- function(
   term = "lemma",
   pos = c("NOUN", "ADJ", "ADV", "VERB"),
   min_freq = 1,
-  min_IS = 0
+  min_IS_norm = 0
 ) {
   library(dplyr)
 
@@ -71,10 +75,12 @@ calculate_ngram_is <- function(
     )
 
   # Generate n-grams using C++ function
+  # OPTIMIZATION: Pass lexical_pos to filter n-grams at generation time
   ngrams_list <- generate_ngrams_cpp(
     sentences_terms = sentences$terms,
     sentences_pos = sentences$pos_tags,
-    max_ngram = max_ngram
+    max_ngram = max_ngram,
+    lexical_pos = pos # Pass lexical POS for filtering
   )
 
   # Convert to tibble
@@ -127,7 +133,7 @@ calculate_ngram_is <- function(
       IS = sum_reciprocal_freq * ngram_freq * n_lexical,
       IS_norm = IS / (n_length^2)
     ) %>%
-    dplyr::filter(IS_norm >= min_IS) %>%
+    dplyr::filter(IS_norm >= min_IS_norm) %>%
     select(ngram, n_length, ngram_freq, n_lexical, IS, IS_norm) %>%
     arrange(desc(IS_norm))
 

@@ -21,7 +21,7 @@ count_lexical_cpp <- function(ngram_pos, lexical_pos) {
     .Call('_tall_count_lexical_cpp', PACKAGE = 'tall', ngram_pos, lexical_pos)
 }
 
-generate_ngrams_cpp <- function(sentences_terms, sentences_pos, max_ngram) {
-    .Call('_tall_generate_ngrams_cpp', PACKAGE = 'tall', sentences_terms, sentences_pos, max_ngram)
+generate_ngrams_cpp <- function(sentences_terms, sentences_pos, max_ngram, lexical_pos) {
+    .Call('_tall_generate_ngrams_cpp', PACKAGE = 'tall', sentences_terms, sentences_pos, max_ngram, lexical_pos)
 }
 

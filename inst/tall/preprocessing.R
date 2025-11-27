@@ -706,7 +706,8 @@ preprocessingUI <- function() {
                       "Rake" = "rake",
                       "Pointwise Mutual Information" = "pmi",
                       "Mutual Dependency" = "md",
-                      "Log-Frequency Biased Mutual Dependency" = "lfmd"
+                      "Log-Frequency Biased Mutual Dependency" = "lfmd",
+                      "IS Index" = "is"
                     ),
                     selected = "rake"
                   )

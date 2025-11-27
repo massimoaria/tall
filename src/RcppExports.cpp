@@ -73,15 +73,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // generate_ngrams_cpp
-List generate_ngrams_cpp(List sentences_terms, List sentences_pos, int max_ngram);
-RcppExport SEXP _tall_generate_ngrams_cpp(SEXP sentences_termsSEXP, SEXP sentences_posSEXP, SEXP max_ngramSEXP) {
+List generate_ngrams_cpp(List sentences_terms, List sentences_pos, int max_ngram, CharacterVector lexical_pos);
+RcppExport SEXP _tall_generate_ngrams_cpp(SEXP sentences_termsSEXP, SEXP sentences_posSEXP, SEXP max_ngramSEXP, SEXP lexical_posSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< List >::type sentences_terms(sentences_termsSEXP);
     Rcpp::traits::input_parameter< List >::type sentences_pos(sentences_posSEXP);
     Rcpp::traits::input_parameter< int >::type max_ngram(max_ngramSEXP);
-    rcpp_result_gen = Rcpp::wrap(generate_ngrams_cpp(sentences_terms, sentences_pos, max_ngram));
+    Rcpp::traits::input_parameter< CharacterVector >::type lexical_pos(lexical_posSEXP);
+    rcpp_result_gen = Rcpp::wrap(generate_ngrams_cpp(sentences_terms, sentences_pos, max_ngram, lexical_pos));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -92,7 +93,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_tall_cpp_switch_docs", (DL_FUNC) &_tall_cpp_switch_docs, 2},
     {"_tall_calc_reciprocal_sum_cpp", (DL_FUNC) &_tall_calc_reciprocal_sum_cpp, 3},
     {"_tall_count_lexical_cpp", (DL_FUNC) &_tall_count_lexical_cpp, 2},
-    {"_tall_generate_ngrams_cpp", (DL_FUNC) &_tall_generate_ngrams_cpp, 3},
+    {"_tall_generate_ngrams_cpp", (DL_FUNC) &_tall_generate_ngrams_cpp, 4},
     {NULL, NULL, 0}
 };
 

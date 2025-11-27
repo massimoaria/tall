@@ -1808,6 +1808,23 @@ rake <- function(
           # identify ngrams>1 with reka index>reka.min
           stats <- stats %>%
             dplyr::filter(ngram >= ngram_min)
+        },
+        is = {
+          stats <- calculate_ngram_is(
+            x,
+            max_ngram = ngram_max,
+            term = term,
+            pos = relevant, #c("NOUN", "ADJ", "ADV", "VERB"),
+            min_freq = freq.min
+          )
+          stats <- stats %>%
+            mutate(
+              keyword = ngram,
+              ngram = n_length,
+              freq = ngram_freq,
+              is_norm = IS_norm
+            ) %>%
+            select("keyword", "ngram", "freq", "is_norm")
         }
       )
     },
@@ -1820,8 +1837,31 @@ rake <- function(
     }
   )
 
-  # filter original token df removing POS excluded in rake
-  x2 <- x %>% filter(upos %in% relevant)
+  # filter original token df removing POS excluded in IS
+  if (method == "is") {
+    include_pos <- c(
+      "DET",
+      "NOUN",
+      "PRON",
+      "ADV",
+      "VERB",
+      "ADP",
+      "AUX",
+      "ADJ",
+      "CCONJ",
+      "INTJ",
+      "PART",
+      "PROPN",
+      "SCONJ"
+    )
+
+    # Filter valid tokens
+    x2 <- x %>%
+      filter(upos %in% include_pos)
+  } else {
+    # filter original token df removing POS excluded in rake
+    x2 <- x %>% filter(upos %in% relevant)
+  }
 
   # combine lemmas or tokens into multi-words
 
