@@ -707,18 +707,10 @@ preprocessingUI <- function() {
                       "Pointwise Mutual Information" = "pmi",
                       "Mutual Dependency" = "md",
                       "Log-Frequency Biased Mutual Dependency" = "lfmd",
-                      "IS Index" = "is"
+                      "Absorption Index (IS)" = "is"
                     ),
                     selected = "rake"
                   )
-                ),
-                column(
-                  6
-                  # ,selectInput("term",
-                  #             "Terms:",
-                  #             choices = c("Tokens" = "token",
-                  #                         "Lemma" = "lemma"),
-                  #             selected = "lemma")
                 )
               ),
               fluidRow(
@@ -745,11 +737,23 @@ preprocessingUI <- function() {
                   )
                 )
               ),
-              fluidRow(
-                column(
-                  12,
-                  h5(em(strong("Multi-Words created by:")))
-                ),
+              conditionalPanel(
+                'input.MWmethod != "is"',
+                fluidRow(
+                  column(
+                    12,
+                    h5(em(strong("Multi-Words created by:")))
+                  ),
+                )
+              ),
+              conditionalPanel(
+                'input.MWmethod == "is"',
+                fluidRow(
+                  column(
+                    12,
+                    h5(em(strong("Lexical Words to use:")))
+                  ),
+                )
               ),
               fluidRow(
                 column(
@@ -2073,19 +2077,36 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
   ## Multi-Word Creation ----
 
   output$multiwordPosSel <- renderUI({
-    checkboxGroupInput(
-      "multiwordPosSelGroup",
-      label = NULL,
-      choices = posTagAll(
+    if (input$MWmethod != "is") {
+      poslist <- posTagAll(
         values$dfTag %>%
           dplyr::filter(
             !upos %in%
               c("MULTIWORD", "NGRAM_MERGED", "PUNCT", "SYM", "X", "NUM")
           )
-      )$description,
-      selected = posTagAll(
+      )$description
+
+      posSelected <- posTagAll(
         values$dfTag %>% dplyr::filter(upos %in% values$posMwSel)
       )$description
+    } else {
+      poslist <- posTagAll(
+        values$dfTag %>%
+          dplyr::filter(
+            upos %in%
+              c("NOUN", "PROPN", "ADJ", "VERB", "ADV")
+          )
+      )$description
+      posSelected <- posTagAll(
+        values$dfTag %>% dplyr::filter(upos %in% values$posMwSel)
+      )$description
+    }
+
+    checkboxGroupInput(
+      "multiwordPosSelGroup",
+      label = NULL,
+      choices = poslist,
+      selected = posSelected
     )
   })
 

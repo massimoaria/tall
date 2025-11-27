@@ -220,43 +220,47 @@ helpContent <- function() {
     </body>"
 
   ## multiword creation ----
+
   multiwordcreation <- "
-  <body>
+<body>
+    <h3><strong>Algorithms for Automatic Multi-Word Extraction</strong></h3>
+    <p>The software <strong>TALL - Text Analysis for All</strong> employs five key algorithms to automatically generate multi-word sequences from a corpus of documents. These methods, widely recognized in computational linguistics and text mining, include <strong>IS Index (Absorption Index)</strong>, <strong>Rapid Automatic Keyword Extraction (RAKE)</strong>, <strong>Pointwise Mutual Information (PMI)</strong>, <strong>Mutual Dependency (MD)</strong>, and <strong>Log-Frequency Biased Mutual Dependency (LF-MD)</strong>.</p>
 
-      <h3><strong>Algorithms for Automatic Multi-Word Extraction</strong></strong></h3>
+    <br><h4><strong>- Rapid Automatic Keyword Extraction (RAKE)</strong></h4>
+    <p>RAKE is a domain-independent keyword extraction algorithm that identifies key phrases by analyzing word co-occurrences within a document. It segments text into candidate keyword phrases based on stopword delimiters and then assigns scores based on word co-occurrence and frequency. Higher-scoring phrases are considered more relevant as multi-word expressions.</p>
+    <p><strong>Reference:</strong><br>
+    Rose, S., Engel, D., Cramer, N., &amp; Cowley, W. (2010). <em>Automatic keyword extraction from individual documents</em>. Text Mining: Applications and Theory, 1(1), 1-20.</p>
 
-      <p>The software <strong>TALL - Text Analysis for All</strong> employs four key algorithms to automatically generate multi-word sequences from a corpus of documents. These methods, widely recognized in computational linguistics and text mining, include <strong>Rapid Automatic Keyword Extraction (RAKE)</strong>, <strong>Pointwise Mutual Information (PMI)</strong>, <strong>Mutual Dependency (MD)</strong>, and <strong>Log-Frequency Biased Mutual Dependency (LF-MD)</strong>.</p>
+    <br><h4><strong>- Pointwise Mutual Information (PMI)</strong></h4>
+    <p>PMI is a statistical measure used to assess the association strength between two words. It is defined as:</p>
+    <p style='text-align: center;'>
+        <em>PMI(w<sub>1</sub>, w<sub>2</sub>) = log ( P(w<sub>1</sub>, w<sub>2</sub>) / (P(w<sub>1</sub>) P(w<sub>2</sub>)) )</em>
+    </p>
+    <p>where P(w<sub>1</sub>, w<sub>2</sub>) is the probability of words w<sub>1</sub> and w<sub>2</sub> appearing together, and P(w<sub>1</sub>) and P(w<sub>2</sub>) are their individual probabilities. High PMI values indicate strong word associations, making the phrase a good multi-word candidate.</p>
+    <p><strong>Reference:</strong><br>
+    Church, K. W., &amp; Hanks, P. (1990). <em>Word association norms, mutual information, and lexicography</em>. Computational Linguistics, 16(1), 22-29.</p>
 
-      <br><h4><strong>- Rapid Automatic Keyword Extraction (RAKE)</strong></h4>
-      <p>RAKE is a domain-independent keyword extraction algorithm that identifies key phrases by analyzing word co-occurrences within a document. It segments text into candidate keyword phrases based on stopword delimiters and then assigns scores based on word co-occurrence and frequency. Higher-scoring phrases are considered more relevant as multi-word expressions.</p>
-      <p><strong>Reference:</strong><br>
-      Rose, S., Engel, D., Cramer, N., &amp; Cowley, W. (2010). <em>Automatic keyword extraction from individual documents</em>. Text Mining: Applications and Theory, 1(1), 1-20.</p>
+    <br><h4><strong>- Mutual Dependency (MD)</strong></h4>
+    <p>Mutual Dependency extends PMI by considering the full context of a multi-word expression rather than just pairwise co-occurrence. It incorporates statistical dependency measures, ensuring that all words in a multi-word sequence contribute significantly to its overall meaning. This approach is particularly useful for identifying multi-word units beyond simple bigrams.</p>
+    <p><strong>Reference:</strong><br>
+    Thanopoulos, A., Fakotakis, N., &amp; Kokkinakis, G. (2002, May). <em>Comparative Evaluation of Collocation Extraction Metrics.</em> In LREC (Vol. 2, pp. 620-625).</p>
 
-      <br><h4><strong>- Pointwise Mutual Information (PMI)</strong></h4>
-      <p>PMI is a statistical measure used to assess the association strength between two words. It is defined as:</p>
+    <br><h4><strong>- Log-Frequency Biased Mutual Dependency (LF-MD)</strong></h4>
+    <p>LF-MD refines the MD approach by incorporating word frequency into the dependency calculation. This method biases the selection of multi-word expressions toward frequent collocations while maintaining a balance between statistical significance and linguistic relevance. It is particularly useful in extracting meaningful multi-word expressions in large corpora where rare but statistically significant collocations might otherwise dominate.</p>
+    <p><strong>Reference:</strong><br>
+    Thanopoulos, A., Fakotakis, N., &amp; Kokkinakis, G. (2002, May). <em>Comparative Evaluation of Collocation Extraction Metrics.</em> In LREC (Vol. 2, pp. 620-625).</p>
 
-      <p style='text-align: center;'>
-          <em>PMI(w<sub>1</sub>, w<sub>2</sub>) = log ( P(w<sub>1</sub>, w<sub>2</sub>) / (P(w<sub>1</sub>) P(w<sub>2</sub>)) )</em>
-      </p>
-
-      <p>where P(w<sub>1</sub>, w<sub>2</sub>) is the probability of words w<sub>1</sub> and w<sub>2</sub> appearing together, and P(w<sub>1</sub>) and P(w<sub>2</sub>) are their individual probabilities. High PMI values indicate strong word associations, making the phrase a good multi-word candidate.</p>
-
-      <p><strong>Reference:</strong><br>
-      Church, K. W., &amp; Hanks, P. (1990). <em>Word association norms, mutual information, and lexicography</em>. Computational Linguistics, 16(1), 22-29.</p>
-
-     <br><h4><strong>- Mutual Dependency (MD)</strong></h4>
-      <p>Mutual Dependency extends PMI by considering the full context of a multi-word expression rather than just pairwise co-occurrence. It incorporates statistical dependency measures, ensuring that all words in a multi-word sequence contribute significantly to its overall meaning. This approach is particularly useful for identifying multi-word units beyond simple bigrams.</p>
-
-      <p><strong>Reference:</strong><br>
-      Thanopoulos, A., Fakotakis, N., &amp; Kokkinakis, G. (2002, May). <em>Comparative Evaluation of Collocation Extraction Metrics.</em> In LREC (Vol. 2, pp. 620-625).</p>
-
-     <br><h4><strong>- Log-Frequency Biased Mutual Dependency (LF-MD)</strong></h4>
-      <p>LF-MD refines the MD approach by incorporating word frequency into the dependency calculation. This method biases the selection of multi-word expressions toward frequent collocations while maintaining a balance between statistical significance and linguistic relevance. It is particularly useful in extracting meaningful multi-word expressions in large corpora where rare but statistically significant collocations might otherwise dominate.</p>
-
-      <p><strong>Reference:</strong><br>
-        Thanopoulos, A., Fakotakis, N., &amp; Kokkinakis, G. (2002, May). <em>Comparative Evaluation of Collocation Extraction Metrics.</em> In LREC (Vol. 2, pp. 620-625).</p>
-  </body>
-  "
+    <br><h4><strong>- IS Index (Absorption Index)</strong></h4>
+    <p>The IS Index, proposed by Morrone (1996), is a cohesiveness measure for word sequences that combines three key factors: word rarity, sequence frequency, and lexical density. The index is calculated as:</p>
+    <p style='text-align: center;'>
+        <em>IS(s) = (Σ 1/freq(w<sub>i</sub>)) × freq(s) × n<sub>lexical</sub></em>
+    </p>
+    <p>where freq(w<sub>i</sub>) is the frequency of each word in the sequence, freq(s) is the frequency of the complete sequence, and n<sub>lexical</sub> is the number of lexical words (e.g. NOUN, ADJ, ADV, etc.) in the sequence. The normalized version, IS<sub>norm</sub> = IS / L², allows fair comparison between sequences of different lengths, where L is the sequence length.</p>
+    <p>The algorithm generates n-grams within sentence boundaries and applies an optimization strategy: only sequences that start AND end with lexical words are considered, significantly reducing computation time while focusing on meaningful expressions. High IS values identify sequences with rare words that frequently co-occur, making them excellent candidates for terminology extraction and theme identification.</p>
+    <p><strong>Reference:</strong><br>
+    Morrone, A. (1996). <em>Temi Generali e Temi Specifici dei programmi di governo attraverso le sequenze di discorso</em>. In L'attività dei governi della Repubblica italiana 1948-1994. Bologna: Il Mulino.</p>
+</body>
+"
 
   ## multiword list ----
   multiwordlist <- "<body>
