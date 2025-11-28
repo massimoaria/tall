@@ -2,12 +2,15 @@ utils::globalVariables(c(
   "IS",
   "IS_norm",
   "n_length",
-  "n_lexical ngram",
+  "n_lexical",
+  "ngram",
   "pos_sequence",
   "sentence_id",
   "sum_reciprocal_freq",
   "term_col",
-  "token_id words"
+  "token_id",
+  "token_id words",
+  "words"
 ))
 
 #' Calculate IS index for n-grams
@@ -49,8 +52,6 @@ calculate_ngram_is <- function(
   min_freq = 1,
   min_IS_norm = 0
 ) {
-  library(dplyr)
-
   include_pos <- c(
     "DET",
     "NOUN",
@@ -69,7 +70,7 @@ calculate_ngram_is <- function(
 
   # Filter valid tokens
   df_filtered <- dfTag %>%
-    filter(upos %in% include_pos, !is.na(!!sym(term))) %>%
+    dplyr::filter(upos %in% include_pos, !is.na(!!sym(term))) %>%
     select(doc_id, sentence_id, token_id, term_col = !!sym(term), upos) %>%
     arrange(doc_id, sentence_id, as.numeric(token_id))
 
@@ -106,7 +107,7 @@ calculate_ngram_is <- function(
   # Calculate frequencies and filter
   ngram_counts <- ngrams_df %>%
     count(ngram, n_length, name = "ngram_freq") %>%
-    filter(ngram_freq >= min_freq)
+    dplyr::filter(ngram_freq >= min_freq)
 
   if (nrow(ngram_counts) == 0) {
     return(tibble(

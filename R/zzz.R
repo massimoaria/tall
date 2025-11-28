@@ -33,6 +33,7 @@
 #' @import word2vec
 #' @import ggwordcloud
 #' @import umap
+#' @import ranger
 #' @importFrom ggplot2 ggplot
 #' @importFrom readr write_csv
 #' @importFrom strucchange breakpoints

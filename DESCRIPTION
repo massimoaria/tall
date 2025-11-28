@@ -65,6 +65,7 @@ Imports:
     plotly,
     promises,
     purrr, 
+    ranger,
     Rcpp (>= 1.0.3),
     readr,
     readtext,

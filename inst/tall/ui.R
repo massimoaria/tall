@@ -17,6 +17,7 @@ files <- c(
   "keyness.R",
   "words.R",
   "documents.R",
+  "doc_classification.R",
   "report.R",
   "settings.R"
 )
@@ -220,6 +221,9 @@ body <- dashboardBody(
 
     #### TM Analysis ----
     documentsUI()$tm_analysis,
+
+    #### Doc Classification ----
+    docClassificationUI(),
 
     ### Polarity Detection ----
     documentsUI()$polarity,

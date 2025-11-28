@@ -16,6 +16,7 @@ files <- c(
   "keyness.R",
   "words.R",
   "documents.R",
+  "doc_classification.R",
   "report.R",
   "settings.R"
 )
@@ -83,6 +84,9 @@ server <- function(input, output, session) {
 
   ## DOCUMENTS ----
   documentsServer(input, output, session, values, statsValues)
+
+  ### Doc Supervised Classification ----
+  docClassificationServer(input, output, session, values)
 
   ## REPORT ----
   reportServer(input, output, session, values)

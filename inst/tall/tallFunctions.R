@@ -8462,6 +8462,11 @@ menuList <- function(menu) {
       )
     ),
     menuSubItem(
+      "Supervised Classification",
+      tabName = "doc_classification",
+      icon = icon("chevron-right")
+    ),
+    menuSubItem(
       "Polarity Detection",
       tabName = "d_polDet",
       icon = icon("chevron-right")
