@@ -600,6 +600,17 @@ docClassificationServer <- function(input, output, session, values) {
           feature_matrix <- dtm_result$matrix
           rf_results$term_mapping <- dtm_result$term_mapping
           rf_results$feature_type <- "DTM"
+
+          # Inform user about DTM dimensions
+          showNotification(
+            sprintf(
+              "DTM created: %d documents × %d terms",
+              nrow(feature_matrix),
+              ncol(feature_matrix)
+            ),
+            type = "message",
+            duration = 3
+          )
         } else {
           # Word2Vec approach
           # Check if model exists, if not train it
@@ -631,28 +642,101 @@ docClassificationServer <- function(input, output, session, values) {
         }
 
         # Step 2: Get target variable at document level
+        # CRITICAL: dfTag is tokenized, so we need to get document-level metadata correctly
+        # We use group_by + summarize with first() to get the first non-NA value
         target_data <- values$dfTag %>%
           filter(docSelected) %>%
-          distinct(doc_id, .keep_all = TRUE) %>%
-          select(doc_id, target = !!sym(values$labelVariable))
+          group_by(doc_id) %>%
+          summarise(
+            target_var = first(na.omit(!!sym(values$labelVariable))),
+            .groups = 'drop'
+          )
+
+        # Remove any documents where target is NA
+        target_data <- target_data %>%
+          filter(!is.na(target_var))
 
         # Merge features with target
         if (input$rf_feature_type == "dtm") {
+          # For DTM, rownames are doc_ids
           feature_df <- as.data.frame(feature_matrix)
           feature_df$doc_id <- rownames(feature_matrix)
+
+          # Ensure both doc_id columns are character type for reliable matching
+          feature_df$doc_id <- as.character(feature_df$doc_id)
+          target_data$doc_id <- as.character(target_data$doc_id)
+
+          # Merge with target
+          feature_df <- feature_df %>%
+            inner_join(target_data, by = "doc_id")
+
+          # Check if we have any rows after join
+          if (nrow(feature_df) == 0) {
+            stop(
+              "No documents remain after merging features with target variable."
+            )
+          }
+
+          # Check if target_var column exists
+          if (!"target_var" %in% names(feature_df)) {
+            stop("target_var column not found after merge!")
+          }
+
+          # Remove doc_id column
+          feature_df <- feature_df[,
+            names(feature_df) != "doc_id",
+            drop = FALSE
+          ]
+
+          # Rename target_var to unique name that won't conflict with any term
+          col_idx <- which(names(feature_df) == "target_var")
+          if (length(col_idx) != 1) {
+            stop(
+              "Problem finding target_var column. Found ",
+              length(col_idx),
+              " matches."
+            )
+          }
+          names(feature_df)[col_idx] <- ".target_class"
         } else {
+          # For Word2Vec, feature_matrix already has doc_id column
           feature_df <- as.data.frame(feature_matrix)
+
+          # Ensure doc_id is character
+          feature_df$doc_id <- as.character(feature_df$doc_id)
+          target_data$doc_id <- as.character(target_data$doc_id)
+
+          feature_df <- feature_df %>%
+            inner_join(target_data, by = "doc_id")
+
+          # Check if we have any rows after join
+          if (nrow(feature_df) == 0) {
+            stop(
+              "No documents remain after merging features with target variable."
+            )
+          }
+
+          # Remove doc_id column - use base R
+          feature_df <- feature_df[,
+            names(feature_df) != "doc_id",
+            drop = FALSE
+          ]
+
+          # Rename target_var to unique name
+          col_idx <- which(names(feature_df) == "target_var")
+          names(feature_df)[col_idx] <- ".target_class"
         }
 
-        feature_df <- feature_df %>%
-          left_join(target_data, by = "doc_id") %>%
-          select(-doc_id)
+        # Ensure target is factor AFTER merging
+        # Use the unique column name
+        feature_df$.target_class <- as.factor(feature_df$.target_class)
 
         # Calculate class weights if requested
         class_weights <- NULL
         if (input$rf_class_weights) {
-          class_counts <- table(feature_df$target)
-          class_weights <- 1 / class_counts
+          class_counts <- table(feature_df$.target_class)
+          class_weights <- 1 / as.numeric(class_counts)
+          names(class_weights) <- names(class_counts)
           class_weights <- class_weights / sum(class_weights)
         }
 
@@ -670,12 +754,12 @@ docClassificationServer <- function(input, output, session, values) {
 
         # Step 4: Evaluate
         eval_train <- evaluateClassifier(
-          true_labels = rf_model$train_data$target,
+          true_labels = rf_model$train_data$.target_class,
           pred_probs = rf_model$train_pred$predictions
         )
 
         eval_test <- evaluateClassifier(
-          true_labels = rf_model$test_data$target,
+          true_labels = rf_model$test_data$.target_class,
           pred_probs = rf_model$test_pred$predictions
         )
 
@@ -930,7 +1014,7 @@ checkClassificationPrereqs <- function(values) {
 #' @param max_features Integer, maximum number of features to keep (NULL = all)
 #' @param min_df Integer, minimum document frequency
 #' @param max_df_prop Numeric, maximum proportion of documents a term can appear in
-#' @return Matrix with documents as rows and terms as columns
+#' @return List with matrix and term_mapping
 createDTM_forRF <- function(
   dfTag,
   term = "lemma",
@@ -942,6 +1026,9 @@ createDTM_forRF <- function(
   # Filter selected documents and POS
   df_filtered <- dfTag %>%
     filter(docSelected, POSSelected)
+
+  # Get unique doc_ids for later reference
+  original_doc_ids <- unique(df_filtered$doc_id)
 
   # Select term
   if (term == "lemma") {
@@ -962,8 +1049,17 @@ createDTM_forRF <- function(
   # Create DTM using udpipe's document_term_matrix
   dtm <- document_term_matrix(dtf)
 
+  # CRITICAL: Extract and preserve document IDs
+  doc_ids <- rownames(dtm)
+
   # Convert to regular matrix
   dtm_matrix <- as.matrix(dtm)
+
+  # Ensure rownames are preserved after conversion
+  rownames(dtm_matrix) <- doc_ids
+
+  # Store original number of documents
+  n_docs_initial <- nrow(dtm_matrix)
 
   # Get document frequency (number of documents containing each term)
   doc_freq <- colSums(dtm_matrix > 0)
@@ -979,8 +1075,24 @@ createDTM_forRF <- function(
   # Filter matrix
   dtm_matrix <- dtm_matrix[, keep_terms, drop = FALSE]
 
-  # Update doc_freq after filtering
-  doc_freq <- doc_freq[keep_terms]
+  # CRITICAL: Remove documents that have no terms after filtering
+  # This happens when all terms in a document were filtered out
+  doc_term_counts <- rowSums(dtm_matrix)
+  keep_docs <- doc_term_counts > 0
+
+  n_docs_removed <- sum(!keep_docs)
+
+  if (sum(keep_docs) == 0) {
+    stop(
+      "All documents were filtered out. Please reduce min_df or increase max_df_prop."
+    )
+  }
+
+  dtm_matrix <- dtm_matrix[keep_docs, , drop = FALSE]
+
+  # Update doc_freq after filtering documents
+  doc_freq <- colSums(dtm_matrix > 0)
+  n_docs <- nrow(dtm_matrix)
 
   # Apply weighting
   if (weighting == "tfidf") {
@@ -1221,13 +1333,19 @@ trainRangerRF <- function(
 ) {
   set.seed(seed)
 
-  # Ensure target is factor
-  feature_matrix <- feature_matrix %>%
-    mutate(target = as.factor(target))
+  # Target column is named .target_class to avoid conflicts with term columns
+  if (!".target_class" %in% names(feature_matrix)) {
+    stop("Target column '.target_class' not found in feature matrix")
+  }
+
+  # Target should already be a factor from the calling function
+  if (!is.factor(feature_matrix$.target_class)) {
+    feature_matrix$.target_class <- as.factor(feature_matrix$.target_class)
+  }
 
   # Stratified split using custom function
   train_idx <- createStratifiedSplit(
-    y = feature_matrix$target,
+    y = feature_matrix$.target_class,
     p = 1 - test_size,
     seed = seed
   )
@@ -1242,7 +1360,7 @@ trainRangerRF <- function(
 
   # Train model
   model <- ranger::ranger(
-    formula = target ~ .,
+    formula = .target_class ~ .,
     data = train_data,
     num.trees = num.trees,
     mtry = mtry,

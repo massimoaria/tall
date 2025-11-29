@@ -578,7 +578,9 @@ featureRolesServer <- function(input, output, session, values) {
     req(input$timeVarInput, input$timeVarInput != "")
 
     # Aggregate by document (doc_id) to get one value per document
+    # Apply docSelected filter to respect filters from Filters menu
     doc_level_data <- values$dfTag %>%
+      filter(docSelected) %>%
       group_by(doc_id) %>%
       summarise(
         var_value = first(.data[[input$timeVarInput]]),
@@ -735,7 +737,9 @@ featureRolesServer <- function(input, output, session, values) {
     req(input$labelVarInput, input$labelVarInput != "")
 
     # Aggregate by document (doc_id) to get one value per document
+    # Apply docSelected filter to respect filters from Filters menu
     doc_level_data <- values$dfTag %>%
+      filter(docSelected) %>%
       group_by(doc_id) %>%
       summarise(
         var_value = first(.data[[input$labelVarInput]]),
@@ -832,7 +836,9 @@ featureRolesServer <- function(input, output, session, values) {
     req(input$keynessVarInput, input$keynessVarInput != "")
 
     # Aggregate by document (doc_id) to get one value per document
+    # Apply docSelected filter to respect filters from Filters menu
     doc_level_data <- values$dfTag %>%
+      filter(docSelected) %>%
       group_by(doc_id) %>%
       summarise(
         var_value = first(.data[[input$keynessVarInput]]),
@@ -929,7 +935,9 @@ featureRolesServer <- function(input, output, session, values) {
     req(input$keynessVarInput, input$keynessVarInput != "")
 
     # Get unique values at document level
+    # Apply docSelected filter to respect filters from Filters menu
     doc_level_data <- values$dfTag %>%
+      filter(docSelected) %>%
       group_by(doc_id) %>%
       summarise(
         var_value = first(.data[[input$keynessVarInput]]),
@@ -1174,6 +1182,7 @@ featureRolesServer <- function(input, output, session, values) {
         success_message <- paste0(success_message, "</small><br>")
       }
     }
+
     # Show confirmation message
     if (success_message == "") {
       sendSweetAlert(
