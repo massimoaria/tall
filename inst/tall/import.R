@@ -576,12 +576,13 @@ importServer <- function(input, output, session, values, statsValues) {
       biblioshiny = {
         if (!is.null(req(input$file_raw))) {
           file <- input$file_raw
-          values$biblioshiny <- read_files(
+          values$txt <- read_files(
             file,
             ext = "csv",
             subfolder = FALSE,
             line_sep = ","
           )
+          values$biblioshiny <- TRUE
         }
       },
       load_tall = {
@@ -671,7 +672,7 @@ importServer <- function(input, output, session, values, statsValues) {
               " and widely used dataset originally hosted on Kaggle. It contains tweets collected during February 2015",
               " that pertain to major U.S.-based airlines. The primary objective of this dataset is to capture and analyze",
               " the sentiment expressed by travelers regarding their airline experiences. Each tweet is annotated with ",
-              "a sentiment label—positive, neutral, or negative—based on the emotional tone conveyed in the text. ",
+              "a sentiment labelâ€”positive, neutral, or negativeâ€”based on the emotional tone conveyed in the text. ",
               "This collection is frequently employed in natural language processing tasks, particularly for training ",
               "and evaluating sentiment classification models. In this context, the dataset will be used to explore how ",
               "airline passengers articulated their opinions and emotions on Twitter during the specified period."
@@ -713,7 +714,7 @@ importServer <- function(input, output, session, values, statsValues) {
       values$biblioshiny
     },
     handlerExpr = {
-      tallFields <- intersect(c("AB", "TI", "DE"), names(values$biblioshiny))
+      tallFields <- intersect(c("AB", "TI", "DE"), names(values$txt))
       output$biblioChoiceUI <- renderUI({
         selectizeInput(
           inputId = "biblioChoice",
@@ -750,45 +751,70 @@ importServer <- function(input, output, session, values, statsValues) {
     },
     handlerExpr = {
       req(input$biblioChoice)
-      values$txt <- values$biblioshiny %>%
+      values$txt <- values$txt %>%
         mutate(
           text = removeHTMLTags(!!sym(input$biblioChoice)),
           text_original = text
         ) %>%
         clean_text() %>%
-        trim_text_columns()
-      arrange(doc_id)
+        trim_text_columns() %>%
+        mutate(doc_selected = TRUE) %>%
+        arrange(doc_id)
       values$menu <- 0
       values$custom_lists <- NULL
       values$resetNeed <- TRUE
+
+      output$dataImported <- DT::renderDT({
+        req(values$txt)
+        if (nrow(values$txt) > 0) {
+          col_names <- c("doc_selected", "text_original")
+          # check if text exists in values$txt and then apply or not the mutate
+
+          DTformat(
+            values$txt %>%
+              dplyr::filter(doc_selected) %>%
+              mutate(across(
+                any_of("text"),
+                ~ paste0(substr(., 1, 500), "...")
+              )) %>%
+              select(doc_id, any_of("text"), everything()) %>%
+              select(!any_of(col_names)),
+            left = 3,
+            nrow = 5,
+            filter = "none",
+            button = TRUE,
+            delete = TRUE
+          )
+        }
+      })
     }
   )
 
-  output$dataImported <- DT::renderDT({
+  # Trigger DATAloading when runImport is clicked
+  observeEvent(input$runImport, {
     DATAloading()
-    # if (values$menu == 0) {
-    DTformat(
-      values$txt %>%
-        filter(doc_selected) %>%
-        mutate(text = paste0(substr(text, 1, 500), "...")) %>%
-        select(doc_id, text, everything()) %>%
-        select(-doc_selected, -text_original),
-      left = 3,
-      nrow = 5,
-      filter = "none",
-      button = TRUE,
-      delete = TRUE
-    )
-    # }
   })
 
-  # observeEvent(eventExpr = {
-  #   input$corpus_description},
-  #              handlerExpr = {
-  #                if (input$corpus_description!="" & nchar(input$corpus_description)>1){
-  #                  values$corpus_description <- input$corpus_description
-  #                }
-  # },ignoreNULL = TRUE)
+  output$dataImported <- DT::renderDT({
+    req(values$txt)
+    if (nrow(values$txt) > 0) {
+      col_names <- c("doc_selected", "text_original")
+      # check if text exists in values$txt and then apply or not the mutate
+
+      DTformat(
+        values$txt %>%
+          dplyr::filter(doc_selected) %>%
+          mutate(across(any_of("text"), ~ paste0(substr(., 1, 500), "..."))) %>%
+          select(doc_id, any_of("text"), everything()) %>%
+          select(!any_of(col_names)),
+        left = 3,
+        nrow = 5,
+        filter = "none",
+        button = TRUE,
+        delete = TRUE
+      )
+    }
+  })
 
   ### shortpath for folder path ----
   output$folder <- renderUI({
@@ -1212,9 +1238,6 @@ importServer <- function(input, output, session, values, statsValues) {
         na = "NA",
         append = FALSE,
         col_names = TRUE
-        # quote = c("needed"),
-        # escape = c("backslash"),
-        # eol = "\n"
       )
       popUp(title = "Saved in your working folder", type = "saved")
     }

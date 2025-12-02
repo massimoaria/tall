@@ -1965,6 +1965,58 @@ wordsUI <- function() {
 wordsServer <- function(input, output, session, values, statsValues) {
   ### WORDS ----
 
+  showDocumentModal <- function(session, docID, input) {
+    ns <- session$ns
+    if (
+      input$sidebarmenu %in%
+        c("import_tx", "split_tx", "extInfo", "randomText")
+    ) {
+      text <- create_document_box(
+        values$txt %>% filter(doc_id == docID) %>% pull(text),
+        docID,
+        summarization_type = "original_text"
+      )
+    } else {
+      text <- create_document_box(
+        values$dfTag %>%
+          filter(doc_id == !!docID) %>%
+          select(doc_id, paragraph_id, sentence_id, sentence) %>%
+          distinct() %>%
+          group_by(doc_id, paragraph_id) %>%
+          summarise(Paragraph = paste(sentence, collapse = "\n ")) %>%
+          ungroup(),
+        docID,
+        summarization_type = "abstractive"
+      )
+    }
+
+    modalDialog(
+      tags$style(HTML(
+        "
+      .modal-dialog {
+        width: 70vw !important;
+        max-width: 70vw !important;
+      }
+      .modal-content {
+        height: 85vh !important;
+      }
+      .modal-body {
+        overflow-y: auto !important;
+        max-height: calc(85vh - 120px) !important;
+      }
+    "
+      )),
+      div(
+        h3(strong("Document corpus")),
+        br(),
+        HTML(text)
+      ),
+      size = "l",
+      easyClose = TRUE,
+      footer = modalButton("Close")
+    )
+  }
+
   ## Click on Plotly graphs: DOC IN CONTEXT ----
   observeEvent(event_data("plotly_click"), {
     d <- event_data("plotly_click")
