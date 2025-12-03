@@ -1295,7 +1295,6 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
         ) %>%
         filter(!is.na(upos)) %>% ##
         posSel(., c("ADJ", "NOUN", "PROPN", "VERB"))
-      values$dfTag <- highlight(values$dfTag)
 
       if (input$token_lowercase) {
         values$dfTag <- values$dfTag %>%
@@ -2217,6 +2216,16 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
     row_sel <- input$multiwordList_rows_selected
 
     if (length(row_sel) > 0) {
+      showNotification(
+        ui = paste0(
+          "Integrating ",
+          length(row_sel),
+          " Multi-Words in your corpus"
+        ),
+        type = "warning",
+        duration = 3,
+        closeButton = TRUE
+      )
       values$dfTag <- applyRake(
         values$dfTag,
         rakeResults = values$rakeResults,
@@ -2224,12 +2233,6 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
         term = values$generalTerm
       )
 
-      ## Highlight multiword
-      values$dfTag <- highlight(
-        values$dfTag,
-        term = values$generalTerm,
-        upos = "MULTIWORD"
-      )
       statsValues <- updateStats(
         values$dfTag,
         term = values$generalTerm,
@@ -2238,22 +2241,33 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
 
       replaceData(proxy4, values$dfTag, resetPaging = FALSE)
 
-      show_alert(
-        title = "Annotated Data with Multi-Words",
-        paste0("Now Multi-Words have been added to your documents"),
-        type = NULL,
-        width = "50%",
-        closeOnEsc = TRUE,
-        closeOnClickOutside = TRUE,
-        html = TRUE,
-        showConfirmButton = TRUE,
-        showCancelButton = FALSE,
-        btn_labels = "OK",
-        btn_colors = "#6CC283",
-        timer = NULL,
-        imageUrl = "",
-        animation = TRUE
+      showNotification(
+        ui = paste0(
+          "Multi-Words Applied: ",
+          length(row_sel),
+          " multi-words have been added to your documents"
+        ),
+        type = "message",
+        duration = 5,
+        closeButton = TRUE
       )
+
+      # show_alert(
+      #   title = "Annotated Data with Multi-Words",
+      #   paste0("Now Multi-Words have been added to your documents"),
+      #   type = NULL,
+      #   width = "50%",
+      #   closeOnEsc = TRUE,
+      #   closeOnClickOutside = TRUE,
+      #   html = TRUE,
+      #   showConfirmButton = TRUE,
+      #   showCancelButton = FALSE,
+      #   btn_labels = "OK",
+      #   btn_colors = "#6CC283",
+      #   timer = NULL,
+      #   imageUrl = "",
+      #   animation = TRUE
+      # )
     }
   })
 
@@ -2347,7 +2361,17 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
         term = term
       )
 
-      values$dfTag <- highlight(values$dfTag, term = term, upos = "MULTIWORD")
+      showNotification(
+        ui = paste0(
+          "Multi-Words Applied: ",
+          length(row_sel),
+          " multi-words have been added to your documents"
+        ),
+        type = "message",
+        duration = 5,
+        closeButton = TRUE
+      )
+
       statsValues <- updateStats(
         values$dfTag,
         term = values$generalTerm,
