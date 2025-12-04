@@ -7972,6 +7972,7 @@ To ensure the functionality of Biblioshiny,
     Sys.setenv(CHROMOTE_CHROME = Chrome_url)
   }
   values$Chrome_url <- Chrome_url
+  values$posSpecialSummary <- NULL
   values$biblioshiny <- NULL
   values$resetNeed <- FALSE
   values$normButton <- FALSE

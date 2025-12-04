@@ -258,7 +258,7 @@ helpContent <- function() {
     <p>where freq(w<sub>i</sub>) is the frequency of each word in the sequence, freq(s) is the frequency of the complete sequence, and n<sub>lexical</sub> is the number of lexical words (e.g. NOUN, ADJ, ADV, etc.) in the sequence. The normalized version, IS<sub>norm</sub> = IS / L², allows fair comparison between sequences of different lengths, where L is the sequence length.</p>
     <p>The algorithm generates n-grams within sentence boundaries and applies an optimization strategy: only sequences that start AND end with lexical words are considered, significantly reducing computation time while focusing on meaningful expressions. High IS values identify sequences with rare words that frequently co-occur, making them excellent candidates for terminology extraction and theme identification.</p>
     <p><strong>Reference:</strong><br>
-    Morrone, A. (1996). <em>Temi Generali e Temi Specifici dei programmi di governo attraverso le sequenze di discorso</em>. In L'attività dei governi della Repubblica italiana 1948-1994. Bologna: Il Mulino.</p>
+    Morrone, A. (1993). <em>Alcuni criteri di valutazione della significatività dei segmenti ripetuti</em>. In JADT (pp. 445-453).</p>
 </body>
 "
 

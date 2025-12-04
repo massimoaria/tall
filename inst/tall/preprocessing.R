@@ -199,13 +199,19 @@ preprocessingUI <- function() {
         9,
         tabsetPanel(
           type = "tabs",
+          # Main tab with HTML-based entity cards
           tabPanel(
             "Special Entities Overview",
-            shinycssloaders::withSpinner(
-              DT::DTOutput("posSpecialTags"),
-              color = getOption("spinner.color", default = "#4F7942")
+            div(
+              style = "padding: 20px;",
+              # Custom HTML output for special entities cards
+              shinycssloaders::withSpinner(
+                uiOutput("posSpecialCardsUI"),
+                color = getOption("spinner.color", default = "#4F7942")
+              )
             )
           ),
+          # Annotated text table tab (unchanged)
           tabPanel(
             "Annotated Text Table",
             shinycssloaders::withSpinner(
@@ -213,6 +219,7 @@ preprocessingUI <- function() {
               color = getOption("spinner.color", default = "#4F7942")
             )
           ),
+          # Info tab (unchanged)
           tabPanel(
             "Info & References",
             fluidPage(
@@ -243,12 +250,12 @@ preprocessingUI <- function() {
               "When processing text, special tags will be assigned to certain detected entities."
             )),
             helpText(h5("These include:")),
-            helpText(h5("•⁠  ⁠Email addresses: example@domain.com")),
-            helpText(h5("•⁠  ⁠URLs: https://www.example.com/path")),
-            helpText(h5("•  ⁠Emojis: 😊, 🚀, ❤️")),
-            helpText(h5("•⁠  ⁠Hashtags: #ExampleTag")),
-            helpText(h5("•⁠  ⁠IP addresses: 192.168.1.1")),
-            helpText(h5("•⁠  ⁠Mentions: @username")),
+            helpText(h5("•    Email addresses: example@domain.com")),
+            helpText(h5("•    URLs: https://www.example.com/path")),
+            helpText(h5("•   Emojis: 😊, 🚀, ❤️")),
+            helpText(h5("•    Hashtags: #ExampleTag")),
+            helpText(h5("•    IP addresses: 192.168.1.1")),
+            helpText(h5("•    Mentions: @username")),
             helpText(h5(
               "This ensures that these elements are identified and marked for further analysis within the text."
             )),
@@ -1422,32 +1429,389 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
         statsValues
       )
       rm(res)
-      values$posSpecialTaggingDT <- DTformat(
-        values$posSpecialData %>%
-          summarySpecialEntities(type = "all"),
-        nrow = nrow(df),
-        filter = "none",
-        button = F,
-        delete = F,
-        dom = FALSE,
-        pagelength = FALSE,
-        size = "110%",
-        filename = "TaggingSpecialEntities",
-        title = "",
-        specialtags = TRUE,
-        right = 3,
-        numeric = 3,
-        round = 0
-      )
+
+      # Store summary data for cards
+      values$posSpecialSummary <- values$posSpecialData %>%
+        summarySpecialEntities(type = "all")
     },
     ignoreNULL = TRUE
   )
 
-  output$posSpecialTags <- DT::renderDT({
+  ## Render HTML Cards for Special Entities (COMPACT VERSION) ----
+  output$posSpecialCardsUI <- renderUI({
     posSpecialTagging()
-    values$posSpecialTaggingDT
+
+    # Get summary data
+    summary_data <- values$posSpecialSummary
+
+    # Define entity metadata with colors, icons, and labels
+    entity_metadata <- list(
+      EMAIL = list(
+        color = "#3498db",
+        icon = "envelope",
+        label = "Email Addresses",
+        example = "example@domain.com"
+      ),
+      EMOJI = list(
+        color = "#f39c12",
+        icon = "smile",
+        label = "Emojis",
+        example = "😊 🚀 ❤️"
+      ),
+      HASH = list(
+        color = "#9b59b6",
+        icon = "hashtag",
+        label = "Hashtags",
+        example = "#ExampleTag"
+      ),
+      IP_ADDRESS = list(
+        color = "#e74c3c",
+        icon = "network-wired",
+        label = "IP Addresses",
+        example = "192.168.1.1"
+      ),
+      MENTION = list(
+        color = "#1abc9c",
+        icon = "at",
+        label = "Mentions",
+        example = "@username"
+      ),
+      URL = list(
+        color = "#34495e",
+        icon = "link",
+        label = "URLs",
+        example = "https://example.com"
+      )
+    )
+
+    # Create card HTML for each entity type
+    cards <- lapply(1:nrow(summary_data), function(i) {
+      entity_type <- summary_data$UPOS[i]
+      frequency <- summary_data$Frequency[i]
+      metadata <- entity_metadata[[entity_type]]
+
+      # Skip if metadata not found
+      if (is.null(metadata)) {
+        return(NULL)
+      }
+
+      # Generate unique button ID for modal
+      button_id <- paste0("viewEntity_", entity_type)
+
+      # Create compact card HTML
+      div(
+        style = sprintf(
+          "background: white;
+         border-left: 4px solid %s;
+         border-radius: 8px;
+         padding: 12px 16px;
+         margin-bottom: 10px;
+         box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+         transition: all 0.3s ease;
+         cursor: pointer;",
+          metadata$color
+        ),
+        class = "entity-card",
+
+        # Card content with horizontal layout
+        fluidRow(
+          style = "display: flex; align-items: center; margin: 0;",
+
+          # Icon column (reduced size)
+          column(
+            2,
+            style = "padding: 0; display: flex; align-items: center; justify-content: center;",
+            div(
+              style = sprintf(
+                "width: 45px;
+               height: 45px;
+               border-radius: 50%%;
+               background: linear-gradient(135deg, %s, %s);
+               display: flex;
+               align-items: center;
+               justify-content: center;
+               box-shadow: 0 2px 6px rgba(0,0,0,0.12);",
+                metadata$color,
+                adjustcolor(metadata$color, alpha.f = 0.7)
+              ),
+              icon(metadata$icon, style = "color: white; font-size: 20px;")
+            )
+          ),
+
+          # Entity info column
+          column(
+            6,
+            style = "padding: 0 10px; display: flex; flex-direction: column; justify-content: center;",
+            div(
+              h5(
+                strong(metadata$label),
+                style = sprintf(
+                  "color: %s; margin: 0 0 3px 0; font-size: 15px;",
+                  metadata$color
+                )
+              ),
+              p(
+                style = "color: #95a5a6; margin: 0; font-size: 11px; line-height: 1.3;",
+                sprintf("Example: %s", metadata$example)
+              )
+            )
+          ),
+
+          # Frequency badge and view button column (horizontal layout)
+          column(
+            4,
+            style = "padding: 0; display: flex; align-items: center; justify-content: flex-end; gap: 8px;",
+
+            # Frequency badge
+            div(
+              style = sprintf(
+                "background: %s;
+               color: white;
+               padding: 6px 14px;
+               border-radius: 16px;
+               font-weight: bold;
+               font-size: 14px;
+               min-width: 45px;
+               text-align: center;",
+                metadata$color
+              ),
+              format(frequency, big.mark = ",")
+            ),
+
+            # View button (only if frequency > 0)
+            if (frequency > 0) {
+              actionButton(
+                inputId = button_id,
+                label = NULL,
+                icon = icon("eye"),
+                style = sprintf(
+                  "background: %s;
+                 color: white;
+                 border: none;
+                 padding: 6px 12px;
+                 border-radius: 5px;
+                 font-size: 12px;
+                 cursor: pointer;
+                 height: 32px;
+                 min-width: 32px;",
+                  metadata$color
+                ),
+                onclick = sprintf(
+                  "Shiny.setInputValue('viewEntityModal', '%s', {priority: 'event'})",
+                  entity_type
+                )
+              )
+            }
+          )
+        )
+      )
+    })
+
+    # Add custom CSS for hover effects
+    tagList(
+      tags$style(HTML(
+        "
+      .entity-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+      }
+    "
+      )),
+      cards
+    )
   })
 
+  ## Modal for Frequency Distribution ----
+  observeEvent(
+    ignoreNULL = TRUE,
+    eventExpr = {
+      input$viewEntityModal
+    },
+    handlerExpr = {
+      if (!is.null(input$viewEntityModal) && input$viewEntityModal != "") {
+        entity_type <- input$viewEntityModal
+
+        # Get entity metadata for modal styling
+        entity_metadata <- list(
+          EMAIL = list(color = "#3498db", label = "Email", icon = "envelope"),
+          EMOJI = list(color = "#f39c12", label = "Emoji", icon = "smile"),
+          HASH = list(color = "#9b59b6", label = "Hashtag", icon = "hashtag"),
+          IP_ADDRESS = list(
+            color = "#e74c3c",
+            label = "IP Address",
+            icon = "network-wired"
+          ),
+          MENTION = list(color = "#1abc9c", label = "Mention", icon = "at"),
+          URL = list(color = "#34495e", label = "URL", icon = "link")
+        )
+
+        metadata <- entity_metadata[[entity_type]]
+
+        # Create and show modal with white title text
+        showModal(
+          modalDialog(
+            title = div(
+              style = "color: white; font-weight: bold; font-size: 20px; display: flex; align-items: center; gap: 10px;",
+              icon(metadata$icon, style = "font-size: 22px;"),
+              sprintf("Frequency Distribution of %s Entities", metadata$label)
+            ),
+            # Modal content
+            div(
+              style = "padding: 15px;",
+              shinycssloaders::withSpinner(
+                htmlOutput("specialEntityFreqHTML"),
+                color = metadata$color
+              )
+            ),
+            size = "l",
+            easyClose = TRUE,
+            footer = tagList(
+              actionButton(
+                inputId = "closeModalSpecialEntities",
+                label = "Close",
+                icon = icon("times"),
+                style = sprintf(
+                  "background: %s; color: white; border: none; padding: 8px 20px; border-radius: 5px;",
+                  metadata$color
+                )
+              )
+            )
+          )
+        )
+      }
+    }
+  )
+
+  ## Close modal observer ----
+  observeEvent(input$closeModalSpecialEntities, {
+    removeModal()
+  })
+
+  ## Render Frequency Distribution in Modal (WITH LARGE EMOJIS) ----
+  output$specialEntityFreqHTML <- renderUI({
+    req(input$viewEntityModal)
+
+    entity_type <- input$viewEntityModal
+
+    # Get frequency data
+    freq_data <- values$posSpecialData %>%
+      summarySpecialEntities(type = entity_type) %>%
+      rename("Frequency" = "n")
+
+    # Get entity color
+    colors <- list(
+      EMAIL = "#3498db",
+      EMOJI = "#f39c12",
+      HASH = "#9b59b6",
+      IP_ADDRESS = "#e74c3c",
+      MENTION = "#1abc9c",
+      URL = "#34495e"
+    )
+    entity_color <- colors[[entity_type]]
+
+    # Check if we're displaying emojis (for larger font size)
+    is_emoji <- (entity_type == "EMOJI")
+
+    # Create HTML table with modern styling
+    table_html <- "<div style='max-height: 500px; overflow-y: auto;'>"
+    table_html <- paste0(
+      table_html,
+      "
+    <table style='width: 100%; border-collapse: collapse; font-family: Arial, sans-serif;'>
+      <thead>
+        <tr style='background: linear-gradient(135deg, ",
+      entity_color,
+      ", ",
+      adjustcolor(entity_color, alpha.f = 0.8),
+      "); color: white; position: sticky; top: 0; z-index: 10;'>
+          <th style='padding: 12px; text-align: left; font-weight: bold; border-bottom: 2px solid white;'>Item</th>
+          <th style='padding: 12px; text-align: center; font-weight: bold; border-bottom: 2px solid white; width: 120px;'>Frequency</th>
+        </tr>
+      </thead>
+      <tbody>
+  "
+    )
+
+    # Add rows
+    for (i in 1:nrow(freq_data)) {
+      item <- freq_data$item[i]
+      frequency <- freq_data$Frequency[i]
+
+      # Special handling for different entity types
+      if (entity_type == "URL") {
+        # URLs - make them clickable
+        item_display <- sprintf(
+          '<a href="%s" target="_blank" style="color: %s; text-decoration: none;">%s</a>',
+          item,
+          entity_color,
+          item
+        )
+      } else if (is_emoji) {
+        # EMOJIS - increase font size for better visibility
+        item_display <- sprintf(
+          '<span style="font-size: 28px; line-height: 1.5;">%s</span>',
+          htmltools::htmlEscape(item)
+        )
+      } else {
+        # Other types - normal display
+        item_display <- htmltools::htmlEscape(item)
+      }
+
+      # Alternate row colors
+      bg_color <- if (i %% 2 == 0) "#f8f9fa" else "white"
+
+      # Adjust padding for emoji rows (more vertical space needed)
+      row_padding <- if (is_emoji) "14px" else "10px"
+
+      table_html <- paste0(
+        table_html,
+        sprintf(
+          "
+      <tr style='background: %s; transition: background 0.2s;' onmouseover='this.style.background=\"#e8f4f8\"' onmouseout='this.style.background=\"%s\"'>
+        <td style='padding: %s; border-bottom: 1px solid #dee2e6; vertical-align: middle;'>%s</td>
+        <td style='padding: %s; text-align: center; border-bottom: 1px solid #dee2e6; vertical-align: middle;'>
+          <span style='background: %s; color: white; padding: 4px 12px; border-radius: 12px; font-weight: bold; font-size: 13px;'>%s</span>
+        </td>
+      </tr>
+    ",
+          bg_color,
+          bg_color,
+          row_padding,
+          item_display,
+          row_padding,
+          entity_color,
+          format(frequency, big.mark = ",")
+        )
+      )
+    }
+
+    table_html <- paste0(
+      table_html,
+      "
+      </tbody>
+    </table>
+  </div>"
+    )
+
+    # Add summary info
+    summary_html <- sprintf(
+      "
+    <div style='margin-top: 15px; padding: 12px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid %s;'>
+      <strong style='color: %s;'>Total Items:</strong> %s |
+      <strong style='color: %s;'>Total Occurrences:</strong> %s
+    </div>
+  ",
+      entity_color,
+      entity_color,
+      format(nrow(freq_data), big.mark = ","),
+      entity_color,
+      format(sum(freq_data$Frequency), big.mark = ",")
+    )
+
+    HTML(paste0(table_html, summary_html))
+  })
+
+  ## Annotated Text Table (unchanged) ----
   output$posSpecialData <- DT::renderDT({
     posSpecialTagging()
 
@@ -1478,8 +1842,7 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
     }
   })
 
-  proxy2 <- dataTableProxy("posSpecialTags")
-  ## back to the original txt
+  ## Back button - Reset special entities ----
   observeEvent(input$posSpecialBack, {
     values$dfTag <- resetSpecialEntities(values$dfTag)
     statsValues <- updateStats(
@@ -1487,21 +1850,18 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
       term = values$generalTerm,
       statsValues
     )
-    replaceData(
-      proxy2,
-      data.frame(
-        Table = rep(NA, 6),
-        UPOS = toupper(c(
-          "email",
-          "url",
-          "hash",
-          "emoji",
-          "ip_address",
-          "mention"
-        )),
-        Frequency = rep(0, 6)
-      ),
-      resetPaging = FALSE
+
+    # Reset summary data
+    values$posSpecialSummary <- data.frame(
+      UPOS = toupper(c(
+        "email",
+        "url",
+        "hash",
+        "emoji",
+        "ip_address",
+        "mention"
+      )),
+      Frequency = rep(0, 6)
     )
 
     popUpGeneric(
@@ -1509,12 +1869,13 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
       type = "waiting",
       color = c("#FFA800"),
       subtitle = paste0(
-        "Now all Special Entities Tags have been remove from your documents"
+        "Now all Special Entities Tags have been removed from your documents"
       ),
       btn_labels = "OK"
     )
   })
 
+  ## Save button ----
   observeEvent(
     eventExpr = {
       input$posSpecialSave
@@ -1537,72 +1898,59 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
     }
   )
 
-  ## Click on Tagging Special Entities ----
-  observeEvent(
-    ignoreNULL = TRUE,
-    eventExpr = {
-      input$button_id2
-    },
-    handlerExpr = {
-      if (input$button_id2 != "null") {
-        showModal(modalSpecialEntities(session))
-      }
-    }
-  )
-
-  modalSpecialEntities <- function(session) {
-    ns <- session$ns
-    modalDialog(
-      h3(strong(paste0(
-        "Frequency Distribution of ",
-        firstUp(input$button_id2),
-        " Entities"
-      ))),
-      DTOutput(ns("specialEntityFreq")),
-      size = "l",
-      easyClose = FALSE,
-      footer = tagList(
-        actionButton(
-          label = "Close",
-          inputId = "closeModalSpecialEntities",
-          style = "color: #ffff;",
-          icon = icon("remove", lib = "glyphicon")
-        )
-      ),
-    )
+  # =============================================================================
+  # ADDITIONAL CSS FOR ENHANCED STYLING
+  # =============================================================================
+  tags$style(HTML(
+    "
+  /* Smooth transitions for all entity cards */
+  .entity-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  observeEvent(input$closeModalSpecialEntities, {
-    removeModal(session = getDefaultReactiveDomain())
-    # session$sendCustomMessage("click", 'null') # reset input value to plot modal more times
-    resetModalButtons(session = getDefaultReactiveDomain())
-  })
+  /* Hover effect for entity cards */
+  .entity-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+  }
 
-  output$specialEntityFreq <- renderDT(
-    server = FALSE,
-    {
-      req(input$button_id2)
-      if (!is.null(input$button_id2)) {
-        id <- input$button_id2
-      }
-      summarySpecialEntity <- values$posSpecialData %>%
-        summarySpecialEntities(type = id) %>%
-        rename("Frequency" = "n")
+  /* Button hover effects */
+  .entity-card button:hover {
+    opacity: 0.9;
+    transform: scale(1.05);
+  }
 
-      if (id == "URL") {
-        summarySpecialEntity$item <- paste0(
-          '<a href=\"',
-          summarySpecialEntity$item,
-          '\" target=\"_blank\">',
-          summarySpecialEntity$item,
-          "</a>"
-        )
-      }
-      # find sentences containing the tokens/lemma
-      DTformat(summarySpecialEntity, size = "100%", button = FALSE)
-    },
-    escape = FALSE
-  )
+  /* Modal backdrop styling */
+  .modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  /* Modal content styling */
+  .modal-content {
+    border-radius: 10px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Scrollbar styling for modal tables */
+  .modal-body ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .modal-body ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+
+  .modal-body ::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+  }
+
+  .modal-body ::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+"
+  ))
 
   ## Custom Term List Merging ----
 
