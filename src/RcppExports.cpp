@@ -47,11 +47,98 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// calc_reciprocal_sum_cpp
+NumericVector calc_reciprocal_sum_cpp(List ngram_words, CharacterVector word_freq_names, NumericVector word_freq_values);
+RcppExport SEXP _tall_calc_reciprocal_sum_cpp(SEXP ngram_wordsSEXP, SEXP word_freq_namesSEXP, SEXP word_freq_valuesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type ngram_words(ngram_wordsSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type word_freq_names(word_freq_namesSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type word_freq_values(word_freq_valuesSEXP);
+    rcpp_result_gen = Rcpp::wrap(calc_reciprocal_sum_cpp(ngram_words, word_freq_names, word_freq_values));
+    return rcpp_result_gen;
+END_RCPP
+}
+// count_lexical_cpp
+IntegerVector count_lexical_cpp(List ngram_pos, CharacterVector lexical_pos);
+RcppExport SEXP _tall_count_lexical_cpp(SEXP ngram_posSEXP, SEXP lexical_posSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type ngram_pos(ngram_posSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type lexical_pos(lexical_posSEXP);
+    rcpp_result_gen = Rcpp::wrap(count_lexical_cpp(ngram_pos, lexical_pos));
+    return rcpp_result_gen;
+END_RCPP
+}
+// generate_ngrams_cpp
+List generate_ngrams_cpp(List sentences_terms, List sentences_pos, int max_ngram, CharacterVector lexical_pos);
+RcppExport SEXP _tall_generate_ngrams_cpp(SEXP sentences_termsSEXP, SEXP sentences_posSEXP, SEXP max_ngramSEXP, SEXP lexical_posSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type sentences_terms(sentences_termsSEXP);
+    Rcpp::traits::input_parameter< List >::type sentences_pos(sentences_posSEXP);
+    Rcpp::traits::input_parameter< int >::type max_ngram(max_ngramSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type lexical_pos(lexical_posSEXP);
+    rcpp_result_gen = Rcpp::wrap(generate_ngrams_cpp(sentences_terms, sentences_pos, max_ngram, lexical_pos));
+    return rcpp_result_gen;
+END_RCPP
+}
+// txt_recode_cpp
+CharacterVector txt_recode_cpp(CharacterVector x, CharacterVector from, CharacterVector to, bool na_rm);
+RcppExport SEXP _tall_txt_recode_cpp(SEXP xSEXP, SEXP fromSEXP, SEXP toSEXP, SEXP na_rmSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< CharacterVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type from(fromSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type to(toSEXP);
+    Rcpp::traits::input_parameter< bool >::type na_rm(na_rmSEXP);
+    rcpp_result_gen = Rcpp::wrap(txt_recode_cpp(x, from, to, na_rm));
+    return rcpp_result_gen;
+END_RCPP
+}
+// txt_recode_ngram_cpp
+CharacterVector txt_recode_ngram_cpp(CharacterVector x, CharacterVector compound, IntegerVector ngram, std::string sep);
+RcppExport SEXP _tall_txt_recode_ngram_cpp(SEXP xSEXP, SEXP compoundSEXP, SEXP ngramSEXP, SEXP sepSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< CharacterVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type compound(compoundSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type ngram(ngramSEXP);
+    Rcpp::traits::input_parameter< std::string >::type sep(sepSEXP);
+    rcpp_result_gen = Rcpp::wrap(txt_recode_ngram_cpp(x, compound, ngram, sep));
+    return rcpp_result_gen;
+END_RCPP
+}
+// txt_recode_batch_cpp
+List txt_recode_batch_cpp(List x, CharacterVector from, CharacterVector to, bool na_rm);
+RcppExport SEXP _tall_txt_recode_batch_cpp(SEXP xSEXP, SEXP fromSEXP, SEXP toSEXP, SEXP na_rmSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type x(xSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type from(fromSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type to(toSEXP);
+    Rcpp::traits::input_parameter< bool >::type na_rm(na_rmSEXP);
+    rcpp_result_gen = Rcpp::wrap(txt_recode_batch_cpp(x, from, to, na_rm));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_tall_cpp_chisq", (DL_FUNC) &_tall_cpp_chisq, 3},
     {"_tall_cpp_split_tab", (DL_FUNC) &_tall_cpp_split_tab, 2},
     {"_tall_cpp_switch_docs", (DL_FUNC) &_tall_cpp_switch_docs, 2},
+    {"_tall_calc_reciprocal_sum_cpp", (DL_FUNC) &_tall_calc_reciprocal_sum_cpp, 3},
+    {"_tall_count_lexical_cpp", (DL_FUNC) &_tall_count_lexical_cpp, 2},
+    {"_tall_generate_ngrams_cpp", (DL_FUNC) &_tall_generate_ngrams_cpp, 4},
+    {"_tall_txt_recode_cpp", (DL_FUNC) &_tall_txt_recode_cpp, 4},
+    {"_tall_txt_recode_ngram_cpp", (DL_FUNC) &_tall_txt_recode_ngram_cpp, 4},
+    {"_tall_txt_recode_batch_cpp", (DL_FUNC) &_tall_txt_recode_batch_cpp, 4},
     {NULL, NULL, 0}
 };
 

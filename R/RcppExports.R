@@ -13,3 +13,27 @@ cpp_switch_docs <- function(tab1, tab2) {
     .Call('_tall_cpp_switch_docs', PACKAGE = 'tall', tab1, tab2)
 }
 
+calc_reciprocal_sum_cpp <- function(ngram_words, word_freq_names, word_freq_values) {
+    .Call('_tall_calc_reciprocal_sum_cpp', PACKAGE = 'tall', ngram_words, word_freq_names, word_freq_values)
+}
+
+count_lexical_cpp <- function(ngram_pos, lexical_pos) {
+    .Call('_tall_count_lexical_cpp', PACKAGE = 'tall', ngram_pos, lexical_pos)
+}
+
+generate_ngrams_cpp <- function(sentences_terms, sentences_pos, max_ngram, lexical_pos) {
+    .Call('_tall_generate_ngrams_cpp', PACKAGE = 'tall', sentences_terms, sentences_pos, max_ngram, lexical_pos)
+}
+
+txt_recode_cpp <- function(x, from, to, na_rm = FALSE) {
+    .Call('_tall_txt_recode_cpp', PACKAGE = 'tall', x, from, to, na_rm)
+}
+
+txt_recode_ngram_cpp <- function(x, compound, ngram, sep = " ") {
+    .Call('_tall_txt_recode_ngram_cpp', PACKAGE = 'tall', x, compound, ngram, sep)
+}
+
+txt_recode_batch_cpp <- function(x, from, to, na_rm = FALSE) {
+    .Call('_tall_txt_recode_batch_cpp', PACKAGE = 'tall', x, from, to, na_rm)
+}
+

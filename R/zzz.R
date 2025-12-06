@@ -31,7 +31,10 @@
 #' @import shinyFiles
 #' @import ggraph
 #' @import word2vec
+#' @import ggwordcloud
 #' @import umap
+#' @import ranger
+#' @importFrom ggplot2 ggplot
 #' @importFrom readr write_csv
 #' @importFrom strucchange breakpoints
 #' @importFrom shinyjs useShinyjs
@@ -65,9 +68,11 @@ NULL
 NULL
 
 .onAttach <- function(...) {
-  packageStartupMessage("Please note that our software is open source and available for use, distributed under the MIT license.
+  packageStartupMessage(
+    "Please note that our software is open source and available for use, distributed under the MIT license.
                         \nFor information and bug reports:
                         - Write a post on https://github.com/massimoaria/tall/issues
                         \nTo start with the tall app, please digit:
-tall()\n")
+tall()\n"
+  )
 }

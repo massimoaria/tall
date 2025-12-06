@@ -1,6 +1,23 @@
 utils::globalVariables(c(
-  "doc_id", "uc", "uce", "segment_size", "upos", "noSingleChar",
-  "token", "lemma", "freq", "chi_square", "cluster", "negative", "positive", "term", "freq_true", "indep", "p_value", ".", "segment"
+  "doc_id",
+  "uc",
+  "uce",
+  "segment_size",
+  "upos",
+  "noSingleChar",
+  "token",
+  "lemma",
+  "freq",
+  "chi_square",
+  "cluster",
+  "negative",
+  "positive",
+  "term",
+  "freq_true",
+  "indep",
+  "p_value",
+  ".",
+  "segment"
 ))
 
 
@@ -26,8 +43,8 @@ utils::globalVariables(c(
 #'
 #' @references
 #'
-#' - Reinert M, Une méthode de classification descendante hiérarchique: application à l'analyse lexicale par contexte, Cahiers de l'analyse des données, Volume 8, Numéro 2, 1983. <https://www.numdam.org/item/?id=CAD_1983__8_2_187_0>
-#' - Reinert M., Alceste une méthodologie d'analyse des données textuelles et une application: Aurelia De Gerard De Nerval, Bulletin de Méthodologie Sociologique, Volume 26, Numéro 1, 1990. \doi{10.1177/075910639002600103}
+#' - Reinert M, Une methode de classification descendante hierarchique: application à l'analyse lexicale par contexte, Cahiers de l'analyse des donnees, Volume 8, Numéro 2, 1983. <https://www.numdam.org/item/?id=CAD_1983__8_2_187_0>
+#' - Reinert M., Alceste une méthodologie d'analyse des données textuelles et une application: Aurelia De Gerard De Nerval, Bulletin de Methodologie Sociologique, Volume 26, Numero 1, 1990. \doi{10.1177/075910639002600103}
 #' - Barnier J., Privé F., rainette: The Reinert Method for Textual Data Clustering, 2023, \doi{10.32614/CRAN.package.rainette}
 #'
 #' @examples
@@ -49,23 +66,42 @@ utils::globalVariables(c(
 #'
 
 reinert <- function(
-    x, k = 10, term = "token",
-    segment_size = 40,
-    min_segment_size = 3,
-    min_split_members = 5,
-    cc_test = 0.3, tsj = 3) {
+  x,
+  k = 10,
+  term = "token",
+  segment_size = 40,
+  min_segment_size = 3,
+  min_split_members = 5,
+  cc_test = 0.3,
+  tsj = 3
+) {
   if (min_split_members < 3) {
     warning("min_split_members has been set to 3, its smallest possible value.")
     min_split_members <- 3
   }
 
   uposList <- c(
-    "ADP", "DET", "INTJ", "NUM", "PART", "PRON", "PUNCT", "SCONJ", "SYM",
-    "X", "EMAIL", "EMOJI", "HASH", "IP_ADDRESS", "MENTION", "URL"
+    "ADP",
+    "DET",
+    "INTJ",
+    "NUM",
+    "PART",
+    "PRON",
+    "PUNCT",
+    "SCONJ",
+    "SYM",
+    "X",
+    "EMAIL",
+    "EMOJI",
+    "HASH",
+    "IP_ADDRESS",
+    "MENTION",
+    "URL"
   )
 
   ## Create DTM from TAll Data Frame
-  switch(term,
+  switch(
+    term,
     token = {
       x <- x %>%
         dplyr::filter(!upos %in% uposList & noSingleChar) %>%
@@ -80,12 +116,14 @@ reinert <- function(
     }
   )
 
-
   ## Create segments by segment_size
   idTable <- split_segments(x$doc_id, segment_size)
 
   ## Correspondance table between uce and uc
-  corresp_uce_uc_full <- merge_small_segments(idTable, min_length = min_segment_size)
+  corresp_uce_uc_full <- merge_small_segments(
+    idTable,
+    min_length = min_segment_size
+  )
 
   x <- x %>% bind_cols(corresp_uce_uc_full %>% select(-"doc_id"))
 
@@ -115,7 +153,6 @@ reinert <- function(
   row.names(corresp_uce_uc_full) <- corresp_uce_uc_full$uc
 
   dtf <- document_term_frequencies(x, document = "uc", term = colTerm)
-
 
   ## Apply binary weighting
   dtf <- dtf %>%
@@ -154,14 +191,22 @@ reinert <- function(
     }
 
     if (nrow(res[[i]]$tabs[[biggest_group]]) < min_split_members) {
-      message("! No more group bigger than min_split_members. Stopping after iteration ", i, ".")
+      message(
+        "! No more group bigger than min_split_members. Stopping after iteration ",
+        i,
+        "."
+      )
       k <- i
       break
     }
     tab <- res[[i]]$tabs[[biggest_group]]
     ## textmodel_ca only works if nrow >= 3 and ncol >= 3
     if (nrow(tab) < 3 || ncol(tab) < 3) {
-      message("! Tab to be splitted is not big enough. Stopping after iteration ", i, ".")
+      message(
+        "! Tab to be splitted is not big enough. Stopping after iteration ",
+        i,
+        "."
+      )
       k <- i
       break
     }
@@ -170,16 +215,22 @@ reinert <- function(
     tab <- tab[rowSums(tab) > 0, colSums(tab) > 0]
 
     clusters <- cluster_tab(tab, cc_test = cc_test, tsj = tsj)
-    if ("matrix" %in% class(clusters$tabs[[1]]) & "matrix" %in% class(clusters$tabs[[2]])) {
+    if (
+      "matrix" %in%
+        class(clusters$tabs[[1]]) &
+        "matrix" %in% class(clusters$tabs[[2]])
+    ) {
       ## Populate results
       res[[i + 1]] <- list()
       res[[i + 1]]$height <- clusters$height
       res[[i + 1]]$splitted <- c(biggest_group, biggest_group + 1)
-      res[[i + 1]]$tabs <- append(res[[i]]$tabs[-biggest_group],
+      res[[i + 1]]$tabs <- append(
+        res[[i]]$tabs[-biggest_group],
         clusters$tabs,
         after = biggest_group - 1
       )
-      res[[i + 1]]$groups <- append(res[[i]]$groups[-biggest_group],
+      res[[i + 1]]$groups <- append(
+        res[[i]]$groups[-biggest_group],
         clusters$groups,
         after = biggest_group - 1
       )
@@ -245,7 +296,6 @@ reinert <- function(
   class(hres) <- c("reinert_tall", "hclust")
   hres
 }
-
 
 
 order_docs <- function(m) {
@@ -405,7 +455,10 @@ split_segments <- function(doc_id, segment_size) {
     segment_id[i] <- current_segment
 
     # Controllo fine del segmento o cambio di documento
-    if (count == segment_size || (i < length(doc_id) && doc_id[i] != doc_id[i + 1])) {
+    if (
+      count == segment_size ||
+        (i < length(doc_id) && doc_id[i] != doc_id[i + 1])
+    ) {
       current_segment <- current_segment + 1
       count <- 0
     }
@@ -525,7 +578,6 @@ term_per_cluster <- function(res, cutree = NULL, k = 1, negative = TRUE) {
     terms_list[[k]] <- chi_res_df
   }
 
-
   if (isTRUE(negative)) {
     signExcluded <- c("none")
   } else {
@@ -633,8 +685,20 @@ reinPlot <- function(terms, nPlot = 10) {
   # layout
   fig1 <- fig1 %>%
     plotly::layout(
-      yaxis = list(title = "Terms", showgrid = FALSE, showline = FALSE, showticklabels = TRUE, domain = c(0, 1)),
-      xaxis = list(title = "Chi2", zeroline = FALSE, showline = FALSE, showticklabels = TRUE, showgrid = FALSE),
+      yaxis = list(
+        title = "Terms",
+        showgrid = FALSE,
+        showline = FALSE,
+        showticklabels = TRUE,
+        domain = c(0, 1)
+      ),
+      xaxis = list(
+        title = "Chi2",
+        zeroline = FALSE,
+        showline = FALSE,
+        showticklabels = TRUE,
+        showgrid = FALSE
+      ),
       plot_bgcolor = "rgba(0, 0, 0, 0)",
       paper_bgcolor = "rgba(0, 0, 0, 0)"
     ) %>%
@@ -749,7 +813,6 @@ reinSummary <- function(tc, n = 10) {
       "Negatively Associated Terms" = negative
     )
 
-
   summaryTable <- terms %>%
     left_join(segments, by = "cluster")
 
@@ -767,8 +830,40 @@ cutree_reinart <- function(res, k = NULL) {
 ## Color palette for plots
 colorlist <- function() {
   c(
-    "#4DAF4A", "#E41A1C", "#377EB8", "#984EA3", "#FF7F00", "#A65628", "#F781BF", "#999999", "#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#A6D854", "#FFD92F",
-    "#B3B3B3", "#A6CEE3", "#1F78B4", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#FDBF6F", "#FF7F00", "#CAB2D6", "#6A3D9A", "#B15928", "#8DD3C7", "#BEBADA",
-    "#FB8072", "#80B1D3", "#FDB462", "#B3DE69", "#D9D9D9", "#BC80BD", "#CCEBC5"
+    "#4DAF4A",
+    "#E41A1C",
+    "#377EB8",
+    "#984EA3",
+    "#FF7F00",
+    "#A65628",
+    "#F781BF",
+    "#999999",
+    "#66C2A5",
+    "#FC8D62",
+    "#8DA0CB",
+    "#E78AC3",
+    "#A6D854",
+    "#FFD92F",
+    "#B3B3B3",
+    "#A6CEE3",
+    "#1F78B4",
+    "#B2DF8A",
+    "#33A02C",
+    "#FB9A99",
+    "#E31A1C",
+    "#FDBF6F",
+    "#FF7F00",
+    "#CAB2D6",
+    "#6A3D9A",
+    "#B15928",
+    "#8DD3C7",
+    "#BEBADA",
+    "#FB8072",
+    "#80B1D3",
+    "#FDB462",
+    "#B3DE69",
+    "#D9D9D9",
+    "#BC80BD",
+    "#CCEBC5"
   )
 }
