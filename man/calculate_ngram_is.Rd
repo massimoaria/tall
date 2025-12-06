@@ -36,7 +36,7 @@ for all n-grams in the corpus. Only n-grams that start AND end with
 lexical words are considered.
 }
 \details{
-The IS index is calculated as: IS = (Σ 1/freq_i) × freq_ngram × n_lexical
+The IS index is calculated as: IS = (sum 1/freq_i) × freq_ngram × n_lexical
 where freq_i is the frequency of each word in the n-gram, freq_ngram is the
 frequency of the n-gram, and n_lexical is the number of lexical words.
 IS_norm is the normalized version: IS / L^2 where L is the n-gram length.
