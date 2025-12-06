@@ -308,18 +308,19 @@ coresCPU <- function() {
 ## Check Internet connection ----
 is_online <- function() {
   # Attempt to connect to a known online resource (e.g., Google's DNS server)
-  result <- try(
-    suppressWarnings(system("ping -c 1 8.8.8.8", intern = TRUE)),
-    silent = TRUE
-  )
-
-  # Check if the ping command was successful
-  if (inherits(result, "try-error")) {
-    return(FALSE)
-  } else {
-    # Check if the output contains "ttl" (time to live), which indicates a successful ping
-    return(any(grepl("ttl=", result, ignore.case = TRUE)))
-  }
+  check_online()
+  # result <- try(
+  #   suppressWarnings(system("ping -c 1 8.8.8.8", intern = TRUE)),
+  #   silent = TRUE
+  # )
+  #
+  # # Check if the ping command was successful
+  # if (inherits(result, "try-error")) {
+  #   return(FALSE)
+  # } else {
+  #   # Check if the output contains "ttl" (time to live), which indicates a successful ping
+  #   return(any(grepl("ttl=", result, ignore.case = TRUE)))
+  # }
 }
 
 ## clean raw text before apply tokenization ----
