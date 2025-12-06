@@ -1,0 +1,24 @@
+citHeader("If you use 'tall' in research, please cite:")
+
+bibentry(
+  bibtype = "Manual",
+  title = "tall: Text Analysis for All",
+  author = c(
+    person("Massimo", "Aria", email = "aria@unina.it", role = c("aut", "cre")),
+    person("Maria", "Spano", role = "aut"),
+    person("Luca", "D'Aniello", role = "aut"),
+    person("Corrado", "Cuccurullo", role = "aut"),
+    person("Michelangelo", "Misuraca", role = "aut")
+  ),
+  year = "2025",
+  note = "R package",
+  organization = "CRAN",
+  doi = "10.32614/CRAN.package.tall",
+  url = "https://CRAN.R-project.org/package=tall",
+  textVersion = paste(
+    "Aria, M., Spano, M., D'Aniello, L., Cuccurullo, C., & Misuraca, M. (2025).",
+    "tall: Text Analysis for All.",
+    "R package. CRAN.",
+    "https://doi.org/10.32614/CRAN.package.tall"
+  )
+)
