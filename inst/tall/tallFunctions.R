@@ -8476,7 +8476,12 @@ menuList <- function(menu) {
     tabName = "words",
     icon = icon("font", lib = "glyphicon"),
     menuSubItem(
-      "Words in Context",
+      "Collocation",
+      tabName = "collocation",
+      icon = icon("chevron-right")
+    ),
+    menuSubItem(
+      "KWIC",
       tabName = "wordCont",
       icon = icon("chevron-right")
     ),

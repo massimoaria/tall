@@ -16,6 +16,7 @@ files <- c(
   "featureroles.R",
   "keyness.R",
   "words.R",
+  "collocation.R",
   "documents.R",
   "doc_classification.R",
   "report.R",
@@ -191,6 +192,9 @@ body <- dashboardBody(
     keynessUI(),
 
     ## WORDS ----
+
+    ### Collocation Analysis ----
+    collocationUI(),
 
     ### KWIC ----
     wordsUI()$kwic,
