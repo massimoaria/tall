@@ -469,7 +469,7 @@ collocationServer <- function(input, output, session, values, statsValues) {
 
     # Get document data
     doc_df <- values$dfTag %>%
-      filter(docSelected, doc_id == !!doc_id) %>%
+      dplyr::filter(docSelected, doc_id == !!doc_id) %>%
       arrange(sentence_id, term_id)
 
     if (nrow(doc_df) == 0) {
@@ -611,7 +611,7 @@ collocationServer <- function(input, output, session, values, statsValues) {
           list(extend = "excel", filename = "collocates")
         ),
         columnDefs = list(
-          list(className = "dt-center", targets = 1:6)
+          list(className = "dt-center", targets = 1:7)
         ),
         initComplete = JS(
           "function(settings, json) {",
@@ -659,7 +659,7 @@ collocationServer <- function(input, output, session, values, statsValues) {
         )
       ) %>%
       DT::formatStyle(
-        columns = 0:6,
+        columns = 0:7,
         fontSize = "12px"
       )
 
@@ -749,7 +749,7 @@ buildDocumentHTML <- function(doc_df, term_col) {
 # ----------------------------------------------------------------------------
 calculatePlotDistribution <- function(dfTag, term_col, query, case_sensitive) {
   # Filter selected documents
-  df <- dfTag %>% filter(docSelected)
+  df <- dfTag %>% dplyr::filter(docSelected)
 
   # Prepare search term
   if (!case_sensitive) {
@@ -895,7 +895,7 @@ calculateCollocates <- function(
 ) {
   # Filter selected documents and exclude punctuation, numbers, symbols
   df <- dfTag %>%
-    filter(docSelected) %>%
+    dplyr::filter(docSelected) %>%
     filter(!upos %in% c("PUNCT", "NUM", "SYM", "X")) %>%
     arrange(doc_id, sentence_id, token_id)
 
@@ -911,6 +911,7 @@ calculateCollocates <- function(
   if (length(target_positions) == 0) {
     return(data.frame(
       collocate = character(),
+      upos = character(),
       freq = numeric(),
       left_freq = numeric(),
       right_freq = numeric(),
@@ -932,6 +933,7 @@ calculateCollocates <- function(
     left_collocates <- if (left_start <= left_end) {
       data.frame(
         collocate = df[[term_col]][left_start:left_end],
+        upos = df[["upos"]][left_start:left_end],
         position = "left",
         stringsAsFactors = FALSE
       )
@@ -942,6 +944,7 @@ calculateCollocates <- function(
     right_collocates <- if (right_start <= right_end) {
       data.frame(
         collocate = df[[term_col]][right_start:right_end],
+        upos = df[["upos"]][right_start:right_end],
         position = "right",
         stringsAsFactors = FALSE
       )
@@ -952,20 +955,27 @@ calculateCollocates <- function(
     rbind(left_collocates, right_collocates)
   })
 
+  # upos selected
+  pos_selected <- df %>%
+    dplyr::filter(POSSelected) %>%
+    dplyr::pull(upos) %>%
+    unique()
+
   # Combine all collocates
-  collocates <- bind_rows(collocates_list)
+  collocates <- bind_rows(collocates_list) %>%
+    dplyr::filter(upos %in% pos_selected)
 
   # Calculate frequencies
   colloc_stats <- collocates %>%
-    filter(!is.na(collocate), collocate != query) %>%
-    group_by(collocate) %>%
+    dplyr::filter(!is.na(collocate), collocate != query) %>%
+    group_by(collocate, upos) %>%
     summarise(
       freq = n(),
       left_freq = sum(position == "left"),
       right_freq = sum(position == "right"),
       .groups = "drop"
     ) %>%
-    filter(freq >= min_freq)
+    dplyr::filter(freq >= min_freq)
 
   # Calculate ALL statistical measures
   if (nrow(colloc_stats) > 0) {
@@ -1025,7 +1035,16 @@ calculateCollocates <- function(
         }
       ) %>%
       ungroup() %>%
-      select(collocate, freq, left_freq, right_freq, MI, LogLik, TScore) %>%
+      select(
+        collocate,
+        upos,
+        freq,
+        left_freq,
+        right_freq,
+        MI,
+        LogLik,
+        TScore
+      ) %>%
       mutate(
         MI = round(MI, 3),
         LogLik = round(LogLik, 3),
