@@ -26,9 +26,6 @@ for (file in files) {
   source(file, local = TRUE)
 }
 
-## suppress warnings
-# options(warn = -1)
-
 ## file upload max size
 maxUploadSize <- 1000 # default value
 maxUploadSize <- getShinyOption("maxUploadSize", maxUploadSize)

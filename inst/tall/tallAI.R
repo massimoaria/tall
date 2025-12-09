@@ -746,7 +746,7 @@ geminiParameterPrompt <- function(values, activeTab, input) {
         input$w_groupNet,
         ". The co-occurrences were normalized using the ",
         input$normalizationCooc,
-        " index. The words were then grouped using Walktrap community detection algorithm."
+        " index. The words were then grouped using Louvain community detection algorithm."
       )
     },
     "w_networkTM" = {
@@ -757,7 +757,7 @@ geminiParameterPrompt <- function(values, activeTab, input) {
         input$nMaxTM,
         " frequent words were measured across ",
         input$w_groupTM,
-        ". The co-occurrences were normalized using the association index. The words were then grouped using Walktrap community detection algorithm."
+        ". The co-occurrences were normalized using the association index. The words were then grouped using Louvain community detection algorithm."
       )
     },
     "w_w2v_similarity" = {

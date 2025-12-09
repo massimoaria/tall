@@ -584,7 +584,8 @@ collocationServer <- function(input, output, session, values, statsValues) {
       "<br>",
       "<span style='background: #d4edda; padding: 2px 6px; border-radius: 3px; font-weight: bold;'Significant</span> ",
       "MI > 3 | LogLik > 3.84 | T-Score > 2 &nbsp;&nbsp; ",
-      "<span style='background: #a8d5ba; padding: 2px 6px; border-radius: 3px; font-weight: bold;'<br>Highly Significant</span> ",
+      "<br>",
+      "<span style='background: #a8d5ba; padding: 2px 6px; border-radius: 3px; font-weight: bold;'Highly Significant</span> ",
       "LogLik > 15.13",
       "</p>",
       "</div>"
