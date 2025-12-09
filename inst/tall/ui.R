@@ -197,7 +197,7 @@ body <- dashboardBody(
     collocationUI(),
 
     ### KWIC ----
-    wordsUI()$kwic,
+    #wordsUI()$kwic,
 
     ### Reinert Clustering ----
     wordsUI()$reinert,

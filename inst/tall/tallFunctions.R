@@ -3340,7 +3340,7 @@ contextNetwork <- function(df, dfTag, target_word, n = 50) {
     longer_df %>% filter(upos %in% uposSelected),
     term = "token",
     group = c("segment_id"),
-    n = 50,
+    n = n,
     minEdges = 100,
     labelsize = 3,
     opacity = 0.6,
@@ -8471,20 +8471,21 @@ menuList <- function(menu) {
     icon = icon("key")
   )
 
+  kwic_menu <- menuItem(
+    "KWIC",
+    tabName = "kwic",
+    icon = icon("align-center")
+  )
+
   word_menu <- menuItem(
     "Words",
     tabName = "words",
     icon = icon("font", lib = "glyphicon"),
-    menuSubItem(
-      "Collocation",
-      tabName = "collocation",
-      icon = icon("chevron-right")
-    ),
-    menuSubItem(
-      "KWIC",
-      tabName = "wordCont",
-      icon = icon("chevron-right")
-    ),
+    # menuSubItem(
+    #   "KWIC",
+    #   tabName = "wordCont",
+    #   icon = icon("chevron-right")
+    # ),
     # menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),
     menuSubItem(
       "Reinert Clustering",
@@ -8645,6 +8646,7 @@ menuList <- function(menu) {
         ANALYSIS,
         overview_menu,
         keyness_menu,
+        kwic_menu,
         word_menu,
         document_menu,
         tags$div(style = "margin-top: 20px;"),
@@ -8664,6 +8666,7 @@ menuList <- function(menu) {
         ANALYSIS,
         overview_menu,
         keyness_menu,
+        kwic_menu,
         word_menu,
         document_menu,
         tags$div(style = "margin-top: 20px;"),

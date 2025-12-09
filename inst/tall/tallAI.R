@@ -2,7 +2,7 @@
 gemini_ai <- function(
   image = NULL,
   prompt = "Explain these images",
-  model = "2.0-flash",
+  model = "2.5-flash-lite",
   type = "png",
   retry_503 = 5,
   api_key = NULL,
@@ -188,7 +188,7 @@ setGeminiAPI <- function(api_key) {
   apiCheck <- gemini_ai(
     image = NULL,
     prompt = "Hello",
-    model = "2.0-flash",
+    model = "2.5-flash",
     type = "png",
     retry_503 = 5,
     api_key = api_key
@@ -270,7 +270,7 @@ loadGeminiModel = function(file) {
   if (file.exists(file)) {
     model <- readLines(file, warn = FALSE)
   } else {
-    model <- c("2.0-flash", "medium")
+    model <- c("2.5-flash", "medium")
   }
   if (length(model == 1)) {
     model <- c(model, "medium")
@@ -287,7 +287,7 @@ saveGeminiModel = function(model, file) {
 
 geminiOutput <- function(title = "", content = "", values) {
   if (is.null(content)) {
-    content <- "Click the 'Ask Biblio AI' button to analyze the visual outputs and provide an automatic interpretation of your results based on the graphs.\n
+    content <- "Click the 'Ask TALL AI' button to analyze the visual outputs and provide an automatic interpretation of your results based on the graphs.\n
 This AI-powered feature leverages Google Gemini to help you understand patterns and insights emerging from your contextual analysis.\n  \n  \n \n  \n  \n  \n"
   }
   box(
@@ -353,7 +353,7 @@ This AI-powered feature leverages Google Gemini to help you understand patterns 
 }
 
 tallAiPrompts <- function(values, activeTab) {
-  ## Role definition for Gemini as Biblio AI assistant
+  ## Role definition for Gemini as TALL AI assistant
   promptInitial <- paste0(
     "You are TALL AI, an expert virtual assistant specializing in text analysis and computational linguistics, integrated into the R TALL software. ",
     "Your task is to support researchers in interpreting and critically discussing the results of ",
@@ -377,7 +377,7 @@ tallAiPrompts <- function(values, activeTab) {
         "6.  **Conclusion and Potential Next Steps**: End with a summary conclusion and suggest to the user what subsequent analyses might be interesting based on the specific results they obtained."
       )
     },
-    "wordCont" = {
+    "kwic" = {
       prompt <- paste0(
         "You have to provide an interpratation of a Words in Context (KWIC - Keyword in Context) analysis. ",
         "Your expertise covers concordance analysis, semantic usage patterns, contextual meaning interpretation, and discourse structure analysis. ",
@@ -501,7 +501,7 @@ tallAiPrompts <- function(values, activeTab) {
 gemini2clip <- function(values, activeTab) {
   switch(
     activeTab,
-    "wordCont" = {
+    "kwic" = {
       values$contextGemini
     },
     "w_reinclustering" = {
@@ -563,7 +563,7 @@ geminiGenerate <- function(
         values = values
       )
     },
-    "wordCont" = {
+    "kwic" = {
       req(values$contextNetwork)
       values$contextGemini <- geminiPromptImage(
         obj = values$contextNetwork,
@@ -709,7 +709,7 @@ geminiParameterPrompt <- function(values, activeTab, input) {
       req(values$VbData)
       txt <- ""
     },
-    "wordCont" = {
+    "kwic" = {
       req(values$contextNetwork)
       txt <- paste0(
         txt,
@@ -800,7 +800,7 @@ geminiPromptImage <- function(
   desc = NULL,
   values
 ) {
-  ## Check Computer configuration to work with Biblio AI
+  ## Check Computer configuration to work with TALL AI
   ### Internet Connection
   if (!is_online()) {
     res <- '⚠️ **Note**: TALL AI requires an active internet connection to work.'
@@ -883,7 +883,7 @@ geminiWaitingMessage <- function(values, activeTab) {
       req(values$VbData)
       values$overviewGemini <- messageTxt
     },
-    "wordCont" = {
+    "kwic" = {
       req(values$contextNetwork)
       values$contextGemini <- messageTxt
     },
@@ -925,7 +925,7 @@ geminiSave <- geminiSave <- function(values, activeTab) {
       req(values$VbData)
       gemini <- values$overviewGemini
     },
-    "wordCont" = {
+    "kwic" = {
       req(values$contextNetwork)
       gemini <- values$contextGemini
     },

@@ -11,7 +11,7 @@
 
 collocationUI <- function() {
   tabItem(
-    tabName = "collocation",
+    tabName = "kwic",
     fluidPage(
       fluidRow(
         column(
@@ -19,7 +19,7 @@ collocationUI <- function() {
           box(
             title = tagList(
               icon("project-diagram"),
-              "Collocation Analysis"
+              "KWIC Analysis"
             ),
             width = 12,
             status = "success",
@@ -32,7 +32,7 @@ collocationUI <- function() {
               # TAB 1: PLOT - Word Distribution
               # ==========================================
               tabPanel(
-                "Plot",
+                "In-Document Plot",
                 fluidPage(
                   br(),
                   fluidRow(
@@ -80,18 +80,7 @@ collocationUI <- function() {
                                 "Dispersion" = "dispersion"
                               ),
                               selected = "freq"
-                            ) #,
-
-                            # # Plot zoom
-                            # sliderInput(
-                            #   "collocPlotZoom",
-                            #   "Plot Width:",
-                            #   min = 100,
-                            #   max = 300,
-                            #   value = 150,
-                            #   step = 10,
-                            #   post = "px"
-                            # )
+                            )
                           ),
                           column(
                             6,
@@ -134,7 +123,7 @@ collocationUI <- function() {
               # TAB 2: COLLOCATE
               # ==========================================
               tabPanel(
-                "Collocate",
+                "Collocation",
                 fluidPage(
                   br(),
                   fluidRow(
@@ -252,7 +241,191 @@ collocationUI <- function() {
               ),
 
               # ==========================================
-              # TAB 3: INFO & REFERENCES
+              # TAB 3: KWIC Network
+              # ==========================================
+              tabPanel(
+                "Network",
+                fluidPage(
+                  br(),
+                  fluidRow(
+                    column(
+                      12,
+                      wellPanel(
+                        style = "background: white; border: 1px solid #ddd; padding: 15px;",
+                        fluidRow(
+                          column(
+                            3,
+                            h4(
+                              strong("Search Settings"),
+                              style = "color: #4F7942; margin-top: 0;"
+                            ),
+
+                            # Search query
+                            selectizeInput(
+                              inputId = "wordsContSearch",
+                              label = "Search word(s) in text",
+                              choices = NULL
+                            )
+                          ),
+                          column(
+                            3,
+                            h4(
+                              strong("Window Settings"),
+                              style = "color: #4F7942; margin-top: 0;"
+                            ),
+
+                            # Window span
+                            fluidRow(
+                              column(
+                                6,
+                                numericInput(
+                                  "wordsContBefore",
+                                  "Left Span:",
+                                  value = 5,
+                                  min = 0,
+                                  max = 20,
+                                  step = 1
+                                )
+                              ),
+                              column(
+                                6,
+                                numericInput(
+                                  "wordsContAfter",
+                                  "Right Span:",
+                                  value = 5,
+                                  min = 0,
+                                  max = 20,
+                                  step = 1
+                                )
+                              )
+                            )
+                          ),
+                          column(
+                            2,
+                            h4(
+                              strong("Network Settings"),
+                              style = "color: #4F7942; margin-top: 0;"
+                            ),
+
+                            # Window span
+                            fluidRow(
+                              column(
+                                9,
+                                numericInput(
+                                  "wordsContN",
+                                  "Words",
+                                  value = 50,
+                                  min = 10,
+                                  max = 200,
+                                  step = 1
+                                )
+                              )
+                            )
+                          ),
+                          column(
+                            3,
+                            # Results summary
+                            htmlOutput("collocNetworkSummary")
+                          )
+                        ),
+                        fluidRow(
+                          column(
+                            2,
+                            # Search button
+                            actionButton(
+                              "wordsContApply",
+                              "Search",
+                              icon = icon("search"),
+                              class = "btn-success",
+                              style = "width: 200px; margin-top: 10px;"
+                            )
+                          ),
+                          column(
+                            2,
+                            # Search button
+                            actionButton(
+                              "wordsContReset",
+                              "Reset",
+                              icon = icon("remove", lib = "glyphicon"),
+                              class = "btn-error",
+                              style = "width: 200px; margin-top: 10px;"
+                            )
+                          ),
+                          column(
+                            2,
+                            actionButton(
+                              "wordsContSave",
+                              "Export",
+                              icon = icon("download-alt", lib = "glyphicon"),
+                              class = "btn-success",
+                              style = "width: 200px; margin-top: 10px;"
+                            )
+                          )
+                        )
+                      )
+                    )
+                  ),
+                  fluidRow(
+                    tabsetPanel(
+                      type = "tabs",
+                      tabPanel(
+                        "Words in Context",
+                        fluidRow(
+                          column(
+                            6,
+                            div(
+                              style = "height: 550px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;",
+                              shinycssloaders::withSpinner(
+                                uiOutput("wordsContHtml"),
+                                color = getOption(
+                                  "spinner.color",
+                                  default = "#4F7942"
+                                )
+                              )
+                            )
+                          ),
+                          column(
+                            6,
+                            shinycssloaders::withSpinner(
+                              visNetworkOutput(
+                                "wordsContNetwork",
+                                width = "auto",
+                                height = "58vh"
+                              ),
+                              color = getOption(
+                                "spinner.color",
+                                default = "#4F7942"
+                              )
+                            )
+                          )
+                        )
+                      ),
+                      tabPanel(
+                        "TALL AI",
+                        fluidPage(
+                          fluidRow(
+                            column(
+                              12,
+                              br(),
+                              shinycssloaders::withSpinner(
+                                htmlOutput("ContextGeminiUI"),
+                                caption = HTML(
+                                  "<br><strong>Thinking...</strong>"
+                                ),
+                                image = "ai_small2.gif",
+                                color = "#4F7942"
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              ),
+
+              # ==========================================
+              # TAB 4: INFO & REFERENCES
               # ==========================================
               tabPanel(
                 "Info & References",
@@ -665,6 +838,182 @@ collocationServer <- function(input, output, session, values, statsValues) {
       )
 
     return(dt)
+  })
+
+  # ============================================================================
+  # TAB 3: KWIC NETWORK
+  # ============================================================================
+
+  ## KWIC Network ----
+  observe({
+    req(values$dfTag)
+
+    term <- values$generalTerm
+    words <- values$dfTag %>%
+      LemmaSelection() %>%
+      select(all_of(term)) %>%
+      pull() %>%
+      unique() %>%
+      sort() %>%
+      tolower()
+    updateSelectizeInput(
+      session,
+      "wordsContSearch",
+      choices = c("", words),
+      selected = "",
+      server = TRUE
+    )
+  })
+
+  observeEvent(
+    ignoreNULL = TRUE,
+    eventExpr = {
+      input$wordsContReset
+    },
+    handlerExpr = {
+      req(values$dfTag)
+      values$wordInContest <- data.frame()
+      term <- values$generalTerm
+      words <- values$dfTag %>%
+        LemmaSelection() %>%
+        select(all_of(term)) %>%
+        pull() %>%
+        unique() %>%
+        sort() %>%
+        tolower()
+      updateSelectizeInput(
+        session,
+        "wordsContSearch",
+        choices = c("", words),
+        selected = "",
+        server = TRUE
+      )
+    }
+  )
+
+  observeEvent(
+    ignoreNULL = TRUE,
+    eventExpr = {
+      input$wordsContSave
+    },
+    handlerExpr = {
+      req(values$wordInContext)
+      file_path <- destFolder(
+        paste("Tall-WordsInContext-", sys.time(), ".xlsx", sep = ""),
+        values$wdTall
+      )
+      openxlsx::write.xlsx(
+        x = values$wordInContext,
+        file = file_path,
+        colNames = TRUE
+      )
+      popUp(title = "Saved in your working folder", type = "saved")
+    }
+  )
+
+  wordsInContextMenu <- eventReactive(
+    ignoreNULL = TRUE,
+    eventExpr = {
+      input$wordsContApply
+    },
+    valueExpr = {
+      if (input$wordsContSearch != "") {
+        word_search <- req(tolower(trimws(input$wordsContSearch)))
+        values$wordInContext <- get_context_window(
+          values$dfTag,
+          target_word = word_search,
+          n_left = input$wordsContBefore,
+          n_right = input$wordsContAfter,
+          term = values$generalTerm
+        )
+        if (nrow(values$wordInContext) > 1) {
+          values$contextNetwork <- contextNetwork(
+            df = values$wordInContext,
+            dfTag = values$dfTag,
+            target_word = word_search,
+            n = input$wordsContN
+          )
+        } else {
+          values$contextNetwork <- NULL
+        }
+      } else {
+        values$wordInContest <- NULL
+      }
+    }
+  )
+
+  # Display collocate summary
+  output$collocNetworkSummary <- renderUI({
+    req(values$wordInContext)
+
+    n_collocates <- nrow(values$wordInContext)
+
+    HTML(paste0(
+      "<div style='background: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #4F7942;'>",
+      "<h4 style='margin-top: 0; color: #4F7942;'>KWIC Network Results</h4>",
+      "<p style='margin: 5px 0;'><b>Target Word:</b> ",
+      tolower(trimws(input$wordsContSearch)),
+      "</p>",
+      "<p style='margin: 5px 0;'><b>Collocates Found:</b> ",
+      format(n_collocates, big.mark = ","),
+      "</p>",
+      "<p style='margin: 5px 0;'><b>Window:</b> ",
+      input$wordsContBefore,
+      "L - ",
+      input$wordsContAfter,
+      "R</p>",
+      "</div>"
+    ))
+  })
+
+  output$wordsContHtml <- renderUI({
+    wordsInContextMenu()
+    req(values$wordInContext)
+    if (nrow(values$wordInContext) == 0) {
+      return(HTML("<p>No results found.</p>"))
+    }
+
+    content <- lapply(1:nrow(values$wordInContext), function(i) {
+      row <- values$wordInContext[i, ]
+      before <- paste(unlist(row$context_before), collapse = " ")
+      div(
+        style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;",
+        # style = "display: flex; justify-content: center; align-items: center; margin-bottom: 10px;",
+        span(
+          style = "color: darkblue; text-align: left; width: 150px; font-weight: bold;",
+          row$doc_id
+        ), # Nome del documento
+        span(
+          style = "color: gray; text-align: right; flex: 1;",
+          paste0(unlist(row$context_before), collapse = " ")
+        ),
+        span(
+          style = "color: #4F7942; font-weight: bold; padding: 0 10px;",
+          row$target_word
+        ),
+        span(
+          style = "color: gray; text-align: left; flex: 1;",
+          paste0(unlist(row$context_after), collapse = " ")
+        )
+      )
+    })
+
+    do.call(tagList, content)
+  })
+
+  output$wordsContNetwork <- renderVisNetwork({
+    wordsInContextMenu()
+    req(values$contextNetwork)
+    values$contextNetwork
+  })
+
+  output$ContextGeminiUI <- renderUI({
+    values$gemini_model_parameters <- geminiParameterPrompt(
+      values,
+      input$sidebarmenu,
+      input
+    )
+    geminiOutput(title = "Gemini AI", content = values$contextGemini, values)
   })
 }
 
