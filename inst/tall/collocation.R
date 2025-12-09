@@ -371,31 +371,30 @@ collocationUI <- function() {
                       tabPanel(
                         "Words in Context",
                         fluidRow(
-                          column(
-                            6,
-                            div(
-                              style = "height: 550px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;",
-                              shinycssloaders::withSpinner(
-                                uiOutput("wordsContHtml"),
-                                color = getOption(
-                                  "spinner.color",
-                                  default = "#4F7942"
-                                )
-                              )
-                            )
-                          ),
-                          column(
-                            6,
+                          div(
+                            style = "height: 550px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;",
                             shinycssloaders::withSpinner(
-                              visNetworkOutput(
-                                "wordsContNetwork",
-                                width = "auto",
-                                height = "58vh"
-                              ),
+                              uiOutput("wordsContHtml"),
                               color = getOption(
                                 "spinner.color",
                                 default = "#4F7942"
                               )
+                            )
+                          )
+                        )
+                      ),
+                      tabPanel(
+                        "Network Plot",
+                        fluidRow(
+                          shinycssloaders::withSpinner(
+                            visNetworkOutput(
+                              "wordsContNetwork",
+                              width = "auto",
+                              height = "58vh"
+                            ),
+                            color = getOption(
+                              "spinner.color",
+                              default = "#4F7942"
                             )
                           )
                         )
