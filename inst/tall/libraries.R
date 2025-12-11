@@ -2,6 +2,7 @@
 
 # Libraries ----
 libraries <- function() {
+  suppressPackageStartupMessages(require(tall))
   suppressPackageStartupMessages(require(shiny))
   suppressPackageStartupMessages(require(ca))
   suppressPackageStartupMessages(require(shinydashboard))

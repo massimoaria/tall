@@ -1,3 +1,5 @@
+# tall (development version)
+
 # tall 0.5.0
 * New Features & Modules
   -Supervised Classification
@@ -8,7 +10,6 @@
       - Lemma Analysis: Enabled lemma-based analysis for the two-corpus comparison approach.
       - PoS Inheritance: Implemented setting inheritance, allowing Keyness to use the selection made in the "PoS Tag Selection" menu.
       - Visualization: Added the Frequency Context Plot.
-
   - Multi-Word & Text Processing
       - Methodology: Implemented Morrone's IS index as a new method for automatic Multi-Word creation.
       - Synonyms: Added new functionalities for synonym merging.

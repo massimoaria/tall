@@ -308,18 +308,7 @@ coresCPU <- function() {
 ## Check Internet connection ----
 is_online <- function() {
   # Attempt to connect to a known online resource (e.g., Google's DNS server)
-  result <- try(
-    suppressWarnings(system("ping -c 1 8.8.8.8", intern = TRUE)),
-    silent = TRUE
-  )
-
-  # Check if the ping command was successful
-  if (inherits(result, "try-error")) {
-    return(FALSE)
-  } else {
-    # Check if the output contains "ttl" (time to live), which indicates a successful ping
-    return(any(grepl("ttl=", result, ignore.case = TRUE)))
-  }
+  check_online()
 }
 
 ## clean raw text before apply tokenization ----
@@ -3351,7 +3340,7 @@ contextNetwork <- function(df, dfTag, target_word, n = 50) {
     longer_df %>% filter(upos %in% uposSelected),
     term = "token",
     group = c("segment_id"),
-    n = 50,
+    n = n,
     minEdges = 100,
     labelsize = 3,
     opacity = 0.6,
@@ -8482,15 +8471,21 @@ menuList <- function(menu) {
     icon = icon("key")
   )
 
+  kwic_menu <- menuItem(
+    "KWIC",
+    tabName = "kwic",
+    icon = icon("align-center")
+  )
+
   word_menu <- menuItem(
     "Words",
     tabName = "words",
     icon = icon("font", lib = "glyphicon"),
-    menuSubItem(
-      "Words in Context",
-      tabName = "wordCont",
-      icon = icon("chevron-right")
-    ),
+    # menuSubItem(
+    #   "KWIC",
+    #   tabName = "wordCont",
+    #   icon = icon("chevron-right")
+    # ),
     # menuSubItem("Clustering", tabName = "w_clustering", icon = icon("chevron-right")),
     menuSubItem(
       "Reinert Clustering",
@@ -8651,6 +8646,7 @@ menuList <- function(menu) {
         ANALYSIS,
         overview_menu,
         keyness_menu,
+        kwic_menu,
         word_menu,
         document_menu,
         tags$div(style = "margin-top: 20px;"),
@@ -8670,6 +8666,7 @@ menuList <- function(menu) {
         ANALYSIS,
         overview_menu,
         keyness_menu,
+        kwic_menu,
         word_menu,
         document_menu,
         tags$div(style = "margin-top: 20px;"),

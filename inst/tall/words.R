@@ -3,175 +3,137 @@ wordsUI <- function() {
 
   ## Words in Context -----
 
-  kwic <- tabItem(
-    tabName = "wordCont",
-    fluidPage(
-      fluidRow(
-        column(
-          12,
-          h3(strong("Words in Context"), align = "center")
-        )
-      )
-    ),
-    br(),
-    br(),
-    fluidRow(
-      column(
-        9,
-        tabsetPanel(
-          type = "tabs",
-          tabPanel(
-            "Words in Context",
-            div(
-              style = "height: 550px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;",
-              shinycssloaders::withSpinner(
-                uiOutput("wordsContHtml"),
-                color = getOption("spinner.color", default = "#4F7942")
-              )
-            )
-          ),
-          tabPanel(
-            "Network",
-            shinycssloaders::withSpinner(
-              visNetworkOutput(
-                "wordsContNetwork",
-                width = "auto",
-                height = "75vh"
-              ),
-              color = getOption("spinner.color", default = "#4F7942")
-            )
-          ),
-          tabPanel(
-            "Info & References",
-            fluidPage(
-              fluidRow(
-                column(1),
-                column(
-                  10,
-                  br(),
-                  HTML(infoTexts$wordincontext)
-                ),
-                column(1)
-              )
-            )
-          ),
-          tabPanel(
-            "TALL AI",
-            fluidPage(
-              fluidRow(
-                column(
-                  12,
-                  br(),
-                  shinycssloaders::withSpinner(
-                    htmlOutput("ContextGeminiUI"),
-                    caption = HTML("<br><strong>Thinking...</strong>"),
-                    image = "ai_small2.gif",
-                    color = "#4F7942"
-                  )
-                )
-              )
-            )
-          )
-        )
-      ),
-      column(
-        3,
-        div(
-          box(
-            width = 12,
-            div(
-              h3(strong(em("Words in Context"))),
-              style = "margin-top:-57px"
-            ),
-            tags$hr(),
-            style = "text-align: left; text-color: #989898",
-            selectizeInput(
-              inputId = "wordsContSearch",
-              label = "Search word(s) in text",
-              choices = NULL
-            ),
-            h4("Window Length:"),
-            fluidRow(
-              column(
-                6,
-                numericInput(
-                  inputId = "wordsContBefore",
-                  label = "Before",
-                  value = 5,
-                  min = 1,
-                  max = 20
-                )
-              ),
-              column(
-                6,
-                numericInput(
-                  inputId = "wordsContAfter",
-                  label = "After",
-                  value = 5,
-                  min = 1,
-                  max = 20
-                )
-              )
-            ),
-            fluidRow(
-              column(
-                4,
-                div(
-                  align = "center",
-                  title = "Apply",
-                  do.call(
-                    "actionButton",
-                    c(list(
-                      label = NULL,
-                      style = "display:block; height: 37px; width: 37px; border-radius: 50%;
-                                      border: 1px; margin-top: 16px;",
-                      icon = icon(name = "play", lib = "glyphicon"),
-                      inputId = "wordsContApply"
-                    ))
-                  )
-                )
-              ),
-              column(
-                4,
-                div(
-                  align = "center",
-                  title = "Reset",
-                  do.call(
-                    "actionButton",
-                    c(list(
-                      label = NULL,
-                      style = "display:block; height: 37px; width: 37px; border-radius: 50%;
-                                      border: 1px; margin-top: 16px;",
-                      icon = icon(name = "remove", lib = "glyphicon"),
-                      inputId = "wordsContReset"
-                    ))
-                  )
-                )
-              ),
-              column(
-                4,
-                div(
-                  align = "center",
-                  title = "Export raw text(s) in Excel",
-                  do.call(
-                    "actionButton",
-                    c(list(
-                      label = NULL,
-                      style = "display:block; height: 37px; width: 37px; border-radius: 50%;
-                                      border: 1px; margin-top: 16px;",
-                      icon = icon(name = "download-alt", lib = "glyphicon"),
-                      inputId = "wordsContSave"
-                    ))
-                  )
-                )
-              )
-            )
-          ),
-          style = "margin-top:40px"
-        )
-      )
-    )
-  )
+  # kwic <- tabItem(
+  #   tabName = "wordCont",
+  #   fluidPage(
+  #     fluidRow(
+  #       div(
+  #         box(
+  #           width = 12,
+  #           div(
+  #             h3(strong(em("Words in Context"))),
+  #             style = "margin-top:-57px"
+  #           ),
+  #           tags$hr(),
+  #           style = "text-align: left; text-color: #989898",
+  #           selectizeInput(
+  #             inputId = "wordsContSearch",
+  #             label = "Search word(s) in text",
+  #             choices = NULL
+  #           ),
+  #           h4("Window Length:"),
+  #           fluidRow(
+  #             column(
+  #               6,
+  #               numericInput(
+  #                 inputId = "wordsContBefore",
+  #                 label = "Before",
+  #                 value = 5,
+  #                 min = 1,
+  #                 max = 20
+  #               )
+  #             ),
+  #             column(
+  #               6,
+  #               numericInput(
+  #                 inputId = "wordsContAfter",
+  #                 label = "After",
+  #                 value = 5,
+  #                 min = 1,
+  #                 max = 20
+  #               )
+  #             )
+  #           ),
+  #           fluidRow(
+  #             column(
+  #               4,
+  #               div(
+  #                 align = "center",
+  #                 title = "Apply",
+  #                 do.call(
+  #                   "actionButton",
+  #                   c(list(
+  #                     label = NULL,
+  #                     style = "display:block; height: 37px; width: 37px; border-radius: 50%;
+  #                                     border: 1px; margin-top: 16px;",
+  #                     icon = icon(name = "play", lib = "glyphicon"),
+  #                     inputId = "wordsContApply"
+  #                   ))
+  #                 )
+  #               )
+  #             ),
+  #             column(
+  #               4,
+  #               div(
+  #                 align = "center",
+  #                 title = "Reset",
+  #                 do.call(
+  #                   "actionButton",
+  #                   c(list(
+  #                     label = NULL,
+  #                     style = "display:block; height: 37px; width: 37px; border-radius: 50%;
+  #                                     border: 1px; margin-top: 16px;",
+  #                     icon = icon(name = "remove", lib = "glyphicon"),
+  #                     inputId = "wordsContReset"
+  #                   ))
+  #                 )
+  #               )
+  #             ),
+  #             column(
+  #               4,
+  #               div(
+  #                 align = "center",
+  #                 title = "Export raw text(s) in Excel",
+  #                 do.call(
+  #                   "actionButton",
+  #                   c(list(
+  #                     label = NULL,
+  #                     style = "display:block; height: 37px; width: 37px; border-radius: 50%;
+  #                                     border: 1px; margin-top: 16px;",
+  #                     icon = icon(name = "download-alt", lib = "glyphicon"),
+  #                     inputId = "wordsContSave"
+  #                   ))
+  #                 )
+  #               )
+  #             )
+  #           )
+  #         ),
+  #         style = "margin-top:40px"
+  #       )
+  #     ),
+  #     fluidRow(
+  #       tabsetPanel(
+  #         type = "tabs",
+  #         tabPanel(
+  #           "Words in Context",
+  #           fluidRow(
+  #             column(
+  #               6,
+  #               div(
+  #                 style = "height: 550px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;",
+  #                 shinycssloaders::withSpinner(
+  #                   uiOutput("wordsContHtml"),
+  #                   color = getOption("spinner.color", default = "#4F7942")
+  #                 )
+  #               )
+  #             ),
+  #             column(
+  #               6,
+  #               shinycssloaders::withSpinner(
+  #                 visNetworkOutput(
+  #                   "wordsContNetwork",
+  #                   width = "auto",
+  #                   height = "65vh"
+  #                 ),
+  #                 color = getOption("spinner.color", default = "#4F7942")
+  #               )
+  #             )
+  #           )
+  #         )
+  #       )
+  #     )
+  #   )
+  # )
 
   ### Clustering ----
   clustering <- tabItem(
@@ -1950,7 +1912,7 @@ wordsUI <- function() {
     )
   )
   return(list(
-    kwic = kwic,
+    # kwic = kwic,
     clustering = clustering,
     reinert = reinert,
     ca = ca,
@@ -2030,154 +1992,6 @@ wordsServer <- function(input, output, session, values, statsValues) {
         ))
       }
     }
-  })
-
-  ## Words in Context ----
-  observe({
-    req(values$dfTag)
-
-    term <- values$generalTerm
-    words <- values$dfTag %>%
-      LemmaSelection() %>%
-      select(all_of(term)) %>%
-      pull() %>%
-      unique() %>%
-      sort() %>%
-      tolower()
-    updateSelectizeInput(
-      session,
-      "wordsContSearch",
-      choices = c("", words),
-      selected = "",
-      server = TRUE
-    )
-  })
-
-  observeEvent(
-    ignoreNULL = TRUE,
-    eventExpr = {
-      input$wordsContReset
-    },
-    handlerExpr = {
-      req(values$dfTag)
-      values$wordInContest <- data.frame()
-      term <- values$generalTerm
-      words <- values$dfTag %>%
-        LemmaSelection() %>%
-        select(all_of(term)) %>%
-        pull() %>%
-        unique() %>%
-        sort() %>%
-        tolower()
-      updateSelectizeInput(
-        session,
-        "wordsContSearch",
-        choices = c("", words),
-        selected = "",
-        server = TRUE
-      )
-    }
-  )
-
-  observeEvent(
-    ignoreNULL = TRUE,
-    eventExpr = {
-      input$wordsContSave
-    },
-    handlerExpr = {
-      req(values$wordInContext)
-      file_path <- destFolder(
-        paste("Tall-WordsInContext-", sys.time(), ".xlsx", sep = ""),
-        values$wdTall
-      )
-      openxlsx::write.xlsx(
-        x = values$wordInContext,
-        file = file_path,
-        colNames = TRUE
-      )
-      popUp(title = "Saved in your working folder", type = "saved")
-    }
-  )
-
-  wordsInContextMenu <- eventReactive(
-    ignoreNULL = TRUE,
-    eventExpr = {
-      input$wordsContApply
-    },
-    valueExpr = {
-      if (input$wordsContSearch != "") {
-        word_search <- req(tolower(trimws(input$wordsContSearch)))
-        values$wordInContext <- get_context_window(
-          values$dfTag,
-          target_word = word_search,
-          n_left = input$wordsContBefore,
-          n_right = input$wordsContAfter,
-          term = values$generalTerm
-        )
-        if (nrow(values$wordInContext) > 1) {
-          values$contextNetwork <- contextNetwork(
-            df = values$wordInContext,
-            dfTag = values$dfTag,
-            target_word = word_search,
-            n = 50
-          )
-        } else {
-          values$contextNetwork <- NULL
-        }
-      } else {
-        values$wordInContest <- NULL
-      }
-    }
-  )
-
-  output$wordsContHtml <- renderUI({
-    wordsInContextMenu()
-    req(values$wordInContext)
-    if (nrow(values$wordInContext) == 0) {
-      return(HTML("<p>No results found.</p>"))
-    }
-
-    content <- lapply(1:nrow(values$wordInContext), function(i) {
-      row <- values$wordInContext[i, ]
-      before <- paste(unlist(row$context_before), collapse = " ")
-      div(
-        style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;",
-        # style = "display: flex; justify-content: center; align-items: center; margin-bottom: 10px;",
-        span(
-          style = "color: darkblue; text-align: left; width: 150px; font-weight: bold;",
-          row$doc_id
-        ), # Nome del documento
-        span(
-          style = "color: gray; text-align: right; flex: 1;",
-          paste0(unlist(row$context_before), collapse = " ")
-        ),
-        span(
-          style = "color: #4F7942; font-weight: bold; padding: 0 10px;",
-          row$target_word
-        ),
-        span(
-          style = "color: gray; text-align: left; flex: 1;",
-          paste0(unlist(row$context_after), collapse = " ")
-        )
-      )
-    })
-
-    do.call(tagList, content)
-  })
-
-  output$wordsContNetwork <- renderVisNetwork({
-    wordsInContextMenu()
-    req(values$contextNetwork)
-    values$contextNetwork
-  })
-
-  output$ContextGeminiUI <- renderUI({
-    values$gemini_model_parameters <- geminiParameterPrompt(
-      values,
-      input$sidebarmenu,
-      input
-    )
-    geminiOutput(title = "Gemini AI", content = values$contextGemini, values)
   })
 
   ## Reinert Clustering ----

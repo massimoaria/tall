@@ -14,6 +14,7 @@ files <- c(
   "overview.R",
   "featureroles.R",
   "keyness.R",
+  "collocation.R",
   "words.R",
   "documents.R",
   "doc_classification.R",
@@ -24,9 +25,6 @@ files <- c(
 for (file in files) {
   source(file, local = TRUE)
 }
-
-## suppress warnings
-# options(warn = -1)
 
 ## file upload max size
 maxUploadSize <- 1000 # default value
@@ -81,6 +79,9 @@ server <- function(input, output, session) {
 
   ## WORDS ----
   wordsServer(input, output, session, values, statsValues)
+
+  ### COLLOCATION ----
+  collocationServer(input, output, session, values, statsValues)
 
   ## DOCUMENTS ----
   documentsServer(input, output, session, values, statsValues)
