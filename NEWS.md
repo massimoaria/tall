@@ -1,4 +1,8 @@
-# tall (development version)
+# tall 0.5.1
+* Bug Fixes
+  - Removed old Gemini models 1.5 and 2.0
+  - Fixed issue in api key check
+  - Fixed issue in synonims merging 
 
 # tall 0.5.0
 * New Features & Modules
