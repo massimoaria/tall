@@ -515,115 +515,115 @@ settingsServer <- function(input, output, session, values, statsValues) {
   })
 
   ## SOLUTION FOR DT BUG ----
-  # observeEvent(
-  #   input$sidebarmenu,
-  #   {
-  #     # Lista completa di tutti gli output DT per ogni menu
-  #     dt_outputs <- list(
-  #       # ===== DATA MANAGEMENT =====
-  #       import_tx = c("dataImported"),
-  #       split_tx = c("splitTextData"),
-  #       randomText = c("randomTextData"),
-  #       extInfo = c("extInfoData"),
-  #
-  #       # ===== PRE-PROCESSING =====
-  #       tokPos = c("tokPosTagData"),
-  #       posSpecial = c("posSpecialTags", "posSpecialData", "specialEntityFreq"),
-  #       custTermList = c("customPosTagData", "customListData"),
-  #       multiwordCreat = c("multiwordList", "multiwordData"),
-  #       multiwordByList = c("multiwordList2", "multiwordData2"),
-  #       posTagSelect = c("posTagSelectData"),
-  #
-  #       # ===== DATA FILTERING & GROUPING =====
-  #       filter_text = c("filterData"),
-  #       defineGroups = c("defineGroupsData", "groupData"),
-  #
-  #       # ===== OVERVIEW & VOCABULARY =====
-  #       overview = c("overviewData", "dictionaryData", "tfidfData"),
-  #
-  #       # ===== WORDS ANALYSIS =====
-  #       wordCont = c(
-  #         "wFreqTable",
-  #         "wordInContext",
-  #         "docInContext",
-  #         "docInContextHigh"
-  #       ),
-  #       keyness = c("keyness_table"),
-  #       w_pos = c("posTable"),
-  #       w_clustering = c("w_clusteringTable", "wordInContextDend"),
-  #       w_reinclustering = c(
-  #         "w_ReinSummaryTable",
-  #         "w_ReinClusteringTableTerms",
-  #         "w_ReinClusteringTableSegments",
-  #         "wordInContextRein"
-  #       ),
-  #       ca = c(
-  #         "caSingularValueTable",
-  #         "caCoordTable",
-  #         "caContribTable",
-  #         "caCosineTable"
-  #       ),
-  #
-  #       # ===== NETWORKS =====
-  #       w_networkCooc = c(
-  #         "w_networkCoocNodesTable",
-  #         "w_networkCoocEdgesTable",
-  #         "wordInContextNet"
-  #       ),
-  #       w_networkTM = c("w_networkTMClusterTable", "w_networkTMWordTable"),
-  #       w_word2vec = c("w_word2vecTable"),
-  #       w_networkGrako = c(
-  #         "w_networkGrakoNodesTable",
-  #         "w_networkGrakoEdgesTable"
-  #       ),
-  #
-  #       # ===== DOCUMENTS ANALYSIS =====
-  #       d_tm_select = c("d_tm_selectTable"),
-  #       d_tm_estim = c("d_tm_estimBpTable", "d_tm_estimTpTable"),
-  #       d_polDet = c("d_polDetTable"),
-  #       d_summarization = c("RelSentData")
-  #     )
-  #
-  #     # Ottieni il menu corrente
-  #     current_menu <- input$sidebarmenu
-  #
-  #     # Ottieni gli output DT del menu corrente
-  #     current_outputs <- dt_outputs[[current_menu]]
-  #     if (is.null(current_outputs)) {
-  #       current_outputs <- character(0)
-  #     }
-  #
-  #     # Ottieni tutti gli output DT
-  #     all_outputs <- unique(unlist(dt_outputs, use.names = FALSE))
-  #
-  #     # Identifica gli output da sospendere (tutti tranne quelli del menu corrente)
-  #     outputs_to_suspend <- setdiff(all_outputs, current_outputs)
-  #
-  #     # Sospendi il rendering degli output che non appartengono al menu corrente
-  #     # Questo libera risorse senza distruggere gli output
-  #     lapply(outputs_to_suspend, function(x) {
-  #       tryCatch(
-  #         {
-  #           outputOptions(output, x, suspendWhenHidden = TRUE)
-  #         },
-  #         error = function(e) {
-  #           # Ignora errori per output che potrebbero non essere ancora stati creati
-  #         }
-  #       )
-  #     })
-  #
-  #     # Riattiva gli output del menu corrente
-  #     lapply(current_outputs, function(x) {
-  #       tryCatch(
-  #         {
-  #           outputOptions(output, x, suspendWhenHidden = FALSE)
-  #         },
-  #         error = function(e) {
-  #           # Ignora errori per output che potrebbero non essere ancora stati creati
-  #         }
-  #       )
-  #     })
-  #   },
-  #   priority = 100
-  # )
+  observeEvent(
+    input$sidebarmenu,
+    {
+      # Lista completa di tutti gli output DT per ogni menu
+      dt_outputs <- list(
+        # ===== DATA MANAGEMENT =====
+        import_tx = c("dataImported"),
+        split_tx = c("splitTextData"),
+        randomText = c("randomTextData"),
+        extInfo = c("extInfoData"),
+
+        # ===== PRE-PROCESSING =====
+        tokPos = c("tokPosTagData"),
+        posSpecial = c("posSpecialTags", "posSpecialData", "specialEntityFreq"),
+        custTermList = c("customPosTagData", "customListData"),
+        multiwordCreat = c("multiwordList", "multiwordData"),
+        multiwordByList = c("multiwordList2", "multiwordData2"),
+        posTagSelect = c("posTagSelectData"),
+
+        # ===== DATA FILTERING & GROUPING =====
+        filter_text = c("filterData"),
+        defineGroups = c("defineGroupsData", "groupData"),
+
+        # ===== OVERVIEW & VOCABULARY =====
+        overview = c("overviewData", "dictionaryData", "tfidfData"),
+
+        # ===== WORDS ANALYSIS =====
+        wordCont = c(
+          "wFreqTable",
+          "wordInContext",
+          "docInContext",
+          "docInContextHigh"
+        ),
+        keyness = c("keyness_table"),
+        w_pos = c("posTable"),
+        w_clustering = c("w_clusteringTable", "wordInContextDend"),
+        w_reinclustering = c(
+          "w_ReinSummaryTable",
+          "w_ReinClusteringTableTerms",
+          "w_ReinClusteringTableSegments",
+          "wordInContextRein"
+        ),
+        ca = c(
+          "caSingularValueTable",
+          "caCoordTable",
+          "caContribTable",
+          "caCosineTable"
+        ),
+
+        # ===== NETWORKS =====
+        w_networkCooc = c(
+          "w_networkCoocNodesTable",
+          "w_networkCoocEdgesTable",
+          "wordInContextNet"
+        ),
+        w_networkTM = c("w_networkTMClusterTable", "w_networkTMWordTable"),
+        w_word2vec = c("w_word2vecTable"),
+        w_networkGrako = c(
+          "w_networkGrakoNodesTable",
+          "w_networkGrakoEdgesTable"
+        ),
+
+        # ===== DOCUMENTS ANALYSIS =====
+        d_tm_select = c("d_tm_selectTable"),
+        d_tm_estim = c("d_tm_estimBpTable", "d_tm_estimTpTable"),
+        d_polDet = c("d_polDetTable"),
+        d_summarization = c("RelSentData")
+      )
+
+      # Ottieni il menu corrente
+      current_menu <- input$sidebarmenu
+
+      # Ottieni gli output DT del menu corrente
+      current_outputs <- dt_outputs[[current_menu]]
+      if (is.null(current_outputs)) {
+        current_outputs <- character(0)
+      }
+
+      # Ottieni tutti gli output DT
+      all_outputs <- unique(unlist(dt_outputs, use.names = FALSE))
+
+      # Identifica gli output da sospendere (tutti tranne quelli del menu corrente)
+      outputs_to_suspend <- setdiff(all_outputs, current_outputs)
+
+      # Sospendi il rendering degli output che non appartengono al menu corrente
+      # Questo libera risorse senza distruggere gli output
+      lapply(outputs_to_suspend, function(x) {
+        tryCatch(
+          {
+            outputOptions(output, x, suspendWhenHidden = TRUE)
+          },
+          error = function(e) {
+            # Ignora errori per output che potrebbero non essere ancora stati creati
+          }
+        )
+      })
+
+      # Riattiva gli output del menu corrente
+      lapply(current_outputs, function(x) {
+        tryCatch(
+          {
+            outputOptions(output, x, suspendWhenHidden = FALSE)
+          },
+          error = function(e) {
+            # Ignora errori per output che potrebbero non essere ancora stati creati
+          }
+        )
+      })
+    },
+    priority = 100
+  )
 }
