@@ -2189,7 +2189,7 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
         }
 
         # Check if second column looks like upos
-        valid_upos <- dfTag %>% distinct(upos) %>% pull(upos)
+        valid_upos <- values$dfTag %>% distinct(upos) %>% pull(upos)
 
         if (!any(toupper(data[[2]]) %in% valid_upos)) {
           show_alert(
