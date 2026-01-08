@@ -1155,80 +1155,73 @@ rebuild_documents <- function(df) {
 
 ### SPLIT TEXT INTO SUB-DOCS
 splitDoc <- function(df, word) {
-  # If the word is too short, return the original dataframe without splitting
   if (nchar(word) <= 3) {
     return(df)
   }
 
-  # Filter only selected documents
   df <- df %>% filter(doc_selected)
+
+  if ("split_word" %in% names(df)) {
+    df <- df %>% select(-split_word)
+  }
+  if ("doc_id_old" %in% names(df)) {
+    df <- df %>% select(-doc_id_old)
+  }
+
   df_splitted <- list()
   n <- nrow(df)
 
-  # Loop through each document and split by the word
   for (i in seq_len(n)) {
     testo <- df$text[i]
-
-    # Split by the word and keep it in the result
-    # Strategy: replace the word with a unique delimiter + word
-    delimiter <- "\u0001SPLIT_HERE\u0001" # Use a unique character unlikely to appear in text
+    delimiter <- "\u0001SPLIT_HERE\u0001"
     testo_marked <- gsub(word, paste0(delimiter, word), testo, fixed = TRUE)
-
-    # Split by the delimiter
     parti <- unlist(strsplit(testo_marked, delimiter, fixed = TRUE))
-
-    # Remove empty parts and trim whitespace
     parti <- parti[nchar(trimws(parti)) > 0]
-
     df_splitted[[i]] <- parti
   }
 
-  # Create globally unique doc_ids
   doc_id_old <- rep(df$doc_id, lengths(df_splitted))
   total_docs <- sum(lengths(df_splitted))
-
-  # Calculate correct padding based on total number of documents
   padding <- nchar(as.character(total_docs))
 
-  # Build the result dataframe
   df_result <- data.frame(
-    doc_id = paste0(
-      "doc_",
-      sprintf(paste0("%0", padding, "d"), 1:total_docs)
-    ),
+    doc_id = paste0("doc_", sprintf(paste0("%0", padding, "d"), 1:total_docs)),
     text = unlist(df_splitted),
     doc_id_old = doc_id_old,
     doc_selected = TRUE,
     stringsAsFactors = FALSE
-  ) %>%
-    left_join(
-      df %>%
-        select(-c("doc_selected", "text")),
-      by = c("doc_id_old" = "doc_id")
-    ) %>%
-    mutate(
-      text_original = text,
-      split_word = word
-    )
+  )
+
+  df_for_join <- df %>% select(-c(text, doc_selected))
+
+  df_result <- df_result %>%
+    left_join(df_for_join, by = c("doc_id_old" = "doc_id")) %>%
+    mutate(split_word = word)
 
   return(df_result)
 }
 
 unsplitDoc <- function(df) {
   if ("doc_id_old" %in% names(df)) {
-    word <- unique(df$split_word)
-    df <- df %>%
+    text_rejoined <- df %>%
       group_by(doc_id_old) %>%
-      mutate(
-        text = paste(text, collapse = word),
-        doc_id = doc_id_old
-      ) %>%
+      summarise(text = paste(text, collapse = ""), .groups = "drop")
+
+    cols_to_exclude <- c("doc_id", "text", "doc_selected", "split_word")
+
+    other_columns <- df %>%
+      group_by(doc_id_old) %>%
+      slice(1) %>%
       ungroup() %>%
-      select(-c("doc_id_old", "split_word")) %>%
-      distinct(doc_id, .keep_all = TRUE) %>%
-      mutate(doc_selected = TRUE) %>%
+      select(-all_of(cols_to_exclude))
+
+    df <- text_rejoined %>%
+      left_join(other_columns, by = "doc_id_old") %>%
+      mutate(doc_id = doc_id_old, doc_selected = TRUE) %>%
+      select(-doc_id_old) %>%
       arrange(doc_id)
   }
+
   return(df)
 }
 
@@ -8688,77 +8681,6 @@ menuList <- function(menu) {
 }
 
 # DATA TABLE FORMAT ----
-#' Format Data Table for Display
-#'
-#' Creates a formatted DT::datatable with customizable options for displaying
-#' data frames in Shiny applications. Supports features like Excel export,
-#' column truncation, custom buttons, and various styling options.
-#'
-#' @param df Data frame to display
-#' @param nrow Number of rows to display per page (default: 10)
-#' @param filename Base filename for Excel export
-#' @param pagelength Logical. If TRUE, includes page length selector button
-#' @param left Column indices to left-align
-#' @param right Column indices to right-align
-#' @param numeric Column indices containing numeric values to round
-#' @param dom Logical or character. If TRUE, uses "Brtip" layout. If FALSE, uses "Bt"
-#' @param size Font size for table cells (default: "85%")
-#' @param filter Filter position: "top", "bottom", or "none"
-#' @param columnShort Column indices to truncate at 500 characters with ellipsis
-#' @param columnSmall Currently unused parameter
-#' @param round Number of decimal places for numeric columns (default: 2)
-#' @param title Table title displayed above the table
-#' @param button Logical. If TRUE, adds a "View" button using doc_id
-#' @param delete Logical. If TRUE, adds a "Remove" button using doc_id
-#' @param escape Logical. If TRUE, escapes HTML in table cells
-#' @param selection Logical. If TRUE, enables row selection with select all/none buttons
-#' @param specialtags Logical. If TRUE, adds special entity frequency distribution button
-#' @param col_to_remove Character string. If "lemma", hides "token" column. If "token", hides "lemma" column. If NULL, no columns are removed (default: NULL)
-#'
-#' @return A DT::datatable object with specified formatting and options
-#'
-#' @details
-#' The function automatically centers all columns and provides Excel export functionality.
-#' If a "text" column exists, it removes angle brackets to prevent rendering issues.
-#' The table includes fixed headers, column reordering capabilities, and horizontal scrolling.
-#'
-#' @keywords internal
-#' Format Data Table for Display
-#'
-#' Creates a formatted DT::datatable with customizable options for displaying
-#' data frames in Shiny applications. Supports features like Excel export,
-#' column truncation, custom buttons, and various styling options.
-#'
-#' @param df Data frame to display
-#' @param nrow Number of rows to display per page (default: 10)
-#' @param filename Base filename for Excel export
-#' @param pagelength Logical. If TRUE, includes page length selector button
-#' @param left Column indices to left-align
-#' @param right Column indices to right-align
-#' @param numeric Column indices containing numeric values to round
-#' @param dom Logical or character. If TRUE, uses "Brtip" layout. If FALSE, uses "Bt"
-#' @param size Font size for table cells (default: "85%")
-#' @param filter Filter position: "top", "bottom", or "none"
-#' @param columnShort Column indices to truncate at 500 characters with ellipsis
-#' @param columnSmall Currently unused parameter
-#' @param round Number of decimal places for numeric columns (default: 2)
-#' @param title Table title displayed above the table
-#' @param button Logical. If TRUE, adds a "View" button using doc_id
-#' @param delete Logical. If TRUE, adds a "Remove" button using doc_id
-#' @param escape Logical. If TRUE, escapes HTML in table cells
-#' @param selection Logical. If TRUE, enables row selection with select all/none buttons
-#' @param specialtags Logical. If TRUE, adds special entity frequency distribution button
-#' @param col_to_remove Character string. If "lemma" or "Lemma", hides "token"/"Token" column.
-#'   If "token" or "Token", hides "lemma"/"Lemma" column. If NULL, no columns are removed (default: NULL)
-#'
-#' @return A DT::datatable object with specified formatting and options
-#'
-#' @details
-#' The function automatically centers all columns and provides Excel export functionality.
-#' If a "text" column exists, it removes angle brackets to prevent rendering issues.
-#' The table includes fixed headers, column reordering capabilities, and horizontal scrolling.
-#'
-#' @keywords internal
 DTformat <- function(
   df,
   nrow = 10,
@@ -8781,13 +8703,17 @@ DTformat <- function(
   specialtags = FALSE,
   col_to_remove = NULL
 ) {
-  # Handle column removal based on col_to_remove parameter
-  # Consider both lowercase and capitalized versions
+  tall_primary <- "#4a7c59"
+  tall_secondary <- "#5a9269"
+  tall_accent <- "#F7F9FA"
+  tall_text <- "#2D3748"
+  tall_border <- "#E2E8F0"
+  tall_white <- "#FFFFFF"
+
   if (!is.null(col_to_remove)) {
     col_to_remove_lower <- tolower(col_to_remove)
 
     if (col_to_remove_lower == "lemma") {
-      # Remove token or Token if they exist
       if ("token" %in% names(df)) {
         df <- df %>% select(-token)
       }
@@ -8795,7 +8721,6 @@ DTformat <- function(
         df <- df %>% select(-Token)
       }
     } else if (col_to_remove_lower == "token") {
-      # Remove lemma or Lemma if they exist
       if ("lemma" %in% names(df)) {
         df <- df %>% select(-lemma)
       }
@@ -8919,11 +8844,9 @@ DTformat <- function(
     extensions <- c("Buttons", "Select", "ColReorder", "FixedHeader")
     buttons <- c(buttons, c("selectAll", "selectNone"))
     select <- list(style = "os", items = "row")
-    # selection = list(mode = 'multiple', selected = 1:nrow(df), target = 'row')
   } else {
     extensions <- c("Buttons", "ColReorder", "FixedHeader")
     select <- NULL
-    # selection = "none"
   }
 
   tab <- DT::datatable(
@@ -8947,41 +8870,132 @@ DTformat <- function(
         c(10, 25, 50, -1),
         c("10 rows", "25 rows", "50 rows", "Show all")
       ),
-      columnDefs = columnDefs
+      columnDefs = columnDefs,
+      initComplete = DT::JS(
+        paste0(
+          "function(settings, json) {
+          var api = this.api();
+
+          $(api.table().header()).css({
+            'background': '",
+          tall_primary,
+          "',
+            'color': 'white',
+            'font-weight': '600',
+            'font-size': '13px',
+            'padding': '12px 8px',
+            'border-bottom': '2px solid ",
+          tall_secondary,
+          "',
+            'text-transform': 'uppercase',
+            'letter-spacing': '0.5px'
+          });
+
+          $(api.table().container()).find('.dataTables_wrapper').css({
+            'font-family': '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif'
+          });
+
+          $(api.table().container()).find('.dataTables_filter input').css({
+            'border': '1px solid ",
+          tall_border,
+          "',
+            'border-radius': '4px',
+            'padding': '6px 12px',
+            'margin-left': '8px',
+            'font-size': '13px',
+            'outline': 'none'
+          });
+
+          $(api.table().container()).find('.dataTables_length select').css({
+            'border': '1px solid ",
+          tall_border,
+          "',
+            'border-radius': '4px',
+            'padding': '4px 8px',
+            'margin': '0 8px',
+            'font-size': '13px'
+          });
+
+          $(api.table().container()).find('.dt-buttons .dt-button').css({
+            'background': '",
+          tall_primary,
+          "',
+            'color': 'white',
+            'border': 'none',
+            'border-radius': '4px',
+            'padding': '6px 14px',
+            'margin-right': '6px',
+            'font-size': '13px',
+            'font-weight': '500',
+            'cursor': 'pointer',
+            'box-shadow': '0 1px 3px rgba(0,0,0,0.1)'
+          });
+
+          $(api.table().container()).find('.dataTables_paginate .paginate_button').css({
+            'border-radius': '4px',
+            'padding': '6px 12px',
+            'margin': '0 2px',
+            'border': '1px solid ",
+          tall_border,
+          "',
+            'font-size': '13px'
+          });
+
+          $(api.table().container()).find('.dataTables_paginate .paginate_button.current').css({
+            'background': '",
+          tall_primary,
+          "',
+            'color': 'white',
+            'border-color': '",
+          tall_primary,
+          "'
+          });
+        }"
+        )
+      ),
+      rowCallback = DT::JS(
+        paste0(
+          "function(row, data, index) {
+          if(index % 2 === 0) {
+            $(row).css('background-color', '",
+          tall_accent,
+          "');
+          } else {
+            $(row).css('background-color', '",
+          tall_white,
+          "');
+          }
+        }"
+        )
+      )
     ),
-    class = "cell-border compact stripe"
+    class = "cell-border stripe hover"
   ) %>%
     DT::formatStyle(
       names(df),
-      backgroundColor = "white",
       textAlign = "center",
-      fontSize = size
+      fontSize = size,
+      fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      color = tall_text,
+      padding = '10px 8px'
     )
-
-  ## left aligning
 
   if (!is.null(left)) {
     tab <- tab %>%
       DT::formatStyle(
         names(df)[left],
-        backgroundColor = "white",
-        textAlign = "left",
-        fontSize = size
+        textAlign = "left"
       )
   }
 
-  # right aligning
   if (!is.null(right)) {
     tab <- tab %>%
       DT::formatStyle(
         names(df)[right],
-        backgroundColor = "white",
-        textAlign = "right",
-        fontSize = size
+        textAlign = "right"
       )
   }
 
-  # numeric round
   if (!is.null(numeric)) {
     tab <- tab %>%
       formatRound(names(df)[c(numeric)], digits = round)

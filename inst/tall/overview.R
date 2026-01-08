@@ -850,37 +850,27 @@ overviewServer <- function(input, output, session, values, statsValues) {
       input$wFreqApply
     },
     valueExpr = {
-      if (!is.null(input$posSelectionFreq)) {
-        values$wFreq <- freqByPos(
-          values$dfTag %>% filter(docSelected),
-          term = values$generalTerm,
-          pos = input$posSelectionFreq
-        )
-        values$wFreqPlotly <- freqPlotly(
-          values$wFreq,
-          x = "n",
-          y = "term",
-          n = input$wFreqN,
-          xlabel = "Frequency",
-          ylabel = input$posSelectionFreq,
-          scale = "identity"
-        )
+      req(input$posSelectionFreq)
+      values$wFreq <- freqByPos(
+        values$dfTag %>% filter(docSelected),
+        term = values$generalTerm,
+        pos = input$posSelectionFreq
+      )
+      values$wFreqPlotly <- freqPlotly(
+        values$wFreq,
+        x = "n",
+        y = "term",
+        n = input$wFreqN,
+        xlabel = "Frequency",
+        ylabel = input$posSelectionFreq,
+        scale = "identity"
+      )
 
-        values$wFreqData <- values$wFreq %>%
-          rename(
-            Word = term,
-            Frequency = n
-          )
-      } else {
-        popUpGeneric(
-          title = "No PoS Tag/Term selected!",
-          type = "error",
-          color = c("#1d8fe1", "#913333", "#FFA800"),
-          subtitle = "Please, click on Option button and select by which PoS Tag and term /n
-                     measure the frequency distribution",
-          btn_labels = "OK"
+      values$wFreqData <- values$wFreq %>%
+        rename(
+          Word = term,
+          Frequency = n
         )
-      }
     }
   )
 
@@ -893,13 +883,15 @@ overviewServer <- function(input, output, session, values, statsValues) {
     wFreq()
     DTformat(
       values$wFreqData,
+      nrow = 15,
       left = 1,
       right = 2,
       round = 0,
       numeric = 2,
       filename = "WordsFreqList",
       dom = FALSE,
-      size = "110%",
+      size = "90%",
+      filter = "none",
       col_to_remove = values$generalTerm
     )
   })
