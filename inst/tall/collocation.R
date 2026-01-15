@@ -350,16 +350,6 @@ collocationUI <- function() {
                               class = "btn-error",
                               style = "width: 200px; margin-top: 10px;"
                             )
-                          ),
-                          column(
-                            2,
-                            actionButton(
-                              "wordsContSave",
-                              "Export",
-                              icon = icon("download-alt", lib = "glyphicon"),
-                              class = "btn-success",
-                              style = "width: 200px; margin-top: 10px;"
-                            )
                           )
                         )
                       )
@@ -371,13 +361,40 @@ collocationUI <- function() {
                       tabPanel(
                         "Words in Context",
                         fluidRow(
-                          div(
-                            style = "height: 550px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;",
-                            shinycssloaders::withSpinner(
-                              uiOutput("wordsContHtml"),
-                              color = getOption(
-                                "spinner.color",
-                                default = "#4F7942"
+                          column(
+                            12,
+                            fluidRow(
+                              column(11),
+                              div(
+                                title = "Export Table as Excel",
+                                column(
+                                  1,
+                                  do.call(
+                                    "actionButton",
+                                    c(
+                                      export_bttn,
+                                      list(
+                                        inputId = "wordsContSave"
+                                      )
+                                    )
+                                  ),
+                                  br()
+                                )
+                              )
+                            )
+                          )
+                        ),
+                        fluidRow(
+                          column(
+                            12,
+                            div(
+                              style = "height: 450px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;",
+                              shinycssloaders::withSpinner(
+                                uiOutput("wordsContHtml"),
+                                color = getOption(
+                                  "spinner.color",
+                                  default = "#4F7942"
+                                )
                               )
                             )
                           )
@@ -385,6 +402,39 @@ collocationUI <- function() {
                       ),
                       tabPanel(
                         "Network Plot",
+                        fluidRow(
+                          column(10),
+                          div(
+                            title = t_export,
+                            column(
+                              1,
+                              do.call(
+                                "actionButton",
+                                c(
+                                  export_bttn,
+                                  list(
+                                    inputId = "wordContNetExport"
+                                  )
+                                )
+                              )
+                            )
+                          ),
+                          div(
+                            title = t_report,
+                            column(
+                              1,
+                              do.call(
+                                "actionButton",
+                                c(
+                                  report_bttn,
+                                  list(
+                                    inputId = "wordContNetReport"
+                                  )
+                                )
+                              )
+                            )
+                          )
+                        ),
                         fluidRow(
                           shinycssloaders::withSpinner(
                             visNetworkOutput(
@@ -974,24 +1024,27 @@ collocationServer <- function(input, output, session, values, statsValues) {
 
     content <- lapply(1:nrow(values$wordInContext), function(i) {
       row <- values$wordInContext[i, ]
-      before <- paste(unlist(row$context_before), collapse = " ")
+
       div(
-        style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;",
-        # style = "display: flex; justify-content: center; align-items: center; margin-bottom: 10px;",
+        style = "display: flex; align-items: center; margin-bottom: 5px; border-bottom: 1px solid #eee; padding: 5px 0; width: 100%;",
+        # Document ID
         span(
-          style = "color: darkblue; text-align: left; width: 150px; font-weight: bold;",
+          style = "color: darkblue; width: 150px; font-weight: bold; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;",
           row$doc_id
-        ), # Nome del documento
+        ),
+        # Context Before
         span(
-          style = "color: gray; text-align: right; flex: 1;",
+          style = "color: gray; text-align: right; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 10px;",
           paste0(unlist(row$context_before), collapse = " ")
         ),
+        # Target Word
         span(
-          style = "color: #4F7942; font-weight: bold; padding: 0 10px;",
+          style = "color: #4F7942; font-weight: bold; flex-shrink: 0; padding: 0 10px; min-width: 80px; text-align: center;",
           row$target_word
         ),
+        # Context After
         span(
-          style = "color: gray; text-align: left; flex: 1;",
+          style = "color: gray; text-align: left; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-left: 10px;",
           paste0(unlist(row$context_after), collapse = " ")
         )
       )
@@ -999,6 +1052,40 @@ collocationServer <- function(input, output, session, values, statsValues) {
 
     do.call(tagList, content)
   })
+
+  # output$wordsContHtml <- renderUI({
+  #   wordsInContextMenu()
+  #   req(values$wordInContext)
+  #   if (nrow(values$wordInContext) == 0) {
+  #     return(HTML("<p>No results found.</p>"))
+  #   }
+  #
+  #   content <- lapply(1:nrow(values$wordInContext), function(i) {
+  #     row <- values$wordInContext[i, ]
+  #     before <- paste(unlist(row$context_before), collapse = " ")
+  #     div(
+  #       style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;",
+  #       span(
+  #         style = "color: darkblue; text-align: left; width: 150px; font-weight: bold;",
+  #         row$doc_id
+  #       ),
+  #       span(
+  #         style = "color: gray; text-align: right; flex: 1;",
+  #         paste0(unlist(row$context_before), collapse = " ")
+  #       ),
+  #       span(
+  #         style = "color: #4F7942; font-weight: bold; padding: 0 10px;",
+  #         row$target_word
+  #       ),
+  #       span(
+  #         style = "color: gray; text-align: left; flex: 1;",
+  #         paste0(unlist(row$context_after), collapse = " ")
+  #       )
+  #     )
+  #   })
+  #
+  #   do.call(tagList, content)
+  # })
 
   output$wordsContNetwork <- renderVisNetwork({
     wordsInContextMenu()
@@ -1013,6 +1100,47 @@ collocationServer <- function(input, output, session, values, statsValues) {
       input
     )
     geminiOutput(title = "Gemini AI", content = values$contextGemini, values)
+  })
+
+  ## export Network button
+  observeEvent(
+    eventExpr = {
+      input$wordContNetExport
+    },
+    handlerExpr = {
+      file <- paste("KWICNetwork-", sys.time(), ".png", sep = "")
+      file <- destFolder(file, values$wdTall)
+      plot2png(values$contextNetwork, filename = file, zoom = values$zoom)
+      popUp(title = "Saved in your working folder", type = "saved")
+    }
+  )
+
+  ## Report
+  observeEvent(input$wordContNetReport, {
+    if (!is.null(values$wordInContext)) {
+      popUp(title = NULL, type = "waiting")
+      sheetname <- "KWICNetwork"
+      list_df <- list(
+        values$wordInContext
+      )
+      res <- addDataScreenWb(list_df, wb = values$wb, sheetname = sheetname)
+      # values$wb <- res$wb
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      values$filenetVis <- plot2png(
+        values$contextNetwork,
+        filename = "KWIC-Network.png",
+        zoom = values$zoom
+      )
+      values$list_file <- rbind(
+        values$list_file,
+        c(sheetname = res$sheetname, values$filenetVis, res$col)
+      )
+      popUp(title = "KWIC Network Results", type = "success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type = "error")
+    }
   })
 }
 
