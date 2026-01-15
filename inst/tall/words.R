@@ -2897,6 +2897,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
   output$wordInContextRein <- renderDT(
     server = FALSE,
     {
+      req(values$tc_k$segments)
       # find sentences containing the tokens/lemma
       DTformat(
         values$tc_k$segments,

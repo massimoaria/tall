@@ -12,458 +12,460 @@
 collocationUI <- function() {
   tabItem(
     tabName = "kwic",
-    fluidPage(
-      fluidRow(
-        column(
-          12,
-          box(
-            title = tagList(
-              icon("project-diagram"),
-              "KWIC Analysis"
+    fluidRow(
+      # Usa fluidRow direttamente
+      column(
+        12,
+        box(
+          title = tagList(
+            icon("project-diagram"),
+            tags$span(
+              "KWIC Analysis",
+              style = "margin-left: 10px; vertical-align: middle;"
+            )
+          ),
+          width = 12,
+          status = "success",
+          solidHeader = TRUE,
+          collapsible = FALSE,
+          tabsetPanel(
+            id = "collocationTabs",
+
+            # ==========================================
+            # TAB 1: PLOT - Word Distribution
+            # ==========================================
+            tabPanel(
+              "In-Document Plot",
+              fluidPage(
+                br(),
+                fluidRow(
+                  column(
+                    12,
+                    wellPanel(
+                      style = "background: white; border: 1px solid #ddd; padding: 15px;",
+                      fluidRow(
+                        column(
+                          3,
+                          h4(
+                            strong("Search Settings"),
+                            style = "color: #4F7942; margin-top: 0;"
+                          ),
+
+                          # Search query
+                          textInput(
+                            "collocPlotQuery",
+                            "Target Word:",
+                            placeholder = "Enter word to search..."
+                          ),
+
+                          # Case sensitive option
+                          checkboxInput(
+                            "collocPlotCase",
+                            "Case Sensitive",
+                            value = FALSE
+                          )
+                        ),
+                        column(
+                          3,
+                          h4(
+                            strong("Display Options"),
+                            style = "color: #4F7942; margin-top: 0;"
+                          ),
+
+                          # Sort options
+                          selectInput(
+                            "collocPlotSort",
+                            "Sort Documents By:",
+                            choices = c(
+                              #"Row Number" = "row",
+                              "Document ID" = "doc_id",
+                              "Frequency" = "freq",
+                              "Dispersion" = "dispersion"
+                            ),
+                            selected = "freq"
+                          )
+                        ),
+                        column(
+                          6,
+                          # Results summary
+                          htmlOutput("collocPlotSummary")
+                        )
+                      ),
+                      fluidRow(
+                        column(
+                          12,
+                          # Search button
+                          actionButton(
+                            "collocPlotSearch",
+                            "Search",
+                            icon = icon("search"),
+                            class = "btn-success",
+                            style = "width: 200px; margin-top: 10px;"
+                          )
+                        )
+                      )
+                    )
+                  )
+                ),
+
+                fluidRow(
+                  column(
+                    12,
+                    # Documents table with inline plots
+                    h4(strong("Documents"), style = "color: #4F7942;"),
+                    shinycssloaders::withSpinner(
+                      DT::DTOutput("collocPlotTable"),
+                      color = "#4F7942"
+                    )
+                  )
+                )
+              )
             ),
-            width = 12,
-            status = "success",
-            solidHeader = TRUE,
-            collapsible = FALSE,
-            tabsetPanel(
-              id = "collocationTabs",
 
-              # ==========================================
-              # TAB 1: PLOT - Word Distribution
-              # ==========================================
-              tabPanel(
-                "In-Document Plot",
-                fluidPage(
-                  br(),
-                  fluidRow(
-                    column(
-                      12,
-                      wellPanel(
-                        style = "background: white; border: 1px solid #ddd; padding: 15px;",
-                        fluidRow(
-                          column(
-                            3,
-                            h4(
-                              strong("Search Settings"),
-                              style = "color: #4F7942; margin-top: 0;"
-                            ),
-
-                            # Search query
-                            textInput(
-                              "collocPlotQuery",
-                              "Target Word:",
-                              placeholder = "Enter word to search..."
-                            ),
-
-                            # Case sensitive option
-                            checkboxInput(
-                              "collocPlotCase",
-                              "Case Sensitive",
-                              value = FALSE
-                            )
+            # ==========================================
+            # TAB 2: COLLOCATE
+            # ==========================================
+            tabPanel(
+              "Collocation",
+              fluidPage(
+                br(),
+                fluidRow(
+                  column(
+                    12,
+                    wellPanel(
+                      style = "background: white; border: 1px solid #ddd; padding: 15px;",
+                      fluidRow(
+                        column(
+                          3,
+                          h4(
+                            strong("Search Settings"),
+                            style = "color: #4F7942; margin-top: 0;"
                           ),
-                          column(
-                            3,
-                            h4(
-                              strong("Display Options"),
-                              style = "color: #4F7942; margin-top: 0;"
-                            ),
 
-                            # Sort options
-                            selectInput(
-                              "collocPlotSort",
-                              "Sort Documents By:",
-                              choices = c(
-                                #"Row Number" = "row",
-                                "Document ID" = "doc_id",
-                                "Frequency" = "freq",
-                                "Dispersion" = "dispersion"
-                              ),
-                              selected = "freq"
-                            )
+                          # Search query
+                          textInput(
+                            "collocCollocQuery",
+                            "Target Word:",
+                            placeholder = "Enter word to search..."
                           ),
-                          column(
-                            6,
-                            # Results summary
-                            htmlOutput("collocPlotSummary")
+
+                          # Case sensitive
+                          checkboxInput(
+                            "collocCollocCase",
+                            "Case Sensitive",
+                            value = FALSE
                           )
                         ),
-                        fluidRow(
-                          column(
-                            12,
-                            # Search button
-                            actionButton(
-                              "collocPlotSearch",
-                              "Search",
-                              icon = icon("search"),
-                              class = "btn-success",
-                              style = "width: 200px; margin-top: 10px;"
-                            )
-                          )
-                        )
-                      )
-                    )
-                  ),
-
-                  fluidRow(
-                    column(
-                      12,
-                      # Documents table with inline plots
-                      h4(strong("Documents"), style = "color: #4F7942;"),
-                      shinycssloaders::withSpinner(
-                        DT::DTOutput("collocPlotTable"),
-                        color = "#4F7942"
-                      )
-                    )
-                  )
-                )
-              ),
-
-              # ==========================================
-              # TAB 2: COLLOCATE
-              # ==========================================
-              tabPanel(
-                "Collocation",
-                fluidPage(
-                  br(),
-                  fluidRow(
-                    column(
-                      12,
-                      wellPanel(
-                        style = "background: white; border: 1px solid #ddd; padding: 15px;",
-                        fluidRow(
-                          column(
-                            3,
-                            h4(
-                              strong("Search Settings"),
-                              style = "color: #4F7942; margin-top: 0;"
-                            ),
-
-                            # Search query
-                            textInput(
-                              "collocCollocQuery",
-                              "Target Word:",
-                              placeholder = "Enter word to search..."
-                            ),
-
-                            # Case sensitive
-                            checkboxInput(
-                              "collocCollocCase",
-                              "Case Sensitive",
-                              value = FALSE
-                            )
+                        column(
+                          3,
+                          h4(
+                            strong("Window Settings"),
+                            style = "color: #4F7942; margin-top: 0;"
                           ),
-                          column(
-                            3,
-                            h4(
-                              strong("Window Settings"),
-                              style = "color: #4F7942; margin-top: 0;"
-                            ),
 
-                            # Window span
-                            fluidRow(
-                              column(
-                                6,
-                                numericInput(
-                                  "collocCollocLeft",
-                                  "Left Span:",
-                                  value = 2,
-                                  min = 0,
-                                  max = 10,
-                                  step = 1
-                                )
-                              ),
-                              column(
-                                6,
-                                numericInput(
-                                  "collocCollocRight",
-                                  "Right Span:",
-                                  value = 2,
-                                  min = 0,
-                                  max = 10,
-                                  step = 1
-                                )
-                              )
-                            )
-                          ),
-                          column(
-                            3,
-                            h4(
-                              strong("Filter Settings"),
-                              style = "color: #4F7942; margin-top: 0;"
-                            ),
-
-                            # Minimum frequency
-                            numericInput(
-                              "collocCollocMinFreq",
-                              "Minimum Frequency:",
-                              value = 2,
-                              min = 1,
-                              max = 100,
-                              step = 1
-                            )
-                          ),
-                          column(
-                            3,
-                            # Results summary
-                            htmlOutput("collocCollocSummary")
-                          )
-                        ),
-                        fluidRow(
-                          column(
-                            12,
-                            # Search button
-                            actionButton(
-                              "collocCollocSearch",
-                              "Search",
-                              icon = icon("search"),
-                              class = "btn-success",
-                              style = "width: 200px; margin-top: 10px;"
-                            )
-                          )
-                        )
-                      )
-                    )
-                  ),
-
-                  fluidRow(
-                    column(
-                      12,
-                      # Collocates table
-                      h4(strong("Collocates"), style = "color: #4F7942;"),
-                      shinycssloaders::withSpinner(
-                        DT::DTOutput("collocCollocTable"),
-                        color = "#4F7942"
-                      )
-                    )
-                  )
-                )
-              ),
-
-              # ==========================================
-              # TAB 3: KWIC Network
-              # ==========================================
-              tabPanel(
-                "Network",
-                fluidPage(
-                  br(),
-                  fluidRow(
-                    column(
-                      12,
-                      wellPanel(
-                        style = "background: white; border: 1px solid #ddd; padding: 15px;",
-                        fluidRow(
-                          column(
-                            3,
-                            h4(
-                              strong("Search Settings"),
-                              style = "color: #4F7942; margin-top: 0;"
-                            ),
-
-                            # Search query
-                            selectizeInput(
-                              inputId = "wordsContSearch",
-                              label = "Search word(s) in text",
-                              choices = NULL
-                            )
-                          ),
-                          column(
-                            3,
-                            h4(
-                              strong("Window Settings"),
-                              style = "color: #4F7942; margin-top: 0;"
-                            ),
-
-                            # Window span
-                            fluidRow(
-                              column(
-                                6,
-                                numericInput(
-                                  "wordsContBefore",
-                                  "Left Span:",
-                                  value = 5,
-                                  min = 0,
-                                  max = 20,
-                                  step = 1
-                                )
-                              ),
-                              column(
-                                6,
-                                numericInput(
-                                  "wordsContAfter",
-                                  "Right Span:",
-                                  value = 5,
-                                  min = 0,
-                                  max = 20,
-                                  step = 1
-                                )
-                              )
-                            )
-                          ),
-                          column(
-                            2,
-                            h4(
-                              strong("Network Settings"),
-                              style = "color: #4F7942; margin-top: 0;"
-                            ),
-
-                            # Window span
-                            fluidRow(
-                              column(
-                                9,
-                                numericInput(
-                                  "wordsContN",
-                                  "Words",
-                                  value = 50,
-                                  min = 10,
-                                  max = 200,
-                                  step = 1
-                                )
-                              )
-                            )
-                          ),
-                          column(
-                            3,
-                            # Results summary
-                            htmlOutput("collocNetworkSummary")
-                          )
-                        ),
-                        fluidRow(
-                          column(
-                            2,
-                            # Search button
-                            actionButton(
-                              "wordsContApply",
-                              "Search",
-                              icon = icon("search"),
-                              class = "btn-success",
-                              style = "width: 200px; margin-top: 10px;"
-                            )
-                          ),
-                          column(
-                            2,
-                            # Search button
-                            actionButton(
-                              "wordsContReset",
-                              "Reset",
-                              icon = icon("remove", lib = "glyphicon"),
-                              class = "btn-error",
-                              style = "width: 200px; margin-top: 10px;"
-                            )
-                          )
-                        )
-                      )
-                    )
-                  ),
-                  fluidRow(
-                    tabsetPanel(
-                      type = "tabs",
-                      tabPanel(
-                        "Words in Context",
-                        fluidRow(
-                          column(
-                            12,
-                            fluidRow(
-                              column(11),
-                              div(
-                                title = "Export Table as Excel",
-                                column(
-                                  1,
-                                  do.call(
-                                    "actionButton",
-                                    c(
-                                      export_bttn,
-                                      list(
-                                        inputId = "wordsContSave"
-                                      )
-                                    )
-                                  ),
-                                  br()
-                                )
-                              )
-                            )
-                          )
-                        ),
-                        fluidRow(
-                          column(
-                            12,
-                            div(
-                              style = "height: 450px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;",
-                              shinycssloaders::withSpinner(
-                                uiOutput("wordsContHtml"),
-                                color = getOption(
-                                  "spinner.color",
-                                  default = "#4F7942"
-                                )
-                              )
-                            )
-                          )
-                        )
-                      ),
-                      tabPanel(
-                        "Network Plot",
-                        fluidRow(
-                          column(10),
-                          div(
-                            title = t_export,
-                            column(
-                              1,
-                              do.call(
-                                "actionButton",
-                                c(
-                                  export_bttn,
-                                  list(
-                                    inputId = "wordContNetExport"
-                                  )
-                                )
-                              )
-                            )
-                          ),
-                          div(
-                            title = t_report,
-                            column(
-                              1,
-                              do.call(
-                                "actionButton",
-                                c(
-                                  report_bttn,
-                                  list(
-                                    inputId = "wordContNetReport"
-                                  )
-                                )
-                              )
-                            )
-                          )
-                        ),
-                        fluidRow(
-                          shinycssloaders::withSpinner(
-                            visNetworkOutput(
-                              "wordsContNetwork",
-                              width = "auto",
-                              height = "58vh"
-                            ),
-                            color = getOption(
-                              "spinner.color",
-                              default = "#4F7942"
-                            )
-                          )
-                        )
-                      ),
-                      tabPanel(
-                        "TALL AI",
-                        fluidPage(
+                          # Window span
                           fluidRow(
                             column(
-                              12,
-                              br(),
-                              shinycssloaders::withSpinner(
-                                htmlOutput("ContextGeminiUI"),
-                                caption = HTML(
-                                  "<br><strong>Thinking...</strong>"
-                                ),
-                                image = "ai_small2.gif",
-                                color = "#4F7942"
+                              6,
+                              numericInput(
+                                "collocCollocLeft",
+                                "Left Span:",
+                                value = 2,
+                                min = 0,
+                                max = 10,
+                                step = 1
                               )
+                            ),
+                            column(
+                              6,
+                              numericInput(
+                                "collocCollocRight",
+                                "Right Span:",
+                                value = 2,
+                                min = 0,
+                                max = 10,
+                                step = 1
+                              )
+                            )
+                          )
+                        ),
+                        column(
+                          3,
+                          h4(
+                            strong("Filter Settings"),
+                            style = "color: #4F7942; margin-top: 0;"
+                          ),
+
+                          # Minimum frequency
+                          numericInput(
+                            "collocCollocMinFreq",
+                            "Minimum Frequency:",
+                            value = 2,
+                            min = 1,
+                            max = 100,
+                            step = 1
+                          )
+                        ),
+                        column(
+                          3,
+                          # Results summary
+                          htmlOutput("collocCollocSummary")
+                        )
+                      ),
+                      fluidRow(
+                        column(
+                          12,
+                          # Search button
+                          actionButton(
+                            "collocCollocSearch",
+                            "Search",
+                            icon = icon("search"),
+                            class = "btn-success",
+                            style = "width: 200px; margin-top: 10px;"
+                          )
+                        )
+                      )
+                    )
+                  )
+                ),
+
+                fluidRow(
+                  column(
+                    12,
+                    # Collocates table
+                    h4(strong("Collocates"), style = "color: #4F7942;"),
+                    shinycssloaders::withSpinner(
+                      DT::DTOutput("collocCollocTable"),
+                      color = "#4F7942"
+                    )
+                  )
+                )
+              )
+            ),
+
+            # ==========================================
+            # TAB 3: KWIC Network
+            # ==========================================
+            tabPanel(
+              "Network",
+              fluidPage(
+                br(),
+                fluidRow(
+                  column(
+                    12,
+                    wellPanel(
+                      style = "background: white; border: 1px solid #ddd; padding: 15px;",
+                      fluidRow(
+                        column(
+                          3,
+                          h4(
+                            strong("Search Settings"),
+                            style = "color: #4F7942; margin-top: 0;"
+                          ),
+
+                          # Search query
+                          selectizeInput(
+                            inputId = "wordsContSearch",
+                            label = "Search word(s) in text",
+                            choices = NULL
+                          )
+                        ),
+                        column(
+                          3,
+                          h4(
+                            strong("Window Settings"),
+                            style = "color: #4F7942; margin-top: 0;"
+                          ),
+
+                          # Window span
+                          fluidRow(
+                            column(
+                              6,
+                              numericInput(
+                                "wordsContBefore",
+                                "Left Span:",
+                                value = 5,
+                                min = 0,
+                                max = 20,
+                                step = 1
+                              )
+                            ),
+                            column(
+                              6,
+                              numericInput(
+                                "wordsContAfter",
+                                "Right Span:",
+                                value = 5,
+                                min = 0,
+                                max = 20,
+                                step = 1
+                              )
+                            )
+                          )
+                        ),
+                        column(
+                          2,
+                          h4(
+                            strong("Network Settings"),
+                            style = "color: #4F7942; margin-top: 0;"
+                          ),
+
+                          # Window span
+                          fluidRow(
+                            column(
+                              9,
+                              numericInput(
+                                "wordsContN",
+                                "Words",
+                                value = 50,
+                                min = 10,
+                                max = 200,
+                                step = 1
+                              )
+                            )
+                          )
+                        ),
+                        column(
+                          3,
+                          # Results summary
+                          htmlOutput("collocNetworkSummary")
+                        )
+                      ),
+                      fluidRow(
+                        column(
+                          2,
+                          # Search button
+                          actionButton(
+                            "wordsContApply",
+                            "Search",
+                            icon = icon("search"),
+                            class = "btn-success",
+                            style = "width: 200px; margin-top: 10px;"
+                          )
+                        ),
+                        column(
+                          2,
+                          # Search button
+                          actionButton(
+                            "wordsContReset",
+                            "Reset",
+                            icon = icon("remove", lib = "glyphicon"),
+                            class = "btn-error",
+                            style = "width: 200px; margin-top: 10px;"
+                          )
+                        )
+                      )
+                    )
+                  )
+                ),
+                fluidRow(
+                  tabsetPanel(
+                    type = "tabs",
+                    tabPanel(
+                      "Words in Context",
+                      fluidRow(
+                        column(
+                          12,
+                          fluidRow(
+                            column(11),
+                            div(
+                              title = "Export Table as Excel",
+                              column(
+                                1,
+                                do.call(
+                                  "actionButton",
+                                  c(
+                                    export_bttn,
+                                    list(
+                                      inputId = "wordsContSave"
+                                    )
+                                  )
+                                ),
+                                br()
+                              )
+                            )
+                          )
+                        )
+                      ),
+                      fluidRow(
+                        column(
+                          12,
+                          div(
+                            style = "height: 450px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;",
+                            shinycssloaders::withSpinner(
+                              uiOutput("wordsContHtml"),
+                              color = getOption(
+                                "spinner.color",
+                                default = "#4F7942"
+                              )
+                            )
+                          )
+                        )
+                      )
+                    ),
+                    tabPanel(
+                      "Network Plot",
+                      fluidRow(
+                        column(10),
+                        div(
+                          title = t_export,
+                          column(
+                            1,
+                            do.call(
+                              "actionButton",
+                              c(
+                                export_bttn,
+                                list(
+                                  inputId = "wordContNetExport"
+                                )
+                              )
+                            )
+                          )
+                        ),
+                        div(
+                          title = t_report,
+                          column(
+                            1,
+                            do.call(
+                              "actionButton",
+                              c(
+                                report_bttn,
+                                list(
+                                  inputId = "wordContNetReport"
+                                )
+                              )
+                            )
+                          )
+                        )
+                      ),
+                      fluidRow(
+                        shinycssloaders::withSpinner(
+                          visNetworkOutput(
+                            "wordsContNetwork",
+                            width = "auto",
+                            height = "58vh"
+                          ),
+                          color = getOption(
+                            "spinner.color",
+                            default = "#4F7942"
+                          )
+                        )
+                      )
+                    ),
+                    tabPanel(
+                      "TALL AI",
+                      fluidPage(
+                        fluidRow(
+                          column(
+                            12,
+                            br(),
+                            shinycssloaders::withSpinner(
+                              htmlOutput("ContextGeminiUI"),
+                              caption = HTML(
+                                "<br><strong>Thinking...</strong>"
+                              ),
+                              image = "ai_small2.gif",
+                              color = "#4F7942"
                             )
                           )
                         )
@@ -471,21 +473,22 @@ collocationUI <- function() {
                     )
                   )
                 )
-              ),
+              )
+            ),
 
-              # ==========================================
-              # TAB 4: INFO & REFERENCES
-              # ==========================================
-              tabPanel(
-                "Info & References",
-                fluidPage(
-                  fluidRow(
-                    column(1),
-                    column(
-                      10,
-                      br(),
-                      HTML(
-                        "<h3 style='color: #4F7942;'>Collocation Analysis</h3>
+            # ==========================================
+            # TAB 4: INFO & REFERENCES
+            # ==========================================
+            tabPanel(
+              "Info & References",
+              fluidPage(
+                fluidRow(
+                  column(1),
+                  column(
+                    10,
+                    br(),
+                    HTML(
+                      "<h3 style='color: #4F7942;'>Collocation Analysis</h3>
                         <p>This module implements collocation analysis features inspired by AntConc:</p>
                         <ul>
                           <li><b>Plot:</b> Visualizes the distribution of a target word across documents
@@ -516,10 +519,9 @@ collocationUI <- function() {
                           <li>McEnery, T., & Hardie, A. (2012). Corpus Linguistics:
                           Method, Theory and Practice. Cambridge University Press.</li>
                         </ul>"
-                      )
-                    ),
-                    column(1)
-                  )
+                    )
+                  ),
+                  column(1)
                 )
               )
             )
@@ -528,6 +530,7 @@ collocationUI <- function() {
       )
     )
   )
+  # )
 }
 
 # ============================================================================
@@ -594,92 +597,108 @@ collocationServer <- function(input, output, session, values, statsValues) {
   })
 
   # Display plot table with inline plots
-  output$collocPlotTable <- DT::renderDT({
-    req(collocResults$plot_data)
+  output$collocPlotTable <- DT::renderDT(
+    {
+      req(collocResults$plot_data)
 
-    # Sort data
-    data <- collocResults$plot_data
-    sort_by <- input$collocPlotSort
+      # Sort data
+      data <- collocResults$plot_data
+      sort_by <- input$collocPlotSort
 
-    if (sort_by == "freq") {
-      data <- data %>% arrange(desc(freq))
-    } else if (sort_by == "dispersion") {
-      data <- data %>% arrange(desc(dispersion))
-    } else if (sort_by == "doc_id") {
-      data <- data %>% arrange(doc_id)
-    }
+      if (sort_by == "freq") {
+        data <- data %>% arrange(desc(freq))
+      } else if (sort_by == "dispersion") {
+        data <- data %>% arrange(desc(dispersion))
+      } else if (sort_by == "doc_id") {
+        data <- data %>% arrange(doc_id)
+      }
 
-    # Add row numbers
-    data <- data %>%
-      mutate(
-        Row = row_number(),
-        # Calculate normalized frequency (per million tokens)
-        norm_freq = round((freq / doc_length) * 1000000, 2),
-        # Create inline plot HTML
-        Plot = createInlinePlot(
-          hit_positions,
-          doc_length,
-          300
-          # input$collocPlotZoom
-        ),
-        # Add View button
-        View = sprintf(
-          '<button class="btn btn-sm btn-primary" onclick="Shiny.setInputValue(\'collocPlotViewDoc\', \'%s\', {priority: \'event\'});" style="padding: 2px 8px; font-size: 11px;">
+      # Add row numbers
+      data <- data %>%
+        mutate(
+          Row = row_number(),
+          # Calculate normalized frequency (per million tokens)
+          norm_freq = round((freq / doc_length) * 1000000, 2),
+          # Create inline plot HTML
+          Plot = createInlinePlot(
+            hit_positions,
+            doc_length,
+            300
+            # input$collocPlotZoom
+          ),
+          # Add View button
+          View = sprintf(
+            '<button class="btn btn-sm btn-primary" onclick="Shiny.setInputValue(\'collocPlotViewDoc\', \'%s\', {priority: \'event\'});" style="padding: 2px 8px; font-size: 11px;">
             <i class="fa fa-eye"></i> View
           </button>',
-          doc_id
+            doc_id
+          )
         )
-      )
 
-    # Prepare display data
-    display_data <- data %>%
-      select(
-        Row,
-        doc_id,
-        doc_length,
-        freq,
-        norm_freq,
-        dispersion,
-        Plot,
-        View
-      ) %>%
-      rename(
-        "File ID" = doc_id,
-        "File Tokens" = doc_length,
-        "Freq" = freq,
-        "Norm Freq" = norm_freq,
-        "Dispersion" = dispersion
-      )
+      # Prepare display data
+      display_data <- data %>%
+        select(
+          Row,
+          doc_id,
+          doc_length,
+          freq,
+          norm_freq,
+          dispersion,
+          Plot,
+          View
+        ) %>%
+        rename(
+          "Doc ID" = doc_id,
+          "Doc Tokens" = doc_length,
+          "Freq" = freq,
+          "Norm Freq" = norm_freq,
+          "Dispersion" = dispersion
+        ) %>%
+        dplyr::filter(Freq > 0) # Show only documents with hits
 
-    # Create DT table
-    DT::datatable(
-      display_data,
-      selection = "none",
-      escape = FALSE, # Important: allow HTML in Plot and View columns
-      rownames = FALSE,
-      options = list(
-        pageLength = 10,
-        lengthMenu = c(10, 20, 50),
-        scrollX = TRUE,
-        dom = "lftip",
-        columnDefs = list(
-          list(width = paste0(input$collocPlotZoom, "px"), targets = 6), # Plot column
-          list(width = "80px", targets = 7), # View column
-          list(className = "dt-center", targets = 0:7)
+      # Create DT table
+      DT::datatable(
+        display_data,
+        selection = "none",
+        extensions = "Buttons",
+        escape = FALSE, # Important: allow HTML in Plot and View columns
+        rownames = FALSE,
+        options = list(
+          pageLength = 10,
+          lengthMenu = c(10, 20, 50),
+          scrollX = TRUE,
+          dom = "Blfrtip",
+          buttons = list(
+            list(
+              extend = 'excel',
+              text = '<i class="fa fa-file-excel"></i> Excel',
+              className = 'btn btn-success',
+              exportOptions = list(
+                modifier = list(page = "all") # Esporta tutte le pagine, non solo quella corrente
+              ),
+              filename = paste0("In_Documents_Table_", Sys.Date())
+            )
+          ),
+          columnDefs = list(
+            list(width = paste0(input$collocPlotZoom, "px"), targets = 6), # Plot column
+            list(width = "80px", targets = 7), # View column
+            list(className = "dt-center", targets = 0:7)
+          ),
+          initComplete = JS(
+            "function(settings, json) {",
+            "$(this.api().table().header()).css({'background-color': '#4F7942', 'color': '#fff'});",
+            "}"
+          )
         ),
-        initComplete = JS(
-          "function(settings, json) {",
-          "$(this.api().table().header()).css({'background-color': '#4F7942', 'color': '#fff'});",
-          "}"
+        class = "display compact"
+      ) %>%
+        DT::formatStyle(
+          columns = 1:8,
+          fontSize = "12px"
         )
-      ),
-      class = "display compact"
-    ) %>%
-      DT::formatStyle(
-        columns = 1:8,
-        fontSize = "12px"
-      )
-  })
+    },
+    server = FALSE
+  )
 
   # Handle View button click - show document in modal
   observeEvent(input$collocPlotViewDoc, {
@@ -815,79 +834,90 @@ collocationServer <- function(input, output, session, values, statsValues) {
   })
 
   # Display collocates table
-  output$collocCollocTable <- DT::renderDT({
-    req(collocResults$collocate_data)
+  output$collocCollocTable <- DT::renderDT(
+    {
+      req(collocResults$collocate_data)
 
-    data <- collocResults$collocate_data
+      data <- collocResults$collocate_data
 
-    # Create DT table with custom formatting
-    dt <- DT::datatable(
-      data,
-      rownames = FALSE,
-      options = list(
-        pageLength = 20,
-        lengthMenu = c(10, 20, 50, 100),
-        scrollX = TRUE,
-        dom = "Blfrtip",
-        buttons = list(
-          list(extend = "csv", filename = "collocates"),
-          list(extend = "excel", filename = "collocates")
+      # Create DT table with custom formatting
+      dt <- DT::datatable(
+        data,
+        rownames = FALSE,
+        extensions = "Buttons",
+        options = list(
+          pageLength = 15,
+          lengthMenu = c(10, 20, 50, 100),
+          scrollX = TRUE,
+          dom = "Blfrtip",
+          buttons = list(
+            list(
+              extend = 'excel',
+              text = '<i class="fa fa-file-excel"></i> Excel',
+              className = 'btn btn-success',
+              exportOptions = list(
+                modifier = list(page = "all") # Esporta tutte le pagine, non solo quella corrente
+              ),
+              filename = paste0("Collocation_Table_", Sys.Date())
+            )
+          ),
+          columnDefs = list(
+            list(className = "dt-center", targets = 1:7)
+          ),
+          initComplete = JS(
+            initComplete = JS(
+              "function(settings, json) {",
+              "$(this.api().table().header()).css({'background-color': '#4F7942', 'color': '#fff'});"
+            )
+          )
         ),
-        columnDefs = list(
-          list(className = "dt-center", targets = 1:7)
-        ),
-        initComplete = JS(
-          "function(settings, json) {",
-          "$(this.api().table().header()).css({'background-color': '#4F7942', 'color': '#fff'});",
-          "}"
-        )
-      ),
-      extensions = "Buttons",
-      class = "display compact"
-    ) %>%
-      # Format MI column: > 3 is significant
-      DT::formatStyle(
-        "MI",
-        backgroundColor = styleInterval(
-          cuts = c(3),
-          values = c("white", "#d4edda") # Light green for significant
-        ),
-        fontWeight = styleInterval(
-          cuts = c(3),
-          values = c("normal", "bold")
-        )
+        class = "display compact"
       ) %>%
-      # Format LogLik column: > 3.84 significant, > 15.13 highly significant
-      DT::formatStyle(
-        "LogLik",
-        backgroundColor = styleInterval(
-          cuts = c(3.84, 15.13),
-          values = c("white", "#d4edda", "#a8d5ba") # Light green -> darker green
-        ),
-        fontWeight = styleInterval(
-          cuts = c(3.84),
-          values = c("normal", "bold")
+        # Format MI column: > 3 is significant
+        DT::formatStyle(
+          "MI",
+          backgroundColor = styleInterval(
+            cuts = c(3),
+            values = c("white", "#d4edda") # Light green for significant
+          ),
+          fontWeight = styleInterval(
+            cuts = c(3),
+            values = c("normal", "bold")
+          )
+        ) %>%
+        # Format LogLik column: > 3.84 significant, > 15.13 highly significant
+        DT::formatStyle(
+          "LogLik",
+          backgroundColor = styleInterval(
+            cuts = c(3.84, 15.13),
+            values = c("white", "#d4edda", "#a8d5ba") # Light green -> darker green
+          ),
+          fontWeight = styleInterval(
+            cuts = c(3.84),
+            values = c("normal", "bold")
+          )
+        ) %>%
+        # Format TScore column: > 2 is significant
+        DT::formatStyle(
+          "TScore",
+          backgroundColor = styleInterval(
+            cuts = c(2),
+            values = c("white", "#d4edda") # Light green for significant
+          ),
+          fontWeight = styleInterval(
+            cuts = c(2),
+            values = c("normal", "bold")
+          )
+        ) %>%
+        DT::formatStyle(
+          columns = 0:7,
+          fontSize = "12px"
         )
-      ) %>%
-      # Format TScore column: > 2 is significant
-      DT::formatStyle(
-        "TScore",
-        backgroundColor = styleInterval(
-          cuts = c(2),
-          values = c("white", "#d4edda") # Light green for significant
-        ),
-        fontWeight = styleInterval(
-          cuts = c(2),
-          values = c("normal", "bold")
-        )
-      ) %>%
-      DT::formatStyle(
-        columns = 0:7,
-        fontSize = "12px"
-      )
 
-    return(dt)
-  })
+      return(dt)
+    },
+    server = FALSE
+  )
 
   # ============================================================================
   # TAB 3: KWIC NETWORK

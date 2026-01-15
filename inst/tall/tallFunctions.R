@@ -8770,7 +8770,8 @@ DTformat <- function(
       list(
         extend = "excel",
         filename = paste0(filename, "_tall_", sys.time()),
-        title = " ",
+        text = '<i class="fa fa-file-excel"></i> Excel',
+        className = 'btn btn-success',
         header = TRUE,
         exportOptions = list(
           modifier = list(page = "all")
@@ -8782,7 +8783,8 @@ DTformat <- function(
       list(
         extend = "excel",
         filename = paste0(filename, "_tall_", sys.time()),
-        title = " ",
+        text = '<i class="fa fa-file-excel"></i> Excel',
+        className = 'btn btn-success',
         header = TRUE,
         exportOptions = list(
           modifier = list(page = "all")
