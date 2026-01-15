@@ -34,7 +34,7 @@
 #' @import ggwordcloud
 #' @import umap
 #' @import ranger
-#' @importFrom ggplot2 ggplot
+#' @importFrom ggplot2 ggplot ggsave
 #' @importFrom readr write_csv
 #' @importFrom strucchange breakpoints
 #' @importFrom shinyjs useShinyjs

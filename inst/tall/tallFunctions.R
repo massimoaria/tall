@@ -2663,194 +2663,194 @@ Gini <- function(x, corr = FALSE, na.rm = TRUE) {
 
 ## wordcloud2vis
 
-wordcloud2vis <- function(nodes, labelsize = 7, opacity = 1) {
-  nodes <- nodes %>%
-    mutate(id = row_number())
-  # size scaling
-  scalemin <- 20 * (1 + labelsize / 5)
-  scalemax <- 100 * (1 + labelsize / 5)
-  N <- nrow(nodes)
-
-  colorlists <- colorlist()
-  colorlists <- sample(colorlists, N, replace = TRUE)
-
-  opacity.min <- 0.6
-  shape <- "text"
-  layout <- "layout_nicely"
-
-  nodes <- nodes %>%
-    mutate(
-      font.color = colorlists,
-      id = row_number(),
-      shape = shape,
-      color = colorlists,
-      title = paste(
-        "<strong>",
-        label,
-        "</strong>",
-        "<br><h5>freq = ",
-        value,
-        "</h5>",
-        sep = ""
-      )
-    )
-
-  nodes$font.size <- log(nodes$value)
-  Min <- min(nodes$font.size)
-  Max <- max(nodes$font.size)
-  if (Max > Min) {
-    size <- (nodes$font.size - Min) / (Max - Min) * 15 * labelsize + 10
-  } else {
-    size <- 10 * labelsize
-  }
-  size[size < scalemin] <- scalemin
-  size[size > scalemax] <- scalemax
-  nodes$font.size <- size
-
-  if (shape %in% c("dot", "square")) {
-    nodes$font.vadjust <- -0.7 * nodes$font.size
-  } else {
-    nodes$font.vadjust <- 0
-  }
-
-  ## opacity for label
-  opacity_font <- sqrt(
-    (nodes$font.size - min(nodes$font.size)) / diff(range(nodes$font.size))
-  ) *
-    opacity +
-    opacity.min +
-    0.1
-  if (is.nan(opacity_font[1])) {
-    opacity_font <- rep(opacity.min, length(opacity_font))
-  }
-
-  # node colors
-  nodes$opacity.nodes <- (opacity_font - min(opacity_font)) /
-    (diff(range(opacity_font))) *
-    0.5 +
-    opacity.min
-  nodes$opacity.nodes[is.nan(nodes$opacity.nodes)] <- 0.5
-
-  VIS <-
-    visNetwork::visNetwork(
-      nodes = nodes,
-      edges = NULL,
-      type = "full",
-      smooth = TRUE,
-      physics = TRUE
-    ) %>%
-    visNetwork::visNodes(
-      shadow = FALSE,
-      shape = nodes$shape,
-      font = list(
-        color = nodes$font.color,
-        size = nodes$font.size,
-        vadjust = nodes$font.vadjust
-      )
-    ) %>%
-    visNetwork::visOptions(
-      highlightNearest = list(enabled = T, hover = T, degree = 1),
-      nodesIdSelection = T
-    ) %>%
-    visNetwork::visInteraction(
-      dragNodes = TRUE,
-      navigationButtons = F,
-      hideEdgesOnDrag = TRUE,
-      zoomSpeed = 0.2
-    ) %>%
-    visEvents(
-      click = "function(nodes){
-                  Shiny.onInputChange('click', nodes.nodes[0]);
-                  ;}"
-    ) %>%
-    visNetwork::visOptions(
-      manipulation = FALSE,
-      height = "100%",
-      width = "100%"
-    )
-  return(VIS)
-}
+# wordcloud2vis <- function(nodes, labelsize = 7, opacity = 1) {
+#   nodes <- nodes %>%
+#     mutate(id = row_number())
+#   # size scaling
+#   scalemin <- 20 * (1 + labelsize / 5)
+#   scalemax <- 100 * (1 + labelsize / 5)
+#   N <- nrow(nodes)
+#
+#   colorlists <- colorlist()
+#   colorlists <- sample(colorlists, N, replace = TRUE)
+#
+#   opacity.min <- 0.6
+#   shape <- "text"
+#   layout <- "layout_nicely"
+#
+#   nodes <- nodes %>%
+#     mutate(
+#       font.color = colorlists,
+#       id = row_number(),
+#       shape = shape,
+#       color = colorlists,
+#       title = paste(
+#         "<strong>",
+#         label,
+#         "</strong>",
+#         "<br><h5>freq = ",
+#         value,
+#         "</h5>",
+#         sep = ""
+#       )
+#     )
+#
+#   nodes$font.size <- log(nodes$value)
+#   Min <- min(nodes$font.size)
+#   Max <- max(nodes$font.size)
+#   if (Max > Min) {
+#     size <- (nodes$font.size - Min) / (Max - Min) * 15 * labelsize + 10
+#   } else {
+#     size <- 10 * labelsize
+#   }
+#   size[size < scalemin] <- scalemin
+#   size[size > scalemax] <- scalemax
+#   nodes$font.size <- size
+#
+#   if (shape %in% c("dot", "square")) {
+#     nodes$font.vadjust <- -0.7 * nodes$font.size
+#   } else {
+#     nodes$font.vadjust <- 0
+#   }
+#
+#   ## opacity for label
+#   opacity_font <- sqrt(
+#     (nodes$font.size - min(nodes$font.size)) / diff(range(nodes$font.size))
+#   ) *
+#     opacity +
+#     opacity.min +
+#     0.1
+#   if (is.nan(opacity_font[1])) {
+#     opacity_font <- rep(opacity.min, length(opacity_font))
+#   }
+#
+#   # node colors
+#   nodes$opacity.nodes <- (opacity_font - min(opacity_font)) /
+#     (diff(range(opacity_font))) *
+#     0.5 +
+#     opacity.min
+#   nodes$opacity.nodes[is.nan(nodes$opacity.nodes)] <- 0.5
+#
+#   VIS <-
+#     visNetwork::visNetwork(
+#       nodes = nodes,
+#       edges = NULL,
+#       type = "full",
+#       smooth = TRUE,
+#       physics = TRUE
+#     ) %>%
+#     visNetwork::visNodes(
+#       shadow = FALSE,
+#       shape = nodes$shape,
+#       font = list(
+#         color = nodes$font.color,
+#         size = nodes$font.size,
+#         vadjust = nodes$font.vadjust
+#       )
+#     ) %>%
+#     visNetwork::visOptions(
+#       highlightNearest = list(enabled = T, hover = T, degree = 1),
+#       nodesIdSelection = T
+#     ) %>%
+#     visNetwork::visInteraction(
+#       dragNodes = TRUE,
+#       navigationButtons = F,
+#       hideEdgesOnDrag = TRUE,
+#       zoomSpeed = 0.2
+#     ) %>%
+#     visEvents(
+#       click = "function(nodes){
+#                   Shiny.onInputChange('click', nodes.nodes[0]);
+#                   ;}"
+#     ) %>%
+#     visNetwork::visOptions(
+#       manipulation = FALSE,
+#       height = "100%",
+#       width = "100%"
+#     )
+#   return(VIS)
+# }
 
 ## wordcloud function
-wordcloud2a <- function(
-  data,
-  size = 1,
-  minSize = 0,
-  gridSize = 0,
-  fontFamily = "Segoe UI",
-  fontWeight = "bold",
-  color = "random-dark",
-  backgroundColor = "transparent",
-  minRotation = -pi / 4,
-  maxRotation = pi / 4,
-  shuffle = TRUE,
-  rotateRatio = 0.4,
-  shape = "circle",
-  ellipticity = 0.65,
-  widgetsize = NULL,
-  figPath = NULL,
-  hoverFunction = NULL
-) {
-  if ("table" %in% class(data)) {
-    dataOut <- data.frame(name = names(data), freq = as.vector(data))
-  } else {
-    data <- as.data.frame(data)
-    dataOut <- data[, 1:2]
-    names(dataOut) <- c("name", "freq")
-  }
-  if (!is.null(figPath)) {
-    if (!file.exists(figPath)) {
-      stop("cannot find fig in the figPath")
-    }
-    spPath <- strsplit(figPath, "\\.")[[1]]
-    len <- length(spPath)
-    figClass <- spPath[len]
-    if (!figClass %in% c("jpeg", "jpg", "png", "bmp", "gif")) {
-      stop("file should be a jpeg, jpg, png, bmp or gif file!")
-    }
-    base64 <- base64enc::base64encode(figPath)
-    base64 <- paste0(
-      "data:image/",
-      figClass,
-      ";base64,",
-      base64
-    )
-  } else {
-    base64 <- NULL
-  }
-  weightFactor <- size * 180 / max(dataOut$freq)
-  settings <- list(
-    word = dataOut$name,
-    freq = dataOut$freq,
-    fontFamily = fontFamily,
-    fontWeight = fontWeight,
-    color = color,
-    minSize = minSize,
-    weightFactor = weightFactor,
-    backgroundColor = backgroundColor,
-    gridSize = gridSize,
-    minRotation = minRotation,
-    maxRotation = maxRotation,
-    shuffle = shuffle,
-    rotateRatio = rotateRatio,
-    shape = shape,
-    ellipticity = ellipticity,
-    figBase64 = base64,
-    hover = htmlwidgets::JS(hoverFunction)
-  )
-  chart <- htmlwidgets::createWidget(
-    "wordcloud2",
-    settings,
-    width = widgetsize[1],
-    height = widgetsize[2],
-    sizingPolicy = htmlwidgets::sizingPolicy(
-      viewer.padding = 0,
-      browser.padding = 0,
-      browser.fill = TRUE
-    )
-  )
-  chart
-}
+# wordcloud2a <- function(
+#   data,
+#   size = 1,
+#   minSize = 0,
+#   gridSize = 0,
+#   fontFamily = "Segoe UI",
+#   fontWeight = "bold",
+#   color = "random-dark",
+#   backgroundColor = "transparent",
+#   minRotation = -pi / 4,
+#   maxRotation = pi / 4,
+#   shuffle = TRUE,
+#   rotateRatio = 0.4,
+#   shape = "circle",
+#   ellipticity = 0.65,
+#   widgetsize = NULL,
+#   figPath = NULL,
+#   hoverFunction = NULL
+# ) {
+#   if ("table" %in% class(data)) {
+#     dataOut <- data.frame(name = names(data), freq = as.vector(data))
+#   } else {
+#     data <- as.data.frame(data)
+#     dataOut <- data[, 1:2]
+#     names(dataOut) <- c("name", "freq")
+#   }
+#   if (!is.null(figPath)) {
+#     if (!file.exists(figPath)) {
+#       stop("cannot find fig in the figPath")
+#     }
+#     spPath <- strsplit(figPath, "\\.")[[1]]
+#     len <- length(spPath)
+#     figClass <- spPath[len]
+#     if (!figClass %in% c("jpeg", "jpg", "png", "bmp", "gif")) {
+#       stop("file should be a jpeg, jpg, png, bmp or gif file!")
+#     }
+#     base64 <- base64enc::base64encode(figPath)
+#     base64 <- paste0(
+#       "data:image/",
+#       figClass,
+#       ";base64,",
+#       base64
+#     )
+#   } else {
+#     base64 <- NULL
+#   }
+#   weightFactor <- size * 180 / max(dataOut$freq)
+#   settings <- list(
+#     word = dataOut$name,
+#     freq = dataOut$freq,
+#     fontFamily = fontFamily,
+#     fontWeight = fontWeight,
+#     color = color,
+#     minSize = minSize,
+#     weightFactor = weightFactor,
+#     backgroundColor = backgroundColor,
+#     gridSize = gridSize,
+#     minRotation = minRotation,
+#     maxRotation = maxRotation,
+#     shuffle = shuffle,
+#     rotateRatio = rotateRatio,
+#     shape = shape,
+#     ellipticity = ellipticity,
+#     figBase64 = base64,
+#     hover = htmlwidgets::JS(hoverFunction)
+#   )
+#   chart <- htmlwidgets::createWidget(
+#     "wordcloud2",
+#     settings,
+#     width = widgetsize[1],
+#     height = widgetsize[2],
+#     sizingPolicy = htmlwidgets::sizingPolicy(
+#       viewer.padding = 0,
+#       browser.padding = 0,
+#       browser.fill = TRUE
+#     )
+#   )
+#   chart
+# }
 
 ## TFIDF functions ----
 tfidf <- function(dfTag, term = "lemma", document = "doc_id") {
@@ -7742,7 +7742,9 @@ dfLabel <- function() {
     "Empty Report",
     "Overview",
     "WordsFreq",
+    "WordCloud",
     "PoSFreq",
+    "Keyness",
     "Reinert",
     "CorrespondenceAnalysis",
     "CoWord",
@@ -7761,7 +7763,9 @@ dfLabel <- function() {
     "Empty Report",
     "Overview",
     "Words Frequency",
+    "WordCloud",
     "PoS Tag Frequency",
+    "Keyness Analysis",
     "Reinert Clustering",
     "Correspondence Analysis",
     "Co-Word Analysis",
@@ -9027,30 +9031,38 @@ plot2png <- function(p, filename, zoom = 2, type = "vis") {
 
 freqGgplot <- function(df, x = 2, y = 1, n = 20, title = "NOUN Frequency") {
   df <- df %>%
-    dplyr::slice_head(n = n) %>%
-    data.frame()
-  g <- ggplot(df, aes(x = df[, x], y = df[, y], label = df[, x])) +
+    dplyr::slice_head(n = n)
+
+  col_x <- names(df)[x]
+  col_y <- names(df)[y]
+
+  max_val <- max(df[[col_x]], na.rm = TRUE)
+  limit_x <- max_val + (max_val * 0.06)
+
+  g <- ggplot(
+    df,
+    aes(x = .data[[col_x]], y = reorder(.data[[col_y]], .data[[col_x]]))
+  ) +
     geom_col(color = "#c3d1be", fill = "#96af8e") +
     geom_text(
-      aes(label = df[, x]),
-      position = position_dodge(width = 0.9),
-      hjust = -0.4,
+      aes(label = .data[[col_x]]),
+      hjust = -0.2,
       color = "#4f7942",
       size = 3.7
     ) +
     labs(title = title, y = "", x = "Frequency") +
-    scale_y_discrete(limits = rev(df[, y])) +
     scale_x_continuous(
-      limits = c(0, df[, x] + max(df[, x]) * 0.06),
+      limits = c(0, limit_x),
       expand = c(0, 0)
     ) +
     theme(
-      axis.text.y = element_text(angle = 0, hjust = 0, size = 9),
+      axis.text.y = element_text(size = 9),
       axis.text.x = element_text(size = 10),
       panel.grid.major = element_blank(),
       panel.grid.minor = element_blank(),
       panel.background = element_blank()
     )
+
   return(g)
 }
 

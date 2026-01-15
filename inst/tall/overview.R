@@ -238,30 +238,75 @@ overviewUI <- function() {
           ),
           tabPanel(
             "WordCloud",
-            column(
-              9,
-              br(),
-              shinycssloaders::withSpinner(
-                plotOutput(
-                  outputId = "wordcloudPlot",
-                  height = "700px",
-                  width = "100%"
+            fluidPage(
+              fluidRow(
+                column(
+                  8,
+                  h3(strong("WordCloud"), align = "center")
                 ),
-                color = getOption("spinner.color", default = "#4F7942")
-              )
-            ),
-            column(
-              3,
-              div(
-                box(
-                  width = 12,
-                  fluidRow(
-                    column(
-                      12,
+                div(
+                  title = t_run,
+                  column(
+                    1,
+                    do.call(
+                      "actionButton",
+                      c(
+                        run_bttn,
+                        list(
+                          inputId = "wcApply"
+                        )
+                      )
+                    )
+                  )
+                ),
+                div(
+                  title = t_export,
+                  column(
+                    1,
+                    do.call(
+                      "actionButton",
+                      c(
+                        export_bttn,
+                        list(
+                          inputId = "wcSave"
+                        )
+                      )
+                    ),
+                  )
+                ),
+                div(
+                  title = t_report,
+                  column(
+                    1,
+                    do.call(
+                      "actionButton",
+                      c(
+                        report_bttn,
+                        list(
+                          inputId = "wcReport"
+                        )
+                      )
+                    )
+                  )
+                ),
+                div(
+                  column(
+                    1,
+                    dropdown(
+                      h4(strong("Options: ")),
+                      br(),
+
+                      # Main Configuration
                       div(
+                        class = "config-section",
+                        div(
+                          class = "config-section-header",
+                          icon("cog", lib = "glyphicon"),
+                          "Main Configuration"
+                        ),
                         numericInput(
                           "nWC",
-                          label = "Words",
+                          label = "Number of words",
                           value = 100,
                           min = 10,
                           max = 500,
@@ -270,55 +315,33 @@ overviewUI <- function() {
                         numericInput(
                           "labelsizeWC",
                           label = "Text Size",
-                          value = 10,
+                          value = 5,
                           min = 1,
                           max = 20,
                           step = 1
-                        ),
-                        style = "margin-top:-3px"
-                      )
+                        )
+                      ),
+                      style = "gradient",
+                      right = TRUE,
+                      animate = TRUE,
+                      circle = TRUE,
+                      tooltip = tooltipOptions(title = "Options"),
+                      icon = icon("sliders", lib = "font-awesome"),
+                      width = "300px"
                     )
                   ),
-                  fluidRow(
-                    column(
-                      6,
-                      div(
-                        align = "center",
-                        style = "margin-top:15px",
-                        width = 12,
-                        do.call(
-                          "actionButton",
-                          c(
-                            run_bttn,
-                            list(
-                              inputId = "wcApply"
-                            )
-                          )
-                        )
-                      )
-                    ),
-                    column(
-                      6,
-                      div(
-                        align = "center",
-                        style = "margin-top:15px",
-                        width = 12,
-                        # do.call("actionButton", c(export_bttn, list(
-                        #   inputId = "wcSave")
-                        # ))
-                        do.call(
-                          "actionButton",
-                          c(
-                            export_bttn,
-                            list(
-                              inputId = "wcSave"
-                            )
-                          )
-                        )
-                      )
-                    )
+                  style = style_opt
+                )
+              ),
+              fluidRow(
+                br(),
+                shinycssloaders::withSpinner(
+                  plotOutput(
+                    outputId = "wordcloudPlot",
+                    height = "700px",
+                    width = "100%"
                   ),
-                  align = "left"
+                  color = getOption("spinner.color", default = "#4F7942")
                 )
               )
             )
@@ -772,7 +795,7 @@ overviewServer <- function(input, output, session, values, statsValues) {
           value = n
         )
 
-      values$WC2VIS <- wordcloud(
+      values$WCplot <- wordcloud(
         values$wcDfPlot,
         shape = "circle",
         rot_per = 0.2,
@@ -786,7 +809,7 @@ overviewServer <- function(input, output, session, values, statsValues) {
 
   output$wordcloudPlot <- renderPlot({
     wcData()
-    values$WC2VIS
+    values$WCplot
   })
 
   ## export WordCloud button
@@ -797,10 +820,40 @@ overviewServer <- function(input, output, session, values, statsValues) {
     handlerExpr = {
       file <- paste("Wordcloud-", sys.time(), ".png", sep = "")
       file_path <- destFolder(file, values$wdTall)
-      plot2png(values$WC2VIS, filename = file_path, zoom = values$zoom)
+      ggsave(
+        filename = file_path,
+        plot = values$WCplot,
+        dpi = values$dpi,
+        height = values$h,
+        width = values$h * 2,
+        bg = "transparent"
+      )
+
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
+
+  ## Report
+  observeEvent(input$wcReport, {
+    if (!is.null(values$wcDfPlot)) {
+      list_df <- list(values$wcDfPlot)
+      list_plot <- list(values$WCplot)
+      wb <- addSheetToReport(
+        list_df,
+        list_plot,
+        sheetname = "WordCloud",
+        wb = values$wb
+      )
+      values$wb <- wb
+      popUp(
+        title = paste0("WordCloud"),
+        type = "success"
+      )
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type = "error")
+    }
+  })
 
   ## VOCABULARY ----
   output$dictionaryData <- renderDT(server = FALSE, {
@@ -910,6 +963,8 @@ overviewServer <- function(input, output, session, values, statsValues) {
         sep = ""
       )
       file_path <- destFolder(file, values$wdTall)
+      g = values$wFreq
+      save(g, file = "progaggplot.rdata")
       values$wFreqGgplot <- freqGgplot(
         values$wFreq,
         x = 2,
@@ -920,7 +975,7 @@ overviewServer <- function(input, output, session, values, statsValues) {
       ggsave(
         filename = file_path,
         plot = values$wFreqGgplot,
-        dpi = dpi,
+        dpi = values$dpi,
         height = values$h,
         width = values$h * 2,
         bg = "transparent"
@@ -1025,7 +1080,7 @@ overviewServer <- function(input, output, session, values, statsValues) {
       ggsave(
         filename = file,
         plot = values$posGgplot,
-        dpi = dpi,
+        dpi = values$dpi,
         height = values$h,
         width = values$h * 2,
         bg = "transparent"
