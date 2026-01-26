@@ -1432,7 +1432,7 @@ documentsServer <- function(input, output, session, values, statsValues) {
       ggsave(
         filename = file1,
         plot = values$tmHeatmap$HplotStatic,
-        dpi = dpi,
+        dpi = values$dpi,
         height = values$h,
         width = values$h * 2,
         bg = "transparent"
@@ -1440,7 +1440,7 @@ documentsServer <- function(input, output, session, values, statsValues) {
       ggsave(
         filename = file2,
         plot = values$tmGplotBeta,
-        dpi = dpi,
+        dpi = values$dpi,
         height = values$h,
         width = values$h * 2,
         bg = "transparent"
@@ -1448,7 +1448,7 @@ documentsServer <- function(input, output, session, values, statsValues) {
       ggsave(
         filename = file3,
         plot = values$tmGplotTheta,
-        dpi = dpi,
+        dpi = values$dpi,
         height = values$h,
         width = values$h * 2,
         bg = "transparent"

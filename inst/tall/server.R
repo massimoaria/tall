@@ -47,7 +47,7 @@ server <- function(input, output, session) {
   ## Setting plot values
   values$h <- 7
   values$zoom <- 2
-  dpi <- 300
+  values$dpi <- 300
   #set.seed(5)
   # load("data/regex_list.tall")
 

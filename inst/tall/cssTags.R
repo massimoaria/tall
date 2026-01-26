@@ -1,5 +1,126 @@
 cssTags <- function() {
   tagList(
+    tags$head(
+      tags$style(HTML(
+        "
+    /* Forza l'altezza minima e il colore del titolo nella box success */
+    .box.box-solid.box-success > .box-header {
+      height: 45px !important;
+      display: block !important;
+      visibility: visible !important;
+    }
+
+    .box.box-solid.box-success > .box-header .box-title {
+      color: white !important;
+      font-size: 18px !important;
+      font-weight: bold !important;
+      display: inline-block !important;
+      padding-top: 5px;
+    }
+
+    /* Rimuove margini bianchi extra tra header e tab */
+    .box-body {
+      padding-top: 0px !important;
+    }
+  "
+      ))
+    ),
+
+    ## CSS per DT
+    tags$head(
+      tags$style(HTML(
+        "
+/* Container della riga superiore: allinea tutto a sinistra */
+.dataTables_wrapper .dt-buttons,
+.dataTables_wrapper .dataTables_length {
+    display: inline-flex !important;
+    align-items: center !important;
+    vertical-align: middle !important;
+    float: left !important;
+    margin-bottom: 15px !important;
+    margin-top: 5px !important;
+}
+
+/* Bottone Excel: Stile Tall verde */
+button.dt-button.buttons-excel {
+    background-color: #4a7c59 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 6px 14px !important;
+    font-weight: bold !important;
+    margin-right: 15px !important;
+    line-height: 1.5 !important;
+    display: flex !important;
+    align-items: center !important;
+    transition: background 0.3s ease;
+}
+
+button.dt-button.buttons-excel:hover {
+    background-color: #3e6135 !important;
+}
+
+/* Selettore 'Show rows': Uniformato al pulsante Excel */
+.dataTables_length select {
+    appearance: none !important; /* Rimuove lo stile di default del browser */
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-color: #4a7c59 !important;
+    color: white !important;
+    border-radius: 4px !important;
+    padding: 6px 30px 6px 12px !important; /* Spazio a destra per la freccia */
+    font-weight: bold !important;
+    border: none !important;
+    margin: 0 10px !important;
+    cursor: pointer;
+    line-height: 1.5 !important;
+    /* Inserisce una freccia bianca personalizzata */
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path fill='white' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/></svg>') !important;
+    background-repeat: no-repeat !important;
+    background-position: right 10px center !important;
+    background-size: 10px !important;
+}
+
+.dataTables_length select:hover {
+    background-color: #3e6135 !important;
+}
+
+/* Fix per le opzioni interne (sfondo bianco per leggibilità) */
+.dataTables_length select option {
+    background-color: white !important;
+    color: #333 !important;
+}
+
+/* Label 'Show' e 'entries' */
+.dataTables_length label {
+    display: flex !important;
+    align-items: center !important;
+    margin-bottom: 0 !important;
+    font-weight: normal !important;
+}
+
+/* Barra di ricerca a destra */
+.dataTables_filter {
+    float: right !important;
+    margin-bottom: 15px !important;
+}
+
+.dataTables_filter input {
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 4px !important;
+    padding: 6px 12px !important;
+}
+
+/* Pulizia per elementi flottanti */
+.dataTables_wrapper::after {
+    content: '';
+    clear: both;
+    display: table;
+}
+"
+      ))
+    ),
+
     ## Team Card Style
     tags$head(
       tags$style(HTML(

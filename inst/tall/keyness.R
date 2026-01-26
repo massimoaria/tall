@@ -471,7 +471,7 @@ keynessServer <- function(input, output, session, values) {
 
           results <- c(
             results,
-            plot_frequency = list(plot_frequency)
+            plot_frequency
           )
         }
 
@@ -668,6 +668,85 @@ keynessServer <- function(input, output, session, values) {
     },
     bg = "white"
   )
+
+  ## Report
+  observeEvent(input$keynessReport, {
+    req(keyness_results())
+    if (!is.null(values$keyness_results)) {
+      list_df <- list(values$keyness_results$results)
+
+      if (input$keyness_approach == "reference_corpus") {
+        list_plot <- list(
+          values$keyness_results$plot_ggplot_bar,
+          values$keyness_wordcloud_plot,
+          values$keyness_results$ggplot_frequency
+        )
+      } else {
+        list_plot <- list(
+          values$keyness_results$plot_ggplot_bar,
+          values$keyness_wordcloud_plot
+        )
+      }
+      wb <- addSheetToReport(
+        list_df,
+        list_plot,
+        sheetname = "Keyness",
+        wb = values$wb
+      )
+      values$wb <- wb
+      popUp(
+        title = paste0("Keyness Analysis"),
+        type = "success"
+      )
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type = "error")
+    }
+  })
+
+  ## Export Images
+  observeEvent(
+    eventExpr = {
+      input$keynessExport
+    },
+    handlerExpr = {
+      req(keyness_results())
+      file1 <- paste("BarPlot-", sys.time(), ".png", sep = "")
+      file1 <- destFolder(file1, values$wdTall)
+      ggsave(
+        filename = file1,
+        plot = values$keyness_results$plot_ggplot_bar,
+        dpi = values$dpi,
+        height = values$h,
+        width = values$h * 2,
+        bg = "transparent"
+      )
+      file2 <- paste("WordCloud-", sys.time(), ".png", sep = "")
+      file2 <- destFolder(file2, values$wdTall)
+      ggsave(
+        filename = file2,
+        plot = values$keyness_wordcloud_plot,
+        dpi = values$dpi,
+        height = values$h,
+        width = values$h * 2,
+        bg = "transparent"
+      )
+      if (input$keyness_approach == "reference_corpus") {
+        file3 <- paste("FrequencyPlot-", sys.time(), ".png", sep = "")
+        file3 <- destFolder(file3, values$wdTall)
+        ggsave(
+          filename = file3,
+          plot = values$keyness_results$ggplot_frequency,
+          dpi = values$dpi,
+          height = values$h,
+          width = values$h * 2,
+          bg = "transparent"
+        )
+      }
+
+      popUp(title = "Saved in your working folder", type = "saved")
+    }
+  )
 }
 
 
@@ -778,14 +857,6 @@ tall_keyness_analysis <- function(
       dplyr::filter(nchar(term_col) > min.char) %>%
       dplyr::rename(token = term_col)
 
-    # freq_corpus1 <- dfTag %>%
-    #   dplyr::filter(keyness_group == 1 & upos %in% upos_list) %>%
-    #   mutate(token = tolower(token)) %>%
-    #   dplyr::group_by(token) %>%
-    #   dplyr::summarise(obsFreq = n()) %>%
-    #   ungroup() %>%
-    #   dplyr::filter(nchar(token) > min.char)
-
     # Calculate frequencies for corpus 2
     freq_corpus2 <- dfTag %>%
       dplyr::filter(keyness_group == 2 & upos %in% upos_list) %>%
@@ -797,16 +868,6 @@ tall_keyness_analysis <- function(
       dplyr::filter(nchar(term_col) > min.char) %>%
       dplyr::rename(token = term_col) %>%
       dplyr::mutate(expFreq = expFreq_raw * normalization_ratio)
-
-    # freq_corpus2 <- dfTag %>%
-    #   dplyr::filter(keyness_group == 2 & upos %in% upos_list) %>%
-    #   mutate(token = tolower(token)) %>%
-    #   dplyr::group_by(token) %>%
-    #   dplyr::summarise(expFreq_raw = n()) %>%
-    #   ungroup() %>%
-    #   dplyr::filter(nchar(token) > min.char) %>%
-    #   # Normalize frequencies of corpus 2 by scaling to corpus 1 size
-    #   dplyr::mutate(expFreq = expFreq_raw * normalization_ratio)
 
     # Join the two frequency tables
     # Keep all tokens from both corpora
@@ -1192,94 +1253,72 @@ frequency_context_analysis <- function(
   label_spacing = 0.08,
   freq_threshold = NULL
 ) {
-  # Load required libraries
   require(plotly)
   require(dplyr)
+  require(ggplot2)
 
-  # Filter words with high keyness scores (significant keywords)
+  # --- 1. Preparazione Dati ---
   high_keyness <- keyness_results %>%
     dplyr::filter(G2 >= g2_threshold) %>%
     arrange(desc(G2)) %>%
-    rename(
-      Word = token,
-      Obs_Freq = O11
-    )
+    rename(Word = token, Obs_Freq = O11)
 
-  # Identify top N high-frequency words (fundamental differences)
   high_freq_words <- high_keyness %>%
     arrange(desc(Obs_Freq)) %>%
     head(top_n) %>%
     mutate(Category = "High Frequency\n(Fundamental Differences)")
 
-  # Identify top N low-frequency words (specialized terminology)
   low_freq_words <- high_keyness %>%
     arrange(Obs_Freq) %>%
     head(top_n) %>%
     anti_join(high_freq_words, by = "Word") %>%
     mutate(Category = "Low Frequency\n(Specialized Terminology)")
 
-  # Combine selected words
   selected_words <- bind_rows(high_freq_words, low_freq_words)
 
-  # Calculate frequency threshold if not provided
   if (is.null(freq_threshold)) {
-    freq_threshold <- mean(
+    freq_threshold <- mean(c(
       min(high_freq_words$Obs_Freq),
       max(low_freq_words$Obs_Freq)
-    ) #median(selected_words$Obs_Freq)
+    ))
   }
 
-  # Transform coordinates to log scale for calculations
   selected_words <- selected_words %>%
-    mutate(
-      log_freq = log10(Obs_Freq),
-      log_g2 = log10(G2)
-    )
+    mutate(log_freq = log10(Obs_Freq), log_g2 = log10(G2))
 
-  # Calculate axis ranges for background zones (in original scale)
-  x_range_orig <- range(selected_words$Obs_Freq)
-  y_range_orig <- range(selected_words$G2)
+  x_min <- min(selected_words$Obs_Freq) * 0.5
+  x_max <- max(selected_words$Obs_Freq) * 2
+  y_min <- min(selected_words$G2) * 0.5
+  y_max <- max(selected_words$G2) * 2
 
-  # Extend ranges for better visualization
-  x_min <- x_range_orig[1] * 0.5
-  x_max <- x_range_orig[2] * 2
-  y_min <- y_range_orig[1] * 0.5
-  y_max <- y_range_orig[2] * 2
-
-  # Algorithm to adjust label positions alternating above/below for nearby points
-  # with increased spacing for low frequency words
+  # --- 2. Algoritmo di Posizionamento (Ottimale per Plotly) ---
   adjust_labels_alternating <- function(df, spacing = label_spacing) {
     df <- df %>% arrange(log_freq, log_g2)
-
-    # Initialize adjusted positions and anchor positions
     df$label_x <- df$log_freq
     df$label_y <- df$log_g2
-    df$yanchor <- "bottom" # Default: label above point
-
-    # Set spacing multiplier based on category (more space for low frequency)
+    df$yanchor <- "bottom"
     df$spacing_mult <- ifelse(
       df$Category == "Low Frequency\n(Specialized Terminology)",
       2.5,
       1.0
     )
 
-    # Identify clusters of nearby points
     clusters <- list()
     current_cluster <- c(1)
-
     for (i in 2:nrow(df)) {
-      # Check if point i is close to any point in current cluster
       is_close <- FALSE
       for (j in current_cluster) {
-        dx <- df$log_freq[i] - df$log_freq[j]
-        dy <- df$log_g2[i] - df$log_g2[j]
-        dist <- sqrt(dx^2 + dy^2)
-        if (dist < spacing * 2) {
+        if (
+          sqrt(
+            (df$log_freq[i] - df$log_freq[j])^2 +
+              (df$log_g2[i] - df$log_g2[j])^2
+          ) <
+            spacing * 2
+        ) {
           is_close <- TRUE
           break
         }
       }
-
       if (is_close) {
         current_cluster <- c(current_cluster, i)
       } else {
@@ -1289,32 +1328,25 @@ frequency_context_analysis <- function(
         current_cluster <- c(i)
       }
     }
-    # Add last cluster
     if (length(current_cluster) > 1) {
       clusters[[length(clusters) + 1]] <- current_cluster
     }
 
-    # For each cluster, alternate labels above and below with increased distance for low freq
     for (cluster in clusters) {
-      # Sort cluster by G2 value (vertical position)
       cluster_sorted <- cluster[order(df$log_g2[cluster])]
-
-      # Alternate anchor positions
       for (idx in seq_along(cluster_sorted)) {
         i <- cluster_sorted[idx]
         mult <- df$spacing_mult[i]
-
         if (idx %% 2 == 0) {
-          df$yanchor[i] <- "top" # Label below point
+          df$yanchor[i] <- "top"
           df$label_y[i] <- df$log_g2[i] - spacing * 0.5 * mult
         } else {
-          df$yanchor[i] <- "bottom" # Label above point
+          df$yanchor[i] <- "bottom"
           df$label_y[i] <- df$log_g2[i] + spacing * 0.5 * mult
         }
       }
     }
 
-    # Additional refinement: push labels apart if still overlapping
     for (iter in 1:30) {
       moved <- FALSE
       for (i in 1:nrow(df)) {
@@ -1322,51 +1354,37 @@ frequency_context_analysis <- function(
           if (i >= j) {
             next
           }
-
           dx <- df$label_x[i] - df$label_x[j]
           dy <- df$label_y[i] - df$label_y[j]
           dist <- sqrt(dx^2 + dy^2)
-
-          # Use max spacing multiplier for the pair
-          max_mult <- max(df$spacing_mult[i], df$spacing_mult[j])
-          min_dist <- spacing * 0.8 * max_mult
-
-          # If labels are still too close, push them apart
+          min_dist <- spacing *
+            0.8 *
+            max(df$spacing_mult[i], df$spacing_mult[j])
           if (dist < min_dist && dist > 0) {
-            push_x <- dx / dist * (min_dist - dist) / 2
-            push_y <- dy / dist * (min_dist - dist) / 2
-
-            df$label_x[i] <- df$label_x[i] + push_x
-            df$label_x[j] <- df$label_x[j] - push_x
-            df$label_y[i] <- df$label_y[i] + push_y
-            df$label_y[j] <- df$label_y[j] - push_y
+            df$label_x[i] <- df$label_x[i] + (dx / dist * (min_dist - dist) / 2)
+            df$label_x[j] <- df$label_x[j] - (dx / dist * (min_dist - dist) / 2)
+            df$label_y[i] <- df$label_y[i] + (dy / dist * (min_dist - dist) / 2)
+            df$label_y[j] <- df$label_y[j] - (dy / dist * (min_dist - dist) / 2)
             moved <- TRUE
           }
         }
       }
       if (!moved) break
     }
-
     return(df)
   }
 
-  # Adjust label positions with alternating strategy
-  selected_words <- adjust_labels_alternating(
-    selected_words,
-    spacing = label_spacing
-  )
+  selected_words <- adjust_labels_alternating(selected_words)
 
-  # Create base scatter plot
-  p <- plot_ly() %>%
-    # Add data points for high frequency words
+  # --- 3. Versione PLOTLY (Invariata) ---
+  p_plotly <- plot_ly() %>%
     add_trace(
-      data = selected_words %>%
-        filter(Category == "High Frequency\n(Fundamental Differences)"),
+      data = selected_words %>% filter(grepl("High", Category)),
       x = ~Obs_Freq,
       y = ~G2,
       type = "scatter",
       mode = "markers",
-      name = "High Frequency<br>(Fundamental Differences)",
+      name = "High Frequency",
       marker = list(
         size = 12,
         color = "#FF8C00",
@@ -1374,22 +1392,15 @@ frequency_context_analysis <- function(
         opacity = 0.8
       ),
       text = ~Word,
-      hovertemplate = paste(
-        "<b>%{text}</b><br>",
-        "Frequency: %{x}<br>",
-        "G² Score: %{y:.2f}<br>",
-        "<extra></extra>"
-      )
+      hovertemplate = "<b>%{text}</b><br>Freq: %{x}<br>G²: %{y:.2f}<extra></extra>"
     ) %>%
-    # Add data points for low frequency words
     add_trace(
-      data = selected_words %>%
-        filter(Category == "Low Frequency\n(Specialized Terminology)"),
+      data = selected_words %>% filter(grepl("Low", Category)),
       x = ~Obs_Freq,
       y = ~G2,
       type = "scatter",
       mode = "markers",
-      name = "Low Frequency<br>(Specialized Terminology)",
+      name = "Low Frequency",
       marker = list(
         size = 12,
         color = "#8B4789",
@@ -1397,18 +1408,11 @@ frequency_context_analysis <- function(
         opacity = 0.8
       ),
       text = ~Word,
-      hovertemplate = paste(
-        "<b>%{text}</b><br>",
-        "Frequency: %{x}<br>",
-        "G² Score: %{y:.2f}<br>",
-        "<extra></extra>"
-      )
+      hovertemplate = "<b>%{text}</b><br>Freq: %{x}<br>G²: %{y:.2f}<extra></extra>"
     )
 
-  # Add annotations for labels with adjusted positions and alternating anchors
   annotations_list <- lapply(1:nrow(selected_words), function(i) {
     row <- selected_words[i, ]
-
     list(
       x = log10(row$Obs_Freq),
       y = log10(row$G2),
@@ -1416,55 +1420,23 @@ frequency_context_analysis <- function(
       yref = "y",
       text = row$Word,
       xanchor = "center",
-      yanchor = row$yanchor, # Alternating between "top" and "bottom"
+      yanchor = row$yanchor,
       showarrow = TRUE,
       arrowhead = 0,
-      arrowsize = 0.5,
-      arrowwidth = 1,
-      arrowcolor = "rgba(128,128,128,0.5)",
       ax = (row$label_x - log10(row$Obs_Freq)) * 100,
       ay = (row$label_y - log10(row$G2)) * 100,
-      font = list(size = 10, color = "black"),
+      font = list(size = 10),
       bgcolor = "rgba(255,255,255,0.5)",
       bordercolor = "rgba(128,128,128,0.6)",
-      borderwidth = 0.5,
-      borderpad = 2
+      borderwidth = 0.5
     )
   })
 
-  # Finalize layout with background shapes and legend
-  p <- p %>%
+  p_plotly <- p_plotly %>%
     layout(
-      xaxis = list(
-        title = "Observed Frequency (Target Corpus)",
-        type = "log",
-        gridcolor = "#E0E0E0",
-        showline = TRUE,
-        linecolor = "#CCCCCC"
-      ),
-      yaxis = list(
-        title = "G² Keyness Score",
-        type = "log",
-        gridcolor = "#E0E0E0",
-        showline = TRUE,
-        linecolor = "#CCCCCC"
-      ),
-      plot_bgcolor = "#F8F9FA",
-      paper_bgcolor = "white",
-      hovermode = "closest",
-      showlegend = TRUE,
-      legend = list(
-        x = 0.02,
-        y = 0.98,
-        xanchor = "left",
-        yanchor = "top",
-        bgcolor = "rgba(255,255,255,0.8)",
-        bordercolor = "#CCCCCC",
-        borderwidth = 1
-      ),
-      # Add background rectangles using shapes (coordinates in original scale for log axes)
+      xaxis = list(title = "Observed Frequency", type = "log"),
+      yaxis = list(title = "G² Keyness Score", type = "log"),
       shapes = list(
-        # Low frequency zone (specialized terminology) - light purple
         list(
           type = "rect",
           xref = "x",
@@ -1473,11 +1445,10 @@ frequency_context_analysis <- function(
           y0 = y_min,
           x1 = freq_threshold,
           y1 = y_max,
-          fillcolor = "rgba(139, 71, 137, 0.08)", # Purple shade matching the points
+          fillcolor = "rgba(139, 71, 137, 0.08)",
           line = list(width = 0),
           layer = "below"
         ),
-        # High frequency zone (fundamental differences) - light orange
         list(
           type = "rect",
           xref = "x",
@@ -1486,32 +1457,78 @@ frequency_context_analysis <- function(
           y0 = y_min,
           x1 = x_max,
           y1 = y_max,
-          fillcolor = "rgba(255, 140, 0, 0.08)", # Orange shade matching the points
+          fillcolor = "rgba(255, 140, 0, 0.08)",
           line = list(width = 0),
           layer = "below"
         )
       ),
-      margin = list(r = 80, b = 100, l = 80, t = 80),
-      annotations = c(
-        annotations_list,
-        list(
-          list(
-            text = paste(
-              "High keyness threshold: G² ≥",
-              round(g2_threshold, 1)
-            ),
-            xref = "paper",
-            yref = "paper",
-            x = 0.01,
-            y = -0.15,
-            xanchor = "left",
-            yanchor = "top",
-            showarrow = FALSE,
-            font = list(size = 10, color = "gray")
-          )
-        )
-      )
+      annotations = annotations_list
     )
 
-  return(p)
+  # --- 4. Versione GGPLOT2 (Con contrazione segmenti) ---
+
+  # Creiamo coordinate specifiche per ggplot riducendo la distanza dal punto del 60% (moltiplicatore 0.4)
+  selected_words <- selected_words %>%
+    mutate(
+      gg_label_x = log_freq + (label_x - log_freq) * 0.4,
+      gg_label_y = log_g2 + (label_y - log_g2) * 0.4
+    )
+
+  p_ggplot <- ggplot(selected_words, aes(x = Obs_Freq, y = G2)) +
+    annotate(
+      "rect",
+      xmin = x_min,
+      xmax = freq_threshold,
+      ymin = y_min,
+      ymax = y_max,
+      fill = "#8B4789",
+      alpha = 0.08
+    ) +
+    annotate(
+      "rect",
+      xmin = freq_threshold,
+      xmax = x_max,
+      ymin = y_min,
+      ymax = y_max,
+      fill = "#FF8C00",
+      alpha = 0.08
+    ) +
+    # Segmenti accorciati
+    geom_segment(
+      aes(xend = 10^gg_label_x, yend = 10^gg_label_y),
+      color = "grey80",
+      size = 0.3
+    ) +
+    geom_point(
+      aes(fill = Category),
+      shape = 21,
+      size = 4,
+      color = "white",
+      stroke = 1
+    ) +
+    # Etichette posizionate più vicine
+    geom_label(
+      aes(x = 10^gg_label_x, y = 10^gg_label_y, label = Word),
+      size = 2.8,
+      label.padding = unit(0.1, "lines"),
+      alpha = 0.9,
+      label.size = 0.1
+    ) +
+    scale_x_log10(limits = c(x_min, x_max), expand = c(0, 0)) +
+    scale_y_log10(limits = c(y_min, y_max), expand = c(0, 0)) +
+    scale_fill_manual(
+      values = c(
+        "High Frequency\n(Fundamental Differences)" = "#FF8C00",
+        "Low Frequency\n(Specialized Terminology)" = "#8B4789"
+      )
+    ) +
+    labs(
+      title = title,
+      x = "Observed Frequency (Target Corpus)",
+      y = "G² Keyness Score"
+    ) +
+    theme_minimal() +
+    theme(legend.position = "bottom", panel.grid.minor = element_blank())
+
+  return(list(plot_frequency = p_plotly, ggplot_frequency = p_ggplot))
 }

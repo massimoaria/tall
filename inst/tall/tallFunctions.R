@@ -1155,80 +1155,73 @@ rebuild_documents <- function(df) {
 
 ### SPLIT TEXT INTO SUB-DOCS
 splitDoc <- function(df, word) {
-  # If the word is too short, return the original dataframe without splitting
   if (nchar(word) <= 3) {
     return(df)
   }
 
-  # Filter only selected documents
   df <- df %>% filter(doc_selected)
+
+  if ("split_word" %in% names(df)) {
+    df <- df %>% select(-split_word)
+  }
+  if ("doc_id_old" %in% names(df)) {
+    df <- df %>% select(-doc_id_old)
+  }
+
   df_splitted <- list()
   n <- nrow(df)
 
-  # Loop through each document and split by the word
   for (i in seq_len(n)) {
     testo <- df$text[i]
-
-    # Split by the word and keep it in the result
-    # Strategy: replace the word with a unique delimiter + word
-    delimiter <- "\u0001SPLIT_HERE\u0001" # Use a unique character unlikely to appear in text
+    delimiter <- "\u0001SPLIT_HERE\u0001"
     testo_marked <- gsub(word, paste0(delimiter, word), testo, fixed = TRUE)
-
-    # Split by the delimiter
     parti <- unlist(strsplit(testo_marked, delimiter, fixed = TRUE))
-
-    # Remove empty parts and trim whitespace
     parti <- parti[nchar(trimws(parti)) > 0]
-
     df_splitted[[i]] <- parti
   }
 
-  # Create globally unique doc_ids
   doc_id_old <- rep(df$doc_id, lengths(df_splitted))
   total_docs <- sum(lengths(df_splitted))
-
-  # Calculate correct padding based on total number of documents
   padding <- nchar(as.character(total_docs))
 
-  # Build the result dataframe
   df_result <- data.frame(
-    doc_id = paste0(
-      "doc_",
-      sprintf(paste0("%0", padding, "d"), 1:total_docs)
-    ),
+    doc_id = paste0("doc_", sprintf(paste0("%0", padding, "d"), 1:total_docs)),
     text = unlist(df_splitted),
     doc_id_old = doc_id_old,
     doc_selected = TRUE,
     stringsAsFactors = FALSE
-  ) %>%
-    left_join(
-      df %>%
-        select(-c("doc_selected", "text")),
-      by = c("doc_id_old" = "doc_id")
-    ) %>%
-    mutate(
-      text_original = text,
-      split_word = word
-    )
+  )
+
+  df_for_join <- df %>% select(-c(text, doc_selected))
+
+  df_result <- df_result %>%
+    left_join(df_for_join, by = c("doc_id_old" = "doc_id")) %>%
+    mutate(split_word = word)
 
   return(df_result)
 }
 
 unsplitDoc <- function(df) {
   if ("doc_id_old" %in% names(df)) {
-    word <- unique(df$split_word)
-    df <- df %>%
+    text_rejoined <- df %>%
       group_by(doc_id_old) %>%
-      mutate(
-        text = paste(text, collapse = word),
-        doc_id = doc_id_old
-      ) %>%
+      summarise(text = paste(text, collapse = ""), .groups = "drop")
+
+    cols_to_exclude <- c("doc_id", "text", "doc_selected", "split_word")
+
+    other_columns <- df %>%
+      group_by(doc_id_old) %>%
+      slice(1) %>%
       ungroup() %>%
-      select(-c("doc_id_old", "split_word")) %>%
-      distinct(doc_id, .keep_all = TRUE) %>%
-      mutate(doc_selected = TRUE) %>%
+      select(-all_of(cols_to_exclude))
+
+    df <- text_rejoined %>%
+      left_join(other_columns, by = "doc_id_old") %>%
+      mutate(doc_id = doc_id_old, doc_selected = TRUE) %>%
+      select(-doc_id_old) %>%
       arrange(doc_id)
   }
+
   return(df)
 }
 
@@ -2670,194 +2663,194 @@ Gini <- function(x, corr = FALSE, na.rm = TRUE) {
 
 ## wordcloud2vis
 
-wordcloud2vis <- function(nodes, labelsize = 7, opacity = 1) {
-  nodes <- nodes %>%
-    mutate(id = row_number())
-  # size scaling
-  scalemin <- 20 * (1 + labelsize / 5)
-  scalemax <- 100 * (1 + labelsize / 5)
-  N <- nrow(nodes)
-
-  colorlists <- colorlist()
-  colorlists <- sample(colorlists, N, replace = TRUE)
-
-  opacity.min <- 0.6
-  shape <- "text"
-  layout <- "layout_nicely"
-
-  nodes <- nodes %>%
-    mutate(
-      font.color = colorlists,
-      id = row_number(),
-      shape = shape,
-      color = colorlists,
-      title = paste(
-        "<strong>",
-        label,
-        "</strong>",
-        "<br><h5>freq = ",
-        value,
-        "</h5>",
-        sep = ""
-      )
-    )
-
-  nodes$font.size <- log(nodes$value)
-  Min <- min(nodes$font.size)
-  Max <- max(nodes$font.size)
-  if (Max > Min) {
-    size <- (nodes$font.size - Min) / (Max - Min) * 15 * labelsize + 10
-  } else {
-    size <- 10 * labelsize
-  }
-  size[size < scalemin] <- scalemin
-  size[size > scalemax] <- scalemax
-  nodes$font.size <- size
-
-  if (shape %in% c("dot", "square")) {
-    nodes$font.vadjust <- -0.7 * nodes$font.size
-  } else {
-    nodes$font.vadjust <- 0
-  }
-
-  ## opacity for label
-  opacity_font <- sqrt(
-    (nodes$font.size - min(nodes$font.size)) / diff(range(nodes$font.size))
-  ) *
-    opacity +
-    opacity.min +
-    0.1
-  if (is.nan(opacity_font[1])) {
-    opacity_font <- rep(opacity.min, length(opacity_font))
-  }
-
-  # node colors
-  nodes$opacity.nodes <- (opacity_font - min(opacity_font)) /
-    (diff(range(opacity_font))) *
-    0.5 +
-    opacity.min
-  nodes$opacity.nodes[is.nan(nodes$opacity.nodes)] <- 0.5
-
-  VIS <-
-    visNetwork::visNetwork(
-      nodes = nodes,
-      edges = NULL,
-      type = "full",
-      smooth = TRUE,
-      physics = TRUE
-    ) %>%
-    visNetwork::visNodes(
-      shadow = FALSE,
-      shape = nodes$shape,
-      font = list(
-        color = nodes$font.color,
-        size = nodes$font.size,
-        vadjust = nodes$font.vadjust
-      )
-    ) %>%
-    visNetwork::visOptions(
-      highlightNearest = list(enabled = T, hover = T, degree = 1),
-      nodesIdSelection = T
-    ) %>%
-    visNetwork::visInteraction(
-      dragNodes = TRUE,
-      navigationButtons = F,
-      hideEdgesOnDrag = TRUE,
-      zoomSpeed = 0.2
-    ) %>%
-    visEvents(
-      click = "function(nodes){
-                  Shiny.onInputChange('click', nodes.nodes[0]);
-                  ;}"
-    ) %>%
-    visNetwork::visOptions(
-      manipulation = FALSE,
-      height = "100%",
-      width = "100%"
-    )
-  return(VIS)
-}
+# wordcloud2vis <- function(nodes, labelsize = 7, opacity = 1) {
+#   nodes <- nodes %>%
+#     mutate(id = row_number())
+#   # size scaling
+#   scalemin <- 20 * (1 + labelsize / 5)
+#   scalemax <- 100 * (1 + labelsize / 5)
+#   N <- nrow(nodes)
+#
+#   colorlists <- colorlist()
+#   colorlists <- sample(colorlists, N, replace = TRUE)
+#
+#   opacity.min <- 0.6
+#   shape <- "text"
+#   layout <- "layout_nicely"
+#
+#   nodes <- nodes %>%
+#     mutate(
+#       font.color = colorlists,
+#       id = row_number(),
+#       shape = shape,
+#       color = colorlists,
+#       title = paste(
+#         "<strong>",
+#         label,
+#         "</strong>",
+#         "<br><h5>freq = ",
+#         value,
+#         "</h5>",
+#         sep = ""
+#       )
+#     )
+#
+#   nodes$font.size <- log(nodes$value)
+#   Min <- min(nodes$font.size)
+#   Max <- max(nodes$font.size)
+#   if (Max > Min) {
+#     size <- (nodes$font.size - Min) / (Max - Min) * 15 * labelsize + 10
+#   } else {
+#     size <- 10 * labelsize
+#   }
+#   size[size < scalemin] <- scalemin
+#   size[size > scalemax] <- scalemax
+#   nodes$font.size <- size
+#
+#   if (shape %in% c("dot", "square")) {
+#     nodes$font.vadjust <- -0.7 * nodes$font.size
+#   } else {
+#     nodes$font.vadjust <- 0
+#   }
+#
+#   ## opacity for label
+#   opacity_font <- sqrt(
+#     (nodes$font.size - min(nodes$font.size)) / diff(range(nodes$font.size))
+#   ) *
+#     opacity +
+#     opacity.min +
+#     0.1
+#   if (is.nan(opacity_font[1])) {
+#     opacity_font <- rep(opacity.min, length(opacity_font))
+#   }
+#
+#   # node colors
+#   nodes$opacity.nodes <- (opacity_font - min(opacity_font)) /
+#     (diff(range(opacity_font))) *
+#     0.5 +
+#     opacity.min
+#   nodes$opacity.nodes[is.nan(nodes$opacity.nodes)] <- 0.5
+#
+#   VIS <-
+#     visNetwork::visNetwork(
+#       nodes = nodes,
+#       edges = NULL,
+#       type = "full",
+#       smooth = TRUE,
+#       physics = TRUE
+#     ) %>%
+#     visNetwork::visNodes(
+#       shadow = FALSE,
+#       shape = nodes$shape,
+#       font = list(
+#         color = nodes$font.color,
+#         size = nodes$font.size,
+#         vadjust = nodes$font.vadjust
+#       )
+#     ) %>%
+#     visNetwork::visOptions(
+#       highlightNearest = list(enabled = T, hover = T, degree = 1),
+#       nodesIdSelection = T
+#     ) %>%
+#     visNetwork::visInteraction(
+#       dragNodes = TRUE,
+#       navigationButtons = F,
+#       hideEdgesOnDrag = TRUE,
+#       zoomSpeed = 0.2
+#     ) %>%
+#     visEvents(
+#       click = "function(nodes){
+#                   Shiny.onInputChange('click', nodes.nodes[0]);
+#                   ;}"
+#     ) %>%
+#     visNetwork::visOptions(
+#       manipulation = FALSE,
+#       height = "100%",
+#       width = "100%"
+#     )
+#   return(VIS)
+# }
 
 ## wordcloud function
-wordcloud2a <- function(
-  data,
-  size = 1,
-  minSize = 0,
-  gridSize = 0,
-  fontFamily = "Segoe UI",
-  fontWeight = "bold",
-  color = "random-dark",
-  backgroundColor = "transparent",
-  minRotation = -pi / 4,
-  maxRotation = pi / 4,
-  shuffle = TRUE,
-  rotateRatio = 0.4,
-  shape = "circle",
-  ellipticity = 0.65,
-  widgetsize = NULL,
-  figPath = NULL,
-  hoverFunction = NULL
-) {
-  if ("table" %in% class(data)) {
-    dataOut <- data.frame(name = names(data), freq = as.vector(data))
-  } else {
-    data <- as.data.frame(data)
-    dataOut <- data[, 1:2]
-    names(dataOut) <- c("name", "freq")
-  }
-  if (!is.null(figPath)) {
-    if (!file.exists(figPath)) {
-      stop("cannot find fig in the figPath")
-    }
-    spPath <- strsplit(figPath, "\\.")[[1]]
-    len <- length(spPath)
-    figClass <- spPath[len]
-    if (!figClass %in% c("jpeg", "jpg", "png", "bmp", "gif")) {
-      stop("file should be a jpeg, jpg, png, bmp or gif file!")
-    }
-    base64 <- base64enc::base64encode(figPath)
-    base64 <- paste0(
-      "data:image/",
-      figClass,
-      ";base64,",
-      base64
-    )
-  } else {
-    base64 <- NULL
-  }
-  weightFactor <- size * 180 / max(dataOut$freq)
-  settings <- list(
-    word = dataOut$name,
-    freq = dataOut$freq,
-    fontFamily = fontFamily,
-    fontWeight = fontWeight,
-    color = color,
-    minSize = minSize,
-    weightFactor = weightFactor,
-    backgroundColor = backgroundColor,
-    gridSize = gridSize,
-    minRotation = minRotation,
-    maxRotation = maxRotation,
-    shuffle = shuffle,
-    rotateRatio = rotateRatio,
-    shape = shape,
-    ellipticity = ellipticity,
-    figBase64 = base64,
-    hover = htmlwidgets::JS(hoverFunction)
-  )
-  chart <- htmlwidgets::createWidget(
-    "wordcloud2",
-    settings,
-    width = widgetsize[1],
-    height = widgetsize[2],
-    sizingPolicy = htmlwidgets::sizingPolicy(
-      viewer.padding = 0,
-      browser.padding = 0,
-      browser.fill = TRUE
-    )
-  )
-  chart
-}
+# wordcloud2a <- function(
+#   data,
+#   size = 1,
+#   minSize = 0,
+#   gridSize = 0,
+#   fontFamily = "Segoe UI",
+#   fontWeight = "bold",
+#   color = "random-dark",
+#   backgroundColor = "transparent",
+#   minRotation = -pi / 4,
+#   maxRotation = pi / 4,
+#   shuffle = TRUE,
+#   rotateRatio = 0.4,
+#   shape = "circle",
+#   ellipticity = 0.65,
+#   widgetsize = NULL,
+#   figPath = NULL,
+#   hoverFunction = NULL
+# ) {
+#   if ("table" %in% class(data)) {
+#     dataOut <- data.frame(name = names(data), freq = as.vector(data))
+#   } else {
+#     data <- as.data.frame(data)
+#     dataOut <- data[, 1:2]
+#     names(dataOut) <- c("name", "freq")
+#   }
+#   if (!is.null(figPath)) {
+#     if (!file.exists(figPath)) {
+#       stop("cannot find fig in the figPath")
+#     }
+#     spPath <- strsplit(figPath, "\\.")[[1]]
+#     len <- length(spPath)
+#     figClass <- spPath[len]
+#     if (!figClass %in% c("jpeg", "jpg", "png", "bmp", "gif")) {
+#       stop("file should be a jpeg, jpg, png, bmp or gif file!")
+#     }
+#     base64 <- base64enc::base64encode(figPath)
+#     base64 <- paste0(
+#       "data:image/",
+#       figClass,
+#       ";base64,",
+#       base64
+#     )
+#   } else {
+#     base64 <- NULL
+#   }
+#   weightFactor <- size * 180 / max(dataOut$freq)
+#   settings <- list(
+#     word = dataOut$name,
+#     freq = dataOut$freq,
+#     fontFamily = fontFamily,
+#     fontWeight = fontWeight,
+#     color = color,
+#     minSize = minSize,
+#     weightFactor = weightFactor,
+#     backgroundColor = backgroundColor,
+#     gridSize = gridSize,
+#     minRotation = minRotation,
+#     maxRotation = maxRotation,
+#     shuffle = shuffle,
+#     rotateRatio = rotateRatio,
+#     shape = shape,
+#     ellipticity = ellipticity,
+#     figBase64 = base64,
+#     hover = htmlwidgets::JS(hoverFunction)
+#   )
+#   chart <- htmlwidgets::createWidget(
+#     "wordcloud2",
+#     settings,
+#     width = widgetsize[1],
+#     height = widgetsize[2],
+#     sizingPolicy = htmlwidgets::sizingPolicy(
+#       viewer.padding = 0,
+#       browser.padding = 0,
+#       browser.fill = TRUE
+#     )
+#   )
+#   chart
+# }
 
 ## TFIDF functions ----
 tfidf <- function(dfTag, term = "lemma", document = "doc_id") {
@@ -7749,7 +7742,10 @@ dfLabel <- function() {
     "Empty Report",
     "Overview",
     "WordsFreq",
+    "WordCloud",
     "PoSFreq",
+    "Keyness",
+    "KWICNetwork",
     "Reinert",
     "CorrespondenceAnalysis",
     "CoWord",
@@ -7768,7 +7764,10 @@ dfLabel <- function() {
     "Empty Report",
     "Overview",
     "Words Frequency",
+    "WordCloud",
     "PoS Tag Frequency",
+    "Keyness Analysis",
+    "KWIC Network Analysis",
     "Reinert Clustering",
     "Correspondence Analysis",
     "Co-Word Analysis",
@@ -8688,77 +8687,6 @@ menuList <- function(menu) {
 }
 
 # DATA TABLE FORMAT ----
-#' Format Data Table for Display
-#'
-#' Creates a formatted DT::datatable with customizable options for displaying
-#' data frames in Shiny applications. Supports features like Excel export,
-#' column truncation, custom buttons, and various styling options.
-#'
-#' @param df Data frame to display
-#' @param nrow Number of rows to display per page (default: 10)
-#' @param filename Base filename for Excel export
-#' @param pagelength Logical. If TRUE, includes page length selector button
-#' @param left Column indices to left-align
-#' @param right Column indices to right-align
-#' @param numeric Column indices containing numeric values to round
-#' @param dom Logical or character. If TRUE, uses "Brtip" layout. If FALSE, uses "Bt"
-#' @param size Font size for table cells (default: "85%")
-#' @param filter Filter position: "top", "bottom", or "none"
-#' @param columnShort Column indices to truncate at 500 characters with ellipsis
-#' @param columnSmall Currently unused parameter
-#' @param round Number of decimal places for numeric columns (default: 2)
-#' @param title Table title displayed above the table
-#' @param button Logical. If TRUE, adds a "View" button using doc_id
-#' @param delete Logical. If TRUE, adds a "Remove" button using doc_id
-#' @param escape Logical. If TRUE, escapes HTML in table cells
-#' @param selection Logical. If TRUE, enables row selection with select all/none buttons
-#' @param specialtags Logical. If TRUE, adds special entity frequency distribution button
-#' @param col_to_remove Character string. If "lemma", hides "token" column. If "token", hides "lemma" column. If NULL, no columns are removed (default: NULL)
-#'
-#' @return A DT::datatable object with specified formatting and options
-#'
-#' @details
-#' The function automatically centers all columns and provides Excel export functionality.
-#' If a "text" column exists, it removes angle brackets to prevent rendering issues.
-#' The table includes fixed headers, column reordering capabilities, and horizontal scrolling.
-#'
-#' @keywords internal
-#' Format Data Table for Display
-#'
-#' Creates a formatted DT::datatable with customizable options for displaying
-#' data frames in Shiny applications. Supports features like Excel export,
-#' column truncation, custom buttons, and various styling options.
-#'
-#' @param df Data frame to display
-#' @param nrow Number of rows to display per page (default: 10)
-#' @param filename Base filename for Excel export
-#' @param pagelength Logical. If TRUE, includes page length selector button
-#' @param left Column indices to left-align
-#' @param right Column indices to right-align
-#' @param numeric Column indices containing numeric values to round
-#' @param dom Logical or character. If TRUE, uses "Brtip" layout. If FALSE, uses "Bt"
-#' @param size Font size for table cells (default: "85%")
-#' @param filter Filter position: "top", "bottom", or "none"
-#' @param columnShort Column indices to truncate at 500 characters with ellipsis
-#' @param columnSmall Currently unused parameter
-#' @param round Number of decimal places for numeric columns (default: 2)
-#' @param title Table title displayed above the table
-#' @param button Logical. If TRUE, adds a "View" button using doc_id
-#' @param delete Logical. If TRUE, adds a "Remove" button using doc_id
-#' @param escape Logical. If TRUE, escapes HTML in table cells
-#' @param selection Logical. If TRUE, enables row selection with select all/none buttons
-#' @param specialtags Logical. If TRUE, adds special entity frequency distribution button
-#' @param col_to_remove Character string. If "lemma" or "Lemma", hides "token"/"Token" column.
-#'   If "token" or "Token", hides "lemma"/"Lemma" column. If NULL, no columns are removed (default: NULL)
-#'
-#' @return A DT::datatable object with specified formatting and options
-#'
-#' @details
-#' The function automatically centers all columns and provides Excel export functionality.
-#' If a "text" column exists, it removes angle brackets to prevent rendering issues.
-#' The table includes fixed headers, column reordering capabilities, and horizontal scrolling.
-#'
-#' @keywords internal
 DTformat <- function(
   df,
   nrow = 10,
@@ -8781,13 +8709,17 @@ DTformat <- function(
   specialtags = FALSE,
   col_to_remove = NULL
 ) {
-  # Handle column removal based on col_to_remove parameter
-  # Consider both lowercase and capitalized versions
+  tall_primary <- "#4a7c59"
+  tall_secondary <- "#5a9269"
+  tall_accent <- "#F7F9FA"
+  tall_text <- "#2D3748"
+  tall_border <- "#E2E8F0"
+  tall_white <- "#FFFFFF"
+
   if (!is.null(col_to_remove)) {
     col_to_remove_lower <- tolower(col_to_remove)
 
     if (col_to_remove_lower == "lemma") {
-      # Remove token or Token if they exist
       if ("token" %in% names(df)) {
         df <- df %>% select(-token)
       }
@@ -8795,7 +8727,6 @@ DTformat <- function(
         df <- df %>% select(-Token)
       }
     } else if (col_to_remove_lower == "token") {
-      # Remove lemma or Lemma if they exist
       if ("lemma" %in% names(df)) {
         df <- df %>% select(-lemma)
       }
@@ -8839,7 +8770,8 @@ DTformat <- function(
       list(
         extend = "excel",
         filename = paste0(filename, "_tall_", sys.time()),
-        title = " ",
+        text = '<i class="fa fa-file-excel"></i> Excel',
+        className = 'btn btn-success',
         header = TRUE,
         exportOptions = list(
           modifier = list(page = "all")
@@ -8851,7 +8783,8 @@ DTformat <- function(
       list(
         extend = "excel",
         filename = paste0(filename, "_tall_", sys.time()),
-        title = " ",
+        text = '<i class="fa fa-file-excel"></i> Excel',
+        className = 'btn btn-success',
         header = TRUE,
         exportOptions = list(
           modifier = list(page = "all")
@@ -8919,11 +8852,9 @@ DTformat <- function(
     extensions <- c("Buttons", "Select", "ColReorder", "FixedHeader")
     buttons <- c(buttons, c("selectAll", "selectNone"))
     select <- list(style = "os", items = "row")
-    # selection = list(mode = 'multiple', selected = 1:nrow(df), target = 'row')
   } else {
     extensions <- c("Buttons", "ColReorder", "FixedHeader")
     select <- NULL
-    # selection = "none"
   }
 
   tab <- DT::datatable(
@@ -8947,41 +8878,132 @@ DTformat <- function(
         c(10, 25, 50, -1),
         c("10 rows", "25 rows", "50 rows", "Show all")
       ),
-      columnDefs = columnDefs
+      columnDefs = columnDefs,
+      initComplete = DT::JS(
+        paste0(
+          "function(settings, json) {
+          var api = this.api();
+
+          $(api.table().header()).css({
+            'background': '",
+          tall_primary,
+          "',
+            'color': 'white',
+            'font-weight': '600',
+            'font-size': '13px',
+            'padding': '12px 8px',
+            'border-bottom': '2px solid ",
+          tall_secondary,
+          "',
+            'text-transform': 'uppercase',
+            'letter-spacing': '0.5px'
+          });
+
+          $(api.table().container()).find('.dataTables_wrapper').css({
+            'font-family': '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif'
+          });
+
+          $(api.table().container()).find('.dataTables_filter input').css({
+            'border': '1px solid ",
+          tall_border,
+          "',
+            'border-radius': '4px',
+            'padding': '6px 12px',
+            'margin-left': '8px',
+            'font-size': '13px',
+            'outline': 'none'
+          });
+
+          $(api.table().container()).find('.dataTables_length select').css({
+            'border': '1px solid ",
+          tall_border,
+          "',
+            'border-radius': '4px',
+            'padding': '4px 8px',
+            'margin': '0 8px',
+            'font-size': '13px'
+          });
+
+          $(api.table().container()).find('.dt-buttons .dt-button').css({
+            'background': '",
+          tall_primary,
+          "',
+            'color': 'white',
+            'border': 'none',
+            'border-radius': '4px',
+            'padding': '6px 14px',
+            'margin-right': '6px',
+            'font-size': '13px',
+            'font-weight': '500',
+            'cursor': 'pointer',
+            'box-shadow': '0 1px 3px rgba(0,0,0,0.1)'
+          });
+
+          $(api.table().container()).find('.dataTables_paginate .paginate_button').css({
+            'border-radius': '4px',
+            'padding': '6px 12px',
+            'margin': '0 2px',
+            'border': '1px solid ",
+          tall_border,
+          "',
+            'font-size': '13px'
+          });
+
+          $(api.table().container()).find('.dataTables_paginate .paginate_button.current').css({
+            'background': '",
+          tall_primary,
+          "',
+            'color': 'white',
+            'border-color': '",
+          tall_primary,
+          "'
+          });
+        }"
+        )
+      ),
+      rowCallback = DT::JS(
+        paste0(
+          "function(row, data, index) {
+          if(index % 2 === 0) {
+            $(row).css('background-color', '",
+          tall_accent,
+          "');
+          } else {
+            $(row).css('background-color', '",
+          tall_white,
+          "');
+          }
+        }"
+        )
+      )
     ),
-    class = "cell-border compact stripe"
+    class = "cell-border stripe hover"
   ) %>%
     DT::formatStyle(
       names(df),
-      backgroundColor = "white",
       textAlign = "center",
-      fontSize = size
+      fontSize = size,
+      fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      color = tall_text,
+      padding = '10px 8px'
     )
-
-  ## left aligning
 
   if (!is.null(left)) {
     tab <- tab %>%
       DT::formatStyle(
         names(df)[left],
-        backgroundColor = "white",
-        textAlign = "left",
-        fontSize = size
+        textAlign = "left"
       )
   }
 
-  # right aligning
   if (!is.null(right)) {
     tab <- tab %>%
       DT::formatStyle(
         names(df)[right],
-        backgroundColor = "white",
-        textAlign = "right",
-        fontSize = size
+        textAlign = "right"
       )
   }
 
-  # numeric round
   if (!is.null(numeric)) {
     tab <- tab %>%
       formatRound(names(df)[c(numeric)], digits = round)
@@ -9013,30 +9035,38 @@ plot2png <- function(p, filename, zoom = 2, type = "vis") {
 
 freqGgplot <- function(df, x = 2, y = 1, n = 20, title = "NOUN Frequency") {
   df <- df %>%
-    dplyr::slice_head(n = n) %>%
-    data.frame()
-  g <- ggplot(df, aes(x = df[, x], y = df[, y], label = df[, x])) +
+    dplyr::slice_head(n = n)
+
+  col_x <- names(df)[x]
+  col_y <- names(df)[y]
+
+  max_val <- max(df[[col_x]], na.rm = TRUE)
+  limit_x <- max_val + (max_val * 0.06)
+
+  g <- ggplot(
+    df,
+    aes(x = .data[[col_x]], y = reorder(.data[[col_y]], .data[[col_x]]))
+  ) +
     geom_col(color = "#c3d1be", fill = "#96af8e") +
     geom_text(
-      aes(label = df[, x]),
-      position = position_dodge(width = 0.9),
-      hjust = -0.4,
+      aes(label = .data[[col_x]]),
+      hjust = -0.2,
       color = "#4f7942",
       size = 3.7
     ) +
     labs(title = title, y = "", x = "Frequency") +
-    scale_y_discrete(limits = rev(df[, y])) +
     scale_x_continuous(
-      limits = c(0, df[, x] + max(df[, x]) * 0.06),
+      limits = c(0, limit_x),
       expand = c(0, 0)
     ) +
     theme(
-      axis.text.y = element_text(angle = 0, hjust = 0, size = 9),
+      axis.text.y = element_text(size = 9),
       axis.text.x = element_text(size = 10),
       panel.grid.major = element_blank(),
       panel.grid.minor = element_blank(),
       panel.background = element_blank()
     )
+
   return(g)
 }
 

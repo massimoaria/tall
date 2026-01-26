@@ -597,7 +597,9 @@ importServer <- function(input, output, session, values, statsValues) {
         values$treebank <- treebank
         values$D <- D
         values$where <- where
-        values$corpus_description <- corpus_description
+        cd <- get0("corpus_description", ifnotfound = "")
+        values$corpus_description <- if (is.null(cd) || cd == "") "" else cd
+
         statsValues <- updateStats(
           values$dfTag,
           term = values$generalTerm,

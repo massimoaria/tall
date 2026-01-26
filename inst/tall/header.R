@@ -2,7 +2,7 @@ headerUI <- function() {
   list(
     tags$li(class = "dropdown", tags$a(uiOutput("dataGroupedBy"))), # Rimosso HTML/paste
     tags$li(class = "dropdown", tags$a(uiOutput("dataFilteredBy"))),
-    tags$li(class = "dropdown", tags$a(uiOutput("termSelected"))),
+    # tags$li(class = "dropdown", tags$a(uiOutput("termSelected"))),
     tags$li(
       class = "dropdown",
       actionButton(
