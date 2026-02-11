@@ -1,4 +1,14 @@
-# tall (development version)
+# tall 0.5.2
+
+* New Features & UI/UX Improvements
+  - Added "Add to Report" and "Export Images" buttons to Overview module
+  - Added "Add to Report" and "Export Images" buttons to Keyness Analysis module
+  - Added "Add to Report" and "Export" buttons to KWIC Network Analysis
+  - Improved table layout and aesthetics across multiple modules
+
+* Bug Fixes
+  - Fixed issue in Edit -> Split functionality
+  - Minor fixes in Import module and Settings
 
 # tall 0.5.1
 * Bug Fixes
