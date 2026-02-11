@@ -10,9 +10,10 @@ inst/bbc$
 /entertainment
 /loc
 /temp_functions
+/.positai
 *.o
 *.so
 src/tall.so
 CRAN-SUBMISSION
-
+AGENTS.md
 /.quarto/
