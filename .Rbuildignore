@@ -4,6 +4,7 @@
 ^README\.Rmd$
 ^data-raw$
 temp_functions$
+.positai$
 file_test$
 inst/bbc$
 ^images$
@@ -12,3 +13,4 @@ inst/bbc$
 ^references$
 ^cran-comments\.md$
 ^CRAN-SUBMISSION$
+^AGENTS.md
