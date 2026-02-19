@@ -518,7 +518,7 @@ helpContent <- function() {
 
   <h4><strong>Available Feature Roles</strong></h4>
 
-  <h5><i class='glyphicon glyphicon-time' style='color: #3f51b5;'></i> <strong>Time Variable</strong></h5>
+  <h5><i class='fas fa-clock' style='color: #3f51b5;'></i> <strong>Time Variable</strong></h5>
 
   <p>A numeric or date variable that serves as a temporal indicator for diachronic text analysis.</p>
 
@@ -534,7 +534,7 @@ helpContent <- function() {
 
   <hr>
 
-  <h5><i class='glyphicon glyphicon-tag' style='color: #00bcd4;'></i> <strong>Label Variable</strong></h5>
+  <h5><i class='fas fa-tag' style='color: #00bcd4;'></i> <strong>Label Variable</strong></h5>
 
   <p>A categorical variable representing the response or target class in supervised text classification tasks.</p>
 
@@ -551,7 +551,7 @@ helpContent <- function() {
 
   <hr>
 
-  <h5><i class='glyphicon glyphicon-transfer' style='color: #ff9800;'></i> <strong>Keyness Group Variable</strong></h5>
+  <h5><i class='fas fa-right-left' style='color: #ff9800;'></i> <strong>Keyness Group Variable</strong></h5>
 
   <p>A binary or categorical variable that divides the corpus into distinct groups for comparative analysis.</p>
 

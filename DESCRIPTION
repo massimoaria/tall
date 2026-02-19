@@ -41,19 +41,17 @@ BugReports: https://github.com/massimoaria/tall/issues
 Depends: 
     R (>= 3.5.0),
     shiny
-Imports: 
+Imports:
     base64enc,
     ca,
-    chromote,
     curl (>= 6.3.0),
     doParallel,
-    dplyr (>= 1.1.0), 
+    dplyr (>= 1.1.0),
     DT,
     fontawesome,
     ggplot2,
     ggraph,
     ggwordcloud,
-    graphics,
     httr2,
     igraph,
     jsonlite,
@@ -61,12 +59,10 @@ Imports:
     Matrix,
     openxlsx,
     pagedown,
-    parallel,
     pdftools (>= 3.6.0),
     plotly,
     promises,
-    purrr, 
-    ranger,
+    purrr,
     Rcpp (>= 1.0.3),
     readr,
     readtext,
@@ -83,11 +79,16 @@ Imports:
     strucchange,
     textrank,
     tidygraph,
-    tidyr, 
+    tidyr,
     topicmodels,
     udpipe,
+    visNetwork
+Suggests:
+    chromote,
+    ranger,
+    testthat (>= 3.0.0),
     umap,
-    visNetwork,
     word2vec
+Config/testthat/edition: 3
 LazyData: true
 LinkingTo: Rcpp

@@ -349,7 +349,7 @@ collocationUI <- function() {
                           actionButton(
                             "wordsContReset",
                             "Reset",
-                            icon = icon("remove", lib = "glyphicon"),
+                            icon = icon("xmark"),
                             class = "btn-error",
                             style = "width: 200px; margin-top: 10px;"
                           )

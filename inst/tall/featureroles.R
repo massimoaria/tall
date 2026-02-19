@@ -12,7 +12,7 @@ featureRolesUI <- function() {
           12,
           div(
             h2(
-              icon("tags", lib = "glyphicon"),
+              icon("tags"),
               strong("Feature Roles"),
               style = "color: #4F7942; text-align: center; margin-bottom: 20px;"
             ),
@@ -41,7 +41,7 @@ featureRolesUI <- function() {
                   # Time Variable Box
                   box(
                     title = strong(
-                      icon("time", lib = "glyphicon"),
+                      icon("clock"),
                       " Time Variable",
                       style = "font-size: 18px;"
                     ),
@@ -70,7 +70,7 @@ featureRolesUI <- function() {
                             style = "bordered",
                             color = "primary",
                             size = "sm",
-                            icon = icon("eye-open", lib = "glyphicon")
+                            icon = icon("eye")
                           )
                         )
                       ),
@@ -84,7 +84,7 @@ featureRolesUI <- function() {
                             style = "bordered",
                             color = "danger",
                             size = "sm",
-                            icon = icon("remove", lib = "glyphicon")
+                            icon = icon("xmark")
                           )
                         )
                       )
@@ -96,8 +96,7 @@ featureRolesUI <- function() {
                       div(
                         style = "margin-top: 15px; padding: 10px; background-color: #e8f5e9; border-left: 4px solid #4caf50; border-radius: 4px;",
                         icon(
-                          "ok",
-                          lib = "glyphicon",
+                          "check",
                           style = "color: #4caf50;"
                         ),
                         strong(" Current selection: "),
@@ -109,7 +108,7 @@ featureRolesUI <- function() {
                   # Label Variable Box
                   box(
                     title = strong(
-                      icon("tag", lib = "glyphicon"),
+                      icon("tag"),
                       " Label Variable",
                       style = "font-size: 18px;"
                     ),
@@ -138,7 +137,7 @@ featureRolesUI <- function() {
                             style = "bordered",
                             color = "primary",
                             size = "sm",
-                            icon = icon("eye-open", lib = "glyphicon")
+                            icon = icon("eye")
                           )
                         )
                       ),
@@ -152,7 +151,7 @@ featureRolesUI <- function() {
                             style = "bordered",
                             color = "danger",
                             size = "sm",
-                            icon = icon("remove", lib = "glyphicon")
+                            icon = icon("xmark")
                           )
                         )
                       )
@@ -164,8 +163,7 @@ featureRolesUI <- function() {
                       div(
                         style = "margin-top: 15px; padding: 10px; background-color: #e3f2fd; border-left: 4px solid #2196f3; border-radius: 4px;",
                         icon(
-                          "ok",
-                          lib = "glyphicon",
+                          "check",
                           style = "color: #2196f3;"
                         ),
                         strong(" Current selection: "),
@@ -177,7 +175,7 @@ featureRolesUI <- function() {
                   # Keyness Group Variable Box
                   box(
                     title = strong(
-                      icon("transfer", lib = "glyphicon"),
+                      icon("right-left"),
                       " Keyness Group Variable",
                       style = "font-size: 18px;"
                     ),
@@ -206,7 +204,7 @@ featureRolesUI <- function() {
                             style = "bordered",
                             color = "primary",
                             size = "sm",
-                            icon = icon("eye-open", lib = "glyphicon")
+                            icon = icon("eye")
                           )
                         )
                       ),
@@ -220,7 +218,7 @@ featureRolesUI <- function() {
                             style = "bordered",
                             color = "danger",
                             size = "sm",
-                            icon = icon("remove", lib = "glyphicon")
+                            icon = icon("xmark")
                           )
                         )
                       )
@@ -232,8 +230,7 @@ featureRolesUI <- function() {
                       div(
                         style = "margin-top: 15px; padding: 10px; background-color: #fff3e0; border-left: 4px solid #ff9800; border-radius: 4px;",
                         icon(
-                          "ok",
-                          lib = "glyphicon",
+                          "check",
                           style = "color: #ff9800;"
                         ),
                         strong(" Current selection: "),
@@ -260,7 +257,7 @@ featureRolesUI <- function() {
                     div(
                       class = "box-header with-border",
                       h4(
-                        icon("list-alt", lib = "glyphicon"),
+                        icon("rectangle-list"),
                         strong("Summary"),
                         style = "margin: 0; color: #4F7942;"
                       )
@@ -297,8 +294,7 @@ featureRolesUI <- function() {
                           div(
                             style = "margin-bottom: 10px;",
                             icon(
-                              "time",
-                              lib = "glyphicon",
+                              "clock",
                               style = "color: #3f51b5;"
                             ),
                             strong(" Time: "),
@@ -313,7 +309,6 @@ featureRolesUI <- function() {
                             style = "margin-bottom: 10px;",
                             icon(
                               "tag",
-                              lib = "glyphicon",
                               style = "color: #00bcd4;"
                             ),
                             strong(" Label: "),
@@ -326,8 +321,7 @@ featureRolesUI <- function() {
 
                           div(
                             icon(
-                              "transfer",
-                              lib = "glyphicon",
+                              "right-left",
                               style = "color: #ff9800;"
                             ),
                             strong(" Keyness: "),
@@ -351,7 +345,7 @@ featureRolesUI <- function() {
                           color = "success",
                           size = "md",
                           block = TRUE,
-                          icon = icon("ok", lib = "glyphicon")
+                          icon = icon("check")
                         ),
                         br(),
                         actionBttn(
@@ -361,7 +355,7 @@ featureRolesUI <- function() {
                           color = "danger",
                           size = "sm",
                           block = TRUE,
-                          icon = icon("refresh", lib = "glyphicon")
+                          icon = icon("arrows-rotate")
                         )
                       )
                     )
@@ -429,7 +423,7 @@ featureRolesServer <- function(input, output, session, values) {
     if (length(choices) == 0) {
       div(
         style = "padding: 10px; background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 4px;",
-        icon("warning-sign", lib = "glyphicon", style = "color: #856404;"),
+        icon("triangle-exclamation", style = "color: #856404;"),
         span(
           " No numeric or date variables available",
           style = "color: #856404; margin-left: 5px;"
@@ -600,7 +594,7 @@ featureRolesServer <- function(input, output, session, values) {
 
         # Header section
         "<div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>",
-        "<h3 style='margin: 0; font-size: 18px;'><i class='glyphicon glyphicon-time'></i> ",
+        "<h3 style='margin: 0; font-size: 18px;'><i class='fa fa-clock'></i>",
         input$timeVarInput,
         "</h3>",
         "<p style='margin: 5px 0 0 0; opacity: 0.9; font-size: 13px;'>Time Variable Preview</p>",
@@ -621,7 +615,7 @@ featureRolesServer <- function(input, output, session, values) {
 
         # Statistics
         "<div style='background-color: #fff; border: 2px solid #e0e0e0; padding: 12px; border-radius: 6px;'>",
-        "<h4 style='margin: 0 0 10px 0; color: #333; font-size: 14px; border-bottom: 2px solid #667eea; padding-bottom: 5px;'><i class='glyphicon glyphicon-stats'></i> Descriptive Statistics</h4>",
+        "<h4 style='margin: 0 0 10px 0; color: #333; font-size: 14px; border-bottom: 2px solid #667eea; padding-bottom: 5px;'><i class='fa fa-chart-bar'></i> Descriptive Statistics</h4>",
         "<table style='width: 100%; border-collapse: collapse;'>",
         "<tr><td style='padding: 6px; color: #666;'>Minimum:</td><td style='padding: 6px; text-align: right; font-weight: bold;'>",
         format(round(summary_stats["Min."], 2), big.mark = ","),
@@ -680,7 +674,7 @@ featureRolesServer <- function(input, output, session, values) {
 
         # Header section
         "<div style='background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>",
-        "<h3 style='margin: 0; font-size: 18px;'><i class='glyphicon glyphicon-tag'></i> ",
+        "<h3 style='margin: 0; font-size: 18px;'><i class='fa fa-tag'></i>",
         input$timeVarInput,
         "</h3>",
         "<p style='margin: 5px 0 0 0; opacity: 0.9; font-size: 13px;'>Categorical Variable Preview</p>",
@@ -703,7 +697,7 @@ featureRolesServer <- function(input, output, session, values) {
 
         # Category distribution
         "<div style='background-color: #fff; border: 2px solid #e0e0e0; padding: 12px; border-radius: 6px; max-height: 400px; overflow-y: auto;'>",
-        "<h4 style='margin: 0 0 10px 0; color: #333; font-size: 14px; border-bottom: 2px solid #f5576c; padding-bottom: 5px;'><i class='glyphicon glyphicon-list'></i> Top 10 Categories</h4>",
+        "<h4 style='margin: 0 0 10px 0; color: #333; font-size: 14px; border-bottom: 2px solid #f5576c; padding-bottom: 5px;'><i class='fa fa-list'></i> Top 10 Categories</h4>",
         "<table style='width: 100%; border-collapse: collapse;'>",
         "<thead>",
         "<tr style='background-color: #f5f5f5; border-bottom: 2px solid #ddd;'>",
@@ -780,7 +774,7 @@ featureRolesServer <- function(input, output, session, values) {
 
       # Header section
       "<div style='background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>",
-      "<h3 style='margin: 0; font-size: 18px;'><i class='glyphicon glyphicon-tag'></i> ",
+      "<h3 style='margin: 0; font-size: 18px;'><i class='fa fa-tag'></i>",
       input$labelVarInput,
       "</h3>",
       "<p style='margin: 5px 0 0 0; opacity: 0.9; font-size: 13px;'>Label Variable Preview</p>",
@@ -803,7 +797,7 @@ featureRolesServer <- function(input, output, session, values) {
 
       # Category distribution
       "<div style='background-color: #fff; border: 2px solid #e0e0e0; padding: 12px; border-radius: 6px; max-height: 400px; overflow-y: auto;'>",
-      "<h4 style='margin: 0 0 10px 0; color: #333; font-size: 14px; border-bottom: 2px solid #00bcd4; padding-bottom: 5px;'><i class='glyphicon glyphicon-list'></i> Category Distribution</h4>",
+      "<h4 style='margin: 0 0 10px 0; color: #333; font-size: 14px; border-bottom: 2px solid #00bcd4; padding-bottom: 5px;'><i class='fa fa-list'></i> Category Distribution</h4>",
       "<table style='width: 100%; border-collapse: collapse;'>",
       "<thead>",
       "<tr style='background-color: #f5f5f5; border-bottom: 2px solid #ddd;'>",
@@ -879,7 +873,7 @@ featureRolesServer <- function(input, output, session, values) {
 
       # Header section
       "<div style='background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>",
-      "<h3 style='margin: 0; font-size: 18px;'><i class='glyphicon glyphicon-transfer'></i> ",
+      "<h3 style='margin: 0; font-size: 18px;'><i class='fa fa-right-left'></i>",
       input$keynessVarInput,
       "</h3>",
       "<p style='margin: 5px 0 0 0; opacity: 0.9; font-size: 13px;'>Keyness Group Variable Preview</p>",
@@ -902,7 +896,7 @@ featureRolesServer <- function(input, output, session, values) {
 
       # Category distribution
       "<div style='background-color: #fff; border: 2px solid #e0e0e0; padding: 12px; border-radius: 6px; max-height: 400px; overflow-y: auto;'>",
-      "<h4 style='margin: 0 0 10px 0; color: #333; font-size: 14px; border-bottom: 2px solid #ff9800; padding-bottom: 5px;'><i class='glyphicon glyphicon-list'></i> Category Distribution</h4>",
+      "<h4 style='margin: 0 0 10px 0; color: #333; font-size: 14px; border-bottom: 2px solid #ff9800; padding-bottom: 5px;'><i class='fa fa-list'></i> Category Distribution</h4>",
       "<table style='width: 100%; border-collapse: collapse;'>",
       "<thead>",
       "<tr style='background-color: #f5f5f5; border-bottom: 2px solid #ddd;'>",
@@ -953,7 +947,7 @@ featureRolesServer <- function(input, output, session, values) {
         style = "margin-top: 20px; padding: 15px; background-color: #fff8e1; border: 1px solid #ffeb3b; border-radius: 5px;",
 
         h5(
-          icon("info-sign", lib = "glyphicon", style = "color: #f57c00;"),
+          icon("circle-info", style = "color: #f57c00;"),
           strong(" Group Assignment Required"),
           style = "color: #f57c00; margin-top: 0;"
         ),

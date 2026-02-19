@@ -67,7 +67,7 @@ wordsUI <- function() {
                 class = "config-section",
                 div(
                   class = "config-section-header",
-                  icon("cog", lib = "glyphicon"),
+                  icon("gear"),
                   "Main Configuration"
                 ),
                 selectInput(
@@ -110,12 +110,11 @@ wordsUI <- function() {
                     class = "params-section-header",
                     style = "display: flex; justify-content: space-between; align-items: center;",
                     div(
-                      icon("list", lib = "glyphicon"),
+                      icon("list"),
                       " Parameters"
                     ),
                     icon(
                       "chevron-down",
-                      lib = "glyphicon",
                       style = "font-size: 12px;"
                     )
                   )
@@ -251,7 +250,7 @@ wordsUI <- function() {
                 class = "config-section",
                 div(
                   class = "config-section-header",
-                  icon("cog", lib = "glyphicon"),
+                  icon("gear"),
                   "Main Configuration"
                 ),
                 fluidRow(
@@ -286,12 +285,11 @@ wordsUI <- function() {
                     class = "params-section-header",
                     style = "display: flex; justify-content: space-between; align-items: center;",
                     div(
-                      icon("scissors", lib = "glyphicon"),
+                      icon("scissors"),
                       " Segment Parameters"
                     ),
                     icon(
                       "chevron-down",
-                      lib = "glyphicon",
                       style = "font-size: 12px;"
                     )
                   )
@@ -331,12 +329,11 @@ wordsUI <- function() {
                     class = "advanced-section-header",
                     style = "display: flex; justify-content: space-between; align-items: center;",
                     div(
-                      icon("ok-sign", lib = "glyphicon"),
+                      icon("circle-check"),
                       " Feature Selection Parameters"
                     ),
                     icon(
                       "chevron-down",
-                      lib = "glyphicon",
                       style = "font-size: 12px;"
                     )
                   )
@@ -503,7 +500,7 @@ wordsUI <- function() {
                 class = "config-section",
                 div(
                   class = "config-section-header",
-                  icon("cog", lib = "glyphicon"),
+                  icon("gear"),
                   "Main Configuration"
                 ),
                 selectInput(
@@ -534,12 +531,11 @@ wordsUI <- function() {
                     class = "params-section-header",
                     style = "display: flex; justify-content: space-between; align-items: center;",
                     div(
-                      icon("stats", lib = "glyphicon"),
+                      icon("chart-bar"),
                       " Clustering Parameters"
                     ),
                     icon(
                       "chevron-down",
-                      lib = "glyphicon",
                       style = "font-size: 12px;"
                     )
                   )
@@ -580,12 +576,11 @@ wordsUI <- function() {
                     class = "advanced-section-header",
                     style = "display: flex; justify-content: space-between; align-items: center;",
                     div(
-                      icon("picture", lib = "glyphicon"),
+                      icon("image"),
                       " Graphical Options"
                     ),
                     icon(
                       "chevron-down",
-                      lib = "glyphicon",
                       style = "font-size: 12px;"
                     )
                   )
@@ -815,7 +810,7 @@ wordsUI <- function() {
                 class = "config-section",
                 div(
                   class = "config-section-header",
-                  icon("cog", lib = "glyphicon"),
+                  icon("gear"),
                   "Main Configuration"
                 ),
                 selectInput(
@@ -850,12 +845,11 @@ wordsUI <- function() {
                     class = "advanced-section-header",
                     style = "display: flex; justify-content: space-between; align-items: center;",
                     div(
-                      icon("link", lib = "glyphicon"),
+                      icon("link"),
                       " Network Options"
                     ),
                     icon(
                       "chevron-down",
-                      lib = "glyphicon",
                       style = "font-size: 12px;"
                     )
                   )
@@ -891,12 +885,11 @@ wordsUI <- function() {
                     class = "params-section-header",
                     style = "display: flex; justify-content: space-between; align-items: center;",
                     div(
-                      icon("eye-open", lib = "glyphicon"),
+                      icon("eye"),
                       " Graphical Parameters"
                     ),
                     icon(
                       "chevron-down",
-                      lib = "glyphicon",
                       style = "font-size: 12px;"
                     )
                   )
@@ -1085,7 +1078,7 @@ wordsUI <- function() {
                 class = "config-section",
                 div(
                   class = "config-section-header",
-                  icon("cog", lib = "glyphicon"),
+                  icon("gear"),
                   "Main Configuration"
                 ),
                 selectInput(
@@ -1115,12 +1108,11 @@ wordsUI <- function() {
                     class = "params-section-header",
                     style = "display: flex; justify-content: space-between; align-items: center;",
                     div(
-                      icon("eye-open", lib = "glyphicon"),
+                      icon("eye"),
                       " Graphical Parameters"
                     ),
                     icon(
                       "chevron-down",
-                      lib = "glyphicon",
                       style = "font-size: 12px;"
                     )
                   )
@@ -1468,7 +1460,7 @@ wordsUI <- function() {
                 class = "config-section",
                 div(
                   class = "config-section-header",
-                  icon("cog", lib = "glyphicon"),
+                  icon("gear"),
                   "Main Configuration"
                 ),
                 numericInput(
@@ -1650,7 +1642,7 @@ wordsUI <- function() {
                 class = "config-section",
                 div(
                   class = "config-section-header",
-                  icon("cog", lib = "glyphicon"),
+                  icon("gear"),
                   "Main Configuration"
                 ),
                 selectInput(
@@ -1680,12 +1672,11 @@ wordsUI <- function() {
                     class = "params-section-header",
                     style = "display: flex; justify-content: space-between; align-items: center;",
                     div(
-                      icon("eye-open", lib = "glyphicon"),
+                      icon("eye"),
                       " Graphical Parameters"
                     ),
                     icon(
                       "chevron-down",
-                      lib = "glyphicon",
                       style = "font-size: 12px;"
                     )
                   )
@@ -2603,7 +2594,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
           label = "Close",
           inputId = "closePlotModalTermNet",
           style = "color: #ffff;",
-          icon = icon("remove", lib = "glyphicon")
+          icon = icon("xmark")
         )
       ),
     )
@@ -2695,7 +2686,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
           label = "Close",
           inputId = "closeplotModalTermDend",
           style = "color: #ffff;",
-          icon = icon("remove", lib = "glyphicon")
+          icon = icon("xmark")
         )
       ),
     )
@@ -2861,7 +2852,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
           label = "Close",
           inputId = "closeplotModalTermRein",
           style = "color: #ffff;",
-          icon = icon("remove", lib = "glyphicon")
+          icon = icon("xmark")
         )
       ),
     )

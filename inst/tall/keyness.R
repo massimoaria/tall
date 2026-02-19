@@ -66,7 +66,7 @@ keynessUI <- function() {
                 class = "config-section",
                 div(
                   class = "config-section-header",
-                  icon("cog", lib = "glyphicon"),
+                  icon("gear"),
                   "Main Configuration"
                 ),
                 selectInput(
@@ -126,12 +126,11 @@ keynessUI <- function() {
                     class = "params-section-header",
                     style = "display: flex; justify-content: space-between; align-items: center;",
                     div(
-                      icon("eye-open", lib = "glyphicon"),
+                      icon("eye"),
                       " Graphical Parameters"
                     ),
                     icon(
                       "chevron-down",
-                      lib = "glyphicon",
                       style = "font-size: 12px;"
                     )
                   )
@@ -1234,10 +1233,6 @@ frequency_context_analysis <- function(
   label_spacing = 0.08,
   freq_threshold = NULL
 ) {
-  require(plotly)
-  require(dplyr)
-  require(ggplot2)
-
   # --- 1. Preparazione Dati ---
   high_keyness <- keyness_results %>%
     dplyr::filter(G2 >= g2_threshold) %>%

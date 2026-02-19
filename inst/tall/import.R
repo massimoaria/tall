@@ -8,7 +8,7 @@ importUI <- function() {
           12,
           div(
             h2(
-              icon("file-text", lib = "glyphicon"),
+              icon("file-lines"),
               strong("Import Texts"),
               style = "color: #4F7942; text-align: center; margin-bottom: 30px;"
             )
@@ -48,7 +48,7 @@ importUI <- function() {
                     div(
                       class = "box-header with-border",
                       h4(
-                        icon("upload", lib = "glyphicon"),
+                        icon("upload"),
                         strong("Import Controls"),
                         style = "margin: 0; color: #4F7942;"
                       )
@@ -88,8 +88,7 @@ importUI <- function() {
                                     inputId = "collection.save",
                                     label = NULL,
                                     icon = icon(
-                                      "download-alt",
-                                      lib = "glyphicon"
+                                      "download"
                                     ),
                                     style = "display: block; height: 45px; width: 45px;
                                          border-radius: 50%; border: 2px solid #4F7942;
@@ -175,7 +174,7 @@ importServer <- function(input, output, session, values, statsValues) {
       label = NULL,
       style = "margin-top: -8px; font-size: 8px; border-radius:2%",
       # style ="display:block; height: 37px; width: 37px; border-radius: 50%; border: 3px; margin-top: 15px",
-      icon = icon(name = "refresh", lib = "glyphicon")
+      icon = icon("arrows-rotate")
     )
     do.call(
       "actionButton",
@@ -406,7 +405,7 @@ importServer <- function(input, output, session, values, statsValues) {
             actionButton(
               inputId = "runImport",
               label = div(
-                icon(name = "play", lib = "glyphicon"),
+                icon("play"),
                 strong("START")
               ),
               icon = NULL,
@@ -432,7 +431,7 @@ importServer <- function(input, output, session, values, statsValues) {
           actionButton(
             inputId = "applyCorpusDescription",
             label = div(
-              icon(name = "check", lib = "glyphicon"),
+              icon("check"),
               strong("Update")
             ),
             icon = NULL,
@@ -453,7 +452,7 @@ importServer <- function(input, output, session, values, statsValues) {
           actionButton(
             inputId = "runReset2",
             label = div(
-              icon(name = "refresh", lib = "glyphicon"),
+              icon("arrows-rotate"),
               strong("RESET")
             ),
             icon = NULL,
@@ -735,7 +734,7 @@ importServer <- function(input, output, session, values, statsValues) {
           actionButton(
             inputId = "biblioRun",
             label = div(
-              icon(name = "play", lib = "glyphicon"),
+              icon("play"),
               strong("Apply")
             ),
             icon = NULL,
@@ -856,7 +855,7 @@ importServer <- function(input, output, session, values, statsValues) {
         tagList(
           actionButton(
             label = tagList(
-              icon("th-list", lib = "glyphicon"),
+              icon("table-list"),
               " Custom Lists"
             ),
             inputId = "modalCustomLists",
@@ -869,7 +868,7 @@ importServer <- function(input, output, session, values, statsValues) {
                    margin-right: 10px;"
           ),
           actionButton(
-            label = tagList(icon("remove", lib = "glyphicon"), " Close"),
+            label = tagList(icon("xmark"), " Close"),
             inputId = "closeModalCustomLists",
             style = "background-color: #6c757d;
                    color: white;
@@ -1004,7 +1003,6 @@ importServer <- function(input, output, session, values, statsValues) {
           style = "display: flex; align-items: center; margin-bottom: 10px;",
           icon(
             "globe",
-            lib = "glyphicon",
             style = "font-size: 20px; color: #17a2b8; margin-right: 10px;"
           ),
           h4(strong("Language Settings"), style = "margin: 0; color: #2c3e50;")
@@ -1058,8 +1056,7 @@ importServer <- function(input, output, session, values, statsValues) {
         div(
           style = "display: flex; align-items: center; margin-bottom: 10px;",
           icon(
-            "info-sign",
-            lib = "glyphicon",
+            "circle-info",
             style = "font-size: 20px; color: #6c757d; margin-right: 10px;"
           ),
           h4(strong("Corpus Description"), style = "margin: 0; color: #2c3e50;")
@@ -1080,7 +1077,6 @@ importServer <- function(input, output, session, values, statsValues) {
           style = "display: flex; align-items: center; margin-bottom: 10px;",
           icon(
             "tags",
-            lib = "glyphicon",
             style = "font-size: 20px; color: #f39c12; margin-right: 10px;"
           ),
           h4(
@@ -1096,7 +1092,7 @@ importServer <- function(input, output, session, values, statsValues) {
             style = "padding: 10px;",
             div(
               style = "color: #6c757d; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;",
-              icon("star", lib = "glyphicon", style = "margin-right: 5px;"),
+              icon("star", style = "margin-right: 5px;"),
               "Special Entities"
             ),
             span(
@@ -1119,7 +1115,7 @@ importServer <- function(input, output, session, values, statsValues) {
             style = "padding: 10px;",
             div(
               style = "color: #6c757d; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;",
-              icon("link", lib = "glyphicon", style = "margin-right: 5px;"),
+              icon("link", style = "margin-right: 5px;"),
               "Multi-Words"
             ),
             span(
@@ -1145,7 +1141,7 @@ importServer <- function(input, output, session, values, statsValues) {
             style = "padding: 10px;",
             div(
               style = "color: #6c757d; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;",
-              icon("list", lib = "glyphicon", style = "margin-right: 5px;"),
+              icon("list", style = "margin-right: 5px;"),
               "Custom Word List"
             ),
             span(
@@ -1168,7 +1164,7 @@ importServer <- function(input, output, session, values, statsValues) {
             style = "padding: 10px;",
             div(
               style = "color: #6c757d; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;",
-              icon("flag", lib = "glyphicon", style = "margin-right: 5px;"),
+              icon("flag", style = "margin-right: 5px;"),
               "Last Preprocessing Step"
             ),
             span(

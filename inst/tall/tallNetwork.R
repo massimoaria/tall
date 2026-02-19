@@ -682,8 +682,8 @@ ca2plotly <- function(
 }
 
 ## function to avoid label overlapping ----
-avoidOverlaps <- function(w, threshold = 0.10) {
-  w[, 2] <- w[, 2] / 2
+avoidOverlaps <- function(w, threshold = 0.10, y_scale = 2) {
+  w[, 2] <- w[, 2] / y_scale
 
   Ds <- dist(
     w %>%
@@ -752,7 +752,7 @@ avoidOverlaps <- function(w, threshold = 0.10) {
 
 ## convert a distance object into a data.frame ----
 dist2df <- function(inDist) {
-  if (class(inDist) != "dist") {
+  if (!inherits(inDist, "dist")) {
     stop("wrong input type")
   }
   A <- attr(inDist, "Size")
@@ -1284,7 +1284,7 @@ net2vis <- function(nodes, edges, click = TRUE, noOverlap = FALSE) {
       dotSize = VIS$x$nodes$font.size,
       row.names = VIS$x$nodes$label
     )
-    labelToRemove <- avoidNetOverlaps(w, threshold = threshold2)
+    labelToRemove <- avoidOverlaps(w, threshold = threshold2, y_scale = 3)
   } else {
     labelToRemove <- ""
   }
@@ -1339,71 +1339,5 @@ weight.community <- function(row, membership, weigth.within, weight.between) {
 }
 
 ## function to avoid label overlapping ----
-avoidNetOverlaps <- function(w, threshold = 0.10) {
-  w[, 2] <- w[, 2] / 3
-
-  Ds <- dist(
-    w %>%
-      dplyr::filter(labelToPlot != "") %>%
-      select(1:2),
-    method = "manhattan",
-    upper = T
-  ) %>%
-    dist2df() %>%
-    rename(
-      from = row,
-      to = col,
-      dist = value
-    ) %>%
-    left_join(
-      w %>% dplyr::filter(labelToPlot != "") %>% select(labelToPlot, dotSize),
-      by = c("from" = "labelToPlot")
-    ) %>%
-    rename(w_from = dotSize) %>%
-    left_join(
-      w %>% dplyr::filter(labelToPlot != "") %>% select(labelToPlot, dotSize),
-      by = c("to" = "labelToPlot")
-    ) %>%
-    rename(w_to = dotSize) %>%
-    filter(dist < threshold)
-
-  if (nrow(Ds) > 0) {
-    st <- TRUE
-    i <- 1
-    label <- NULL
-    case <- "n"
-
-    while (isTRUE(st)) {
-      if (Ds$w_from[i] > Ds$w_to[i] & Ds$dist[i] < threshold) {
-        case <- "y"
-        lab <- Ds$to[i]
-      } else if (Ds$w_from[i] <= Ds$w_to[i] & Ds$dist[i] < threshold) {
-        case <- "y"
-        lab <- Ds$from[i]
-      }
-
-      switch(
-        case,
-        "y" = {
-          Ds <- Ds[Ds$from != lab, ]
-          Ds <- Ds[Ds$to != lab, ]
-          label <- c(label, lab)
-        },
-        "n" = {
-          Ds <- Ds[-1, ]
-        }
-      )
-
-      if (i >= nrow(Ds)) {
-        st <- FALSE
-      }
-      case <- "n"
-      # print(nrow(Ds))
-    }
-  } else {
-    label <- NULL
-  }
-  label
-}
 ## THEMATIC MAP ----
 

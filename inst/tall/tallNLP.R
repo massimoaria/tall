@@ -339,23 +339,18 @@ applySynonymsReplacement <- function(dfTag, synonyms_df, term_type = "lemma") {
     }
   }
 
-  # Apply replacements to the specified column AND update upos
-  if (term_type == "token") {
-    for (j in seq_len(nrow(dfTag))) {
-      token_lower <- tolower(as.character(dfTag$token[j]))
-      if (token_lower %in% names(replacement_map)) {
-        dfTag$token[j] <- replacement_map[[token_lower]]$target
-        dfTag$upos[j] <- replacement_map[[token_lower]]$upos
-      }
-    }
-  } else if (term_type == "lemma") {
-    for (j in seq_len(nrow(dfTag))) {
-      lemma_lower <- tolower(as.character(dfTag$lemma[j]))
-      if (lemma_lower %in% names(replacement_map)) {
-        dfTag$lemma[j] <- replacement_map[[lemma_lower]]$target
-        dfTag$upos[j] <- replacement_map[[lemma_lower]]$upos
-      }
-    }
+  # Build vectorized lookup tables from replacement_map
+  target_vec <- vapply(replacement_map, function(x) x$target, character(1))
+  upos_vec <- vapply(replacement_map, function(x) x$upos, character(1))
+
+  # Apply replacements to the specified column AND update upos (vectorized)
+  col_name <- term_type
+  lower_vals <- tolower(as.character(dfTag[[col_name]]))
+  matches <- match(lower_vals, names(target_vec))
+  matched_idx <- !is.na(matches)
+  if (any(matched_idx)) {
+    dfTag[[col_name]][matched_idx] <- target_vec[matches[matched_idx]]
+    dfTag$upos[matched_idx] <- upos_vec[matches[matched_idx]]
   }
 
   return(dfTag)

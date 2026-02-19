@@ -260,7 +260,7 @@ scrollToTopButton <- function() {
     # Il pulsante HTML
     tags$button(
       id = "scrollToTopBtn",
-      icon("arrow-up", lib = "glyphicon"),
+      icon("arrow-up"),
       onclick = "scrollToTop()",
       title = "Back to top"
     ),

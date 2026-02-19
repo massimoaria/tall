@@ -261,7 +261,7 @@ documentsUI <- function() {
                 class = "config-section",
                 div(
                   class = "config-section-header",
-                  icon("cog", lib = "glyphicon"),
+                  icon("gear"),
                   "Main Configuration"
                 ),
                 materialSwitch(
@@ -300,12 +300,11 @@ documentsUI <- function() {
                     class = "filter-section-header",
                     style = "display: flex; justify-content: space-between; align-items: center;",
                     div(
-                      icon("filter", lib = "glyphicon"),
+                      icon("filter"),
                       " Terms Selection"
                     ),
                     icon(
                       "chevron-down",
-                      lib = "glyphicon",
                       style = "font-size: 12px;"
                     )
                   )
@@ -339,12 +338,11 @@ documentsUI <- function() {
                     class = "params-section-header",
                     style = "display: flex; justify-content: space-between; align-items: center;",
                     div(
-                      icon("eye-open", lib = "glyphicon"),
+                      icon("eye"),
                       " Display Options"
                     ),
                     icon(
                       "chevron-down",
-                      lib = "glyphicon",
                       style = "font-size: 12px;"
                     )
                   )
@@ -413,10 +411,10 @@ documentsUI <- function() {
             )
           ),
           fluidRow(
-            actionButton("TMplotLeft", icon("menu-left", lib = "glyphicon")),
+            actionButton("TMplotLeft", icon("chevron-left")),
             actionButton(
               "TMplotRight",
-              icon("menu-right", lib = "glyphicon")
+              icon("chevron-right")
             ),
             align = "center"
           )
@@ -459,8 +457,8 @@ documentsUI <- function() {
             )
           ),
           fluidRow(
-            actionButton("TMdocLeft", icon("menu-left", lib = "glyphicon")),
-            actionButton("TMdocRight", icon("menu-right", lib = "glyphicon")),
+            actionButton("TMdocLeft", icon("chevron-left")),
+            actionButton("TMdocRight", icon("chevron-right")),
             align = "center"
           )
         ),
@@ -593,7 +591,7 @@ documentsUI <- function() {
                 class = "config-section",
                 div(
                   class = "config-section-header",
-                  icon("cog", lib = "glyphicon"),
+                  icon("gear"),
                   "Main Configuration"
                 ),
                 selectInput(

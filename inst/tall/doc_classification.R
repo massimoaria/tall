@@ -13,7 +13,7 @@ docClassificationUI <- function() {
           12,
           div(
             h2(
-              icon("list-alt", lib = "glyphicon"),
+              icon("rectangle-list"),
               strong("Supervised Document Classification"),
               style = "color: #4F7942; text-align: center; margin-bottom: 20px;"
             ),
@@ -32,7 +32,7 @@ docClassificationUI <- function() {
           8,
           box(
             title = strong(
-              icon("cog", lib = "glyphicon"),
+              icon("gear"),
               " Configuration",
               style = "font-size: 18px;"
             ),
@@ -46,7 +46,7 @@ docClassificationUI <- function() {
             # Target Variable Status
             div(
               style = "background-color: #e8f5e9; padding: 15px; margin-bottom: 20px; border-radius: 5px;",
-              icon("tags", lib = "glyphicon", style = "color: #4CAF50;"),
+              icon("tags", style = "color: #4CAF50;"),
               strong(" Target Variable: "),
               uiOutput("rf_target_var_display", inline = TRUE),
               br(),
@@ -57,7 +57,7 @@ docClassificationUI <- function() {
             div(
               style = "margin-bottom: 20px;",
               h4(
-                icon("th-large", lib = "glyphicon"),
+                icon("table-cells-large"),
                 strong(" Feature Representation"),
                 style = "color: #4F7942;"
               ),
@@ -76,8 +76,8 @@ docClassificationUI <- function() {
                 justified = TRUE,
                 status = "primary",
                 checkIcon = list(
-                  yes = icon("ok", lib = "glyphicon"),
-                  no = icon("remove", lib = "glyphicon")
+                  yes = icon("check"),
+                  no = icon("xmark")
                 )
               )
             ),
@@ -191,7 +191,7 @@ docClassificationUI <- function() {
             # Random Forest Parameters
             div(
               h4(
-                icon("tree-deciduous", lib = "glyphicon"),
+                icon("tree"),
                 strong(" Random Forest Parameters"),
                 style = "color: #4F7942;"
               ),
@@ -247,7 +247,7 @@ docClassificationUI <- function() {
                 style = "pill",
                 color = "success",
                 size = "lg",
-                icon = icon("play", lib = "glyphicon")
+                icon = icon("play")
               )
             )
           )
@@ -259,7 +259,7 @@ docClassificationUI <- function() {
           # Information Box
           box(
             title = strong(
-              icon("info-sign", lib = "glyphicon"),
+              icon("circle-info"),
               " Information"
             ),
             width = 12,
@@ -314,7 +314,7 @@ docClassificationUI <- function() {
           # Help Box
           box(
             title = strong(
-              icon("question-sign", lib = "glyphicon"),
+              icon("circle-question"),
               " Need Help?"
             ),
             width = 12,
@@ -347,7 +347,7 @@ docClassificationUI <- function() {
           column(
             12,
             h3(
-              icon("stats", lib = "glyphicon"),
+              icon("chart-bar"),
               strong(" Classification Results"),
               style = "color: #4F7942; margin-top: 30px; margin-bottom: 20px;"
             )
@@ -442,7 +442,7 @@ docClassificationUI <- function() {
                 color = "primary",
                 size = "md",
                 block = TRUE,
-                icon = icon("forward", lib = "glyphicon")
+                icon = icon("forward")
               )
             )
           )
@@ -494,7 +494,7 @@ docClassificationServer <- function(input, output, session, values) {
     if (!check$valid) {
       div(
         style = "margin-top: 10px; padding: 10px; background-color: #ffebee; border-left: 4px solid #f44336; border-radius: 4px;",
-        icon("alert", lib = "glyphicon", style = "color: #d32f2f;"),
+        icon("triangle-exclamation", style = "color: #d32f2f;"),
         strong(" Issues found:", style = "color: #d32f2f;"),
         tags$ul(
           lapply(check$errors, function(err) {
@@ -514,7 +514,7 @@ docClassificationServer <- function(input, output, session, values) {
       div(
         style = "margin-top: 10px;",
         tags$small(
-          icon("ok", lib = "glyphicon", style = "color: #4CAF50;"),
+          icon("check", style = "color: #4CAF50;"),
           strong(" Class distribution: "),
           paste(names(class_dist), "=", class_dist, collapse = " | "),
           style = "color: #666;"
@@ -527,7 +527,7 @@ docClassificationServer <- function(input, output, session, values) {
   output$rf_w2v_model_status <- renderUI({
     if (!is.null(values$w2v_model)) {
       div(
-        icon("ok", lib = "glyphicon", style = "color: #4CAF50;"),
+        icon("check", style = "color: #4CAF50;"),
         strong(" Model Available", style = "color: #4CAF50;"),
         br(),
         tags$small(
@@ -537,7 +537,7 @@ docClassificationServer <- function(input, output, session, values) {
       )
     } else {
       div(
-        icon("alert", lib = "glyphicon", style = "color: #ff9800;"),
+        icon("triangle-exclamation", style = "color: #ff9800;"),
         strong(" Model Not Trained", style = "color: #ff9800;"),
         br(),
         tags$small(

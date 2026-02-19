@@ -87,10 +87,7 @@ preprocessingUI <- function() {
                               label = NULL,
                               style = "display:block; height: 37px; width: 37px; border-radius: 50%;
                                       border: 1px; margin-top: 15px;",
-                              icon = icon(
-                                name = "floppy-save",
-                                lib = "glyphicon"
-                              )
+                              icon = icon("floppy-disk")
                             ),
                             list(
                               inputId = "tokPosSave"

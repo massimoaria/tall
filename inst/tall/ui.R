@@ -69,40 +69,40 @@ t_back <- "Back to the original text(s)"
 run_bttn <- list(
   label = NULL,
   style = "display:block; height: 37px; width: 37px; border-radius: 50%; border: 3px; margin-top: 15px",
-  icon = icon(name = "play", lib = "glyphicon")
+  icon = icon("play")
 )
 
 view_bttn <- list(
   label = NULL,
   style = "display:block; height: 37px; width: 37px; border-radius: 50%; border: 3px; margin-top: 15px",
   icon = fa_i(name = "magnifying-glass", prefer_type = "solid")
-  # icon = icon("search", lib="glyphicon")
+  # icon = icon("magnifying-glass")
 )
 
 export_bttn <- list(
   label = NULL,
   style = "display:block; height: 37px; width: 37px; border-radius: 50%; border: 3px; margin-top: 15px",
-  icon = icon(name = "download-alt", lib = "glyphicon")
+  icon = icon("download")
 )
 report_bttn <- list(
   label = NULL,
   style = "display:block; height: 37px; width: 37px; border-radius: 50%; border: 3px; margin-top: 15px",
-  icon = icon(name = "plus", lib = "glyphicon")
+  icon = icon("plus")
 )
 save_bttn <- list(
   label = NULL,
   style = "display:block; height: 37px; width: 37px; border-radius: 50%; border: 1px;", # margin-top: 15px",
-  icon = icon(name = "floppy-save", lib = "glyphicon")
+  icon = icon("floppy-disk")
 )
 back_bttn <- list(
   label = NULL,
   style = "display:block; height: 37px; width: 37px; border-radius: 50%; border: 3px; margin-top: 15px",
-  icon = icon(name = "repeat", lib = "glyphicon")
+  icon = icon("rotate")
 )
 x_bttn <- list(
   label = NULL,
   style = "display:block; height: 37px; width: 37px; border-radius: 50%; border: 3px; margin-top: 15px",
-  icon = icon(name = "remove", lib = "glyphicon")
+  icon = icon("xmark")
 )
 
 ## HEADER ----

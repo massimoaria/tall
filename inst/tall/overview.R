@@ -301,7 +301,7 @@ overviewUI <- function() {
                         class = "config-section",
                         div(
                           class = "config-section-header",
-                          icon("cog", lib = "glyphicon"),
+                          icon("gear"),
                           "Main Configuration"
                         ),
                         numericInput(
@@ -411,7 +411,7 @@ overviewUI <- function() {
                         class = "config-section",
                         div(
                           class = "config-section-header",
-                          icon("cog", lib = "glyphicon"),
+                          icon("gear"),
                           "Main Configuration"
                         ),
                         numericInput(
@@ -547,7 +547,7 @@ overviewServer <- function(input, output, session, values, statsValues) {
     valueBox(
       value = strong(values$vb$nSentences),
       subtitle = "Sentences",
-      icon = icon("align-left", class = "fa-2x", lib = "glyphicon"),
+      icon = icon("align-left", class = "fa-2x"),
       color = "green",
       width = NULL
     )
@@ -558,7 +558,7 @@ overviewServer <- function(input, output, session, values, statsValues) {
     valueBox(
       value = strong(values$vb$nTokens),
       subtitle = "Tokens",
-      icon = icon("font", class = "fa-2x", lib = "glyphicon"),
+      icon = icon("font", class = "fa-2x"),
       color = "green",
       width = NULL
     )
@@ -569,7 +569,7 @@ overviewServer <- function(input, output, session, values, statsValues) {
     valueBox(
       value = strong(values$vb$nDictionary),
       subtitle = "Types",
-      icon = icon("list-alt", class = "fa-2x", lib = "glyphicon"),
+      icon = icon("rectangle-list", class = "fa-2x"),
       color = "green",
       width = NULL
     )
@@ -599,7 +599,7 @@ overviewServer <- function(input, output, session, values, statsValues) {
         values$vb$avgDocLengthCharsSD
       )),
       subtitle = "Doc Avg Length in Chars",
-      icon = icon("list-alt", class = "fa-2x", lib = "glyphicon"),
+      icon = icon("rectangle-list", class = "fa-2x"),
       color = "blue",
       width = NULL
     )
@@ -644,7 +644,7 @@ overviewServer <- function(input, output, session, values, statsValues) {
         values$vb$avgSentLengthTokensSD
       )),
       subtitle = "Sent Avg Length in Tokens",
-      icon = icon("align-justify", class = "fa-2x", lib = "glyphicon"),
+      icon = icon("align-justify", class = "fa-2x"),
       color = "blue",
       width = NULL
     )

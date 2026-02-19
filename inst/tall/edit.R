@@ -94,10 +94,7 @@ editUI <- function() {
                               label = NULL,
                               style = "display:block; height: 37px; width: 37px; border-radius: 50%;
                                       border: 1px; margin-top: 16px;",
-                              icon = icon(
-                                name = "floppy-save",
-                                lib = "glyphicon"
-                              ),
+                              icon = icon("floppy-disk"),
                               inputId = "splitTextSave"
                             ))
                           )
@@ -219,10 +216,7 @@ editUI <- function() {
                             label = NULL,
                             style = "display:block; height: 37px; width: 37px; border-radius: 50%;
                                                           border: 1px; margin-top: 16px;",
-                            icon = icon(
-                              name = "floppy-save",
-                              lib = "glyphicon"
-                            ),
+                            icon = icon("floppy-disk"),
                             inputId = "randomTextSave"
                           ))
                         )
@@ -367,10 +361,7 @@ editUI <- function() {
                                 label = NULL,
                                 style = "display:block; height: 37px; width: 37px; border-radius: 50%;
                                       border: 1px; margin-top: 16px;",
-                                icon = icon(
-                                  name = "floppy-save",
-                                  lib = "glyphicon"
-                                )
+                                icon = icon("floppy-disk")
                               ),
                               list(
                                 inputId = "extInfoSave"

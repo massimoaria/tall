@@ -722,13 +722,13 @@ menuList <- function(menu) {
   import_menu <- menuItem(
     "Import",
     tabName = "import_tx",
-    icon = icon("open-file", lib = "glyphicon")
+    icon = icon("folder-open")
   )
 
   edit_menu <- menuItem(
     "Edit",
     tabName = "edit_tx",
-    icon = icon("edit", lib = "glyphicon"),
+    icon = icon("pen-to-square"),
     menuSubItem(
       "Split",
       tabName = "split_tx",
@@ -749,7 +749,7 @@ menuList <- function(menu) {
   preprocessing_menu0 <- menuItem(
     "Pre-processing",
     tabName = "prePro",
-    icon = icon("indent-right", lib = "glyphicon"),
+    icon = icon("indent"),
     startExpanded = TRUE,
     menuSubItem(
       "Tokenization & PoS Tagging",
@@ -762,7 +762,7 @@ menuList <- function(menu) {
   preprocessing_menu1 <- menuItem(
     "Pre-processing",
     tabName = "prePro",
-    icon = icon("indent-right", lib = "glyphicon"),
+    icon = icon("indent"),
     startExpanded = TRUE,
     menuSubItem(
       "Tokenization & PoS Tagging",
@@ -811,7 +811,7 @@ menuList <- function(menu) {
   overview_menu <- menuItem(
     "Overview",
     tabName = "overview",
-    icon = icon("search", lib = "glyphicon")
+    icon = icon("magnifying-glass")
   )
 
   keyness_menu <- menuItem(
@@ -829,7 +829,7 @@ menuList <- function(menu) {
   word_menu <- menuItem(
     "Words",
     tabName = "words",
-    icon = icon("font", lib = "glyphicon"),
+    icon = icon("font"),
     # menuSubItem(
     #   "KWIC",
     #   tabName = "wordCont",
@@ -883,7 +883,7 @@ menuList <- function(menu) {
   document_menu <- menuItem(
     "Documents",
     tabName = "documents",
-    icon = icon(name = "duplicate", lib = "glyphicon"),
+    icon = icon("clone"),
     menuItem(
       "Topic Modeling",
       tabName = "d_topicMod",
@@ -935,12 +935,12 @@ menuList <- function(menu) {
     menuItem(
       "Groups",
       tabName = "defineGroups",
-      icon = icon("th", lib = "glyphicon")
+      icon = icon("table-cells")
     ),
     menuItem(
       "Feature Roles",
       tabName = "feature_roles",
-      icon = icon("tags", lib = "glyphicon")
+      icon = icon("tags")
     )
   )
 

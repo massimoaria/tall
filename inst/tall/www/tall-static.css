@@ -427,20 +427,20 @@ details[open] summary {
 }
 
 /* === Icon and Button Styling === */
-.glyphicon-refresh { color: #ffffff; font-size: 15px; text-align: center; }
+.fa-arrows-rotate { color: #ffffff; font-size: 15px; text-align: center; }
 .fa-magnifying-glass { color: #ffffff; font-size: 15px; text-align: center; }
 .fa-microchip { color: #ffffff; font-size: 15px; text-align: center; }
-.glyphicon-download-alt { color: #ffffff; font-size: 18px; text-align: center; margin-left: -3.5px; }
-.glyphicon-play { color: #ffffff; font-size: 18px; text-align: center; margin-left: -0.5px; }
-.glyphicon-remove { color: #ffffff; font-size: 18px; text-align: center; margin-left: -0.5px; }
-.glyphicon-search { color: #ffffff; font-size: 18px; text-align: center; margin-left: -0.5px; }
-.glyphicon-repeat { color: #ffffff; font-size: 18px; text-align: center; margin-left: -3px; padding-left: -15px; }
-.glyphicon-plus { color: #ffffff; font-size: 18px; text-align: center; margin-left: -2px; }
-.glyphicon-cog { color: #4F794290; font-size: 21px; margin-top: 2.3px; margin-left: -3px; }
+.fa-download { color: #ffffff; font-size: 18px; text-align: center; margin-left: -3.5px; }
+.fa-play { color: #ffffff; font-size: 18px; text-align: center; margin-left: -0.5px; }
+.fa-xmark { color: #ffffff; font-size: 18px; text-align: center; margin-left: -0.5px; }
+.fa-magnifying-glass { color: #ffffff; font-size: 18px; text-align: center; margin-left: -0.5px; }
+.fa-rotate { color: #ffffff; font-size: 18px; text-align: center; margin-left: -3px; padding-left: -15px; }
+.fa-plus { color: #ffffff; font-size: 18px; text-align: center; margin-left: -2px; }
+.fa-gear { color: #4F794290; font-size: 21px; margin-top: 2.3px; margin-left: -3px; }
 .fa-sliders { color: #4F794290; font-size: 21px; margin-top: 2.3px; margin-left: -3px; }
-.glyphicon-floppy-save { color: #ffffff; font-size: 18px; text-align: center; padding-right: -10px; margin-top: 1px; }
-.glyphicon-download { color: #ffffff; font-size: 18px; text-align: center; margin-top: 3px; }
-.glyphicon-folder-open { color: #ffffff; font-size: 17px; }
+.fa-floppy-disk { color: #ffffff; font-size: 18px; text-align: center; padding-right: -10px; margin-top: 1px; }
+.fa-download { color: #ffffff; font-size: 18px; text-align: center; margin-top: 3px; }
+.fa-folder-open { color: #ffffff; font-size: 17px; }
 
 mark { background-color: #6CC283; }
 
