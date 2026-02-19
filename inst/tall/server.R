@@ -1,8 +1,19 @@
 ##  Server ####
 files <- c(
+  "libraries.R",
   "tallAI.R",
   "tallShot.R",
-  "tallFunctions.R",
+  "tallUtils.R",
+  "tallTextIO.R",
+  "tallNLP.R",
+  "tallOverview.R",
+  "tallNetwork.R",
+  "tallTopicModel.R",
+  "tallEmbeddings.R",
+  "tallSentiment.R",
+  "tallReport.R",
+  "tallVisualization.R",
+  "tallLanguages.R",
   "helpContent.R",
   "cssTags.R",
   "header.R",
@@ -34,11 +45,11 @@ options(shiny.maxRequestSize = maxUploadSize * 1024^2)
 param_stay_page <- FALSE
 
 server <- function(input, output, session) {
-  ## suppress warnings
-  options(warn = -1)
-
   ## suppress summarise message
   options(dplyr.summarise.inform = FALSE)
+
+  ## Load analysis packages after UI has rendered
+  libraries_analysis()
 
   ### Initial values ----
   values <- resetValues()

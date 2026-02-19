@@ -264,24 +264,21 @@ filters_groupsServer <- function(input, output, session, values, statsValues) {
     eventExpr = input$filterRun,
     handlerExpr = {
       output$filterSummary <- renderUI({
-        num_docs <- length(unique(
-          LemmaSelection(values$dfTag) %>% filter(docSelected) %>% pull(doc_id)
-        ))
+        filtered <- LemmaSelection(values$dfTag) %>% filter(docSelected)
+        num_docs <- n_distinct(filtered$doc_id)
         num_paragraphs <- sum(
-          LemmaSelection(values$dfTag) %>%
-            filter(docSelected) %>%
+          filtered %>%
             group_by(doc_id) %>%
             summarize(sent = max(paragraph_id)) %>%
             pull()
         )
         num_sentences <- sum(
-          LemmaSelection(values$dfTag) %>%
-            filter(docSelected) %>%
+          filtered %>%
             group_by(doc_id) %>%
             summarize(sent = max(sentence_id)) %>%
             pull()
         )
-        num_tokens <- nrow(LemmaSelection(values$dfTag) %>% filter(docSelected))
+        num_tokens <- nrow(filtered)
 
         HTML(paste(
           "<div style='border: 1px solid #ddd; padding: 10px; border-radius: 5px; background-color: #f9f9f9;'>",

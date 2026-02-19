@@ -779,13 +779,12 @@ overviewServer <- function(input, output, session, values, statsValues) {
     },
     {
       N <- input$nWC # showing the first 100 lemma
-      pos <- LemmaSelection(values$dfTag) %>%
-        dplyr::filter(docSelected) %>%
-        select(upos)
-      pos <- unique(pos$upos)
+      filtered <- LemmaSelection(values$dfTag) %>%
+        dplyr::filter(docSelected)
+      pos <- unique(filtered$upos)
 
       values$wcDfPlot <- freqByPos(
-        LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected),
+        filtered,
         term = values$generalTerm,
         pos = pos
       ) %>%

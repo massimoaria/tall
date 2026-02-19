@@ -2148,24 +2148,18 @@ wordsServer <- function(input, output, session, values, statsValues) {
     },
     valueExpr = {
       ## check to verify if groups exist or not
+      filtered <- LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected)
       if (
         input$groupCA == "Documents" & "ungroupDoc_id" %in% names(values$dfTag)
       ) {
-        values$CA <- wordCA(
-          backToOriginalGroups(LemmaSelection(values$dfTag)) %>%
-            filter(docSelected),
-          n = input$nCA,
-          term = values$generalTerm,
-          group = input$groupCA
-        )
-      } else {
-        values$CA <- wordCA(
-          LemmaSelection(values$dfTag) %>% filter(docSelected),
-          n = input$nCA,
-          term = values$generalTerm,
-          group = input$groupCA
-        )
+        filtered <- backToOriginalGroups(filtered)
       }
+      values$CA <- wordCA(
+        filtered,
+        n = input$nCA,
+        term = values$generalTerm,
+        group = input$groupCA
+      )
       ##
       values$CA <- caClustering(
         values$CA,
@@ -2413,43 +2407,28 @@ wordsServer <- function(input, output, session, values, statsValues) {
       # community.repulsion <- as.numeric(gsub("%","",input$community.repulsion))/100
       #community.repulsion <- 0
 
+      filtered <- LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected)
       if (
         input$w_groupNet == "Documents" &
           "ungroupDoc_id" %in% names(values$dfTag)
       ) {
-        values$network <- network(
-          backToOriginalGroups(LemmaSelection(values$dfTag)) %>%
-            filter(docSelected),
-          term = values$generalTerm,
-          group = group,
-          n = input$nMax,
-          minEdges = input$minEdges,
-          labelsize = input$labelSize,
-          opacity = input$opacity,
-          interLinks = input$interLinks,
-          normalization = input$normalizationCooc,
-          remove.isolated = input$removeIsolated,
-          community.repulsion = 0.5,
-          seed = values$random_seed,
-          cluster = "louvain"
-        )
-      } else {
-        values$network <- network(
-          LemmaSelection(values$dfTag) %>% filter(docSelected),
-          term = values$generalTerm,
-          group = group,
-          n = input$nMax,
-          minEdges = input$minEdges,
-          labelsize = input$labelSize,
-          opacity = input$opacity,
-          interLinks = input$interLinks,
-          normalization = input$normalizationCooc,
-          remove.isolated = input$removeIsolated,
-          community.repulsion = 0.5,
-          seed = values$random_seed,
-          cluster = "louvain"
-        )
+        filtered <- backToOriginalGroups(filtered)
       }
+      values$network <- network(
+        filtered,
+        term = values$generalTerm,
+        group = group,
+        n = input$nMax,
+        minEdges = input$minEdges,
+        labelsize = input$labelSize,
+        opacity = input$opacity,
+        interLinks = input$interLinks,
+        normalization = input$normalizationCooc,
+        remove.isolated = input$removeIsolated,
+        community.repulsion = 0.5,
+        seed = values$random_seed,
+        cluster = "louvain"
+      )
       ## end check
       # net=values$network
       # save(net, file="network.rdata")
@@ -2938,33 +2917,23 @@ wordsServer <- function(input, output, session, values, statsValues) {
       )
       ## check to verify if groups exist or not
 
+      filtered <- LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected)
       if (
         input$w_groupTM == "Documents" &
           "ungroupDoc_id" %in% names(values$dfTag)
       ) {
-        values$TM <- tallThematicmap(
-          backToOriginalGroups(LemmaSelection(values$dfTag)) %>%
-            filter(docSelected),
-          term = values$generalTerm,
-          group = group,
-          n = input$nMaxTM,
-          labelsize = input$labelSizeTM,
-          n.labels = input$n.labelsTM,
-          opacity = input$opacityTM,
-          seed = values$random_seed
-        )
-      } else {
-        values$TM <- tallThematicmap(
-          LemmaSelection(values$dfTag) %>% filter(docSelected),
-          term = values$generalTerm,
-          group = group,
-          n = input$nMaxTM,
-          labelsize = input$labelSizeTM,
-          n.labels = input$n.labelsTM,
-          opacity = input$opacityTM,
-          seed = values$random_seed
-        )
+        filtered <- backToOriginalGroups(filtered)
       }
+      values$TM <- tallThematicmap(
+        filtered,
+        term = values$generalTerm,
+        group = group,
+        n = input$nMaxTM,
+        labelsize = input$labelSizeTM,
+        n.labels = input$n.labelsTM,
+        opacity = input$opacityTM,
+        seed = values$random_seed
+      )
 
       values$TMvis <- net2vis(
         nodes = values$TM$net$nodes,

@@ -351,22 +351,19 @@ keynessServer <- function(input, output, session, values) {
       # Get approach
       approach <- input$keyness_approach
 
+      available_upos <- LemmaSelection(values$dfTag) %>%
+        dplyr::filter(docSelected) %>%
+        distinct(upos) %>%
+        pull(upos)
+
       if (approach == "refrence_corpus") {
         upos <- intersect(
-          values$dfTag %>%
-            LemmaSelection() %>%
-            dplyr::filter(docSelected) %>%
-            distinct(upos) %>%
-            pull(upos),
+          available_upos,
           c("NOUN", "VERB", "ADJ", "ADV")
         )
       } else {
         upos <- intersect(
-          values$dfTag %>%
-            LemmaSelection() %>%
-            dplyr::filter(docSelected) %>%
-            distinct(upos) %>%
-            pull(upos),
+          available_upos,
           c(
             "ADJ",
             "ADP",
@@ -896,17 +893,13 @@ tall_keyness_analysis <- function(
       C2 = sum(expFreq),
       N = C1 + C2
     ) %>%
-    dplyr::rowwise() %>%
     dplyr::mutate(
       R1 = obsFreq + expFreq,
       R2 = N - R1,
-      O11 = obsFreq,
-      O11 = ifelse(O11 == 0, O11 + 0.1, O11),
+      O11 = ifelse(obsFreq == 0, 0.1, obsFreq),
       O12 = R1 - O11,
       O21 = C1 - O11,
-      O22 = C2 - O12
-    ) %>%
-    dplyr::mutate(
+      O22 = C2 - O12,
       E11 = (R1 * C1) / N,
       E12 = (R1 * C2) / N,
       E21 = (R2 * C1) / N,
@@ -916,32 +909,22 @@ tall_keyness_analysis <- function(
 
   # Calculate association measures and keyness statistics
   assoc_tb3 <- stats_tb2 %>%
-    dplyr::mutate(Rws = nrow(.)) %>%
-    dplyr::rowwise() %>%
-    # Calculate Fisher's exact test
     dplyr::mutate(
-      p = as.vector(unlist(fisher.test(matrix(
-        c(O11, O12, O21, O22),
-        ncol = 2,
-        byrow = T
-      ))[1]))
-    ) %>%
-    # Calculate per thousand word frequencies
-    dplyr::mutate(
+      Rws = nrow(.),
+      # Fisher's exact test (vectorized with mapply)
+      p = mapply(function(a, b, c, d) {
+        fisher.test(matrix(c(a, b, c, d), ncol = 2, byrow = TRUE))$p.value
+      }, O11, O12, O21, O22),
+      # Per thousand word frequencies
       ptw_target = O11 / C1 * 1000,
-      ptw_ref = O12 / C2 * 1000
-    ) %>%
-    # Calculate chi-square statistic
-    dplyr::mutate(
-      X2 = (O11 - E11)^2 /
-        E11 +
+      ptw_ref = O12 / C2 * 1000,
+      # Chi-square statistic
+      X2 = (O11 - E11)^2 / E11 +
         (O12 - E12)^2 / E12 +
         (O21 - E21)^2 / E21 +
-        (O22 - E22)^2 / E22
-    ) %>%
-    # Calculate various keyness measures
-    dplyr::mutate(
-      phi = sqrt((X2 / N)),
+        (O22 - E22)^2 / E22,
+      # Keyness measures
+      phi = sqrt(X2 / N),
       MI = log2(O11 / E11),
       t.score = (O11 - E11) / sqrt(O11),
       PMI = log2((O11 / N) / ((O11 + O12) / N) * ((O11 + O21) / N)),
@@ -959,15 +942,13 @@ tall_keyness_analysis <- function(
       RateRatio = ((O11 + 0.001) / (C1 * 1000)) / ((O12 + 0.001) / (C2 * 1000)),
       RateDifference = (O11 / (C1 * 1000)) - (O12 / (C2 * 1000)),
       DifferenceCoefficient = RateDifference /
-        sum((O11 / (C1 * 1000)), (O12 / (C2 * 1000))),
+        ((O11 / (C1 * 1000)) + (O12 / (C2 * 1000))),
       OddsRatio = ((O11 + 0.5) * (O22 + 0.5)) / ((O12 + 0.5) * (O21 + 0.5)),
-      LLR = 2 * (O11 * (log((O11 / E11)))),
+      LLR = 2 * (O11 * log(O11 / E11)),
       RDF = abs((O11 / C1) - (O12 / C2)),
       PDiff = abs(ptw_target - ptw_ref) / ((ptw_target + ptw_ref) / 2) * 100,
-      SignedDKL = sum(
-        ifelse(O11 > 0, O11 * log(O11 / ((O11 + O12) / 2)), 0) -
-          ifelse(O12 > 0, O12 * log(O12 / ((O11 + O12) / 2)), 0)
-      )
+      SignedDKL = ifelse(O11 > 0, O11 * log(O11 / ((O11 + O12) / 2)), 0) -
+        ifelse(O12 > 0, O12 * log(O12 / ((O11 + O12) / 2)), 0)
     ) %>%
     # Determine Bonferroni corrected significance
     dplyr::mutate(

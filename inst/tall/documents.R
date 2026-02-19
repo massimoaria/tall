@@ -1053,34 +1053,23 @@ documentsServer <- function(input, output, session, values, statsValues) {
         }
       )
       ## check to verify if groups exist or not
+      filtered <- LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected)
       if (
         input$groupTm == "doc_id" & "ungroupDoc_id" %in% names(values$dfTag)
       ) {
-        values$TMKresult <- tmTuning(
-          backToOriginalGroups(LemmaSelection(values$dfTag)) %>%
-            filter(docSelected),
-          group = groupTm,
-          term = values$generalTerm,
-          metric = input$metric,
-          n = input$nTm,
-          top_by = input$top_by,
-          minK = input$minK,
-          maxK = input$maxK,
-          Kby = input$Kby
-        )
-      } else {
-        values$TMKresult <- tmTuning(
-          LemmaSelection(values$dfTag) %>% filter(docSelected),
-          group = groupTm,
-          term = values$generalTerm,
-          metric = input$metric,
-          n = input$nTm,
-          top_by = input$top_by,
-          minK = input$minK,
-          maxK = input$maxK,
-          Kby = input$Kby
-        )
+        filtered <- backToOriginalGroups(filtered)
       }
+      values$TMKresult <- tmTuning(
+        filtered,
+        group = groupTm,
+        term = values$generalTerm,
+        metric = input$metric,
+        n = input$nTm,
+        top_by = input$top_by,
+        minK = input$minK,
+        maxK = input$maxK,
+        Kby = input$Kby
+      )
 
       values$df <- values$TMKresult$metrics %>%
         arrange(k) %>%
@@ -1174,80 +1163,49 @@ documentsServer <- function(input, output, session, values, statsValues) {
       )
 
       ## check to verify if groups exist or not
+      filtered <- LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected)
       if (
         input$groupTmEstim == "doc_id" &
           "ungroupDoc_id" %in% names(values$dfTag)
       ) {
-        if (isTRUE(input$tmKauto)) {
-          values$TMKresult <- tmTuning(
-            backToOriginalGroups(LemmaSelection(values$dfTag)) %>%
-              filter(docSelected),
-            group = groupTmEstim,
-            term = values$generalTerm,
-            metric = "CaoJuan2009",
-            n = input$nTmEstim,
-            top_by = input$top_byEstim,
-            minK = 2,
-            maxK = 20,
-            Kby = 1
-          )
-          values$tmK <- find_elbow(
-            values$TMKresult$metrics$k,
-            values$TMKresult$metrics$CaoJuan2009,
-            decreasing = TRUE,
-            plot = FALSE
-          )
-        } else {
-          values$tmK <- input$KEstim
-        }
-        values$TMplotList <- split(
-          1:values$tmK,
-          ceiling(seq_along(1:values$tmK) / 3)
-        )
-        values$TMestim_result <- tmEstimate(
-          backToOriginalGroups(LemmaSelection(values$dfTag)) %>%
-            filter(docSelected),
-          K = values$tmK,
+        tm_data <- backToOriginalGroups(filtered)
+      } else {
+        tm_data <- filtered
+      }
+
+      if (isTRUE(input$tmKauto)) {
+        values$TMKresult <- tmTuning(
+          tm_data,
           group = groupTmEstim,
           term = values$generalTerm,
+          metric = "CaoJuan2009",
           n = input$nTmEstim,
-          top_by = input$top_byEstim
+          top_by = input$top_byEstim,
+          minK = 2,
+          maxK = 20,
+          Kby = 1
+        )
+        values$tmK <- find_elbow(
+          values$TMKresult$metrics$k,
+          values$TMKresult$metrics$CaoJuan2009,
+          decreasing = TRUE,
+          plot = FALSE
         )
       } else {
-        if (isTRUE(input$tmKauto)) {
-          values$TMKresult <- tmTuning(
-            LemmaSelection(values$dfTag) %>% filter(docSelected),
-            group = groupTmEstim,
-            term = values$generalTerm,
-            metric = "CaoJuan2009",
-            n = input$nTmEstim,
-            top_by = input$top_byEstim,
-            minK = 2,
-            maxK = 20,
-            Kby = 1
-          )
-          values$tmK <- find_elbow(
-            values$TMKresult$metrics$k,
-            values$TMKresult$metrics$CaoJuan2009,
-            decreasing = TRUE,
-            plot = FALSE
-          )
-        } else {
-          values$tmK <- input$KEstim
-        }
-        values$TMplotList <- split(
-          1:values$tmK,
-          ceiling(seq_along(1:values$tmK) / 3)
-        )
-        values$TMestim_result <- tmEstimate(
-          LemmaSelection(values$dfTag) %>% filter(docSelected),
-          K = values$tmK,
-          group = groupTmEstim,
-          term = values$generalTerm,
-          n = input$nTmEstim,
-          top_by = input$top_byEstim
-        )
+        values$tmK <- input$KEstim
       }
+      values$TMplotList <- split(
+        1:values$tmK,
+        ceiling(seq_along(1:values$tmK) / 3)
+      )
+      values$TMestim_result <- tmEstimate(
+        tm_data,
+        K = values$tmK,
+        group = groupTmEstim,
+        term = values$generalTerm,
+        n = input$nTmEstim,
+        top_by = input$top_byEstim
+      )
       ## End check ###
 
       ### BETA PROBABILITY

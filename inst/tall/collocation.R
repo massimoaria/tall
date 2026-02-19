@@ -865,10 +865,9 @@ collocationServer <- function(input, output, session, values, statsValues) {
             list(className = "dt-center", targets = 1:7)
           ),
           initComplete = JS(
-            initComplete = JS(
-              "function(settings, json) {",
-              "$(this.api().table().header()).css({'background-color': '#4F7942', 'color': '#fff'});"
-            )
+            "function(settings, json) {",
+            "$(this.api().table().header()).css({'background-color': '#4F7942', 'color': '#fff'});",
+            "}"
           )
         ),
         class = "display compact"
@@ -1490,58 +1489,38 @@ calculateCollocates <- function(
     N <- nrow(df) # Total tokens
     f_target <- length(target_positions) # Target frequency
 
+    # Pre-compute corpus frequencies via left_join (avoids O(n*m) full scans)
+    term_freq <- df %>%
+      dplyr::count(.data[[term_col]], name = "f_colloc") %>%
+      dplyr::rename(collocate = 1)
+
     colloc_stats <- colloc_stats %>%
-      rowwise() %>%
+      left_join(term_freq, by = "collocate") %>%
       mutate(
-        f_colloc = sum(df[[term_col]] == collocate, na.rm = TRUE),
+        f_colloc = ifelse(is.na(f_colloc), 0L, f_colloc),
         # Calculate contingency table values
         O11 = freq, # Observed co-occurrence
-        O12 = max(0, f_target - freq), # Target without collocate (ensure non-negative)
-        O21 = max(0, f_colloc - freq), # Collocate without target (ensure non-negative)
-        O22 = max(0, N - f_target - f_colloc + freq), # Neither (ensure non-negative)
-        # Calculate MI Score
-        MI = {
-          E11 <- (O11 + O12) * (O11 + O21) / N
-          if (is.na(E11) || E11 == 0) {
-            0
-          } else {
-            log2(O11 / E11)
-          }
-        },
-        # Calculate Log-Likelihood
-        LogLik = {
-          E11 <- (O11 + O12) * (O11 + O21) / N
-          E12 <- (O11 + O12) * (O12 + O22) / N
-          E21 <- (O21 + O22) * (O11 + O21) / N
-          E22 <- (O21 + O22) * (O12 + O22) / N
-
-          ll <- 0
-          if (!is.na(O11) && !is.na(E11) && O11 > 0 && E11 > 0) {
-            ll <- ll + O11 * log(O11 / E11)
-          }
-          if (!is.na(O12) && !is.na(E12) && O12 > 0 && E12 > 0) {
-            ll <- ll + O12 * log(O12 / E12)
-          }
-          if (!is.na(O21) && !is.na(E21) && O21 > 0 && E21 > 0) {
-            ll <- ll + O21 * log(O21 / E21)
-          }
-          if (!is.na(O22) && !is.na(E22) && O22 > 0 && E22 > 0) {
-            ll <- ll + O22 * log(O22 / E22)
-          }
-
-          2 * ll
-        },
-        # Calculate T-Score
-        TScore = {
-          E11 <- (O11 + O12) * (O11 + O21) / N
-          if (is.na(E11) || E11 == 0 || is.na(O11) || O11 == 0) {
-            0
-          } else {
-            (O11 - E11) / sqrt(O11)
-          }
-        }
+        O12 = pmax(0, f_target - freq), # Target without collocate
+        O21 = pmax(0, f_colloc - freq), # Collocate without target
+        O22 = pmax(0, N - f_target - f_colloc + freq), # Neither
+        # Expected frequencies
+        E11 = (O11 + O12) * (O11 + O21) / N,
+        E12 = (O11 + O12) * (O12 + O22) / N,
+        E21 = (O21 + O22) * (O11 + O21) / N,
+        E22 = (O21 + O22) * (O12 + O22) / N,
+        # MI Score
+        MI = ifelse(is.na(E11) | E11 == 0, 0, log2(O11 / E11)),
+        # Log-Likelihood (vectorized with safe log)
+        LogLik = 2 * (
+          ifelse(!is.na(O11) & !is.na(E11) & O11 > 0 & E11 > 0, O11 * log(O11 / E11), 0) +
+          ifelse(!is.na(O12) & !is.na(E12) & O12 > 0 & E12 > 0, O12 * log(O12 / E12), 0) +
+          ifelse(!is.na(O21) & !is.na(E21) & O21 > 0 & E21 > 0, O21 * log(O21 / E21), 0) +
+          ifelse(!is.na(O22) & !is.na(E22) & O22 > 0 & E22 > 0, O22 * log(O22 / E22), 0)
+        ),
+        # T-Score
+        TScore = ifelse(is.na(E11) | E11 == 0 | is.na(O11) | O11 == 0,
+          0, (O11 - E11) / sqrt(O11))
       ) %>%
-      ungroup() %>%
       select(
         collocate,
         upos,
@@ -1558,6 +1537,11 @@ calculateCollocates <- function(
         TScore = round(TScore, 3)
       ) %>%
       arrange(desc(MI))
+  } else {
+    # Ensure expected columns exist even when empty
+    colloc_stats$MI <- numeric(0)
+    colloc_stats$LogLik <- numeric(0)
+    colloc_stats$TScore <- numeric(0)
   }
 
   return(colloc_stats)

@@ -1,39 +1,47 @@
 ## TALL functions ----
 
 # Libraries ----
+
+# Core packages needed for UI rendering at startup
 libraries <- function() {
+  # Framework and UI essentials
   suppressPackageStartupMessages(require(tall))
   suppressPackageStartupMessages(require(shiny))
-  suppressPackageStartupMessages(require(ca))
   suppressPackageStartupMessages(require(shinydashboard))
   suppressPackageStartupMessages(require(shinydashboardPlus))
   suppressPackageStartupMessages(require(shinyWidgets))
   suppressPackageStartupMessages(require(shinycssloaders))
   suppressPackageStartupMessages(require(shinyjs))
   suppressPackageStartupMessages(require(shinyFiles))
+  suppressPackageStartupMessages(require(fontawesome))
+  # Core data manipulation
   suppressPackageStartupMessages(require(dplyr))
   suppressPackageStartupMessages(require(tidyr))
-  suppressPackageStartupMessages(require(readr))
+  suppressPackageStartupMessages(require(purrr))
   suppressPackageStartupMessages(require(tibble))
   suppressPackageStartupMessages(require(glue))
-  suppressPackageStartupMessages(require(purrr))
+  # Core display
   suppressPackageStartupMessages(require(DT))
   suppressPackageStartupMessages(require(plotly))
+}
+
+# Analysis packages loaded after UI renders (called from server.R)
+libraries_analysis <- function() {
+  suppressPackageStartupMessages(require(readr))
   suppressPackageStartupMessages(require(openxlsx))
   suppressPackageStartupMessages(require(readxl))
-  suppressPackageStartupMessages(require(visNetwork))
+  suppressPackageStartupMessages(require(readtext))
+  suppressPackageStartupMessages(require(pdftools))
+  suppressPackageStartupMessages(require(jsonlite))
   suppressPackageStartupMessages(require(udpipe))
+  suppressPackageStartupMessages(require(ca))
   suppressPackageStartupMessages(require(topicmodels))
   suppressPackageStartupMessages(require(textrank))
-  suppressPackageStartupMessages(require(pdftools))
   suppressPackageStartupMessages(require(igraph))
-  suppressPackageStartupMessages(require(strucchange))
-  suppressPackageStartupMessages(require(fontawesome))
   suppressPackageStartupMessages(require(tidygraph))
+  suppressPackageStartupMessages(require(visNetwork))
+  suppressPackageStartupMessages(require(strucchange))
   suppressPackageStartupMessages(require(sparkline))
-  suppressPackageStartupMessages(require(glue))
-  suppressPackageStartupMessages(require(readtext))
-  suppressPackageStartupMessages(require(jsonlite))
   suppressPackageStartupMessages(require(chromote))
   suppressPackageStartupMessages(require(word2vec))
   suppressPackageStartupMessages(require(umap))

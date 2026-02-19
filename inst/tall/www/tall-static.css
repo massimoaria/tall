@@ -1,0 +1,492 @@
+/* ============================================
+   TALL - Static CSS Styles
+   ============================================ */
+
+/* === Success Box Styling === */
+.box.box-solid.box-success > .box-header {
+  height: 45px !important;
+  display: block !important;
+  visibility: visible !important;
+}
+
+.box.box-solid.box-success > .box-header .box-title {
+  color: white !important;
+  font-size: 18px !important;
+  font-weight: bold !important;
+  display: inline-block !important;
+  padding-top: 5px;
+}
+
+.box-body {
+  padding-top: 0px !important;
+}
+
+/* === DataTable (DT) Styling === */
+.dataTables_wrapper .dt-buttons,
+.dataTables_wrapper .dataTables_length {
+  display: inline-flex !important;
+  align-items: center !important;
+  vertical-align: middle !important;
+  float: left !important;
+  margin-bottom: 15px !important;
+  margin-top: 5px !important;
+}
+
+button.dt-button.buttons-excel {
+  background-color: #4a7c59 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 4px !important;
+  padding: 6px 14px !important;
+  font-weight: bold !important;
+  margin-right: 15px !important;
+  line-height: 1.5 !important;
+  display: flex !important;
+  align-items: center !important;
+  transition: background 0.3s ease;
+}
+
+button.dt-button.buttons-excel:hover {
+  background-color: #3e6135 !important;
+}
+
+.dataTables_length select {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-color: #4a7c59 !important;
+  color: white !important;
+  border-radius: 4px !important;
+  padding: 6px 30px 6px 12px !important;
+  font-weight: bold !important;
+  border: none !important;
+  margin: 0 10px !important;
+  cursor: pointer;
+  line-height: 1.5 !important;
+  background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12"><path fill="white" d="M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z"/></svg>') !important;
+  background-repeat: no-repeat !important;
+  background-position: right 10px center !important;
+  background-size: 10px !important;
+}
+
+.dataTables_length select:hover {
+  background-color: #3e6135 !important;
+}
+
+.dataTables_length select option {
+  background-color: white !important;
+  color: #333 !important;
+}
+
+.dataTables_length label {
+  display: flex !important;
+  align-items: center !important;
+  margin-bottom: 0 !important;
+  font-weight: normal !important;
+}
+
+.dataTables_filter {
+  float: right !important;
+  margin-bottom: 15px !important;
+}
+
+.dataTables_filter input {
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 4px !important;
+  padding: 6px 12px !important;
+}
+
+.dataTables_wrapper::after {
+  content: '';
+  clear: both;
+  display: table;
+}
+
+/* === Modal Styling === */
+.modal-lg {
+  max-width: 900px;
+}
+
+.modal-dialog {
+  margin-top: 40px;
+}
+
+.modal-content {
+  border-radius: 15px;
+  border: none;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+  border-bottom: none;
+  padding: 25px 25px 10px 25px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 15px 15px 0 0;
+}
+
+.modal-header .close {
+  color: white;
+  opacity: 0.8;
+}
+
+.modal-header span {
+  color: white !important;
+}
+
+.modal-body {
+  padding: 10px 25px 25px 25px;
+  background: #ffffff;
+}
+
+.modal-footer {
+  border-top: none;
+  padding: 15px 25px;
+}
+
+/* === Checkbox Styling === */
+.checkbox {
+  break-inside: avoid-column;
+  page-break-inside: avoid;
+  margin-bottom: 8px;
+}
+
+.checkbox label {
+  font-size: 13px;
+  color: #2c3e50;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+}
+
+.checkbox input[type='checkbox'] {
+  margin-right: 8px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.checkbox input[type='checkbox']:checked + span {
+  font-weight: 600;
+  color: #3498db;
+}
+
+/* === Form Control Fix === */
+.has-feedback .form-control {
+  padding-right: 0px;
+}
+
+/* === Dropdown Menu / Options Panel Styling === */
+.options-panel {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 15px;
+  width: 320px;
+}
+
+.options-header {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.config-section {
+  background: #f8f9fa;
+  border-left: 4px solid #4F7942;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 4px;
+}
+
+.config-section-header {
+  font-weight: 600;
+  color: #4F7942;
+  font-size: 14px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-section {
+  background: #fff9e6;
+  border-left: 4px solid #FFA800;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 4px;
+}
+
+.filter-section-header {
+  font-weight: 600;
+  color: #d68910;
+  font-size: 14px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.advanced-section {
+  background: #e8f5e9;
+  border-left: 4px solid #66bb6a;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 4px;
+}
+
+.advanced-section-header {
+  font-weight: 600;
+  color: #388e3c;
+  font-size: 14px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.params-section {
+  background: #f5f5f5;
+  border-left: 4px solid #757575;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 4px;
+}
+
+.params-section-header {
+  font-weight: 600;
+  color: #424242;
+  font-size: 14px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-toggle {
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.3s ease;
+}
+
+.section-toggle:hover {
+  opacity: 0.8;
+}
+
+.section-toggle-icon {
+  float: right;
+  transition: transform 0.3s ease;
+}
+
+.section-toggle-icon.open {
+  transform: rotate(180deg);
+}
+
+.options-panel .form-group {
+  margin-bottom: 12px;
+}
+
+.options-panel .control-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 5px;
+}
+
+.options-panel .form-control {
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  font-size: 13px;
+}
+
+.options-panel .form-control:focus {
+  border-color: #4F7942;
+  box-shadow: 0 0 0 0.2rem rgba(79, 121, 66, 0.25);
+}
+
+/* === Value Box Styling === */
+/* Corpus Size & Structure - Green shades */
+#clickbox1 .small-box { background-color: #5cb85c !important; color: white !important; }
+#clickbox4 .small-box { background-color: #5cb85c !important; color: white !important; }
+#clickbox8 .small-box { background-color: #5cb85c !important; color: white !important; }
+#clickbox7 .small-box { background-color: #5cb85c !important; color: white !important; }
+#clickbox9 .small-box { background-color: #5cb85c !important; color: white !important; }
+
+/* Average Length Metrics - Blue/Teal shades */
+#clickbox2 .small-box { background-color: #17a2b8 !important; color: white !important; }
+#clickbox3 .small-box { background-color: #17a2b8 !important; color: white !important; }
+#clickbox5 .small-box { background-color: #17a2b8 !important; color: white !important; }
+#clickbox6 .small-box { background-color: #17a2b8 !important; color: white !important; }
+
+/* Lexical Metrics - Orange shades */
+#clickbox10 .small-box { background-color: #f39c12 !important; color: white !important; }
+#clickbox11 .small-box { background-color: #f39c12 !important; color: white !important; }
+#clickbox12 .small-box { background-color: #f39c12 !important; color: white !important; }
+#clickbox13 .small-box { background-color: #f39c12 !important; color: white !important; }
+#clickbox14 .small-box { background-color: #f39c12 !important; color: white !important; }
+#clickbox15 .small-box { background-color: #f39c12 !important; color: white !important; }
+#clickbox16 .small-box { background-color: #f39c12 !important; color: white !important; }
+
+.small-box {
+  border-radius: 8px !important;
+  padding: 15px !important;
+  min-height: 100px !important;
+  height: 100px !important;
+  margin-bottom: 10px !important;
+}
+
+.small-box h3 {
+  font-size: 32px !important;
+  font-weight: bold !important;
+  margin: 5px 0 !important;
+  color: white !important;
+}
+
+.small-box p {
+  font-size: 14px !important;
+  margin: 0 !important;
+  color: white !important;
+  font-weight: 500 !important;
+}
+
+.small-box .icon-large {
+  font-size: 20px !important;
+  color: rgba(255, 255, 255, 0.25) !important;
+  position: absolute !important;
+  right: 10px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+}
+
+/* Group headers styling */
+.group-header {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  border-bottom: 3px solid;
+}
+
+.group-header-green {
+  border-bottom-color: #5cb85c !important;
+  color: #5cb85c !important;
+}
+
+.group-header-blue {
+  border-bottom-color: #17a2b8 !important;
+  color: #17a2b8 !important;
+}
+
+.group-header-orange {
+  border-bottom-color: #f39c12 !important;
+  color: #f39c12 !important;
+}
+
+.overview-row {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.overview-row > div {
+  padding-left: 5px !important;
+  padding-right: 5px !important;
+}
+
+.lexical-row {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 10px !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.lexical-row > div {
+  flex: 1 !important;
+  min-width: 0 !important;
+  padding: 0 5px !important;
+}
+
+/* === Collapsible Sections (Details/Summary) === */
+details {
+  margin-bottom: 12px;
+}
+
+details summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+details summary::-webkit-details-marker {
+  display: none;
+}
+
+details[open] summary {
+  margin-bottom: 10px;
+}
+
+/* === Icon and Button Styling === */
+.glyphicon-refresh { color: #ffffff; font-size: 15px; text-align: center; }
+.fa-magnifying-glass { color: #ffffff; font-size: 15px; text-align: center; }
+.fa-microchip { color: #ffffff; font-size: 15px; text-align: center; }
+.glyphicon-download-alt { color: #ffffff; font-size: 18px; text-align: center; margin-left: -3.5px; }
+.glyphicon-play { color: #ffffff; font-size: 18px; text-align: center; margin-left: -0.5px; }
+.glyphicon-remove { color: #ffffff; font-size: 18px; text-align: center; margin-left: -0.5px; }
+.glyphicon-search { color: #ffffff; font-size: 18px; text-align: center; margin-left: -0.5px; }
+.glyphicon-repeat { color: #ffffff; font-size: 18px; text-align: center; margin-left: -3px; padding-left: -15px; }
+.glyphicon-plus { color: #ffffff; font-size: 18px; text-align: center; margin-left: -2px; }
+.glyphicon-cog { color: #4F794290; font-size: 21px; margin-top: 2.3px; margin-left: -3px; }
+.fa-sliders { color: #4F794290; font-size: 21px; margin-top: 2.3px; margin-left: -3px; }
+.glyphicon-floppy-save { color: #ffffff; font-size: 18px; text-align: center; padding-right: -10px; margin-top: 1px; }
+.glyphicon-download { color: #ffffff; font-size: 18px; text-align: center; margin-top: 3px; }
+.glyphicon-folder-open { color: #ffffff; font-size: 17px; }
+
+mark { background-color: #6CC283; }
+
+.fa-envelope { color: #FF0000; font-size: 20px; }
+.fa-envelope-open { font-size: 20px; }
+.fa-cube { font-size: 20px; }
+.fa-question { font-size: 20px; }
+.fa-comment-dollar { font-size: 20px; }
+.fa-bars { font-size: 20px; }
+.sidebar-toggle { font-size: 15px; }
+.fa-users { font-size: 18px; }
+
+/* === Radio Button / Primary Button Styling === */
+.btn-primary {
+  background: linear-gradient(to right, rgb(191, 191, 191), rgb(148, 148, 148), rgb(123, 123, 123)) !important;
+  border: none !important;
+  color: white !important;
+}
+
+.btn-primary:hover,
+.btn-primary.hover {
+  background: linear-gradient(to left, #4F7942, rgb(62, 97, 52)) !important;
+  border: none !important;
+}
+
+.btn-primary:active,
+.btn-primary.active {
+  background: linear-gradient(to right, #95D297, #6CC283, #4F7942) !important;
+  border: none !important;
+}
+
+.btn-group .btn {
+  font-weight: bold;
+}
+
+/* === Multi-column Layout === */
+.multicol {
+  -webkit-column-count: 2;
+  -moz-column-count: 2;
+  column-count: 2;
+}
+
+/* === SelectInput Dropdown === */
+.selectize-dropdown-content {
+  max-height: 200px !important;
+  overflow-y: auto !important;
+  overflow-x: auto !important;
+  white-space: nowrap !important;
+}
