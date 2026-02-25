@@ -23,6 +23,7 @@ libraries <- function() {
   # Core display
   suppressPackageStartupMessages(library(DT))
   suppressPackageStartupMessages(library(plotly))
+  suppressPackageStartupMessages(library(visNetwork))
 }
 
 # Analysis packages loaded after UI renders (called from server.R)
@@ -39,7 +40,6 @@ libraries_analysis <- function() {
   suppressPackageStartupMessages(library(textrank))
   suppressPackageStartupMessages(library(igraph))
   suppressPackageStartupMessages(library(tidygraph))
-  suppressPackageStartupMessages(library(visNetwork))
   suppressPackageStartupMessages(library(strucchange))
   suppressPackageStartupMessages(library(sparkline))
   if (requireNamespace("chromote", quietly = TRUE)) suppressPackageStartupMessages(library(chromote))

@@ -499,14 +499,11 @@ overviewUI <- function() {
 overviewServer <- function(input, output, session, values, statsValues) {
   ## BOX ----
 
-  # ============================================
-  # CORPUS SIZE & STRUCTURE (GREEN)
-  # ============================================
-
-  #### box1 - Documents ---------------
-  output$nDoc <- renderValueBox({
+  # Eagerly recompute value box indices whenever dfTag changes (e.g. after filtering)
+  observe({
+    req(values$dfTag)
+    req("docSelected" %in% names(values$dfTag))
     values$vb <- valueBoxesIndices(values$dfTag %>% filter(docSelected))
-
     values$VbData <- data.frame(
       Description = c(
         "Documents",
@@ -532,7 +529,14 @@ overviewServer <- function(input, output, session, values, statsValues) {
       ),
       Values = unlist(values$vb)
     )
+  })
 
+  # ============================================
+  # CORPUS SIZE & STRUCTURE (GREEN)
+  # ============================================
+
+  #### box1 - Documents ---------------
+  output$nDoc <- renderValueBox({
     valueBox(
       value = strong(values$vb$nDoc),
       subtitle = "Documents",
