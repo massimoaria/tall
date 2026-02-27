@@ -928,6 +928,7 @@ collocationServer <- function(input, output, session, values, statsValues) {
 
     term <- values$generalTerm
     words <- values$dfTag %>%
+      dplyr::filter(docSelected) %>%
       LemmaSelection() %>%
       select(all_of(term)) %>%
       pull() %>%
@@ -953,6 +954,7 @@ collocationServer <- function(input, output, session, values, statsValues) {
       values$wordInContest <- data.frame()
       term <- values$generalTerm
       words <- values$dfTag %>%
+        dplyr::filter(docSelected) %>%
         LemmaSelection() %>%
         select(all_of(term)) %>%
         pull() %>%
@@ -997,8 +999,9 @@ collocationServer <- function(input, output, session, values, statsValues) {
     valueExpr = {
       if (input$wordsContSearch != "") {
         word_search <- req(tolower(trimws(input$wordsContSearch)))
+        dfFiltered <- values$dfTag %>% dplyr::filter(docSelected)
         values$wordInContext <- get_context_window(
-          values$dfTag,
+          dfFiltered,
           target_word = word_search,
           n_left = input$wordsContBefore,
           n_right = input$wordsContAfter,
@@ -1007,7 +1010,7 @@ collocationServer <- function(input, output, session, values, statsValues) {
         if (nrow(values$wordInContext) > 1) {
           values$contextNetwork <- contextNetwork(
             df = values$wordInContext,
-            dfTag = values$dfTag,
+            dfTag = dfFiltered,
             target_word = word_search,
             n = input$wordsContN
           )

@@ -437,6 +437,7 @@ details[open] summary {
 .fa-rotate { color: #ffffff; font-size: 18px; text-align: center; margin-left: -3px; padding-left: -15px; }
 .fa-plus { color: #ffffff; font-size: 18px; text-align: center; margin-left: -2px; }
 .fa-gear { color: #4F794290; font-size: 21px; margin-top: 2.3px; margin-left: -3px; }
+.main-header .fa-gear { color: #fff; font-size: 20px; margin-top: 0; margin-left: 0; }
 .fa-sliders { color: #4F794290; font-size: 21px; margin-top: 2.3px; margin-left: -3px; }
 .fa-floppy-disk { color: #ffffff; font-size: 18px; text-align: center; padding-right: -10px; margin-top: 1px; }
 .fa-download { color: #ffffff; font-size: 18px; text-align: center; margin-top: 3px; }
