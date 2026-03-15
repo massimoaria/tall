@@ -1366,19 +1366,27 @@ DTformat <- function(
 ### FUNCTIONS FOR EXPORTING PLOTS ----
 
 
-plot2png <- function(p, filename, zoom = 2, type = "vis") {
-  html_name <- tempfile(fileext = ".html")
+plot2png <- function(p, filename, type = "vis", dpi = 300, height = 7) {
+  zoom <- dpi / 96
+  vwidth  <- round(height * 2 * 96)
+  vheight <- round(height * 96)
+
+  filename_html <- tools::file_path_sans_ext(filename)
+  html_name <- paste0(filename_html, ".html")
   switch(
     type,
     vis = {
       visSave(p, html_name)
     },
     plotly = {
-      htmlwidgets::saveWidget(p, file = html_name)
+      htmlwidgets::saveWidget(p, file = html_name, selfcontained = FALSE)
     }
   )
+  tallShot(url = html_name, zoom = zoom, vwidth = vwidth, vheight = vheight, file = filename)
 
-  tallShot(html_name, zoom = zoom, file = filename)
+  # Clean up temporary HTML and associated files
+  unlink(html_name)
+  unlink(paste0(filename_html, "_files"), recursive = TRUE)
 }
 
 ## freqGgplot ----

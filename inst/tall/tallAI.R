@@ -620,14 +620,14 @@ geminiGenerate <- function(
       suppressWarnings(plot2png(
         p1,
         filename = files[1],
-        zoom = 2,
-        type = "vis"
+        type = "vis",
+        dpi = 150, height = 7
       ))
       suppressWarnings(plot2png(
         p2,
         filename = files[2],
-        zoom = 2,
-        type = "plotly"
+        type = "plotly",
+        dpi = 150, height = 7
       ))
       values$w_w2vGemini <- geminiPromptImage(
         obj = files,
@@ -667,20 +667,20 @@ geminiGenerate <- function(
       suppressWarnings(plot2png(
         p1,
         filename = files[1],
-        zoom = 2,
-        type = "plotly"
+        type = "plotly",
+        dpi = 150, height = 7
       ))
       suppressWarnings(plot2png(
         p2,
         filename = files[2],
-        zoom = 2,
-        type = "plotly"
+        type = "plotly",
+        dpi = 150, height = 7
       ))
       suppressWarnings(plot2png(
         p3,
         filename = files[3],
-        zoom = 2,
-        type = "plotly"
+        type = "plotly",
+        dpi = 150, height = 7
       ))
 
       values$d_polDet_Gemini <- geminiPromptImage(
@@ -826,16 +826,16 @@ geminiPromptImage <- function(
         suppressWarnings(plot2png(
           obj,
           filename = file_path,
-          zoom = 2,
-          type = "vis"
+          type = "vis",
+          dpi = 150, height = 7
         ))
       },
       "plotly" = {
         suppressWarnings(plot2png(
           obj,
           filename = file_path,
-          zoom = 2,
-          type = "plotly"
+          type = "plotly",
+          dpi = 150, height = 7
         ))
       },
       "text" = {
@@ -847,7 +847,9 @@ geminiPromptImage <- function(
       "html" = {
         html_name <- tempfile(fileext = ".html")
         htmltools::save_html(obj, html_name)
-        tallShot(html_name, zoom = 2, file = file_path)
+        tallShot(html_name, zoom = 150 / 96, file = file_path)
+        unlink(html_name)
+        unlink(paste0(tools::file_path_sans_ext(html_name), "_files"), recursive = TRUE)
       },
       "ggplot2" = {
         ggsave(

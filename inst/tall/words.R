@@ -1984,7 +1984,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
     handlerExpr = {
       file <- paste("ReinertDendrogram-", sys.time(), ".png", sep = "")
       file <- destFolder(file, values$wdTall)
-      plot2png(values$ReinertDendrogram, filename = file, type = "vis")
+      plot2png(values$ReinertDendrogram, filename = file, type = "vis", dpi = values$dpi, height = values$h)
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -2018,7 +2018,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
         values$ReinertDendrogram,
         filename = "ReinertDendrogram.png",
         type = "vis",
-        zoom = values$zoom
+        dpi = values$report_dpi, height = values$h
       )
       values$list_file <- rbind(
         values$list_file,
@@ -2097,7 +2097,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
     handlerExpr = {
       file <- paste("Dendrogram-", sys.time(), ".png", sep = "")
       file <- destFolder(file, values$wdTall)
-      plot2png(values$WordDendrogram, filename = file, zoom = values$zoom)
+      plot2png(values$WordDendrogram, filename = file, type = "vis", dpi = values$dpi, height = values$h)
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -2116,7 +2116,8 @@ wordsServer <- function(input, output, session, values, statsValues) {
       values$fileDend <- plot2png(
         values$WordDendrogram,
         filename = "Clustering.png",
-        zoom = values$zoom
+        type = "vis",
+        dpi = values$report_dpi, height = values$h
       )
       values$list_file <- rbind(
         values$list_file,
@@ -2320,8 +2321,8 @@ wordsServer <- function(input, output, session, values, statsValues) {
       file1 <- destFolder(file1, values$wdTall)
       file2 <- paste("CADendrogram-", sys.time(), ".png", sep = "")
       file2 <- destFolder(file2, values$wdTall)
-      plot2png(values$plotCA, filename = file1, type = "plotly")
-      plot2png(values$CADendrogram, filename = file2, type = "vis")
+      plot2png(values$plotCA, filename = file1, type = "plotly", dpi = values$dpi, height = values$h)
+      plot2png(values$CADendrogram, filename = file2, type = "vis", dpi = values$dpi, height = values$h)
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -2349,13 +2350,13 @@ wordsServer <- function(input, output, session, values, statsValues) {
         values$plotCA,
         filename = "CAMap.png",
         type = "plotly",
-        zoom = values$zoom
+        dpi = values$report_dpi, height = values$h
       )
       values$fileCADendrogram <- plot2png(
         values$CADendrogram,
         filename = "CADendrogram.png",
         type = "vis",
-        zoom = values$zoom
+        dpi = values$report_dpi, height = values$h
       )
       values$list_file <- rbind(
         values$list_file,
@@ -2532,7 +2533,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
     handlerExpr = {
       file <- paste("Network-Docs-", sys.time(), ".png", sep = "")
       file <- destFolder(file, values$wdTall)
-      plot2png(values$netVis, filename = file, zoom = values$zoom)
+      plot2png(values$netVis, filename = file, type = "vis", dpi = values$dpi, height = values$h)
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -2556,7 +2557,8 @@ wordsServer <- function(input, output, session, values, statsValues) {
       values$filenetVis <- plot2png(
         values$netVis,
         filename = "CoWord.png",
-        zoom = values$zoom
+        type = "vis",
+        dpi = values$report_dpi, height = values$h
       )
       values$list_file <- rbind(
         values$list_file,
@@ -3017,8 +3019,8 @@ wordsServer <- function(input, output, session, values, statsValues) {
       file1 <- destFolder(file1, values$wdTall)
       file2 <- paste("TANetwork-", sys.time(), ".png", sep = "")
       file2 <- destFolder(file2, values$wdTall)
-      plot2png(values$TMmap, filename = file1, type = "plotly")
-      plot2png(values$TMvis, filename = file2, type = "vis")
+      plot2png(values$TMmap, filename = file1, type = "plotly", dpi = values$dpi, height = values$h)
+      plot2png(values$TMvis, filename = file2, type = "vis", dpi = values$dpi, height = values$h)
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -3043,13 +3045,13 @@ wordsServer <- function(input, output, session, values, statsValues) {
         values$TMmap,
         filename = "TMMap.png",
         type = "plotly",
-        zoom = values$zoom
+        dpi = values$report_dpi, height = values$h
       )
       values$fileTMNetwork <- plot2png(
         values$TMvis,
         filename = "TMNetwork.png",
         type = "vis",
-        zoom = values$zoom
+        dpi = values$report_dpi, height = values$h
       )
       values$list_file <- rbind(
         values$list_file,
@@ -3160,8 +3162,8 @@ wordsServer <- function(input, output, session, values, statsValues) {
       file3 <- paste("WEpca-", sys.time(), ".png", sep = "")
       file3 <- destFolder(file3, values$wdTall)
       write.csv(as.matrix(values$w2v_model), file = file1)
-      plot2png(values$w2vBoxplot, filename = file2, type = "plotly")
-      plot2png(values$w2vPCA, filename = file3, type = "plotly")
+      plot2png(values$w2vBoxplot, filename = file2, type = "plotly", dpi = values$dpi, height = values$h)
+      plot2png(values$w2vPCA, filename = file3, type = "plotly", dpi = values$dpi, height = values$h)
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -3180,13 +3182,13 @@ wordsServer <- function(input, output, session, values, statsValues) {
         values$w2vBoxplot,
         filename = "w2vBoxplot.png",
         type = "plotly",
-        zoom = values$zoom
+        dpi = values$report_dpi, height = values$h
       )
       values$fileplotw2vPCA <- plot2png(
         values$w2vPCA,
         filename = "w2vPCA.png",
         type = "plotly",
-        zoom = values$zoom
+        dpi = values$report_dpi, height = values$h
       )
       values$list_file <- rbind(
         values$list_file,
@@ -3318,8 +3320,8 @@ wordsServer <- function(input, output, session, values, statsValues) {
       file1 <- destFolder(file1, values$wdTall)
       file2 <- paste("WEumap-", sys.time(), ".png", sep = "")
       file2 <- destFolder(file2, values$wdTall)
-      plot2png(values$w2vNetworkPlot, filename = file1, type = "vis")
-      plot2png(values$w2vUMAPplot, filename = file2, type = "plotly")
+      plot2png(values$w2vNetworkPlot, filename = file1, type = "vis", dpi = values$dpi, height = values$h)
+      plot2png(values$w2vUMAPplot, filename = file2, type = "plotly", dpi = values$dpi, height = values$h)
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -3343,13 +3345,13 @@ wordsServer <- function(input, output, session, values, statsValues) {
         values$w2vNetworkPlot,
         filename = "w2vNetworkPlot.png",
         type = "vis",
-        zoom = values$zoom
+        dpi = values$report_dpi, height = values$h
       )
       values$fileplotw2vUMAP <- plot2png(
         values$w2vUMAPplot,
         filename = "w2vUMAPPlot.png",
         type = "plotly",
-        zoom = values$zoom
+        dpi = values$report_dpi, height = values$h
       )
       values$list_file <- rbind(
         values$list_file,
@@ -3453,7 +3455,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
     handlerExpr = {
       file <- paste("Grako-", sys.time(), ".png", sep = "")
       file <- destFolder(file, values$wdTall)
-      plot2png(values$grakoVis, filename = file, zoom = values$zoom)
+      plot2png(values$grakoVis, filename = file, type = "vis", dpi = values$dpi, height = values$h)
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -3475,7 +3477,8 @@ wordsServer <- function(input, output, session, values, statsValues) {
       values$fileGrako <- plot2png(
         values$grakoVis,
         filename = "grako.png",
-        zoom = values$zoom
+        type = "vis",
+        dpi = values$report_dpi, height = values$h
       )
       values$list_file <- rbind(
         values$list_file,

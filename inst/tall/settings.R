@@ -42,6 +42,61 @@ settingsUI <- function() {
               style = "color:white;",
               label = "Clean model folder"
             )
+          ),
+
+          # Graph Export Settings
+          wellPanel(
+            style = "background-color: #e3f2fd; border: 1px solid #bbdefb;",
+            h4(icon("image"), strong("Graph Export Settings")),
+            br(),
+            div(
+              style = "margin-bottom: 25px;",
+              tags$label(
+                "Export Resolution (DPI)",
+                style = "font-weight: 600; color: #2E86AB; margin-bottom: 8px; display: block;"
+              ),
+              uiOutput("dpi_slider"),
+              helpText(
+                "Resolution for exported images (download button). Higher DPI = better quality but larger files.",
+                style = "margin-top: 5px; color: #666; font-size: 12px;"
+              )
+            ),
+            div(
+              style = "margin-bottom: 25px;",
+              tags$label(
+                "Report Resolution (DPI)",
+                style = "font-weight: 600; color: #2E86AB; margin-bottom: 8px; display: block;"
+              ),
+              uiOutput("report_dpi_slider"),
+              helpText(
+                "Resolution for images added to the Excel report. Lower DPI keeps the report file size small.",
+                style = "margin-top: 5px; color: #666; font-size: 12px;"
+              )
+            ),
+            div(
+              style = "margin-bottom: 25px;",
+              tags$label(
+                "Plot Height (inches)",
+                style = "font-weight: 600; color: #2E86AB; margin-bottom: 8px; display: block;"
+              ),
+              uiOutput("h_slider"),
+              helpText(
+                "Adjust the height of exported plots. Width is automatically calculated to maintain aspect ratio.",
+                style = "margin-top: 5px; color: #666; font-size: 12px;"
+              )
+            ),
+            div(
+              style = "margin-bottom: 10px;",
+              tags$label(
+                "Plot Aspect Ratio",
+                style = "font-weight: 600; color: #2E86AB; margin-bottom: 8px; display: block;"
+              ),
+              uiOutput("aspect_radio"),
+              helpText(
+                "Publication (3:2) is ideal for papers and books. Wide (2:1) is better for presentations and dashboards.",
+                style = "margin-top: 5px; color: #666; font-size: 12px;"
+              )
+            )
           )
         ),
 
@@ -274,6 +329,45 @@ settingsServer <- function(input, output, session, values, statsValues) {
   })
 
   ### SETTINGS ----
+
+  ## Graph Settings ----
+  saveGraphSettings <- function() {
+    home <- homeFolder()
+    path_tall <- file.path(home, "tall")
+    if (!file.exists(path_tall)) {
+      dir.create(path_tall)
+    }
+    writeLines(
+      c(
+        as.character(values$dpi),
+        as.character(values$report_dpi),
+        as.character(values$h),
+        as.character(values$aspect)
+      ),
+      file.path(path_tall, ".tall_graph_settings.txt")
+    )
+  }
+
+  observeEvent(input$dpi, {
+    values$dpi <- as.numeric(input$dpi)
+    saveGraphSettings()
+  }, ignoreInit = TRUE)
+
+  observeEvent(input$report_dpi, {
+    values$report_dpi <- as.numeric(input$report_dpi)
+    saveGraphSettings()
+  }, ignoreInit = TRUE)
+
+  observeEvent(input$h, {
+    values$h <- as.numeric(input$h)
+    saveGraphSettings()
+  }, ignoreInit = TRUE)
+
+  observeEvent(input$aspect, {
+    values$aspect <- as.numeric(input$aspect)
+    saveGraphSettings()
+  }, ignoreInit = TRUE)
+
   observeEvent(input$cache, {
     deleteCache()
   })

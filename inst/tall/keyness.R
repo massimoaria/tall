@@ -687,7 +687,8 @@ keynessServer <- function(input, output, session, values) {
         list_df,
         list_plot,
         sheetname = "Keyness",
-        wb = values$wb
+        wb = values$wb,
+        dpi = values$report_dpi
       )
       values$wb <- wb
       popUp(
@@ -714,7 +715,7 @@ keynessServer <- function(input, output, session, values) {
         plot = values$keyness_results$plot_ggplot_bar,
         dpi = values$dpi,
         height = values$h,
-        width = values$h * 2,
+        width = values$h * values$aspect,
         bg = "transparent"
       )
       file2 <- paste("WordCloud-", sys.time(), ".png", sep = "")
@@ -724,7 +725,7 @@ keynessServer <- function(input, output, session, values) {
         plot = values$keyness_wordcloud_plot,
         dpi = values$dpi,
         height = values$h,
-        width = values$h * 2,
+        width = values$h * values$aspect,
         bg = "transparent"
       )
       if (input$keyness_approach == "reference_corpus") {
@@ -735,7 +736,7 @@ keynessServer <- function(input, output, session, values) {
           plot = values$keyness_results$ggplot_frequency,
           dpi = values$dpi,
           height = values$h,
-          width = values$h * 2,
+          width = values$h * values$aspect,
           bg = "transparent"
         )
       }

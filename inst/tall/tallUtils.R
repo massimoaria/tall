@@ -623,6 +623,7 @@ To ensure the functionality of Biblioshiny,
 
   # Initialize Feature Roles values
   values$timeVariable <- NULL
+  values$timeAggregation <- NULL
   values$labelVariable <- NULL
   values$keynessVariable <- NULL
   values$keynessGroup1 <- NULL

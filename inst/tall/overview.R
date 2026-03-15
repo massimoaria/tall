@@ -828,7 +828,7 @@ overviewServer <- function(input, output, session, values, statsValues) {
         plot = values$WCplot,
         dpi = values$dpi,
         height = values$h,
-        width = values$h * 2,
+        width = values$h * values$aspect,
         bg = "transparent"
       )
 
@@ -845,7 +845,8 @@ overviewServer <- function(input, output, session, values, statsValues) {
         list_df,
         list_plot,
         sheetname = "WordCloud",
-        wb = values$wb
+        wb = values$wb,
+        dpi = values$report_dpi
       )
       values$wb <- wb
       popUp(
@@ -980,7 +981,7 @@ overviewServer <- function(input, output, session, values, statsValues) {
         plot = values$wFreqGgplot,
         dpi = values$dpi,
         height = values$h,
-        width = values$h * 2,
+        width = values$h * values$aspect,
         bg = "transparent"
       )
       popUp(title = "Saved in your working folder", type = "saved")
@@ -1003,7 +1004,8 @@ overviewServer <- function(input, output, session, values, statsValues) {
         list_df,
         list_plot,
         sheetname = "WordsFreq",
-        wb = values$wb
+        wb = values$wb,
+        dpi = values$report_dpi
       )
       values$wb <- wb
       popUp(
@@ -1085,7 +1087,7 @@ overviewServer <- function(input, output, session, values, statsValues) {
         plot = values$posGgplot,
         dpi = values$dpi,
         height = values$h,
-        width = values$h * 2,
+        width = values$h * values$aspect,
         bg = "transparent"
       )
       popUp(title = "Saved in your working folder", type = "saved")
@@ -1109,7 +1111,8 @@ overviewServer <- function(input, output, session, values, statsValues) {
         list_df,
         list_plot,
         sheetname = "PoSFreq",
-        wb = values$wb
+        wb = values$wb,
+        dpi = values$report_dpi
       )
       values$wb <- wb
       popUp(title = "PoS Tag Frequency", type = "success")

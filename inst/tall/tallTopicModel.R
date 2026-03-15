@@ -65,19 +65,24 @@ Deveaud2014 <- function(models) {
 }
 
 # Funzione per valutare un singolo modello
-evaluate_single_k <- function(k, dtm, seed = 1234) {
-  model <- LDA(dtm, k = k, method = "VEM", control = list(seed = seed))
+evaluate_single_k <- function(k, dtm, seed = 1234, method = "LDA") {
+  if (method == "CTM") {
+    model <- CTM(dtm, k = k, control = list(seed = seed))
+  } else {
+    model <- LDA(dtm, k = k, method = "VEM", control = list(seed = seed))
+  }
   log_lik <- logLik(model)
   perp <- perplexity(model, newdata = dtm)
   return(list(k = k, logLik = log_lik, Perplexity = perp, model = model))
 }
 
 # Funzione parallela completa
-evaluate_lda_parallel <- function(
+evaluate_tm_parallel <- function(
   dtm,
   k_seq = 2:20,
   seed = 1234,
-  n_cores = detectCores() - 1
+  n_cores = detectCores() - 1,
+  method = "LDA"
 ) {
   cl <- parallel::makeCluster(n_cores)
   parallel::clusterEvalQ(cl, {
@@ -85,12 +90,12 @@ evaluate_lda_parallel <- function(
   })
   parallel::clusterExport(
     cl,
-    varlist = c("dtm", "seed", "evaluate_single_k"),
+    varlist = c("dtm", "seed", "method", "evaluate_single_k"),
     envir = environment()
   )
 
   results <- parallel::parLapply(cl, k_seq, function(k) {
-    evaluate_single_k(k, dtm, seed)
+    evaluate_single_k(k, dtm, seed, method)
   })
   parallel::stopCluster(cl)
 
@@ -164,7 +169,9 @@ tmTuning <- function(
   top_by = c("freq", "tfidf"),
   minK = 2,
   maxK = 20,
-  Kby = 1
+  Kby = 1,
+  method = "LDA",
+  prevalence = NULL
 ) {
   ## check min and max K
   ClusterRange <- sort(c(minK, maxK))
@@ -174,7 +181,6 @@ tmTuning <- function(
   maxK <- min(maxK, length(unique(x$doc_id)))
   ###
 
-  # x <- dfTag %>% dplyr::filter(POSSelected)
   x$topic_level_id <- unique_identifier(x, fields = group)
 
   dtf <- document_term_frequencies(
@@ -185,25 +191,43 @@ tmTuning <- function(
 
   dtm <- document_term_matrix(x = dtf)
 
-  switch(
-    top_by,
-    freq = {
-      dtm <- dtm_remove_lowfreq(dtm, minfreq = 1, maxterms = n)
-      dtm <- tm::as.DocumentTermMatrix(dtm, weighting = tm::weightTf)
-    },
-    tfidf = {
-      dtm <- dtm_remove_tfidf(dtm, top = n)
-      dtm <- tm::as.DocumentTermMatrix(dtm, weighting = tm::weightTfIdf)
-    }
-  )
-
-  ## find optimal number of topics K using the librare ldatuning
-  result <- evaluate_lda_parallel(
-    dtm,
-    k_seq = seq(from = minK, to = maxK, by = Kby),
-    seed = 1234,
-    n_cores = coresCPU()
-  )
+  if (method == "STM") {
+    ## STM tuning using stm::searchK
+    switch(
+      top_by,
+      freq = {
+        dtm <- dtm_remove_lowfreq(dtm, minfreq = 1, maxterms = n)
+      },
+      tfidf = {
+        dtm <- dtm_remove_tfidf(dtm, top = n)
+      }
+    )
+    result <- stmTuning(
+      x = x, dtm = dtm, group = group,
+      prevalence = prevalence,
+      minK = minK, maxK = maxK, Kby = Kby
+    )
+  } else {
+    ## LDA / CTM tuning
+    switch(
+      top_by,
+      freq = {
+        dtm <- dtm_remove_lowfreq(dtm, minfreq = 1, maxterms = n)
+        dtm <- tm::as.DocumentTermMatrix(dtm, weighting = tm::weightTf)
+      },
+      tfidf = {
+        dtm <- dtm_remove_tfidf(dtm, top = n)
+        dtm <- tm::as.DocumentTermMatrix(dtm, weighting = tm::weightTfIdf)
+      }
+    )
+    result <- evaluate_tm_parallel(
+      dtm,
+      k_seq = seq(from = minK, to = maxK, by = Kby),
+      seed = 1234,
+      n_cores = coresCPU(),
+      method = method
+    )
+  }
 
   return(result)
 }
@@ -353,6 +377,149 @@ tmTuningPlot <- function(result, metric) {
   return(fig)
 }
 
+### Consensus K from multiple metrics ----
+tmConsensusK <- function(metrics_df, method = "LDA") {
+  if (method == "STM") {
+    elbow_list <- list(
+      list(col = "CaoJuan2009", decreasing = TRUE),
+      list(col = "Arun2010", decreasing = FALSE),
+      list(col = "Deveaud2014", decreasing = TRUE),
+      list(col = "logLik", decreasing = FALSE)
+    )
+  } else {
+    elbow_list <- list(
+      list(col = "CaoJuan2009", decreasing = TRUE),
+      list(col = "Arun2010", decreasing = FALSE),
+      list(col = "Deveaud2014", decreasing = TRUE),
+      list(col = "Perplexity", decreasing = TRUE)
+    )
+  }
+
+  k_votes <- sapply(elbow_list, function(m) {
+    if (!m$col %in% names(metrics_df)) return(NA)
+    find_elbow(metrics_df$k, metrics_df[[m$col]], decreasing = m$decreasing, plot = FALSE)
+  })
+  k_votes <- k_votes[!is.na(k_votes)]
+
+  # Mode (most frequent K)
+  k_table <- sort(table(k_votes), decreasing = TRUE)
+  as.integer(names(k_table)[1])
+}
+
+### Multi-Metric Comparison Plot ----
+
+tmMultiMetricPlot <- function(result, method = "LDA") {
+  df <- result$metrics %>% rename(topics = k)
+
+  if (method == "STM") {
+    metric_info <- list(
+      list(col = "CaoJuan2009", label = "Exclusivity", color = "#e74c3c", decreasing = TRUE),
+      list(col = "Arun2010", label = "Semantic Coherence", color = "#3498db", decreasing = FALSE),
+      list(col = "Deveaud2014", label = "Excl. + Coherence", color = "#2ecc71", decreasing = TRUE),
+      list(col = "logLik", label = "Lower Bound", color = "#9b59b6", decreasing = FALSE)
+    )
+  } else {
+    metric_info <- list(
+      list(col = "CaoJuan2009", label = "CaoJuan 2009", color = "#e74c3c", decreasing = TRUE),
+      list(col = "Arun2010", label = "Arun 2010", color = "#3498db", decreasing = FALSE),
+      list(col = "Deveaud2014", label = "Deveaud 2014", color = "#2ecc71", decreasing = TRUE),
+      list(col = "Perplexity", label = "Perplexity", color = "#9b59b6", decreasing = TRUE)
+    )
+  }
+
+  fig <- plot_ly()
+
+  for (m in metric_info) {
+    if (!m$col %in% names(df)) next
+    vals <- df[[m$col]]
+    # Min-max normalize to [0, 1]; invert if lower = better
+    if (m$decreasing) {
+      norm_vals <- (vals - min(vals)) / (max(vals) - min(vals) + .Machine$double.eps)
+    } else {
+      norm_vals <- 1 - (vals - min(vals)) / (max(vals) - min(vals) + .Machine$double.eps)
+    }
+
+    # Find elbow for this metric
+    k_opt <- find_elbow(df$topics, vals, decreasing = m$decreasing, plot = FALSE)
+    opt_idx <- which(df$topics == k_opt)
+
+    fig <- fig %>%
+      add_trace(
+        x = df$topics,
+        y = norm_vals,
+        type = "scatter",
+        mode = "lines+markers",
+        name = m$label,
+        line = list(color = m$color, width = 2),
+        marker = list(size = 8, color = m$color),
+        hovertemplate = paste0(
+          "<b>", m$label, "</b><br>",
+          "K = %{x}<br>",
+          "Normalized: %{y:.3f}<br>",
+          "<extra></extra>"
+        )
+      ) %>%
+      add_trace(
+        x = df$topics[opt_idx],
+        y = norm_vals[opt_idx],
+        type = "scatter",
+        mode = "markers",
+        marker = list(
+          size = 16,
+          color = m$color,
+          line = list(color = "white", width = 3),
+          symbol = "diamond"
+        ),
+        name = paste0(m$label, ": K=", k_opt),
+        showlegend = FALSE,
+        hovertemplate = paste0(
+          "<b>", m$label, " (Optimal)</b><br>",
+          "K = ", k_opt, "<br>",
+          "<extra></extra>"
+        )
+      )
+  }
+
+  fig <- fig %>%
+    layout(
+      title = list(
+        text = "<b>Multi-Metric Comparison</b>",
+        font = list(size = 18, color = "gray30"),
+        x = 0.5
+      ),
+      paper_bgcolor = "white",
+      plot_bgcolor = "white",
+      xaxis = list(
+        title = "Number of Topics (K)",
+        gridcolor = "rgb(229,229,229)",
+        dtick = 1,
+        showgrid = TRUE
+      ),
+      yaxis = list(
+        title = "Normalized Score (0 = worst, 1 = best)",
+        gridcolor = "rgb(229,229,229)",
+        range = c(-0.05, 1.08),
+        showgrid = TRUE
+      ),
+      legend = list(
+        orientation = "h",
+        x = 0.5,
+        xanchor = "center",
+        y = -0.12
+      ),
+      hovermode = "x unified"
+    ) %>%
+    config(
+      displaylogo = FALSE,
+      modeBarButtonsToRemove = c(
+        "sendDataToCloud", "pan2d", "select2d", "lasso2d",
+        "toggleSpikelines", "hoverClosestCartesian", "hoverCompareCartesian"
+      )
+    )
+
+  return(fig)
+}
+
 ### model estimation
 
 tmEstimate <- function(
@@ -361,9 +528,12 @@ tmEstimate <- function(
   group = c("doc_id", "sentence_id"),
   term = "lemma",
   n = 100,
-  top_by = c("freq", "tfidf")
+  top_by = c("freq", "tfidf"),
+  method = c("LDA", "CTM", "STM"),
+  prevalence = NULL
 ) {
-  # x <- dfTag %>% dplyr::filter(POSSelected)
+  method <- match.arg(method)
+
   x$topic_level_id <- unique_identifier(x, fields = group)
 
   dtf <- document_term_frequencies(x, document = "topic_level_id", term = term)
@@ -380,16 +550,22 @@ tmEstimate <- function(
     }
   )
 
-  # compute the LDA model, inference via 1000 iterations of Gibbs sampling
+  if (method == "STM") {
+    return(stmEstimate(x, dtm, K, group, prevalence))
+  }
 
-  topicModel <- LDA(dtm, K, method = "Gibbs", control = list(iter = 500))
+  # LDA / CTM
+  if (method == "LDA") {
+    topicModel <- LDA(dtm, K, method = "Gibbs", control = list(iter = 500))
+  } else {
+    topicModel <- CTM(dtm, K, control = list(seed = 1234))
+  }
 
-  # have a look a some of the results (posterior distributions)
+  # Posterior distributions
   tmResult <- posterior(topicModel)
 
   # topics are probability distributions over the entire vocabulary
-  beta <- tmResult$terms # get beta from results
-  # K distributions over nTerms(DTM) terms
+  beta <- tmResult$terms
 
   beta_norm <- beta / matrix(colSums(beta), K, ncol(beta), byrow = TRUE)
   beta_norm <- t(beta_norm) %>%
@@ -415,6 +591,142 @@ tmEstimate <- function(
     beta = beta,
     beta_norm = beta_norm,
     theta = theta
+  )
+
+  return(results)
+}
+
+
+### STM (Structural Topic Model) functions ----
+
+# Build prevalence metadata for STM from tokenized data
+stmBuildMeta <- function(x, group, prevalence) {
+  # Aggregate metadata at document level
+  meta <- x %>%
+    group_by(across(all_of(group))) %>%
+    summarise(
+      across(all_of(prevalence), ~ first(.x)),
+      .groups = "drop"
+    )
+  # Ensure row order matches DTM (topic_level_id order)
+  meta <- meta %>% arrange(across(all_of(group)))
+  as.data.frame(meta)
+}
+
+# STM tuning: uses stm::searchK
+stmTuning <- function(
+  x, dtm, group,
+  prevalence = NULL,
+  minK = 2, maxK = 20, Kby = 1
+) {
+  # Convert DTM to DocumentTermMatrix (slam-based) then to stm format
+  dtm_tm <- tm::as.DocumentTermMatrix(dtm, weighting = tm::weightTf)
+  stm_data <- stm::readCorpus(dtm_tm, type = "dtm")
+
+  # Build prevalence formula and metadata
+  prev_formula <- NULL
+  meta <- NULL
+  if (!is.null(prevalence) && length(prevalence) > 0) {
+    meta <- stmBuildMeta(x, "topic_level_id", prevalence)
+    prev_formula <- as.formula(paste("~", paste(paste0("`", prevalence, "`"), collapse = " + ")))
+  }
+
+  k_seq <- seq(from = minK, to = maxK, by = Kby)
+
+  # Use stm::searchK for model selection
+  search_result <- stm::searchK(
+    documents = stm_data$documents,
+    vocab = stm_data$vocab,
+    K = k_seq,
+    prevalence = prev_formula,
+    data = meta,
+    verbose = FALSE
+  )
+
+  # Extract metrics into a compatible format
+  sr <- search_result$results
+  metrics <- data.frame(
+    k = unlist(sr$K),
+    logLik = unlist(sr$lbound),
+    Perplexity = -unlist(sr$lbound),
+    CaoJuan2009 = unlist(sr$exclus),
+    Arun2010 = -unlist(sr$semcoh),
+    Deveaud2014 = unlist(sr$exclus) + unlist(sr$semcoh)
+  )
+
+  # Normalize to make compatible with existing plotting code
+  # CaoJuan2009 -> use exclusivity (higher = better, elbow finds minimum so invert)
+  # Arun2010 -> use -semantic coherence (lower = better)
+  # Deveaud2014 -> use combined (higher = better)
+
+  return(list(metrics = metrics, models = NULL))
+}
+
+# STM estimation
+stmEstimate <- function(x, dtm, K, group, prevalence = NULL) {
+  # Convert DTM to DocumentTermMatrix (slam-based) then to stm format
+  dtm_tm <- tm::as.DocumentTermMatrix(dtm, weighting = tm::weightTf)
+  stm_data <- stm::readCorpus(dtm_tm, type = "dtm")
+
+  # Build prevalence formula and metadata
+  prev_formula <- NULL
+  meta <- NULL
+  if (!is.null(prevalence) && length(prevalence) > 0) {
+    meta <- stmBuildMeta(x, "topic_level_id", prevalence)
+    prev_formula <- as.formula(paste("~", paste(paste0("`", prevalence, "`"), collapse = " + ")))
+  }
+
+  # Fit STM model
+  topicModel <- stm::stm(
+    documents = stm_data$documents,
+    vocab = stm_data$vocab,
+    K = K,
+    prevalence = prev_formula,
+    data = meta,
+    verbose = FALSE
+  )
+
+  # Extract beta (term-topic probabilities)
+  # stm stores log beta in model$beta$logbeta
+  beta_raw <- exp(topicModel$beta$logbeta[[1]])
+  # beta_raw: K rows x V cols
+  colnames(beta_raw) <- stm_data$vocab
+  rownames(beta_raw) <- as.character(1:K)
+
+  variables <- as.character(1:K)
+
+  # beta: words x topics (same format as LDA output)
+  beta <- as.data.frame(t(beta_raw))
+  colnames(beta) <- variables
+  beta$word <- stm_data$vocab
+  beta <- beta %>% select(word, all_of(variables))
+
+  # beta_norm: normalized version
+  col_sums <- colSums(beta[, variables, drop = FALSE])
+  beta_norm <- beta
+  beta_norm[, variables] <- sweep(beta[, variables, drop = FALSE], 2, col_sums, "/")
+
+  # Extract theta (document-topic probabilities)
+  theta_raw <- topicModel$theta
+  # Get document labels
+  doc_ids <- x %>%
+    distinct(topic_level_id, doc_id) %>%
+    arrange(topic_level_id)
+  row_label <- doc_ids$doc_id[seq_len(nrow(theta_raw))]
+
+  theta <- as.data.frame(theta_raw)
+  colnames(theta) <- variables
+  theta$doc <- row_label
+  theta <- theta %>% select(doc, all_of(variables))
+
+  results <- list(
+    topicModel = topicModel,
+    tmResult = list(terms = beta_raw, topics = theta_raw),
+    beta = beta,
+    beta_norm = beta_norm,
+    theta = theta,
+    stm_meta = meta,
+    stm_documents = stm_data$documents
   )
 
   return(results)

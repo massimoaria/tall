@@ -35,6 +35,7 @@
 #' @importFrom Matrix Matrix
 #'
 #' @import openxlsx
+#' @import stm
 #' @import topicmodels
 #' @import pdftools
 #' @import tidygraph
@@ -59,9 +60,19 @@ NULL
 .onAttach <- function(...) {
   packageStartupMessage(
     "Please note that our software is open source and available for use, distributed under the MIT license.
-                        \nFor information and bug reports:
-                        - Write a post on https://github.com/massimoaria/tall/issues
-                        \nTo start with the tall app, please digit:
+\nWhen it is used in a publication, we ask that authors properly cite the following reference:
+
+Aria, M., Spano, M., D'Aniello, L., Cuccurullo, C., & Misuraca, M. (2026).
+TALL: Text analysis for all - an interactive R-shiny application for exploring, modeling, and visualizing textual data.
+SoftwareX, 34, 102590.
+Full paper (Open Access): https://www.sciencedirect.com/science/article/pii/S2352711026000841
+Supplementary material: https://ars.els-cdn.com/content/image/1-s2.0-S2352711026000841-mmc1.pdf
+
+Failure to properly cite the software is considered a violation of the license.
+\nFor information and bug reports:
+- Visit https://www.tall-app.com
+- Write a post on https://github.com/massimoaria/tall/issues
+\nTo start with the tall app, please digit:
 tall()\n"
   )
 }

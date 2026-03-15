@@ -1418,111 +1418,191 @@ helpContent <- function() {
 
   <h3><strong>Topic Modeling in TALL: K Selection</strong></h3>
 
-  <p>Topic modeling is a fundamental technique in <strong>unsupervised text mining</strong>, allowing users to uncover <strong>latent themes</strong> within large collections of documents. One of the key challenges in <strong>Latent Dirichlet Allocation (LDA)</strong> and other topic modeling techniques is determining the <strong>optimal number of topics (K)</strong>.</p>
-
-  <p>TALL estimates <strong>K automatically</strong> using well-established statistical measures (<strong>Deveaud et al., 2014; Cao et al., 2009; Arun et al., 2010</strong>), including <strong>Perplexity</strong>.
-<br>However, users can also <strong>manually adjust K</strong> and explore different solutions in the <strong>Model Estimation Menu</strong>, enabling greater flexibility based on the dataset and research objectives.</p>
+  <p>Determining the <strong>optimal number of topics (K)</strong> is one of the most critical steps in topic modeling. TALL provides a comprehensive K selection framework that supports three model types: <strong>LDA</strong>, <strong>CTM</strong>, and <strong>STM</strong>.</p>
 
   <hr>
   <h4><strong>Why is K Selection Important?</strong></h4>
   <ul>
-  <li>A <strong>too small K</strong> may <strong>merge distinct topics</strong>, reducing the model's ability to separate different thematic structures.</li>
+    <li>A <strong>too small K</strong> may <strong>merge distinct topics</strong>, reducing the model's ability to separate different thematic structures.</li>
     <li>A <strong>too large K</strong> may <strong>fragment coherent topics</strong>, introducing unnecessary complexity and reducing interpretability.</li>
     <li>The <strong>correct K</strong> ensures that topics are <strong>coherent, interpretable, and representative</strong> of the dataset.</li>
   </ul>
 
   <hr>
-  <h4><strong>Automatic K Estimation in TALL</strong></h4>
-  <p>TALL integrates several standard measures for determining the optimal number of topics in LDA:</p>
-
-  <h4><em>Blei et al. (2003) – Perplexity Measure</em></h4>
-  <p>- Perplexity (Probabilistic Evaluation of Generalization) is a <strong>likelihood-based metric</strong> that measures how well a model generalizes to unseen data.</p>
-  <p>- It evaluates the model's ability to predict a held-out test set, with <strong>lower values indicating better performance</strong>.</p>
-  <p>- Perplexity is defined as the inverse geometric mean of the likelihood function, computed over the test corpus.</p>
-
-  <h4><em>Cao et al. (2009) – Topic Coherence Measure</em></h4>
-  <p>- Computes the <strong>average pairwise similarity</strong> between topics based on word distributions.</p>
-  <p>- The <strong>optimal K</strong> is found when inter-topic similarity is minimized, ensuring that topics are well-separated.</p>
-
-  <h4><em>Arun et al. (2010) – KL Divergence-Based Measure</em></h4>
-  <p>- Compares the <strong>word-topic distribution</strong> and <strong>document-topic distribution</strong> using <strong>Kullback-Leibler (KL) divergence</strong>.</p>
-  <p>- The <strong>optimal K</strong> is identified as the point where KL divergence stabilizes, meaning topics balance between coherence and specificity.</p>
-
-  <h4><em>Deveaud et al. (2014) – A Hybrid Approach</em></h4>
-  <p>- A refinement of previous approaches that balances topic coherence and diversity.</p>
-  <p>- The <strong>optimal K</strong> is chosen where <strong>topic distinctiveness</strong> is maximized while preserving thematic coverage.</p>
+  <h4><strong>Supported Models</strong></h4>
+  <p>TALL supports K selection for three topic modeling approaches:</p>
+  <ul>
+    <li><strong>LDA (Latent Dirichlet Allocation)</strong> – The classic probabilistic topic model (Blei et al., 2003). Topics are assumed to be independent.</li>
+    <li><strong>CTM (Correlated Topic Model)</strong> – An extension of LDA that allows topics to be correlated with each other (Blei & Lafferty, 2007), using a logistic normal distribution instead of Dirichlet.</li>
+    <li><strong>STM (Structural Topic Model)</strong> – Allows external covariates (e.g., time, source, metadata) to influence topic prevalence and content (Roberts et al., 2019).</li>
+  </ul>
 
   <hr>
-  <h4><strong>Manual K Adjustment for Customization</strong></h4>
-  <p>While <strong>automatic estimation</strong> provides a strong baseline, users may need to adjust <strong>K manually</strong> based on <strong>domain knowledge and interpretability</strong>:</p>
+  <h4><strong>Metrics for LDA and CTM</strong></h4>
+  <p>For LDA and CTM, TALL computes four standard metrics across the K range and identifies the optimal K using the <strong>elbow method</strong> (maximum distance from line):</p>
+
+  <h4><em>Cao et al. (2009) – Topic Coherence</em></h4>
+  <p>Computes the <strong>average pairwise cosine similarity</strong> between topics. The optimal K minimizes inter-topic similarity, ensuring well-separated topics. <strong>Lower values are better.</strong></p>
+
+  <h4><em>Arun et al. (2010) – KL Divergence</em></h4>
+  <p>Compares the <strong>word-topic distribution</strong> (via SVD) and <strong>document-topic distribution</strong> using <strong>symmetric Kullback-Leibler divergence</strong>. The optimal K is where divergence stabilizes. <strong>Lower values are better.</strong></p>
+
+  <h4><em>Deveaud et al. (2014) – Jensen-Shannon Divergence</em></h4>
+  <p>Measures <strong>pairwise Jensen-Shannon divergence</strong> between topic distributions. Balances topic coherence and diversity. <strong>Lower values indicate more separated topics.</strong></p>
+
+  <h4><em>Perplexity (Blei et al., 2003)</em></h4>
+  <p>A <strong>likelihood-based metric</strong> measuring how well the model generalizes. Defined as the inverse geometric mean of the likelihood. <strong>Lower values indicate better generalization.</strong></p>
+
+  <hr>
+  <h4><strong>Metrics for STM</strong></h4>
+  <p>For STM, TALL uses <code>stm::searchK()</code> which provides STM-specific quality metrics:</p>
+
+  <h4><em>Exclusivity</em></h4>
+  <p>Measures how <strong>exclusive</strong> the top words of each topic are. High exclusivity means topic words are not shared across topics. <strong>Higher values are better.</strong></p>
+
+  <h4><em>Semantic Coherence (Mimno et al., 2011)</em></h4>
+  <p>Measures how often the <strong>top words of a topic co-occur</strong> within documents. Highly coherent topics are easier to interpret. <strong>Higher (less negative) values are better.</strong></p>
+
+  <h4><em>Combined Score (Exclusivity + Coherence)</em></h4>
+  <p>A synthetic metric that sums exclusivity and semantic coherence, balancing both dimensions. <strong>Higher values indicate a better trade-off.</strong></p>
+
+  <h4><em>Lower Bound</em></h4>
+  <p>The variational <strong>lower bound on the log-likelihood</strong>. Higher values indicate better model fit.</p>
+
+  <hr>
+  <h4><strong>Analysis Tabs</strong></h4>
   <ul>
-  <li><strong>For exploratory research:</strong> Start with <strong>low K</strong> values (e.g., <strong>5–20 topics</strong>) to gain an <strong>overview of broad themes</strong>.</li>
-  <li><strong>For fine-grained analysis:</strong> Use <strong>higher K values</strong> (e.g., <strong>30–100 topics</strong>) to capture <strong>more nuanced subtopics</strong>.</li>
-  <li><strong>For benchmarking:</strong> Compare different <strong>K values</strong> using topic coherence scores and human interpretability.</li>
+    <li><strong>Tuning Plot</strong> – Interactive plot of the selected metric across K values. The optimal K (elbow point) is highlighted in red.</li>
+    <li><strong>Multi-Metric Comparison</strong> – All four metrics normalized to [0, 1] and plotted together. Each metric's elbow point is marked with a diamond. This allows visual comparison of where different metrics agree or disagree.</li>
+    <li><strong>K Recommendation</strong> – A consensus panel showing the optimal K suggested by each metric and the <strong>overall recommended K</strong> (mode of all suggestions). The consensus approach is more robust than relying on a single metric.</li>
+    <li><strong>Table</strong> – Full table with raw and normalized metric values for all K values.</li>
+  </ul>
+
+  <hr>
+  <h4><strong>Integration with Model Estimation</strong></h4>
+  <p>When K selection is completed, the recommended K is <strong>automatically transferred</strong> to the Model Estimation panel. Users can accept the recommendation or adjust K manually based on domain knowledge.</p>
+
+  <hr>
+  <h4><strong>Practical Guidelines</strong></h4>
+  <ul>
+    <li><strong>For exploratory research:</strong> Start with <strong>low K</strong> values (e.g., <strong>5-20 topics</strong>) to gain an overview of broad themes.</li>
+    <li><strong>For fine-grained analysis:</strong> Use <strong>higher K values</strong> (e.g., <strong>30-100 topics</strong>) to capture more nuanced subtopics.</li>
+    <li><strong>For benchmarking:</strong> Compare different K values using the Multi-Metric Comparison tab.</li>
+    <li><strong>For STM:</strong> Look for K values that maximize both exclusivity and semantic coherence simultaneously (upper-right quadrant in the Model Diagnostics scatter plot).</li>
   </ul>
 
   <hr>
   <div class='references'>
     <h4><strong>References</strong></h4>
 
-    <p><strong>Blei, D. M., Ng, A. Y., & Jordan, M. I.</strong> (2003) <i>Latent Dirichlet Allocation.</i> <strong>Journal of Machine Learning Research</strong>, 3, 993–1022.</p>
+    <p><strong>Blei, D.M., Ng, A.Y., & Jordan, M.I.</strong> (2003) <i>Latent Dirichlet Allocation.</i> <strong>Journal of Machine Learning Research</strong>, 3, 993-1022.</p>
 
-    <p><strong>Deveaud, R., Sanjuan, E., & Bellot, P.</strong> (2014) <i>Accurate and effective latent concept modeling for ad hoc information retrieval.</i> <strong>Document Numérique</strong>, 17, 61–84.</p>
+    <p><strong>Blei, D.M. & Lafferty, J.D.</strong> (2007) <i>A correlated topic model of Science.</i> <strong>The Annals of Applied Statistics</strong>, 1(1), 17-35.</p>
 
-    <p><strong>Cao, J., Xia, T., Li, J., Zhang, Y., & Tang, S.</strong> (2009) <i>A density-based method for adaptive LDA model selection.</i> <strong>Neurocomputing</strong>, 72(7), 1775–1781.</p>
+    <p><strong>Cao, J., Xia, T., Li, J., Zhang, Y., & Tang, S.</strong> (2009) <i>A density-based method for adaptive LDA model selection.</i> <strong>Neurocomputing</strong>, 72(7), 1775-1781.</p>
 
-    <p><strong>Arun, R., Suresh, V., Veni Madhavan, C.E., & Narasimha Murthy, M.N.</strong> (2010) <i>On finding the natural number of topics with latent Dirichlet allocation: Some observations.</i> In Zaki, M.J., Yu, J.X., Ravindran, B., & Pudi, V. (Eds.), <strong>Advances in Knowledge Discovery and Data Mining</strong> (pp. 391–402). Berlin, Heidelberg: Springer.</p>
-    </div>
+    <p><strong>Arun, R., Suresh, V., Veni Madhavan, C.E., & Narasimha Murthy, M.N.</strong> (2010) <i>On finding the natural number of topics with latent Dirichlet allocation: Some observations.</i> In <strong>Advances in Knowledge Discovery and Data Mining</strong> (pp. 391-402). Springer.</p>
 
-    </body>"
+    <p><strong>Mimno, D., Wallach, H.M., Talley, E., Leenders, M., & McCallum, A.</strong> (2011) <i>Optimizing semantic coherence in topic models.</i> In <strong>Proceedings of EMNLP</strong> (pp. 262-272).</p>
 
-  ## te estimation ----
+    <p><strong>Deveaud, R., Sanjuan, E., & Bellot, P.</strong> (2014) <i>Accurate and effective latent concept modeling for ad hoc information retrieval.</i> <strong>Document Numerique</strong>, 17, 61-84.</p>
+
+    <p><strong>Roberts, M.E., Stewart, B.M., & Tingley, D.</strong> (2019) <i>stm: An R package for structural topic models.</i> <strong>Journal of Statistical Software</strong>, 91(2), 1-40.</p>
+  </div>
+
+  </body>"
+
+  ## topic model estimation ----
   tmmodelestimation <- "<body>
 
-    <h3><strong>Topic Modeling in TALL: Model Estimation</strong></strong></h3>
+    <h3><strong>Topic Modeling in TALL: Model Estimation</strong></h3>
 
-    <p>Topic modeling is a <strong>family of generative statistical models</strong> designed to uncover <strong>semantic structures</strong> within large document collections. These models aim to <strong>identify latent topics</strong> that explain the observed word distributions in text corpora, allowing for a <strong>low-dimensional representation</strong> of textual data.</p>
+    <p>TALL implements three topic modeling approaches, each suited to different analytical needs. All three produce <strong>beta</strong> (term-topic) and <strong>theta</strong> (document-topic) probability matrices that can be explored through interactive visualizations.</p>
 
-    <p>Through <strong>probabilistic modeling</strong>, topic modeling enables:</p>
-    <ul>
-    <li><strong>Discovery of underlying themes</strong> within a collection of documents.</li>
-    <li><strong>Assignment of probabilistic membership scores</strong> to documents, indicating their association with different topics.</li>
-    <li><strong>Dimensionality reduction</strong>, making it easier to analyze large text datasets by structuring them into meaningful clusters.</li>
-    <li><strong>Human interpretability</strong>, as each topic is characterized by a set of <strong>highly associated terms</strong>, making it easier for users to extract insights.</li>
-    </ul>
     <hr>
-    <h4><strong>Latent Dirichlet Allocation (LDA) in TALL</strong></h4>
-    <p>TALL implements the <strong>Latent Dirichlet Allocation (LDA) algorithm</strong> (<strong>Blei et al., 2003</strong>), one of the most widely used topic modeling techniques. LDA is a <strong>Bayesian probabilistic model</strong> that assumes:</p>
+    <h4><strong>LDA – Latent Dirichlet Allocation</strong></h4>
+    <p><strong>Blei et al. (2003)</strong> introduced LDA as a Bayesian generative model where:</p>
     <ul>
-    <li><strong>Each document is a mixture of multiple topics</strong>, with different proportions.</li>
-    <li><strong>Each topic is defined by a probability distribution over words</strong>, meaning that some words are more strongly associated with a given topic.</li>
-    <li><strong>The goal of LDA is to infer these hidden topic distributions</strong>, making it possible to automatically organize, summarize, and analyze large textual datasets.</li>
+      <li>Each document is a <strong>mixture of topics</strong> with different proportions (theta).</li>
+      <li>Each topic is a <strong>probability distribution over words</strong> (beta).</li>
+      <li>Topics are assumed to be <strong>independent</strong> of each other.</li>
     </ul>
+    <p>TALL estimates LDA using <strong>Gibbs sampling</strong> (500 iterations), which tends to produce more stable results than variational inference for small-to-medium corpora.</p>
 
-    <p>LDA operates by:</p>
-    <ul>
-    <li>Assigning each word in a document to a <strong>latent topic</strong>, estimating topic-word distributions.</li>
-    <li>Iteratively adjusting <strong>topic probabilities</strong> to maximize likelihood, ensuring that words are grouped into <strong>meaningful semantic structures</strong>.</li>
-    <li>Producing a <strong>document-topic matrix</strong>, where each document is represented as a probability distribution over the identified topics.</li>
-    </ul>
     <hr>
-    <h4><strong>Advantages of Topic Modeling in TALL</strong></h4>
+    <h4><strong>CTM – Correlated Topic Model</strong></h4>
+    <p><strong>Blei & Lafferty (2007)</strong> extended LDA by replacing the Dirichlet prior on topic proportions with a <strong>logistic normal distribution</strong>, which allows topics to be correlated. This is useful when:</p>
     <ul>
-    <li><strong>Unsupervised Learning</strong> – No prior labeling is required; topics emerge naturally from the dataset.</li>
-    <li><strong>Scalability</strong> – LDA efficiently handles <strong>large text corpora</strong>, making it useful for applications ranging from <strong>scientific literature</strong> to <strong>customer reviews</strong>.</li>
-    <li><strong>Flexibility</strong> – Users can define <strong>K (number of topics)</strong> manually or use <strong>automatic estimation techniques</strong> (see the <strong>K Selection Menu</strong>).</li>
-    <li><strong>Enhanced Text Understanding</strong> – Topics provide a <strong>thematic summary</strong> of a collection, improving text exploration and classification.</li>
+      <li>Topics are naturally <strong>related</strong> (e.g., &quot;politics&quot; and &quot;economics&quot; often co-occur).</li>
+      <li>You want to <strong>model inter-topic dependencies</strong> rather than assuming independence.</li>
+    </ul>
+    <p>The <strong>Topic Correlation</strong> tab is particularly informative with CTM, as correlations reflect the model's learned structure rather than post-hoc observations.</p>
+
+    <hr>
+    <h4><strong>STM – Structural Topic Model</strong></h4>
+    <p><strong>Roberts, Stewart & Tingley (2019)</strong> developed STM to incorporate <strong>document-level metadata</strong> (covariates) into the topic model. STM allows:</p>
+    <ul>
+      <li><strong>Prevalence covariates</strong> – External variables (e.g., publication year, source, author) that influence <strong>how much</strong> each topic appears in a document.</li>
+      <li><strong>Correlated topics</strong> – Like CTM, STM allows topic correlations.</li>
+    </ul>
+    <p>Covariates are selected in the Options panel. After estimation, the <strong>Covariate Effects</strong> tab shows how each covariate influences topic prevalence, with regression coefficients and effect plots.</p>
+
+    <hr>
+    <h4><strong>Analysis Tabs</strong></h4>
+    <ul>
+      <li><strong>Topic by Words Plot</strong> – Top words per topic ranked by beta probability, displayed in groups of three for easy comparison. Navigate with arrow buttons.</li>
+      <li><strong>Topic by Docs Plot</strong> – Documents most associated with each topic, ranked by theta probability.</li>
+      <li><strong>Beta Probability</strong> – Full term-topic probability table.</li>
+      <li><strong>Theta Probability</strong> – Full document-topic probability table.</li>
+      <li><strong>Topic Correlation</strong> – Heatmap of correlations between topics based on their word distributions, with embedded mini-scatterplots showing the data distribution.</li>
+      <li><strong>Model Diagnostics</strong> – Global quality metrics and per-topic indicators:
+        <ul>
+          <li><strong>LDA/CTM:</strong> Log-Likelihood, topic share, word entropy, and top word probability per topic.</li>
+          <li><strong>STM:</strong> Variational lower bound, semantic coherence, exclusivity per topic, plus a scatter plot of coherence vs. exclusivity (ideal topics are in the upper-right quadrant).</li>
+        </ul>
+      </li>
+      <li><strong>Covariate Effects</strong> (STM only) – For each prevalence covariate:
+        <ul>
+          <li><strong>Effect plots</strong> showing how the covariate influences each topic's prevalence (continuous variables show trend lines with 95% CI; categorical variables show point estimates).</li>
+          <li><strong>Regression coefficients table</strong> with estimates, standard errors, t-values, and p-values per topic.</li>
+        </ul>
+      </li>
     </ul>
 
-    <p>By integrating <strong>state-of-the-art topic modeling techniques</strong>, TALL enables researchers and analysts to <strong>discover hidden structures in textual data</strong>, making it an essential tool for <strong>content analysis, knowledge extraction, and thematic clustering</strong>.</p>
+    <hr>
+    <h4><strong>Choosing the Right Model</strong></h4>
+    <table style='width:100%; border-collapse:collapse; margin-bottom:15px;'>
+      <thead>
+        <tr style='background-color:#f0f0f0; border-bottom:2px solid #ccc;'>
+          <th style='padding:8px; text-align:left;'>Feature</th>
+          <th style='padding:8px; text-align:center;'>LDA</th>
+          <th style='padding:8px; text-align:center;'>CTM</th>
+          <th style='padding:8px; text-align:center;'>STM</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style='padding:6px;'>Topic independence</td><td style='text-align:center;'>Assumed</td><td style='text-align:center;'>Correlated</td><td style='text-align:center;'>Correlated</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'>External covariates</td><td style='text-align:center;'>No</td><td style='text-align:center;'>No</td><td style='text-align:center;'>Yes</td></tr>
+        <tr><td style='padding:6px;'>Inference method</td><td style='text-align:center;'>Gibbs sampling</td><td style='text-align:center;'>Variational EM</td><td style='text-align:center;'>Variational EM</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'>Best for</td><td style='text-align:center;'>General use</td><td style='text-align:center;'>Correlated themes</td><td style='text-align:center;'>Metadata-rich corpora</td></tr>
+        <tr><td style='padding:6px;'>Speed</td><td style='text-align:center;'>Moderate</td><td style='text-align:center;'>Fast</td><td style='text-align:center;'>Moderate</td></tr>
+      </tbody>
+    </table>
+
     <hr>
     <div class='references'>
       <h4><strong>References</strong></h4>
 
-      <p><strong>Blei, D.M., Ng, A.Y., & Jordan, M.I.</strong> <i>Latent Dirichlet Allocation.</i> <strong>Journal of Machine Learning Research</strong>, 3(Jan), 993-1022.</p>
-      </div>
+      <p><strong>Blei, D.M., Ng, A.Y., & Jordan, M.I.</strong> (2003) <i>Latent Dirichlet Allocation.</i> <strong>Journal of Machine Learning Research</strong>, 3, 993-1022.</p>
 
-      </body>"
+      <p><strong>Blei, D.M. & Lafferty, J.D.</strong> (2007) <i>A correlated topic model of Science.</i> <strong>The Annals of Applied Statistics</strong>, 1(1), 17-35.</p>
+
+      <p><strong>Mimno, D., Wallach, H.M., Talley, E., Leenders, M., & McCallum, A.</strong> (2011) <i>Optimizing semantic coherence in topic models.</i> In <strong>Proceedings of EMNLP</strong> (pp. 262-272).</p>
+
+      <p><strong>Roberts, M.E., Stewart, B.M., & Tingley, D.</strong> (2019) <i>stm: An R package for structural topic models.</i> <strong>Journal of Statistical Software</strong>, 91(2), 1-40.</p>
+    </div>
+
+    </body>"
 
   ## polarity detection ----
   polaritydetection <- "<body>

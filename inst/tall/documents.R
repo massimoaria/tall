@@ -78,6 +78,25 @@ documentsUI <- function() {
               )
             ),
             tabPanel(
+              "Multi-Metric Comparison",
+              shinycssloaders::withSpinner(
+                plotlyOutput(
+                  outputId = "d_tm_multiMetricPlot",
+                  height = "75vh",
+                  width = "98.9%"
+                ),
+                color = getOption("spinner.color", default = "#4F7942")
+              )
+            ),
+            tabPanel(
+              "K Recommendation",
+              br(),
+              shinycssloaders::withSpinner(
+                uiOutput("d_tm_kRecommendationUI"),
+                color = getOption("spinner.color", default = "#4F7942")
+              )
+            ),
+            tabPanel(
               "Table",
               shinycssloaders::withSpinner(
                 DT::DTOutput("d_tm_selectTable"),
@@ -111,6 +130,16 @@ documentsUI <- function() {
               ),
               tags$hr(),
               style = "text-align: left; text-color: #989898",
+              selectInput(
+                inputId = "tmMethodK",
+                label = "Model",
+                choices = c(
+                  "LDA" = "LDA",
+                  "CTM (Correlated)" = "CTM",
+                  "STM (Structural)" = "STM"
+                ),
+                selected = "LDA"
+              ),
               selectInput(
                 inputId = "groupTm",
                 label = "Topics",
@@ -264,22 +293,25 @@ documentsUI <- function() {
                   icon("gear"),
                   "Main Configuration"
                 ),
-                materialSwitch(
-                  inputId = "tmKauto",
-                  label = "Automatic Topic Selection",
-                  value = TRUE,
-                  status = "success"
+                selectInput(
+                  inputId = "tmMethod",
+                  label = "Model",
+                  choices = c(
+                    "LDA" = "LDA",
+                    "CTM (Correlated)" = "CTM",
+                    "STM (Structural)" = "STM"
+                  ),
+                  selected = "LDA"
                 ),
                 conditionalPanel(
-                  "!input.tmKauto",
-                  numericInput(
-                    "KEstim",
-                    label = "N. of Topics (K)",
-                    value = 2,
-                    min = 2,
-                    step = 1
+                  "input.tmMethod == 'STM'",
+                  uiOutput("stmPrevalenceSelect"),
+                  helpText(
+                    "Prevalence covariates affect topic proportions across documents.",
+                    style = "font-size: 11px; color: #888; margin-top: -5px;"
                   )
                 ),
+                uiOutput("tmKSelectionUI"),
                 selectInput(
                   inputId = "groupTmEstim",
                   label = "Topics",
@@ -485,6 +517,22 @@ documentsUI <- function() {
               width = "98.9%"
             ),
             # visNetworkOutput("d_tm_networkPlot", width="auto", height = "75vh"),
+            color = getOption("spinner.color", default = "#4F7942")
+          )
+        ),
+        tabPanel(
+          "Model Diagnostics",
+          br(),
+          shinycssloaders::withSpinner(
+            uiOutput("d_tm_diagnosticsUI"),
+            color = getOption("spinner.color", default = "#4F7942")
+          )
+        ),
+        tabPanel(
+          "Covariate Effects",
+          br(),
+          shinycssloaders::withSpinner(
+            uiOutput("d_tm_covariateUI"),
             color = getOption("spinner.color", default = "#4F7942")
           )
         ),
@@ -1032,6 +1080,77 @@ documentsUI <- function() {
 documentsServer <- function(input, output, session, values, statsValues) {
   ## DOCUMENTS ----
 
+  ## STM prevalence covariate selector ----
+  output$stmPrevalenceSelect <- renderUI({
+    req(values$dfTag)
+    all_cols <- noGroupLabels(names(values$dfTag))
+    # Filter to numeric, date, or factor/character types suitable as covariates
+    cov_cols <- sapply(all_cols, function(col) {
+      col_data <- values$dfTag[[col]]
+      is.numeric(col_data) ||
+        inherits(col_data, c("Date", "POSIXct", "POSIXlt")) ||
+        is.character(col_data) || is.factor(col_data)
+    })
+    cov_choices <- all_cols[cov_cols]
+
+    selectInput(
+      inputId = "stmPrevalence",
+      label = "Prevalence Covariates:",
+      choices = cov_choices,
+      selected = NULL,
+      multiple = TRUE,
+      width = "100%"
+    )
+  })
+
+  ## K selection UI for Model Estimation panel ----
+  output$tmKSelectionUI <- renderUI({
+    # Check if K estimation was already performed
+    k_estimated <- !is.null(values$TMKresult)
+
+    if (k_estimated) {
+      # Compute consensus K from previous estimation
+      consensus_k <- tmConsensusK(values$TMKresult$metrics, method = input$tmMethod)
+
+      tagList(
+        div(
+          style = "padding: 10px; background-color: #e8f5e9; border-left: 4px solid #4caf50; border-radius: 4px; margin-bottom: 10px;",
+          icon("check-circle", style = "color: #4caf50;"),
+          strong(" K estimation available"),
+          p(
+            paste0("Recommended K = ", consensus_k),
+            style = "margin: 5px 0 0 0; color: #333; font-size: 13px;"
+          )
+        ),
+        numericInput(
+          "KEstim",
+          label = "N. of Topics (K)",
+          value = consensus_k,
+          min = 2,
+          step = 1
+        )
+      )
+    } else {
+      tagList(
+        div(
+          style = "padding: 10px; background-color: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px; margin-bottom: 10px;",
+          icon("info-circle", style = "color: #856404;"),
+          span(
+            " No K estimation found. Run the K selection analysis first, or set K manually.",
+            style = "color: #856404; font-size: 12px;"
+          )
+        ),
+        numericInput(
+          "KEstim",
+          label = "N. of Topics (K)",
+          value = 5,
+          min = 2,
+          step = 1
+        )
+      )
+    }
+  })
+
   ## Topic Modeling ----
   ## K choice ----
 
@@ -1066,7 +1185,9 @@ documentsServer <- function(input, output, session, values, statsValues) {
         top_by = input$top_by,
         minK = input$minK,
         maxK = input$maxK,
-        Kby = input$Kby
+        Kby = input$Kby,
+        method = input$tmMethodK,
+        prevalence = NULL
       )
 
       values$df <- values$TMKresult$metrics %>%
@@ -1089,13 +1210,132 @@ documentsServer <- function(input, output, session, values, statsValues) {
     values$TMKplot
   })
 
+  ## Multi-Metric Comparison Plot ----
+  output$d_tm_multiMetricPlot <- renderPlotly({
+    netTMKselect()
+    req(values$TMKresult)
+    tmMultiMetricPlot(values$TMKresult, method = input$tmMethodK)
+  })
+
+  ## K Recommendation Panel ----
+  output$d_tm_kRecommendationUI <- renderUI({
+    netTMKselect()
+    req(values$TMKresult)
+
+    metrics_df <- values$TMKresult$metrics
+    is_stm <- input$tmMethodK == "STM"
+
+    # Compute optimal K per metric
+    if (is_stm) {
+      metric_list <- list(
+        list(name = "Exclusivity", col = "CaoJuan2009", decreasing = TRUE,
+             desc = "Measures how exclusive top words are to each topic. Higher = more distinct topics."),
+        list(name = "Semantic Coherence", col = "Arun2010", decreasing = FALSE,
+             desc = "Measures co-occurrence of top words within topics. Less negative = more coherent."),
+        list(name = "Excl. + Coherence", col = "Deveaud2014", decreasing = TRUE,
+             desc = "Combined score balancing exclusivity and coherence. Higher = better trade-off."),
+        list(name = "Lower Bound", col = "logLik", decreasing = FALSE,
+             desc = "Variational lower bound on log-likelihood. Higher (less negative) = better fit.")
+      )
+    } else {
+      metric_list <- list(
+        list(name = "CaoJuan 2009", col = "CaoJuan2009", decreasing = TRUE,
+             desc = "Average cosine similarity between topics. Lower = more distinct topics."),
+        list(name = "Arun 2010", col = "Arun2010", decreasing = FALSE,
+             desc = "KL divergence between word-topic and doc-topic distributions. Lower = better fit."),
+        list(name = "Deveaud 2014", col = "Deveaud2014", decreasing = TRUE,
+             desc = "Jensen-Shannon divergence between topic pairs. Lower = more separated topics."),
+        list(name = "Perplexity", col = "Perplexity", decreasing = TRUE,
+             desc = "Predictive performance on held-out data. Lower = better generalization.")
+      )
+    }
+
+    # Find optimal K for each metric
+    recommendations <- lapply(metric_list, function(m) {
+      k_opt <- find_elbow(
+        metrics_df$k,
+        metrics_df[[m$col]],
+        decreasing = m$decreasing,
+        plot = FALSE
+      )
+      list(name = m$name, k = k_opt, desc = m$desc)
+    })
+
+    # Consensus K (mode of recommendations)
+    k_votes <- sapply(recommendations, function(r) r$k)
+    k_table <- sort(table(k_votes), decreasing = TRUE)
+    consensus_k <- as.integer(names(k_table)[1])
+    vote_count <- k_table[1]
+    total_metrics <- length(recommendations)
+
+    # Build UI cards
+    rec_cards <- lapply(recommendations, function(r) {
+      is_consensus <- (r$k == consensus_k)
+      div(
+        style = paste0(
+          "padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 5px solid ",
+          if (is_consensus) "#4F7942" else "#667eea", "; background-color: #f8f9fa;"
+        ),
+        fluidRow(
+          column(
+            8,
+            strong(r$name, style = "font-size: 15px;"),
+            if (is_consensus) span(" (consensus)", style = "color: #4F7942; font-weight: 600; font-size: 12px;"),
+            p(r$desc, style = "color: #666; font-size: 12px; margin: 5px 0 0 0;")
+          ),
+          column(
+            4,
+            div(
+              style = "text-align: center; padding: 8px;",
+              span(
+                paste0("K = ", r$k),
+                style = paste0(
+                  "font-size: 24px; font-weight: 700; color: ",
+                  if (is_consensus) "#4F7942" else "#667eea", ";"
+                )
+              )
+            )
+          )
+        )
+      )
+    })
+
+    tagList(
+      # Consensus header
+      div(
+        style = "padding: 20px; background: linear-gradient(135deg, #4F7942 0%, #6CC283 100%); color: white; border-radius: 10px; margin-bottom: 20px; text-align: center;",
+        h3(
+          icon("bullseye"),
+          paste0("Recommended K = ", consensus_k),
+          style = "margin: 0; font-weight: 700;"
+        ),
+        p(
+          paste0(
+            "Consensus from ", vote_count, " out of ", total_metrics,
+            " metrics | Method: ", input$tmMethodK
+          ),
+          style = "margin: 8px 0 0 0; opacity: 0.9;"
+        ),
+        if (as.integer(vote_count) < total_metrics) {
+          p(
+            paste0("All recommendations: K = ", paste(sort(unique(k_votes)), collapse = ", ")),
+            style = "margin: 5px 0 0 0; opacity: 0.8; font-size: 13px;"
+          )
+        }
+      ),
+
+      # Per-metric recommendations
+      rec_cards
+    )
+  })
+
   output$d_tm_selectTable <- renderDataTable({
     netTMKselect()
     DTformat(
       values$df,
       numeric = c(2, 3),
       round = 2,
-      nrow = nrow(df),
+      nrow = nrow(values$df),
       size = "110%"
     )
   })
@@ -1107,7 +1347,7 @@ documentsServer <- function(input, output, session, values, statsValues) {
     handlerExpr = {
       file <- paste("TMTopicSelection-", sys.time(), ".png", sep = "")
       file <- destFolder(file, values$wdTall)
-      plot2png(values$TMKplot, filename = file, zoom = values$zoom)
+      plot2png(values$TMKplot, filename = file, type = "plotly", dpi = values$dpi, height = values$h)
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -1126,7 +1366,8 @@ documentsServer <- function(input, output, session, values, statsValues) {
       values$fileKchoice <- plot2png(
         values$TMKplot,
         filename = "kchoiche.png",
-        zoom = values$zoom
+        type = "plotly",
+        dpi = values$report_dpi, height = values$h
       )
       values$list_file <- rbind(
         values$list_file,
@@ -1171,27 +1412,13 @@ documentsServer <- function(input, output, session, values, statsValues) {
         tm_data <- filtered
       }
 
-      if (isTRUE(input$tmKauto)) {
-        values$TMKresult <- tmTuning(
-          tm_data,
-          group = groupTmEstim,
-          term = values$generalTerm,
-          metric = "CaoJuan2009",
-          n = input$nTmEstim,
-          top_by = input$top_byEstim,
-          minK = 2,
-          maxK = 20,
-          Kby = 1
-        )
-        values$tmK <- find_elbow(
-          values$TMKresult$metrics$k,
-          values$TMKresult$metrics$CaoJuan2009,
-          decreasing = TRUE,
-          plot = FALSE
-        )
-      } else {
-        values$tmK <- input$KEstim
+      # Get prevalence covariates for STM
+      stm_prevalence <- NULL
+      if (input$tmMethod == "STM" && !is.null(input$stmPrevalence) && length(input$stmPrevalence) > 0) {
+        stm_prevalence <- input$stmPrevalence
       }
+
+      values$tmK <- input$KEstim
       values$TMplotList <- split(
         1:values$tmK,
         ceiling(seq_along(1:values$tmK) / 3)
@@ -1202,7 +1429,9 @@ documentsServer <- function(input, output, session, values, statsValues) {
         group = groupTmEstim,
         term = values$generalTerm,
         n = input$nTmEstim,
-        top_by = input$top_byEstim
+        top_by = input$top_byEstim,
+        method = input$tmMethod,
+        prevalence = stm_prevalence
       )
       ## End check ###
 
@@ -1227,6 +1456,297 @@ documentsServer <- function(input, output, session, values, statsValues) {
   output$d_tm_networkPlot <- renderPlotly({
     netTMestim()
     values$tmHeatmap$Hplot
+  })
+
+  ## Model Diagnostics output ----
+  output$d_tm_diagnosticsUI <- renderUI({
+    netTMestim()
+    req(values$TMestim_result)
+
+    model <- values$TMestim_result$topicModel
+    K <- values$tmK
+    method <- input$tmMethod
+
+    # Common metrics
+    if (method == "STM") {
+      # STM diagnostics
+      semcoh <- stm::semanticCoherence(model, documents = values$TMestim_result$stm_documents)
+      excl <- stm::exclusivity(model)
+      diag_df <- data.frame(
+        Topic = paste("Topic", 1:K),
+        `Semantic Coherence` = round(semcoh, 3),
+        Exclusivity = round(excl, 3),
+        check.names = FALSE
+      )
+      bound <- round(max(model$convergence$bound), 2)
+      its <- model$convergence$its
+      convergence_text <- paste0(
+        "Approximate variational lower bound: <strong>", bound, "</strong><br>",
+        "Iterations to convergence: <strong>", its, "</strong>"
+      )
+    } else {
+      # LDA / CTM diagnostics
+      ll <- round(as.numeric(logLik(model)), 2)
+      n_terms <- model@Dim[2]
+      n_docs <- model@Dim[1]
+
+      # Per-topic word entropy
+      beta_mat <- exp(model@beta)
+      entropy <- apply(beta_mat, 1, function(row) {
+        p <- row[row > 0]
+        -sum(p * log(p))
+      })
+      # Topic size (mean theta per topic)
+      topic_prop <- colMeans(model@gamma)
+      diag_df <- data.frame(
+        Topic = paste("Topic", 1:K),
+        `Topic Share` = paste0(round(topic_prop * 100, 1), "%"),
+        `Word Entropy` = round(entropy, 3),
+        `Top Word Prob.` = round(apply(beta_mat, 1, max), 4),
+        check.names = FALSE
+      )
+      convergence_text <- paste0(
+        "Log-Likelihood: <strong>", format(ll, big.mark = ","), "</strong><br>",
+        "Documents: <strong>", n_docs, "</strong> | ",
+        "Vocabulary: <strong>", n_terms, "</strong>"
+      )
+    }
+
+    tagList(
+      fluidRow(
+        column(
+          6,
+          div(
+            style = "padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px; margin-bottom: 20px;",
+            h4(icon("chart-line"), strong(paste0("Model Diagnostics — ", method)),
+              style = "margin-top: 0; color: white;"),
+            h5(paste0("K = ", K, " topics"), style = "opacity: 0.9; color: white;")
+          ),
+          div(
+            style = "padding: 15px; background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea; margin-bottom: 20px;",
+            h5(strong("Global Metrics"), style = "margin-top: 0;"),
+            HTML(convergence_text)
+          )
+        ),
+        column(
+          6,
+          div(
+            style = "padding: 15px; background-color: #fff; border: 1px solid #e0e0e0; border-radius: 8px;",
+            h5(strong("Per-Topic Quality"), style = "margin-top: 0;"),
+            DT::renderDT(
+              DT::datatable(
+                diag_df,
+                options = list(dom = "t", pageLength = 50, scrollY = "350px"),
+                rownames = FALSE,
+                class = "compact stripe"
+              )
+            )
+          )
+        )
+      ),
+      if (method == "STM") {
+        fluidRow(
+          column(
+            12,
+            br(),
+            div(
+              style = "padding: 15px; background-color: #fff; border: 1px solid #e0e0e0; border-radius: 8px;",
+              h5(strong("Semantic Coherence vs Exclusivity"), style = "margin-top: 0;"),
+              renderPlotly({
+                plot_ly(
+                  diag_df,
+                  x = ~`Semantic Coherence`,
+                  y = ~Exclusivity,
+                  text = ~Topic,
+                  type = "scatter",
+                  mode = "markers+text",
+                  textposition = "top center",
+                  marker = list(size = 12, color = "#667eea"),
+                  textfont = list(size = 10, color = "gray40")
+                ) %>%
+                  layout(
+                    xaxis = list(title = "Semantic Coherence"),
+                    yaxis = list(title = "Exclusivity"),
+                    paper_bgcolor = "white",
+                    plot_bgcolor = "#fafafa"
+                  ) %>%
+                  config(displaylogo = FALSE)
+              })
+            )
+          )
+        )
+      }
+    )
+  })
+
+  ## Covariate Effects output (STM only) ----
+  output$d_tm_covariateUI <- renderUI({
+    netTMestim()
+    req(values$TMestim_result)
+
+    if (input$tmMethod != "STM") {
+      return(
+        div(
+          style = "text-align: center; padding: 60px; color: #999;",
+          icon("info-circle", style = "font-size: 48px; margin-bottom: 15px;"),
+          h4("Covariate effects are available only for STM models."),
+          p("Select STM (Structural) as the model type to use prevalence covariates.")
+        )
+      )
+    }
+
+    model <- values$TMestim_result$topicModel
+    stm_meta <- values$TMestim_result$stm_meta
+    K <- values$tmK
+    prevalence_vars <- input$stmPrevalence
+
+    if (is.null(prevalence_vars) || length(prevalence_vars) == 0 || is.null(stm_meta)) {
+      return(
+        div(
+          style = "text-align: center; padding: 60px; color: #999;",
+          icon("info-circle", style = "font-size: 48px; margin-bottom: 15px;"),
+          h4("No prevalence covariates were specified."),
+          p("Select covariates in the Options panel and re-run the analysis.")
+        )
+      )
+    }
+
+    # Rename metadata columns to safe names for estimateEffect
+    safe_names <- gsub("[^a-zA-Z0-9_]", "_", prevalence_vars)
+    meta_safe <- stm_meta
+    for (i in seq_along(prevalence_vars)) {
+      if (prevalence_vars[i] %in% names(meta_safe)) {
+        names(meta_safe)[names(meta_safe) == prevalence_vars[i]] <- safe_names[i]
+      }
+    }
+
+    # Build covariate effect plots
+    cov_panels <- lapply(seq_along(prevalence_vars), function(idx) {
+      cov_var <- prevalence_vars[idx]
+      safe_var <- safe_names[idx]
+
+      prep <- tryCatch({
+        stm::estimateEffect(
+          as.formula(paste("1:", K, "~", safe_var)),
+          stmobj = model,
+          metadata = meta_safe
+        )
+      }, error = function(e) NULL)
+
+      if (is.null(prep)) {
+        return(div(
+          style = "padding: 20px; background-color: #fff3cd; border-radius: 8px; margin-bottom: 20px;",
+          icon("exclamation-triangle", style = "color: #856404;"),
+          strong(cov_var), ": unable to estimate covariate effects."
+        ))
+      }
+
+      # Get covariate data to determine type
+      cov_data <- meta_safe[[safe_var]]
+      is_continuous <- is.numeric(cov_data)
+
+      plot_output_id <- paste0("stm_cov_plot_", gsub("[^a-zA-Z0-9]", "_", cov_var))
+
+      # Render the plot
+      output[[plot_output_id]] <- renderPlot({
+        if (is_continuous) {
+          plot(
+            prep,
+            covariate = safe_var,
+            topics = 1:K,
+            model = model,
+            method = "continuous",
+            xlab = cov_var,
+            main = paste0("Effect of ", cov_var, " on Topic Prevalence"),
+            ci.level = 0.95,
+            labeltype = "custom",
+            custom.labels = paste("Topic", 1:K)
+          )
+        } else {
+          plot(
+            prep,
+            covariate = safe_var,
+            topics = 1:K,
+            model = model,
+            method = "pointestimate",
+            xlab = "Expected Topic Proportion",
+            main = paste0("Effect of ", cov_var, " on Topic Prevalence"),
+            ci.level = 0.95,
+            labeltype = "custom",
+            custom.labels = paste("Topic", 1:K)
+          )
+        }
+      }, height = max(400, K * 40))
+
+      # Summary table
+      summary_prep <- summary(prep)
+      coef_list <- lapply(seq_len(K), function(t) {
+        tbl <- summary_prep$tables[[t]]
+        data.frame(
+          Topic = paste("Topic", t),
+          Coefficient = rownames(tbl),
+          Estimate = round(tbl[, "Estimate"], 4),
+          `Std. Error` = round(tbl[, "Std. Error"], 4),
+          `t value` = round(tbl[, "t value"], 3),
+          `Pr(>|t|)` = format.pval(tbl[, "Pr(>|t|)"], digits = 3),
+          check.names = FALSE,
+          stringsAsFactors = FALSE
+        )
+      })
+      coef_df <- do.call(rbind, coef_list)
+      # Keep only rows related to this covariate (not intercept)
+      coef_df <- coef_df[!grepl("^\\(Intercept\\)$", coef_df$Coefficient), ]
+
+      coef_output_id <- paste0("stm_cov_table_", gsub("[^a-zA-Z0-9]", "_", cov_var))
+      output[[coef_output_id]] <- DT::renderDT({
+        DT::datatable(
+          coef_df,
+          options = list(dom = "t", pageLength = 100, scrollY = "300px"),
+          rownames = FALSE,
+          class = "compact stripe"
+        )
+      })
+
+      # UI element for this covariate
+      div(
+        style = "margin-bottom: 30px;",
+        div(
+          style = "padding: 12px; background: linear-gradient(135deg, #4F7942 0%, #6CC283 100%); color: white; border-radius: 8px 8px 0 0;",
+          h4(icon("chart-area"), strong(cov_var),
+            if (is_continuous) span(" (continuous)", style = "opacity: 0.8; font-size: 13px; color: white;")
+            else span(" (categorical)", style = "opacity: 0.8; font-size: 13px; color: white;"),
+            style = "margin: 0; color: white;")
+        ),
+        fluidRow(
+          column(
+            7,
+            div(
+              style = "padding: 15px; background-color: #fff; border: 1px solid #e0e0e0; border-radius: 0 0 0 8px;",
+              plotOutput(plot_output_id, height = paste0(max(400, K * 40), "px"))
+            )
+          ),
+          column(
+            5,
+            div(
+              style = "padding: 15px; background-color: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 0 0 8px 0;",
+              h5(strong("Regression Coefficients"), style = "margin-top: 0;"),
+              DT::DTOutput(coef_output_id)
+            )
+          )
+        )
+      )
+    })
+
+    tagList(
+      div(
+        style = "padding: 20px; background: linear-gradient(135deg, #4F7942 0%, #6CC283 100%); color: white; border-radius: 10px; margin-bottom: 20px;",
+        h4(icon("project-diagram"), strong("STM Covariate Effects"),
+          style = "margin-top: 0; color: white;"),
+        h5(paste0("Prevalence covariates: ", paste(prevalence_vars, collapse = ", ")),
+          style = "opacity: 0.9; color: white;")
+      ),
+      cov_panels
+    )
   })
 
   observeEvent(input$TMplotRight, {
@@ -1390,7 +1910,7 @@ documentsServer <- function(input, output, session, values, statsValues) {
         plot = values$tmHeatmap$HplotStatic,
         dpi = values$dpi,
         height = values$h,
-        width = values$h * 2,
+        width = values$h * values$aspect,
         bg = "transparent"
       )
       ggsave(
@@ -1398,7 +1918,7 @@ documentsServer <- function(input, output, session, values, statsValues) {
         plot = values$tmGplotBeta,
         dpi = values$dpi,
         height = values$h,
-        width = values$h * 2,
+        width = values$h * values$aspect,
         bg = "transparent"
       )
       ggsave(
@@ -1406,7 +1926,7 @@ documentsServer <- function(input, output, session, values, statsValues) {
         plot = values$tmGplotTheta,
         dpi = values$dpi,
         height = values$h,
-        width = values$h * 2,
+        width = values$h * values$aspect,
         bg = "transparent"
       )
       popUp(title = "Saved in your working folder", type = "saved")
@@ -1444,6 +1964,7 @@ documentsServer <- function(input, output, session, values, statsValues) {
         list_plot,
         sheetname = "ModelEstim",
         wb = values$wb,
+        dpi = values$report_dpi,
         startRow = nrow(Gem) + 1
       )
       values$wb <- wb
@@ -1655,22 +2176,22 @@ documentsServer <- function(input, output, session, values, statsValues) {
       file5 <- paste("Negative-", sys.time(), ".png", sep = "")
       file5 <- destFolder(file5, values$wdTall)
 
-      plot2png(values$sentimentPieChart, filename = file1, zoom = values$zoom)
+      plot2png(values$sentimentPieChart, filename = file1, type = "plotly", dpi = values$dpi, height = values$h)
       plot2png(
         values$sentimentDensityPlot,
         filename = file2,
-        zoom = values$zoom
+        type = "plotly", dpi = values$dpi, height = values$h
       )
-      plot2png(values$sentimentBoxPlot, filename = file3, zoom = values$zoom)
+      plot2png(values$sentimentBoxPlot, filename = file3, type = "plotly", dpi = values$dpi, height = values$h)
       plot2png(
         values$docPolPlots$positive,
         filename = file4,
-        zoom = values$zoom
+        type = "plotly", dpi = values$dpi, height = values$h
       )
       plot2png(
         values$docPolPlots$negative,
         filename = file5,
-        zoom = values$zoom
+        type = "plotly", dpi = values$dpi, height = values$h
       )
 
       popUp(title = "Saved in your working folder", type = "saved")
@@ -1701,27 +2222,27 @@ documentsServer <- function(input, output, session, values, statsValues) {
       values$filePieChart <- plot2png(
         values$sentimentPieChart,
         filename = files[1],
-        zoom = values$zoom
+        type = "plotly", dpi = values$report_dpi, height = values$h
       )
       values$fileDensityPlot <- plot2png(
         values$sentimentDensityPlot,
         filename = files[2],
-        zoom = values$zoom
+        type = "plotly", dpi = values$report_dpi, height = values$h
       )
       values$fileBoxPlot <- plot2png(
         values$sentimentBoxPlot,
         filename = files[3],
-        zoom = values$zoom
+        type = "plotly", dpi = values$report_dpi, height = values$h
       )
       values$filedocPolPos <- plot2png(
         values$docPolPlots$positive,
         filename = files[4],
-        zoom = values$zoom
+        type = "plotly", dpi = values$report_dpi, height = values$h
       )
       values$filedocPolNeg <- plot2png(
         values$docPolPlots$negative,
         filename = files[5],
-        zoom = values$zoom
+        type = "plotly", dpi = values$report_dpi, height = values$h
       )
       values$list_file <- rbind(
         values$list_file,

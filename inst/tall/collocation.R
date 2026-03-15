@@ -1142,7 +1142,7 @@ collocationServer <- function(input, output, session, values, statsValues) {
     handlerExpr = {
       file <- paste("KWICNetwork-", sys.time(), ".png", sep = "")
       file <- destFolder(file, values$wdTall)
-      plot2png(values$contextNetwork, filename = file, zoom = values$zoom)
+      plot2png(values$contextNetwork, filename = file, type = "vis", dpi = values$dpi, height = values$h)
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -1162,7 +1162,8 @@ collocationServer <- function(input, output, session, values, statsValues) {
       values$filenetVis <- plot2png(
         values$contextNetwork,
         filename = "KWIC-Network.png",
-        zoom = values$zoom
+        type = "vis",
+        dpi = values$report_dpi, height = values$h
       )
       values$list_file <- rbind(
         values$list_file,

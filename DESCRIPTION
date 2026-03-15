@@ -80,6 +80,7 @@ Imports:
     textrank,
     tidygraph,
     tidyr,
+    stm,
     topicmodels,
     udpipe,
     visNetwork
