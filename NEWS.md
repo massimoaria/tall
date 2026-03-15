@@ -1,4 +1,35 @@
-# tall (development version)
+# tall 1.0.0
+ Major update: image export system, topic modeling, homepage, and feature roles
+
+  - Rewrite image export system following biblioshiny approach:
+    - New plot2png() with DPI-aware rendering (dpi/height instead of zoom)
+    - Graph export settings in Settings (export DPI, report DPI, height, aspect
+  ratio)
+    - Persistent settings saved to ~/.tall_graph_settings.txt
+    - Automatic cleanup of temporary HTML files after screenshot
+    - DPI-aware visNetwork canvas capture via JavaScript
+
+  - Implement CTM and STM topic models alongside LDA:
+    - CTM (Correlated Topic Model) with logistic normal prior
+    - STM (Structural Topic Model) with prevalence covariates
+    - Multi-metric comparison plot for K selection
+    - Consensus K recommendation from all metrics
+    - Model diagnostics tab (log-likelihood, entropy, coherence, exclusivity)
+    - Covariate effects tab for STM (effect plots + regression coefficients)
+    - K estimation auto-transferred to model estimation panel
+    - Updated Info & References for all three approaches
+
+  - Redesign homepage in biblioshiny style:
+    - Modern layout with logo, title, citation box, and info cards
+    - Updated citation to SoftwareX paper (Aria et al., 2026)
+    - Added open-access paper and supplementary material links
+
+  - Enhance feature roles time variable:
+    - Detect Date vs numeric variables
+    - Date aggregation selector (day, week, month, quarter, year)
+    - Aggregated preview with period distribution
+
+  - Update CITATION, zzz.R welcome message, and DESCRIPTION (add stm dependency)
 
 # tall 0.5.2
 

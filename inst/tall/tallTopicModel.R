@@ -171,7 +171,8 @@ tmTuning <- function(
   maxK = 20,
   Kby = 1,
   method = "LDA",
-  prevalence = NULL
+  prevalence = NULL,
+  seed = 1234
 ) {
   ## check min and max K
   ClusterRange <- sort(c(minK, maxK))
@@ -205,7 +206,8 @@ tmTuning <- function(
     result <- stmTuning(
       x = x, dtm = dtm, group = group,
       prevalence = prevalence,
-      minK = minK, maxK = maxK, Kby = Kby
+      minK = minK, maxK = maxK, Kby = Kby,
+      seed = seed
     )
   } else {
     ## LDA / CTM tuning
@@ -223,7 +225,7 @@ tmTuning <- function(
     result <- evaluate_tm_parallel(
       dtm,
       k_seq = seq(from = minK, to = maxK, by = Kby),
-      seed = 1234,
+      seed = seed,
       n_cores = coresCPU(),
       method = method
     )
@@ -530,7 +532,8 @@ tmEstimate <- function(
   n = 100,
   top_by = c("freq", "tfidf"),
   method = c("LDA", "CTM", "STM"),
-  prevalence = NULL
+  prevalence = NULL,
+  seed = 1234
 ) {
   method <- match.arg(method)
 
@@ -551,14 +554,14 @@ tmEstimate <- function(
   )
 
   if (method == "STM") {
-    return(stmEstimate(x, dtm, K, group, prevalence))
+    return(stmEstimate(x, dtm, K, group, prevalence, seed = seed))
   }
 
   # LDA / CTM
   if (method == "LDA") {
-    topicModel <- LDA(dtm, K, method = "Gibbs", control = list(iter = 500))
+    topicModel <- LDA(dtm, K, method = "Gibbs", control = list(iter = 500, seed = seed))
   } else {
-    topicModel <- CTM(dtm, K, control = list(seed = 1234))
+    topicModel <- CTM(dtm, K, control = list(seed = seed))
   }
 
   # Posterior distributions
@@ -617,7 +620,8 @@ stmBuildMeta <- function(x, group, prevalence) {
 stmTuning <- function(
   x, dtm, group,
   prevalence = NULL,
-  minK = 2, maxK = 20, Kby = 1
+  minK = 2, maxK = 20, Kby = 1,
+  seed = 1234
 ) {
   # Convert DTM to DocumentTermMatrix (slam-based) then to stm format
   dtm_tm <- tm::as.DocumentTermMatrix(dtm, weighting = tm::weightTf)
@@ -640,6 +644,7 @@ stmTuning <- function(
     K = k_seq,
     prevalence = prev_formula,
     data = meta,
+    seed = seed,
     verbose = FALSE
   )
 
@@ -663,7 +668,7 @@ stmTuning <- function(
 }
 
 # STM estimation
-stmEstimate <- function(x, dtm, K, group, prevalence = NULL) {
+stmEstimate <- function(x, dtm, K, group, prevalence = NULL, seed = 1234) {
   # Convert DTM to DocumentTermMatrix (slam-based) then to stm format
   dtm_tm <- tm::as.DocumentTermMatrix(dtm, weighting = tm::weightTf)
   stm_data <- stm::readCorpus(dtm_tm, type = "dtm")
@@ -683,6 +688,7 @@ stmEstimate <- function(x, dtm, K, group, prevalence = NULL) {
     K = K,
     prevalence = prev_formula,
     data = meta,
+    seed = seed,
     verbose = FALSE
   )
 

@@ -798,6 +798,7 @@ overviewServer <- function(input, output, session, values, statsValues) {
           value = n
         )
 
+      set.seed(values$random_seed)
       values$WCplot <- wordcloud(
         values$wcDfPlot,
         shape = "circle",

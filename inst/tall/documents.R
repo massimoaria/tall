@@ -1187,7 +1187,8 @@ documentsServer <- function(input, output, session, values, statsValues) {
         maxK = input$maxK,
         Kby = input$Kby,
         method = input$tmMethodK,
-        prevalence = NULL
+        prevalence = NULL,
+        seed = values$random_seed
       )
 
       values$df <- values$TMKresult$metrics %>%
@@ -1431,7 +1432,8 @@ documentsServer <- function(input, output, session, values, statsValues) {
         n = input$nTmEstim,
         top_by = input$top_byEstim,
         method = input$tmMethod,
-        prevalence = stm_prevalence
+        prevalence = stm_prevalence,
+        seed = values$random_seed
       )
       ## End check ###
 

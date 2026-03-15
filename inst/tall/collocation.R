@@ -1012,7 +1012,8 @@ collocationServer <- function(input, output, session, values, statsValues) {
             df = values$wordInContext,
             dfTag = dfFiltered,
             target_word = word_search,
-            n = input$wordsContN
+            n = input$wordsContN,
+            seed = values$random_seed
           )
         } else {
           values$contextNetwork <- NULL

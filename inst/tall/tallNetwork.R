@@ -1,4 +1,4 @@
-contextNetwork <- function(df, dfTag, target_word, n = 50) {
+contextNetwork <- function(df, dfTag, target_word, n = 50, seed = 1234) {
   # Espandi le liste nelle colonne context_before, token, context_after, e upos
   longer_df <- df %>%
     mutate(segment_id = row_number()) %>%
@@ -29,7 +29,8 @@ contextNetwork <- function(df, dfTag, target_word, n = 50) {
     interLinks = TRUE,
     normalization = "association",
     remove.isolated = FALSE,
-    community.repulsion = 0
+    community.repulsion = 0,
+    seed = seed
   )
 
   net$edges <- net$edges %>%
@@ -91,7 +92,7 @@ clustering <- function(
 
   # Community detection via optimization of modularity score
   wordnetwork <- as.undirected(wordnetwork) # an undirected graph
-  comm <- igraph::cluster_walktrap(wordnetwork, weights = E(wordnetwork)$value)
+  comm <- igraph::cluster_louvain(wordnetwork, weights = E(wordnetwork)$value)
   cluster <- data.frame(
     word = c(cooc$term1, cooc$term2),
     frequency = c(cooc$s_from, cooc$s_to)
@@ -867,7 +868,7 @@ cooc_freq <- function(cooc) {
 
 # Add these new parameters to the network() function signature:
 # - seed: Random seed for clustering reproducibility (default = 123)
-# - cluster: Type of clustering algorithm (default = "walktrap")
+# - cluster: Type of clustering algorithm (default = "louvain")
 
 network <- function(
   x,
@@ -1071,8 +1072,8 @@ network <- function(
         net_groups <- igraph::cluster_edge_betweenness(graph)
       },
       {
-        # Default to walktrap
-        net_groups <- igraph::cluster_walktrap(graph)
+        # Default to louvain
+        net_groups <- igraph::cluster_louvain(graph)
       }
     )
   }

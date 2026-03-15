@@ -490,6 +490,7 @@ keynessServer <- function(input, output, session, values) {
             results,
             wc_data = list(data_target)
           )
+          set.seed(values$random_seed)
           values$keyness_wordcloud_plot <- wordcloud(
             data_target,
             shape = "circle",

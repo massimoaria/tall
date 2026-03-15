@@ -17,34 +17,82 @@ settingsUI <- function() {
         )
       ),
 
+      # ROW 1: Working Folder + Reproducibility + Language Models
       fluidRow(
-        # LEFT COLUMN - Working Folder & Language Models
         column(
           6,
           wellPanel(
             style = "background-color: #f8f9fa; border: 1px solid #dee2e6;",
-            h4(icon("folder"), strong("Working Folder")),
-            h5("Select a folder where the analysis outputs will be saved"),
-            br(),
-            shinyDirButton(
-              "workingfolder",
-              "Select a Working Folder",
-              "Select",
-              style = "color:white;"
+            h4(icon("folder-open"), strong("Working Folder")),
+            p(
+              "All outputs (plots, reports, exported files) will be saved here.",
+              style = "color: #666; font-size: 13px; margin-bottom: 15px;"
             ),
+            uiOutput("wdFolderDisplay"),
             br(),
-            br(),
-            textOutput("wdFolder"),
-            hr(),
-            h4(icon("database"), strong("Language Models")),
-            actionButton(
-              inputId = "cache",
-              style = "color:white;",
-              label = "Clean model folder"
+            div(
+              style = "display: flex; gap: 10px; align-items: center;",
+              shinyDirButton(
+                "workingfolder",
+                label = "Change Folder",
+                title = "Select a Working Folder",
+                icon = icon("folder-open"),
+                style = "color: white; border-radius: 20px; padding: 8px 20px;"
+              ),
+              actionButton(
+                inputId = "cache",
+                style = "color:white; border-radius: 20px; padding: 8px 20px;",
+                label = "Clean Model Cache",
+                icon = icon("database")
+              )
             )
-          ),
+          )
+        ),
+        column(
+          6,
+          wellPanel(
+            style = "background-color: #e8f5e9; border: 1px solid #c8e6c9;",
+            h4(icon("random"), strong("Reproducibility Settings")),
+            br(),
+            fluidRow(
+              column(
+                9,
+                numericInput(
+                  "random_seed",
+                  "Random Seed",
+                  value = 1234,
+                  min = 1,
+                  max = 99999,
+                  step = 1
+                )
+              ),
+              column(
+                3,
+                br(),
+                actionButton(
+                  "randomize_seed",
+                  "Randomize",
+                  icon = icon("random"),
+                  style = "color:white; margin-top: 5px;"
+                )
+              )
+            ),
+            div(
+              style = "background-color: #d1f2d5; padding: 10px; border-radius: 5px; border-left: 4px solid #4caf50;",
+              icon("info-circle", style = "color: #2e7d32;"),
+              span(
+                " The seed ensures reproducible results for topic models, clustering, and all randomized analyses.",
+                style = "color: #2e7d32;"
+              )
+            )
+          )
+        )
+      ),
 
-          # Graph Export Settings
+      # ROW 2: Graph Export Settings + TALL AI
+      fluidRow(
+        column(
+          6,
           wellPanel(
             style = "background-color: #e3f2fd; border: 1px solid #bbdefb;",
             h4(icon("image"), strong("Graph Export Settings")),
@@ -99,113 +147,62 @@ settingsUI <- function() {
             )
           )
         ),
-
-        # RIGHT COLUMN - Reproducibility Settings
         column(
           6,
           wellPanel(
-            style = "background-color: #e8f5e9; border: 1px solid #c8e6c9;",
-            h4(icon("random"), strong("Reproducibility Settings")),
-            br(),
-            fluidRow(
-              column(
-                9,
-                numericInput(
-                  "random_seed",
-                  "Random Seed",
-                  value = 1234,
-                  min = 1,
-                  max = 99999,
-                  step = 1
-                )
-              ),
-              column(
-                3,
-                br(),
-                actionButton(
-                  "randomize_seed",
-                  "Randomize",
-                  icon = icon("random"),
-                  style = "color:white; margin-top: 5px;"
-                )
-              )
-            ),
-            div(
-              style = "background-color: #d1f2d5; padding: 10px; border-radius: 5px; border-left: 4px solid #4caf50;",
-              icon("info-circle", style = "color: #2e7d32;"),
-              span(
-                " Using the same seed value ensures that analyses involving randomization will produce identical results when re-run.",
-                style = "color: #2e7d32;"
-              )
-            )
-          )
-        )
-      ),
-
-      hr(),
-
-      # TALL AI Section
-      fluidRow(
-        column(
-          12,
-          wellPanel(
             style = "background-color: #fff3e0; border: 1px solid #ffe0b2;",
-            h3(icon("robot"), strong("Tall AI - Google Gemini Integration")),
-            h5(
-              "Enable advanced AI-powered features by providing your Google Gemini API Key. If you don't have one, you can generate it at ",
+            h4(icon("robot"), strong("Tall AI - Google Gemini Integration")),
+            p(
+              "Enable AI-powered features by providing your Google Gemini API Key. Generate one at ",
               tags$a(
                 "AI Studio",
                 href = "https://aistudio.google.com/app/apikey",
                 target = "_blank"
               ),
-              "."
+              ".",
+              style = "color: #666; font-size: 13px; margin-bottom: 15px;"
             ),
-            br(),
 
+            h5(strong("API Key")),
+            passwordInput(
+              "api_key",
+              label = NULL,
+              value = "",
+              width = "100%"
+            ),
+            uiOutput("apiStatus"),
+            br(),
             fluidRow(
               column(
-                4,
-                h5(strong("API Key")),
-                passwordInput(
-                  "api_key",
-                  "Enter your Gemini API Key:",
-                  "",
+                6,
+                actionButton(
+                  "set_key",
+                  "Set API Key",
+                  icon = icon("check"),
+                  style = "color:white;",
                   width = "100%"
-                ),
-                uiOutput("apiStatus"),
-                br(),
-                fluidRow(
-                  column(
-                    6,
-                    actionButton(
-                      "set_key",
-                      "Set API Key",
-                      icon = icon("check"),
-                      style = "color:white;",
-                      width = "100%"
-                    )
-                  ),
-                  column(
-                    6,
-                    actionButton(
-                      "remove_key",
-                      "Remove Key",
-                      icon = icon("trash"),
-                      style = "color:white;",
-                      width = "100%"
-                    )
-                  )
                 )
               ),
-
               column(
-                4,
-                h5(strong("Model Selection")),
+                6,
+                actionButton(
+                  "remove_key",
+                  "Remove Key",
+                  icon = icon("trash"),
+                  style = "color:white;",
+                  width = "100%"
+                )
+              )
+            ),
+            hr(),
+            fluidRow(
+              column(
+                6,
+                h5(strong("Model")),
                 uiOutput("geminiModelChoice")
               ),
-
               column(
-                4,
+                6,
                 h5(strong("Output Size")),
                 uiOutput("geminiOutputSize")
               )
@@ -408,6 +405,33 @@ settingsServer <- function(input, output, session, values, statsValues) {
 
   output$wdFolder <- renderText({
     values$wdTall
+  })
+
+  output$wdFolderDisplay <- renderUI({
+    folder <- values$wdTall
+    if (is.null(folder) || length(folder) == 0 || folder == "") {
+      div(
+        style = "padding: 12px; background-color: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;",
+        icon("exclamation-triangle", style = "color: #856404;"),
+        span(
+          " No working folder selected. Please select a folder to save your outputs.",
+          style = "color: #856404; font-size: 13px;"
+        )
+      )
+    } else {
+      div(
+        style = "padding: 12px; background-color: #e8f5e9; border-left: 4px solid #4caf50; border-radius: 4px;",
+        div(
+          style = "display: flex; align-items: center; gap: 8px;",
+          icon("check-circle", style = "color: #4caf50; font-size: 18px;"),
+          div(
+            span("Current folder:", style = "color: #666; font-size: 12px;"),
+            br(),
+            strong(folder, style = "font-size: 14px; color: #2e7d32; word-break: break-all;")
+          )
+        )
+      )
+    }
   })
 
   # Random Seed Management
@@ -666,11 +690,6 @@ settingsServer <- function(input, output, session, values, statsValues) {
         ),
         w_networkTM = c("w_networkTMClusterTable", "w_networkTMWordTable"),
         w_word2vec = c("w_word2vecTable"),
-        w_networkGrako = c(
-          "w_networkGrakoNodesTable",
-          "w_networkGrakoEdgesTable"
-        ),
-
         # ===== DOCUMENTS ANALYSIS =====
         d_tm_select = c("d_tm_selectTable"),
         d_tm_estim = c("d_tm_estimBpTable", "d_tm_estimTpTable"),

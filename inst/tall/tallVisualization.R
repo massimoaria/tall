@@ -860,7 +860,6 @@ menuList <- function(menu) {
         tabName = "w_networkTM",
         icon = icon("chevron-right")
       )
-      # ,menuSubItem("Grako", tabName = "w_networkGrako", icon = icon("chevron-right"))
     ),
     menuItem(
       "Word Embeddings",

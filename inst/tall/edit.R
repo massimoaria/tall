@@ -498,6 +498,7 @@ editServer <- function(input, output, session, values, statsValues) {
   })
 
   randomTextFunc <- eventReactive(input$randomTextRun, {
+    set.seed(values$random_seed)
     values$txt <- samplingText(
       values$txt,
       n = as.numeric(round((input$sampleSize / 100) * nrow(values$txt)), 0)
