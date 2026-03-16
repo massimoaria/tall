@@ -851,7 +851,7 @@ menuList <- function(menu) {
       tabName = "w_network",
       icon = icon("chevron-right"),
       menuSubItem(
-        "Co-word analysis",
+        "Word Network",
         tabName = "w_networkCooc",
         icon = icon("chevron-right")
       ),

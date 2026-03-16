@@ -863,12 +863,89 @@ cooc_freq <- function(cooc) {
     ungroup()
 }
 
-# Modified network() function with seed fixing and improved community repulsion
-# Based on bibliometrix networkPlot() implementation
+### Dependency-based Co-occurrence Matrix ----
+depCoocMatrix <- function(x, term = "lemma", n = 50, dep_rel_filter = "all", dep_rel_custom = NULL) {
+  # Define which dep_rel to include
+  dep_rels <- switch(
+    dep_rel_filter,
+    "all" = c("nsubj", "obj", "iobj", "obl", "amod", "nmod", "compound",
+      "flat", "flat:name", "conj", "appos", "acl", "advcl",
+      "xcomp", "ccomp", "advmod", "nummod"),
+    "noun_mod" = c("amod", "nmod", "compound", "flat", "flat:name", "nummod", "appos"),
+    "svo" = c("nsubj", "obj", "iobj"),
+    "custom" = if (!is.null(dep_rel_custom)) dep_rel_custom else c("nsubj", "obj", "amod", "nmod", "compound"),
+    c("nsubj", "obj", "amod", "nmod", "compound")
+  )
 
-# Add these new parameters to the network() function signature:
-# - seed: Random seed for clustering reproducibility (default = 123)
-# - cluster: Type of clustering algorithm (default = "louvain")
+  # Required columns
+  if (!all(c("token_id", "head_token_id", "dep_rel") %in% names(x))) {
+    return(NA)
+  }
+
+  # Get term values and build sentence key
+  term_vals <- x[[term]]
+  tok_id <- as.integer(x$token_id)
+  head_tok_id <- as.integer(x$head_token_id)
+  sent_key <- paste0(x$doc_id, "_", x$sentence_id)
+
+  # Filter to relevant dep_rel
+  rel_idx <- which(x$dep_rel %in% dep_rels & head_tok_id > 0)
+
+  if (length(rel_idx) == 0) return(NA)
+
+  # Build head lookup: sent_key:token_id -> term value
+  lookup_key <- paste0(sent_key, ":", tok_id)
+  term_lookup <- term_vals
+  names(term_lookup) <- lookup_key
+
+  # For each relevant dependency, get (dependent_term, head_term) pairs
+  dep_terms <- term_vals[rel_idx]
+  head_keys <- paste0(sent_key[rel_idx], ":", head_tok_id[rel_idx])
+  head_terms <- term_lookup[head_keys]
+
+  # Remove pairs where head term was not found
+  valid <- !is.na(head_terms) & dep_terms != head_terms
+  dep_terms <- dep_terms[valid]
+  head_terms <- unname(head_terms[valid])
+
+  if (length(dep_terms) == 0) return(NA)
+
+  # Normalize pair order (alphabetical) to avoid duplicates
+  term1 <- ifelse(dep_terms < head_terms, dep_terms, head_terms)
+  term2 <- ifelse(dep_terms < head_terms, head_terms, dep_terms)
+
+  # Count co-occurrences
+  pairs <- data.frame(term1 = term1, term2 = term2, stringsAsFactors = FALSE)
+  cooc <- pairs %>%
+    group_by(term1, term2) %>%
+    summarise(cooc = n(), .groups = "drop")
+
+  # Get top N terms by total frequency
+  all_terms <- c(cooc$term1, cooc$term2)
+  term_freq <- sort(table(all_terms), decreasing = TRUE)
+  top_terms <- names(term_freq)[seq_len(min(n, length(term_freq)))]
+
+  # Filter to top terms
+  cooc <- cooc %>%
+    filter(term1 %in% top_terms & term2 %in% top_terms)
+
+  if (nrow(cooc) == 0) return(NA)
+
+  # Calculate s_from and s_to (max co-occurrence per term)
+  cooc <- cooc %>%
+    group_by(term1) %>%
+    mutate(s_from = max(cooc)) %>%
+    ungroup() %>%
+    group_by(term2) %>%
+    mutate(s_to = max(cooc)) %>%
+    ungroup() %>%
+    mutate(upos_from = "", upos_to = "") %>%
+    data.frame()
+
+  return(cooc)
+}
+
+# network() function with seed fixing and improved community repulsion
 
 network <- function(
   x,
@@ -881,9 +958,12 @@ network <- function(
   interLinks = FALSE,
   normalization = "none",
   remove.isolated = FALSE,
-  community.repulsion = 0.5, # Changed default from 0 to 0.5
+  community.repulsion = 0.5,
   seed = 123,
-  cluster = "louvain"
+  cluster = "louvain",
+  cooc_type = "cooc",
+  dep_rel_filter = "all",
+  dep_rel_custom = NULL
 ) {
   # size scaling
   scalemin <- 20 * (1 + labelsize / 5)
@@ -895,7 +975,11 @@ network <- function(
   shape <- "dot"
   opacity.min <- 0.4
 
-  cooc <- coocMatrix(x, term = term, group = group, n = n, pos = FALSE)
+  if (cooc_type == "dep") {
+    cooc <- depCoocMatrix(x, term = term, n = n, dep_rel_filter = dep_rel_filter, dep_rel_custom = dep_rel_custom)
+  } else {
+    cooc <- coocMatrix(x, term = term, group = group, n = n, pos = FALSE)
+  }
   if (is.na(cooc)[1]) {
     obj <- list(nodes = NA, edges = NA)
     return(obj)

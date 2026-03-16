@@ -13,6 +13,10 @@ cpp_switch_docs <- function(tab1, tab2) {
     .Call('_tall_cpp_switch_docs', PACKAGE = 'tall', tab1, tab2)
 }
 
+extract_np_cpp <- function(sent_id, token_id, head_token_id, dep_rel, upos, terms, ngram_max = 5L, max_gap = 3L) {
+    .Call('_tall_extract_np_cpp', PACKAGE = 'tall', sent_id, token_id, head_token_id, dep_rel, upos, terms, ngram_max, max_gap)
+}
+
 calc_reciprocal_sum_cpp <- function(ngram_words, word_freq_names, word_freq_values) {
     .Call('_tall_calc_reciprocal_sum_cpp', PACKAGE = 'tall', ngram_words, word_freq_names, word_freq_values)
 }

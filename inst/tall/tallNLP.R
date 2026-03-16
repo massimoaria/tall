@@ -397,6 +397,45 @@ rakeReset <- function(x) {
 #' @param type Type of extraction: "automatic" or other (default: "automatic")
 #' @param keywordList Optional keyword list (default: NULL)
 #' @param method Extraction method: "rake", "pmi", "md", "lfmd", "is" (default: "rake")
+### Noun Phrase Extraction via Dependency Parsing ----
+
+extractNounPhrases <- function(x, term = "lemma", freq.min = 3, ngram_max = 5) {
+  req_cols <- c("doc_id", "sentence_id", "token_id", "head_token_id", "dep_rel", "upos", term)
+  if (!all(req_cols %in% names(x))) {
+    stop("Missing required columns for dependency-based NP extraction: ",
+      paste(setdiff(req_cols, names(x)), collapse = ", "))
+  }
+
+  # Create integer sentence ID for C++
+  sent_factor <- as.integer(factor(paste0(x$doc_id, "_", x$sentence_id)))
+
+  # Call C++ function
+  np_raw <- tall::extract_noun_phrases(
+    sent_id = sent_factor,
+    token_id = as.integer(x$token_id),
+    head_token_id = as.integer(x$head_token_id),
+    dep_rel = as.character(x$dep_rel),
+    upos = as.character(x$upos),
+    terms = as.character(x[[term]]),
+    ngram_max = ngram_max,
+    max_gap = 3L
+  )
+
+  if (nrow(np_raw) == 0) {
+    return(data.frame(keyword = character(), ngram = integer(), freq = integer(), dep_score = numeric()))
+  }
+
+  # Aggregate in R (fast on pre-extracted data)
+  stats <- np_raw %>%
+    group_by(keyword, ngram) %>%
+    summarise(freq = n(), .groups = "drop") %>%
+    filter(freq >= freq.min) %>%
+    mutate(dep_score = freq * ngram) %>%
+    arrange(desc(freq))
+
+  return(stats)
+}
+
 #'
 #' @return List with two elements:
 #'   - stats: Data frame with keyword statistics
@@ -424,6 +463,17 @@ rake <- function(
     automatic = {
       switch(
         method,
+        dep = {
+          # Dependency-based Noun Phrase extraction
+          stats <- extractNounPhrases(
+            x,
+            term = term,
+            freq.min = freq.min,
+            ngram_max = ngram_max
+          )
+          stats <- stats %>%
+            select("keyword", "ngram", "freq", "dep_score")
+        },
         rake = {
           # rake multi-word creation
           stats <- keywords_rake(
@@ -516,7 +566,7 @@ rake <- function(
   # STEP 2: FILTER ORIGINAL TOKEN DF
   # =============================================================================
 
-  if (method == "is") {
+  if (method %in% c("is", "dep")) {
     include_pos <- c(
       "DET",
       "NOUN",

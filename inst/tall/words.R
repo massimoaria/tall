@@ -743,7 +743,7 @@ wordsUI <- function() {
 
   ### Network ----
 
-  ## Co-word analysis ----
+  ## Word Network Analysis ----
 
   coword <- tabItem(
     tabName = "w_networkCooc",
@@ -751,7 +751,7 @@ wordsUI <- function() {
       fluidRow(
         column(
           8,
-          h3(strong("Co-word analysis"), align = "center")
+          h3(strong("Word Network Analysis"), align = "center")
         ),
         div(
           title = t_run,
@@ -814,15 +814,53 @@ wordsUI <- function() {
                   "Main Configuration"
                 ),
                 selectInput(
-                  inputId = "w_groupNet",
-                  label = "Co-occurrences in",
+                  inputId = "w_networkType",
+                  label = "Network Type",
                   choices = c(
-                    "Groups",
-                    "Documents",
-                    "Paragraphs",
-                    "Sentences"
+                    "Co-occurrence" = "cooc",
+                    "Dependency" = "dep"
                   ),
-                  selected = "Sentences"
+                  selected = "cooc"
+                ),
+                conditionalPanel(
+                  'input.w_networkType == "cooc"',
+                  selectInput(
+                    inputId = "w_groupNet",
+                    label = "Co-occurrences in",
+                    choices = c(
+                      "Groups",
+                      "Documents",
+                      "Paragraphs",
+                      "Sentences"
+                    ),
+                    selected = "Sentences"
+                  )
+                ),
+                conditionalPanel(
+                  'input.w_networkType == "dep"',
+                  selectInput(
+                    inputId = "w_depRelFilter",
+                    label = "Dependency Relations",
+                    choices = c(
+                      "All syntactic" = "all",
+                      "Noun modifiers (amod, nmod, compound)" = "noun_mod",
+                      "Subject-Verb-Object" = "svo",
+                      "Custom" = "custom"
+                    ),
+                    selected = "all"
+                  ),
+                  conditionalPanel(
+                    'input.w_depRelFilter == "custom"',
+                    selectInput(
+                      inputId = "w_depRelCustom",
+                      label = "Select relations:",
+                      choices = c("nsubj", "obj", "iobj", "obl", "amod", "nmod",
+                        "compound", "flat", "conj", "appos", "acl", "advcl",
+                        "xcomp", "ccomp", "advmod", "nummod"),
+                      selected = c("nsubj", "obj", "amod", "nmod", "compound"),
+                      multiple = TRUE
+                    )
+                  )
                 ),
                 selectInput(
                   "normalizationCooc",
@@ -2173,7 +2211,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
 
   ## Network ----
 
-  ## Co-word analysis ----
+  ## Word Network Analysis ----
   netFunction <- eventReactive(
     ignoreNULL = TRUE,
     eventExpr = {
@@ -2207,21 +2245,50 @@ wordsServer <- function(input, output, session, values, statsValues) {
       ) {
         filtered <- backToOriginalGroups(filtered)
       }
-      values$network <- network(
-        filtered,
-        term = values$generalTerm,
-        group = group,
-        n = input$nMax,
-        minEdges = input$minEdges,
-        labelsize = input$labelSize,
-        opacity = input$opacity,
-        interLinks = input$interLinks,
-        normalization = input$normalizationCooc,
-        remove.isolated = input$removeIsolated,
-        community.repulsion = 0.5,
-        seed = values$random_seed,
-        cluster = "louvain"
-      )
+
+      # Choose network type
+      net_type <- if (!is.null(input$w_networkType)) input$w_networkType else "cooc"
+
+      if (net_type == "dep") {
+        # Dependency-based network
+        dep_filter <- if (!is.null(input$w_depRelFilter)) input$w_depRelFilter else "all"
+        dep_custom <- if (!is.null(input$w_depRelCustom)) input$w_depRelCustom else NULL
+        values$network <- network(
+          filtered,
+          term = values$generalTerm,
+          group = group,
+          n = input$nMax,
+          minEdges = input$minEdges,
+          labelsize = input$labelSize,
+          opacity = input$opacity,
+          interLinks = input$interLinks,
+          normalization = input$normalizationCooc,
+          remove.isolated = input$removeIsolated,
+          community.repulsion = 0.5,
+          seed = values$random_seed,
+          cluster = "louvain",
+          cooc_type = "dep",
+          dep_rel_filter = dep_filter,
+          dep_rel_custom = dep_custom
+        )
+      } else {
+        # Co-occurrence network (existing)
+        values$network <- network(
+          filtered,
+          term = values$generalTerm,
+          group = group,
+          n = input$nMax,
+          minEdges = input$minEdges,
+          labelsize = input$labelSize,
+          opacity = input$opacity,
+          interLinks = input$interLinks,
+          normalization = input$normalizationCooc,
+          remove.isolated = input$removeIsolated,
+          community.repulsion = 0.5,
+          seed = values$random_seed,
+          cluster = "louvain"
+        )
+      }
       ## end check
       # net=values$network
       # save(net, file="network.rdata")
@@ -2344,7 +2411,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
   observeEvent(input$w_networkCoocReport, {
     if (!is.null(values$network$nodes)) {
       popUp(title = NULL, type = "waiting")
-      sheetname <- "CoWord"
+      sheetname <- "WordNetwork"
       Gem <- values$w_networkGemini %>% string_to_sentence_df()
       list_df <- list(
         Gem,
@@ -2357,7 +2424,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
       on.exit(setwd(owd))
       values$filenetVis <- plot2png(
         values$netVis,
-        filename = "CoWord.png",
+        filename = "WordNetwork.png",
         type = "vis",
         dpi = values$report_dpi, height = values$h
       )
@@ -2365,7 +2432,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
         values$list_file,
         c(sheetname = res$sheetname, values$filenetVis, res$col)
       )
-      popUp(title = "Co-Word Analysis Results", type = "success")
+      popUp(title = "Word Network Analysis Results", type = "success")
       values$myChoices <- sheets(values$wb)
     } else {
       popUp(type = "error")
@@ -2539,28 +2606,6 @@ wordsServer <- function(input, output, session, values, statsValues) {
     },
     escape = FALSE
   )
-
-  # ## Report
-  #
-  # observeEvent(input$w_networkCoocReport,{
-  #   if(!is.null(values$network$nodes)){
-  #     popUp(title=NULL, type="waiting")
-  #     sheetname <- "CoWord"
-  #     list_df <- list(values$network$nodesData
-  #                     ,values$network$edgesData
-  #     )
-  #     res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
-  #     #values$wb <- res$wb
-  #     owd <- setwd(tempdir())
-  #     on.exit(setwd(owd))
-  #     values$filenetVis <- plot2png(values$netVis, filename="CoWord.png", zoom = values$zoom)
-  #     values$list_file <- rbind(values$list_file, c(sheetname=res$sheetname,values$filenetVis,res$col))
-  #     popUp(title="Co-Word Analysis Results", type="success")
-  #     values$myChoices <- sheets(values$wb)
-  #   } else {
-  #     popUp(type="error")
-  #   }
-  # })
 
   ## Click on Reinert Dendrogram: WORDS IN CONTEXT ----
   observeEvent(

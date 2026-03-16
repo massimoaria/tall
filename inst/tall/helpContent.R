@@ -224,7 +224,36 @@ helpContent <- function() {
   multiwordcreation <- "
 <body>
     <h3><strong>Algorithms for Automatic Multi-Word Extraction</strong></h3>
-    <p>The software <strong>TALL - Text Analysis for All</strong> employs five key algorithms to automatically generate multi-word sequences from a corpus of documents. These methods, widely recognized in computational linguistics and text mining, include <strong>IS Index (Absorption Index)</strong>, <strong>Rapid Automatic Keyword Extraction (RAKE)</strong>, <strong>Pointwise Mutual Information (PMI)</strong>, <strong>Mutual Dependency (MD)</strong>, and <strong>Log-Frequency Biased Mutual Dependency (LF-MD)</strong>.</p>
+    <p>TALL implements six methods to automatically extract multi-word expressions from a corpus. These include a <strong>syntactic approach</strong> based on dependency parsing and five <strong>statistical approaches</strong> based on co-occurrence measures.</p>
+
+    <hr>
+    <h4><strong>Syntactic Approach</strong></h4>
+
+    <br><h4><strong>- Dependency Parsing (NP)</strong></h4>
+    <p>This method extracts <strong>noun phrases</strong> by traversing the syntactic dependency tree produced during tokenization. Unlike statistical methods that rely on sequential co-occurrence patterns, this approach identifies linguistically motivated multi-word units based on their grammatical structure.</p>
+    <p>The algorithm works as follows:</p>
+    <ul>
+      <li>For each <strong>NOUN</strong> or <strong>PROPN</strong> in the corpus, the dependency tree is traversed to find its syntactic dependents.</li>
+      <li>Dependents with the following relations are collected: <strong>amod</strong> (adjective modifier, e.g., &quot;higher rate&quot;), <strong>compound</strong> (compound noun, e.g., &quot;machine learning&quot;), <strong>flat</strong> (flat multiword, e.g., &quot;New York&quot;), <strong>nmod</strong> (prepositional modifier, e.g., &quot;rate of prediabetes&quot;), and <strong>nummod</strong> (numeric modifier).</li>
+      <li>For <strong>nmod</strong> dependents, the connecting preposition (<strong>case</strong> relation) is also included.</li>
+      <li>The resulting tokens are sorted by position and assembled into a phrase.</li>
+    </ul>
+    <p><strong>Advantages over statistical methods:</strong></p>
+    <ul>
+      <li>Captures <strong>non-adjacent</strong> multi-word units (e.g., &quot;rate of prediabetes&quot; where &quot;of&quot; is a function word).</li>
+      <li>Does not require <strong>PoS tag selection</strong> &mdash; the algorithm follows the syntactic structure automatically.</li>
+      <li><strong>No false positives</strong> from coincidental co-occurrence &mdash; only grammatically related words are grouped.</li>
+      <li>Implemented in <strong>C++</strong> for high performance on large corpora.</li>
+    </ul>
+    <p><strong>Parameters:</strong> <em>Max Phrase Length</em> (max tokens per phrase, default 5) and <em>Freq Min</em> (minimum occurrences).</p>
+    <p><strong>Score:</strong> DEP = frequency &times; phrase length (longer frequent phrases score higher).</p>
+    <p><strong>References:</strong><br>
+    de Marneffe, M.-C., Manning, C.D., Nivre, J., &amp; Zeman, D. (2021). <em>Universal Dependencies</em>. Computational Linguistics, 47(2), 255-308.<br>
+    Straka, M., &amp; Strakov&aacute;, J. (2017). <em>Tokenizing, POS Tagging, Lemmatizing and Parsing UD 2.0 with UDPipe</em>. In CoNLL Shared Task.</p>
+
+    <hr>
+    <h4><strong>Statistical Approaches</strong></h4>
+    <p>The following methods identify multi-word expressions based on statistical co-occurrence patterns. They require the user to select which <strong>PoS tags</strong> to consider for candidate terms.</p>
 
     <br><h4><strong>- Rapid Automatic Keyword Extraction (RAKE)</strong></h4>
     <p>RAKE is a domain-independent keyword extraction algorithm that identifies key phrases by analyzing word co-occurrences within a document. It segments text into candidate keyword phrases based on stopword delimiters and then assigns scores based on word co-occurrence and frequency. Higher-scoring phrases are considered more relevant as multi-word expressions.</p>
@@ -246,19 +275,38 @@ helpContent <- function() {
     Thanopoulos, A., Fakotakis, N., &amp; Kokkinakis, G. (2002, May). <em>Comparative Evaluation of Collocation Extraction Metrics.</em> In LREC (Vol. 2, pp. 620-625).</p>
 
     <br><h4><strong>- Log-Frequency Biased Mutual Dependency (LF-MD)</strong></h4>
-    <p>LF-MD refines the MD approach by incorporating word frequency into the dependency calculation. This method biases the selection of multi-word expressions toward frequent collocations while maintaining a balance between statistical significance and linguistic relevance. It is particularly useful in extracting meaningful multi-word expressions in large corpora where rare but statistically significant collocations might otherwise dominate.</p>
+    <p>LF-MD refines the MD approach by incorporating word frequency into the dependency calculation. This method biases the selection of multi-word expressions toward frequent collocations while maintaining a balance between statistical significance and linguistic relevance.</p>
     <p><strong>Reference:</strong><br>
     Thanopoulos, A., Fakotakis, N., &amp; Kokkinakis, G. (2002, May). <em>Comparative Evaluation of Collocation Extraction Metrics.</em> In LREC (Vol. 2, pp. 620-625).</p>
 
     <br><h4><strong>- IS Index (Absorption Index)</strong></h4>
-    <p>The IS Index, proposed by Morrone (1996), is a cohesiveness measure for word sequences that combines three key factors: word rarity, sequence frequency, and lexical density. The index is calculated as:</p>
+    <p>The IS Index, proposed by Morrone (1993), is a cohesiveness measure for word sequences that combines three key factors: word rarity, sequence frequency, and lexical density. The index is calculated as:</p>
     <p style='text-align: center;'>
-        <em>IS(s) = (Σ 1/freq(w<sub>i</sub>)) × freq(s) × n<sub>lexical</sub></em>
+        <em>IS(s) = (&Sigma; 1/freq(w<sub>i</sub>)) &times; freq(s) &times; n<sub>lexical</sub></em>
     </p>
-    <p>where freq(w<sub>i</sub>) is the frequency of each word in the sequence, freq(s) is the frequency of the complete sequence, and n<sub>lexical</sub> is the number of lexical words (e.g. NOUN, ADJ, ADV, etc.) in the sequence. The normalized version, IS<sub>norm</sub> = IS / L², allows fair comparison between sequences of different lengths, where L is the sequence length.</p>
-    <p>The algorithm generates n-grams within sentence boundaries and applies an optimization strategy: only sequences that start AND end with lexical words are considered, significantly reducing computation time while focusing on meaningful expressions. High IS values identify sequences with rare words that frequently co-occur, making them excellent candidates for terminology extraction and theme identification.</p>
+    <p>where freq(w<sub>i</sub>) is the frequency of each word in the sequence, freq(s) is the frequency of the complete sequence, and n<sub>lexical</sub> is the number of lexical words in the sequence. The normalized version, IS<sub>norm</sub> = IS / L&sup2;, allows fair comparison between sequences of different lengths.</p>
     <p><strong>Reference:</strong><br>
-    Morrone, A. (1993). <em>Alcuni criteri di valutazione della significatività dei segmenti ripetuti</em>. In JADT (pp. 445-453).</p>
+    Morrone, A. (1993). <em>Alcuni criteri di valutazione della significativit&agrave; dei segmenti ripetuti</em>. In JADT (pp. 445-453).</p>
+
+    <hr>
+    <h4><strong>Choosing the Right Method</strong></h4>
+    <table style='width:100%; border-collapse:collapse; margin-bottom:15px;'>
+      <thead>
+        <tr style='background-color:#f0f0f0; border-bottom:2px solid #ccc;'>
+          <th style='padding:8px; text-align:left;'>Method</th>
+          <th style='padding:8px; text-align:left;'>Basis</th>
+          <th style='padding:8px; text-align:left;'>Best for</th>
+          <th style='padding:8px; text-align:center;'>PoS selection</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style='padding:6px;'><strong>Dep. Parsing (NP)</strong></td><td>Syntactic structure</td><td>Linguistically accurate phrases, prepositional phrases</td><td style='text-align:center;'>No</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'>RAKE</td><td>Co-occurrence + frequency</td><td>General-purpose keyword extraction</td><td style='text-align:center;'>Yes</td></tr>
+        <tr><td style='padding:6px;'>PMI</td><td>Probabilistic association</td><td>Identifying strongly associated word pairs</td><td style='text-align:center;'>Yes</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'>MD / LF-MD</td><td>Mutual dependency</td><td>Balanced extraction in large corpora</td><td style='text-align:center;'>Yes</td></tr>
+        <tr><td style='padding:6px;'>IS Index</td><td>Rarity + frequency + density</td><td>Terminology extraction, domain-specific terms</td><td style='text-align:center;'>No (auto)</td></tr>
+      </tbody>
+    </table>
 </body>
 "
 
@@ -1142,73 +1190,102 @@ helpContent <- function() {
   ## co-word analysis ----
   cowordanalysis <- "<body>
 
-    <h3><strong>Co-Word Analysis in TALL</strong></strong></h3>
+    <h3><strong>Word Network Analysis in TALL</strong></h3>
 
-    <p>Co-word analysis is a <strong>network-based text mining technique</strong> that examines <strong>co-occurrence patterns</strong> of words within a corpus, identifying <strong>semantic structures</strong> based on term relationships (<strong>Callon et al., 1983</strong>). This method is particularly valuable in <strong>detecting thematic clusters</strong> within large textual datasets, as it helps uncover <strong>conceptual linkages</strong> and <strong>emerging research topics</strong> in various fields.</p>
+    <p>TALL provides two complementary approaches for building word networks: <strong>Co-occurrence networks</strong> based on statistical proximity, and <strong>Dependency networks</strong> based on syntactic structure. Both approaches produce interactive network visualizations with community detection for thematic clustering.</p>
+
     <hr>
-    <h4><strong>How Co-Word Analysis Works</strong></h4>
+    <h4><strong>Network Type: Co-occurrence</strong></h4>
+    <p>Co-occurrence analysis is a classic <strong>network-based text mining technique</strong> that examines how often words appear together within the same context unit (<strong>Callon et al., 1983</strong>). Two words are connected if they co-occur in the same sentence, paragraph, document, or group.</p>
     <ul>
-    <li><strong>Nodes represent words</strong> (terms extracted from the corpus).</li>
-    <li><strong>Edges represent co-occurrence relationships</strong> (connections between words appearing together in the same context).</li>
-    <li><strong>Edge weights reflect frequency</strong>, meaning stronger relationships are represented by thicker connections.</li>
+      <li><strong>Nodes</strong> represent words (terms extracted from the corpus).</li>
+      <li><strong>Edges</strong> represent co-occurrence relationships based on the selected grouping level.</li>
+      <li><strong>Edge weights</strong> reflect co-occurrence frequency: stronger relationships produce thicker connections.</li>
     </ul>
+    <p><strong>Co-occurrence level:</strong> Users can choose the unit of analysis (Sentences, Paragraphs, Documents, or Groups). Smaller units (sentences) capture tighter semantic relationships, while larger units (documents) capture broader thematic associations.</p>
+
     <hr>
-    <h4><strong>Normalization Measures in Co-Word Analysis</strong></h4>
-    <p>Raw co-occurrence frequencies can be <strong>biased by term frequency</strong> in the corpus, making normalization essential to provide meaningful co-word relationships. TALL allows users to apply different normalization measures to refine co-occurrence networks (<strong>Eck & Waltman, 2009</strong>):</p>
+    <h4><strong>Network Type: Dependency</strong></h4>
+    <p>Dependency networks use the <strong>syntactic dependency tree</strong> produced during tokenization to build word connections. Two words are linked only if one syntactically depends on the other in the parse tree, regardless of their linear distance in the text.</p>
+    <ul>
+      <li><strong>Nodes</strong> represent words, as in co-occurrence networks.</li>
+      <li><strong>Edges</strong> represent <strong>grammatical relationships</strong> (e.g., a noun modified by an adjective, a verb with its subject or object).</li>
+      <li><strong>Edge weights</strong> reflect how many times the syntactic relationship occurs across the corpus.</li>
+    </ul>
+    <p><strong>Relation filters:</strong></p>
+    <ul>
+      <li><strong>All syntactic</strong> &mdash; includes all major dependency relations (nsubj, obj, amod, nmod, compound, conj, advcl, etc.).</li>
+      <li><strong>Noun modifiers</strong> &mdash; focuses on noun-centered relations (amod, nmod, compound, flat, nummod, appos). Reveals the descriptive structure of concepts.</li>
+      <li><strong>Subject-Verb-Object</strong> &mdash; focuses on core argument structure (nsubj, obj, iobj). Shows &quot;who does what to whom&quot;.</li>
+      <li><strong>Custom</strong> &mdash; lets users select specific dependency relations.</li>
+    </ul>
+
+    <hr>
+    <h4><strong>Co-occurrence vs Dependency: When to Use Which</strong></h4>
+    <table style='width:100%; border-collapse:collapse; margin-bottom:15px;'>
+      <thead>
+        <tr style='background-color:#f0f0f0; border-bottom:2px solid #ccc;'>
+          <th style='padding:8px; text-align:left;'>Aspect</th>
+          <th style='padding:8px; text-align:left;'>Co-occurrence</th>
+          <th style='padding:8px; text-align:left;'>Dependency</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style='padding:6px;'>Connection basis</td><td>Proximity (same context unit)</td><td>Grammatical relation</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'>Noise level</td><td>Higher (coincidental proximity)</td><td>Lower (only structural links)</td></tr>
+        <tr><td style='padding:6px;'>Distant relations</td><td>Missed if outside window</td><td>Captured if syntactically linked</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'>Interpretability</td><td>Thematic association</td><td>Grammatical roles</td></tr>
+        <tr><td style='padding:6px;'>Best for</td><td>Broad thematic mapping</td><td>Precise semantic relationships</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+    <h4><strong>Normalization Measures</strong></h4>
+    <p>Both network types support the same normalization measures to control for term frequency bias (<strong>Eck &amp; Waltman, 2009</strong>):</p>
 
     <h4><em>Association Index</em></h4>
-    <p>The <strong>Association Index (AI)</strong> normalizes co-occurrence counts relative to the <strong>expected frequency of terms</strong> in the corpus:</p>
-    <p><code>AI<sub>ij</sub> = C<sub>ij</sub> / (C<sub>i</sub> × C<sub>j</sub>)</code></p>
+    <p>Normalizes co-occurrence relative to expected frequency: <code>AI<sub>ij</sub> = C<sub>ij</sub> / (C<sub>i</sub> &times; C<sub>j</sub>)</code></p>
 
-      <h4><em>Cosine Similarity</em></h4>
-      <p><strong>Cosine Similarity</strong> measures how similar two terms are based on their co-occurrence across different documents:</p>
-      <p><code>cos(θ) = C<sub>ij</sub> / sqrt(C<sub>i</sub> × C<sub>j</sub>)</code></p>
+    <h4><em>Cosine Similarity</em></h4>
+    <p>Geometric similarity measure: <code>cos(&theta;) = C<sub>ij</sub> / sqrt(C<sub>i</sub> &times; C<sub>j</sub>)</code></p>
 
-        <h4><em>Jaccard Similarity</em></h4>
-        <p>The <strong>Jaccard Similarity</strong> measures the co-occurrence strength relative to the total occurrences of both words:</p>
-        <p><code>J<sub>ij</sub> = C<sub>ij</sub> / (C<sub>i</sub> + C<sub>j</sub> - C<sub>ij</sub>)</code></p>
+    <h4><em>Jaccard Similarity</em></h4>
+    <p>Set-based overlap measure: <code>J<sub>ij</sub> = C<sub>ij</sub> / (C<sub>i</sub> + C<sub>j</sub> - C<sub>ij</sub>)</code></p>
+
     <hr>
-          <h4><strong>Community Detection for Semantic Clustering</strong></h4>
-          <p>To extract thematic clusters, TALL applies the <strong>Walktrap algorithm</strong> for community detection (<strong>Pons & Latapy, 2006</strong>):</p>
-          <ul>
-          <li>Uses <strong>random walks</strong> on the co-occurrence network to detect <strong>structurally cohesive word communities</strong>.</li>
-          <li>Efficiently discovers <strong>hierarchical relationships</strong> among terms.</li>
-          <li>Groups words into <strong>non-overlapping clusters</strong>, representing <strong>latent topics</strong> or <strong>conceptual domains</strong> within the corpus.</li>
-          </ul>
+    <h4><strong>Community Detection</strong></h4>
+    <p>TALL applies the <strong>Louvain algorithm</strong> (<strong>Blondel et al., 2008</strong>) for community detection, which optimizes modularity to find dense clusters of connected words:</p>
+    <ul>
+      <li>Runs <strong>10 iterations</strong> with different random seeds and selects the solution with highest modularity.</li>
+      <li>Groups words into <strong>non-overlapping clusters</strong> representing latent topics or conceptual domains.</li>
+      <li>Applies <strong>community repulsion</strong> to spatially separate clusters in the visualization.</li>
+    </ul>
+
     <hr>
-          <h4><strong>Applications of Co-Word Analysis</strong></h4>
-          <ul>
-          <li><strong>Bibliometric and Scientometric Studies:</strong> Identifying research trends and thematic structures in academic literature.</li>
-          <li><strong>Topic Detection in Large Text Collections:</strong> Extracting underlying themes from newspapers, reports, or social media content.</li>
-          <li><strong>Keyword Network Exploration:</strong> Understanding <strong>how keywords interconnect</strong> and contribute to discourse formation.</li>
-          <li><strong>Patent and Innovation Analysis:</strong> Revealing technological trends by examining term co-occurrence in patent databases.</li>
-          <li><strong>Social Media and Sentiment Analysis:</strong> Discovering key discussion topics within online platforms.</li>
-          </ul>
+    <h4><strong>Applications</strong></h4>
+    <ul>
+      <li><strong>Thematic mapping:</strong> Identifying research trends and conceptual structures in academic literature.</li>
+      <li><strong>Topic detection:</strong> Extracting underlying themes from news, reports, or social media.</li>
+      <li><strong>Semantic role analysis</strong> (dependency mode): Understanding &quot;who does what&quot; patterns in a corpus.</li>
+      <li><strong>Terminology extraction:</strong> Discovering domain-specific concept networks.</li>
+    </ul>
+
     <hr>
-          <h4><strong>Advantages of Co-Word Analysis in TALL</strong></h4>
-          <ul>
-          <li><strong>Unsupervised Approach:</strong> Extracts thematic clusters <strong>without requiring predefined categories</strong>.</li>
-          <li><strong>Graph-Based Representation:</strong> Provides an <strong>intuitive visualization</strong> of textual structures.</li>
-          <li><strong>Scalable to Large Text Corpora:</strong> Efficiently handles extensive document collections.</li>
-          <li><strong>Integration with Other Analytical Techniques:</strong> Can be combined with <strong>Correspondence Analysis</strong>, <strong>Topic Modeling</strong>, and <strong>Sentiment Analysis</strong> for richer insights.</li>
-          </ul>
-    <hr>
-          <div class='references'>
-            <h4><strong>References</strong></h4>
-            <p><strong>Callon, M., Courtial, J.-P., Turner, W.A., & Bauin, S.</strong></p>
-            <p><i>From translations to problematic networks: An introduction to co-word analysis.</i> <strong>Social Science Information</strong>, 22(2), 191-235.</p>
+    <div class='references'>
+      <h4><strong>References</strong></h4>
 
-            <p><strong>Eck, N. J. V., & Waltman, L.</strong></p>
-            <p><i>How to normalize co-occurrence data? An analysis of some well‐known similarity measures.</i> <strong>Journal of the American Society for Information Science and Technology</strong>, 60(8), 1635-1651.</p>
+      <p><strong>Callon, M., Courtial, J.-P., Turner, W.A., &amp; Bauin, S.</strong> (1983) <i>From translations to problematic networks: An introduction to co-word analysis.</i> <strong>Social Science Information</strong>, 22(2), 191-235.</p>
 
-            <p><strong>Fortunato, S., & Hric, D.</strong></p>
-            <p><i>Community detection in networks: A user guide.</i> <strong>Physics Reports</strong>, 659, 1-44.</p>
+      <p><strong>Eck, N.J.V., &amp; Waltman, L.</strong> (2009) <i>How to normalize co-occurrence data? An analysis of some well-known similarity measures.</i> <strong>Journal of the American Society for Information Science and Technology</strong>, 60(8), 1635-1651.</p>
 
-            <p><strong>Pons, P., & Latapy, M.</strong></p>
-            <p><i>Computing communities in large networks using random walks.</i> Retrieved from <a href='https://arxiv.org/abs/physics/0512106' target='_blank'>arXiv:physics/0512106</a>.</p>
-              </div>
+      <p><strong>Blondel, V.D., Guillaume, J.-L., Lambiotte, R., &amp; Lefebvre, E.</strong> (2008) <i>Fast unfolding of communities in large networks.</i> <strong>Journal of Statistical Mechanics</strong>, 2008(10), P10008.</p>
 
-              </body>"
+      <p><strong>de Marneffe, M.-C., Manning, C.D., Nivre, J., &amp; Zeman, D.</strong> (2021) <i>Universal Dependencies.</i> <strong>Computational Linguistics</strong>, 47(2), 255-308.</p>
+
+      <p><strong>Fortunato, S., &amp; Hric, D.</strong> (2016) <i>Community detection in networks: A user guide.</i> <strong>Physics Reports</strong>, 659, 1-44.</p>
+    </div>
+
+    </body>"
 
   ## thematic map ----
   thematicmap <- "

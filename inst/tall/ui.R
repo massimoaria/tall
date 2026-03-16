@@ -222,7 +222,7 @@ body <- dashboardBody(
     ### Correspondence Analysis ----
     words_ui$ca,
 
-    ### Co-Word Analysis ----
+    ### Word Network Analysis ----
     words_ui$coword,
 
     ### Thematic Analysis ----
