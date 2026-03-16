@@ -904,6 +904,16 @@ menuList <- function(menu) {
       icon = icon("chevron-right")
     ),
     menuSubItem(
+      "Syntactic Complexity",
+      tabName = "d_syntactic",
+      icon = icon("chevron-right")
+    ),
+    menuSubItem(
+      "SVO Triplets",
+      tabName = "d_svo",
+      icon = icon("chevron-right")
+    ),
+    menuSubItem(
       "Polarity Detection",
       tabName = "d_polDet",
       icon = icon("chevron-right")

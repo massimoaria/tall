@@ -460,6 +460,73 @@ overviewUI <- function() {
             )
           ),
           tabPanel(
+            "Morphological Features",
+            fluidPage(
+              fluidRow(
+                column(
+                  12,
+                  h3(strong("Morphological Features"), align = "center"),
+                  p(
+                    "Distribution of morphological features extracted from the Universal Dependencies annotation.",
+                    style = "text-align: center; color: #666; margin-bottom: 20px;"
+                  )
+                )
+              ),
+              fluidRow(
+                column(
+                  12,
+                  uiOutput("morphFeatureDesc")
+                )
+              ),
+              fluidRow(
+                column(
+                  3,
+                  selectInput(
+                    "morphFeature",
+                    "Select Feature:",
+                    choices = c(
+                      "Tense" = "Tense",
+                      "Mood" = "Mood",
+                      "Number" = "Number",
+                      "Person" = "Person",
+                      "VerbForm" = "VerbForm",
+                      "Degree" = "Degree",
+                      "Gender" = "Gender",
+                      "Case" = "Case",
+                      "Voice" = "Voice",
+                      "Definite" = "Definite",
+                      "PronType" = "PronType"
+                    ),
+                    selected = "Tense"
+                  )
+                ),
+                column(
+                  9,
+                  shinycssloaders::withSpinner(
+                    plotlyOutput(
+                      outputId = "morphFeaturePlot",
+                      height = "55vh",
+                      width = "98.9%"
+                    ),
+                    color = getOption("spinner.color", default = "#4F7942")
+                  )
+                )
+              ),
+              fluidRow(
+                column(
+                  12,
+                  br(),
+                  h5(strong("Cross-tabulation: Feature Values by Part of Speech"),
+                    style = "color: #555; margin-bottom: 10px;"),
+                  shinycssloaders::withSpinner(
+                    DT::DTOutput("morphFeatureTable"),
+                    color = getOption("spinner.color", default = "#4F7942")
+                  )
+                )
+              )
+            )
+          ),
+          tabPanel(
             "TALL AI",
             fluidPage(
               fluidRow(
@@ -1121,5 +1188,158 @@ overviewServer <- function(input, output, session, values, statsValues) {
     } else {
       popUp(type = "error")
     }
+  })
+
+  ## Morphological Features ----
+
+  # Human-readable labels for morphological feature values
+  morphLabels <- list(
+    Tense = c(Past = "Past", Pres = "Present", Fut = "Future", Imp = "Imperfect", Pqp = "Pluperfect"),
+    Mood = c(Ind = "Indicative", Sub = "Subjunctive", Imp = "Imperative", Cnd = "Conditional"),
+    Number = c(Sing = "Singular", Plur = "Plural", Dual = "Dual"),
+    Person = c("1" = "1st Person", "2" = "2nd Person", "3" = "3rd Person"),
+    VerbForm = c(Fin = "Finite", "Inf" = "Infinitive", Part = "Participle", Ger = "Gerund", Conv = "Converb", Sup = "Supine"),
+    Degree = c(Pos = "Positive", Cmp = "Comparative", Sup = "Superlative", Abs = "Absolute Superlative"),
+    Gender = c(Masc = "Masculine", Fem = "Feminine", Neut = "Neuter", Com = "Common"),
+    Case = c(Nom = "Nominative", Acc = "Accusative", Gen = "Genitive", Dat = "Dative", Ins = "Instrumental", Loc = "Locative", Voc = "Vocative", Abl = "Ablative"),
+    Voice = c(Act = "Active", Pass = "Passive", Mid = "Middle"),
+    Definite = c(Def = "Definite", Ind = "Indefinite", Com = "Complex", Cons = "Construct"),
+    PronType = c(Prs = "Personal", Dem = "Demonstrative", Rel = "Relative", Int = "Interrogative", Ind = "Indefinite", Neg = "Negative", Tot = "Total", Art = "Article", Exc = "Exclamative")
+  )
+
+  morphDescriptions <- c(
+    Tense = "Verb tense distribution. Reveals whether the corpus is predominantly narrative (Past), descriptive/argumentative (Present), or forward-looking (Future).",
+    Mood = "Verbal mood distribution. Indicative conveys facts; Subjunctive signals uncertainty, doubt, or desire; Imperative expresses commands; Conditional marks hypothetical situations.",
+    Number = "Grammatical number distribution across nouns, pronouns, adjectives, and verbs.",
+    Person = "Verb person distribution. 1st person signals personal/subjective style; 3rd person indicates impersonal/objective style; 2nd person suggests direct address.",
+    VerbForm = "Verb form distribution. The ratio of finite to non-finite forms (infinitives, participles, gerunds) reflects syntactic complexity.",
+    Degree = "Adjective/adverb degree distribution. High use of comparatives and superlatives may indicate evaluative or argumentative discourse.",
+    Gender = "Grammatical gender distribution (language-dependent). Available for languages with grammatical gender marking.",
+    Case = "Grammatical case distribution (language-dependent). Available for languages with case systems (e.g., German, Russian, Latin).",
+    Voice = "Active vs passive voice distribution. High passive usage may indicate formal, scientific, or bureaucratic writing style.",
+    Definite = "Definiteness marking. The ratio of definite to indefinite articles/determiners reveals information structure patterns.",
+    PronType = "Pronoun and determiner type distribution. Shows the balance between personal, demonstrative, relative, and other pronoun types."
+  )
+
+  parseMorphFeatures <- function(feats_col, feature_name) {
+    # Parse feats column (format: "Number=Plur|Tense=Past|Mood=Ind")
+    # Extract values for the requested feature
+    pattern <- paste0("(?:^|\\|)", feature_name, "=([^|]+)")
+    matches <- regmatches(feats_col, regexpr(pattern, feats_col, perl = TRUE))
+    values <- sub(paste0(".*", feature_name, "="), "", matches)
+    values[matches == ""] <- NA
+    # Handle non-matching rows
+    result <- rep(NA_character_, length(feats_col))
+    has_match <- nchar(matches) > 0
+    result[has_match] <- values[has_match]
+    return(result)
+  }
+
+  output$morphFeatureDesc <- renderUI({
+    feature <- input$morphFeature
+    desc <- morphDescriptions[feature]
+    if (is.na(desc)) desc <- ""
+    div(
+      style = "padding: 10px; background-color: #f0f7ee; border-left: 4px solid #4F7942; border-radius: 4px; margin-bottom: 15px;",
+      icon("info-circle", style = "color: #4F7942;"),
+      span(desc, style = "color: #333; font-size: 13px;")
+    )
+  })
+
+  output$morphFeaturePlot <- renderPlotly({
+    req(values$dfTag)
+    feature <- input$morphFeature
+
+    df <- values$dfTag %>%
+      dplyr::filter(docSelected) %>%
+      mutate(feat_value = parseMorphFeatures(feats, feature)) %>%
+      filter(!is.na(feat_value))
+
+    if (nrow(df) == 0) return(plotly_empty())
+
+    # Apply human-readable labels
+    labels <- morphLabels[[feature]]
+    if (!is.null(labels)) {
+      df$feat_label <- ifelse(
+        df$feat_value %in% names(labels),
+        labels[df$feat_value],
+        df$feat_value
+      )
+    } else {
+      df$feat_label <- df$feat_value
+    }
+
+    freq_table <- df %>%
+      count(feat_label) %>%
+      arrange(desc(n)) %>%
+      mutate(
+        pct = round(100 * n / sum(n), 1),
+        feat_label = factor(feat_label, levels = rev(feat_label))
+      )
+
+    values$morphPlot <- plot_ly(
+      freq_table,
+      x = ~n,
+      y = ~feat_label,
+      type = "bar",
+      orientation = "h",
+      marker = list(color = "#4F7942"),
+      text = ~paste0(n, " (", pct, "%)"),
+      textposition = "auto",
+      hovertemplate = "<b>%{y}</b><br>Count: %{x}<br>%{text}<extra></extra>"
+    ) %>%
+      layout(
+        title = list(
+          text = paste0("<b>", feature, " Distribution</b>"),
+          font = list(size = 16, color = "gray30"),
+          x = 0.5
+        ),
+        xaxis = list(title = "Count"),
+        yaxis = list(title = ""),
+        paper_bgcolor = "white",
+        plot_bgcolor = "white",
+        margin = list(l = 150)
+      ) %>%
+      config(displaylogo = FALSE)
+
+    values$morphPlot
+  })
+
+  output$morphFeatureTable <- renderDT(server = FALSE, {
+    req(values$dfTag)
+    feature <- input$morphFeature
+
+    df <- values$dfTag %>%
+      dplyr::filter(docSelected) %>%
+      mutate(feat_value = parseMorphFeatures(feats, feature)) %>%
+      filter(!is.na(feat_value))
+
+    if (nrow(df) == 0) return(NULL)
+
+    # Apply human-readable labels
+    labels <- morphLabels[[feature]]
+    if (!is.null(labels)) {
+      df$feat_label <- ifelse(
+        df$feat_value %in% names(labels),
+        paste0(labels[df$feat_value], " (", df$feat_value, ")"),
+        df$feat_value
+      )
+    } else {
+      df$feat_label <- df$feat_value
+    }
+
+    # Cross-tabulation: feature value x PoS
+    cross_tab <- df %>%
+      count(feat_label, upos) %>%
+      pivot_wider(names_from = upos, values_from = n, values_fill = 0) %>%
+      mutate(Total = rowSums(across(where(is.numeric)))) %>%
+      arrange(desc(Total)) %>%
+      rename(!!feature := feat_label)
+
+    DTformat(
+      cross_tab,
+      size = "100%",
+      filename = paste0("MorphFeature_", feature)
+    )
   })
 }

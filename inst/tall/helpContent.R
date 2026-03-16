@@ -801,6 +801,41 @@ helpContent <- function() {
                                     </li>
                                     </ul>
 
+    <h4><strong>Morphological Features</strong></h4>
+    <p>The <strong>Morphological Features</strong> tab displays the distribution of grammatical features extracted from the <code>feats</code> column of the Universal Dependencies annotation. Each token is annotated with morphological properties that reveal grammatical patterns in the corpus.</p>
+
+    <h4><em>Available Features</em></h4>
+    <table style='width:100%; border-collapse:collapse; margin-bottom:15px;'>
+      <thead>
+        <tr style='background-color:#f0f0f0; border-bottom:2px solid #ccc;'>
+          <th style='padding:8px; text-align:left;'>Feature</th>
+          <th style='padding:8px; text-align:left;'>Values</th>
+          <th style='padding:8px; text-align:left;'>Applies to</th>
+          <th style='padding:8px; text-align:left;'>What it reveals</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style='padding:6px;'><strong>Tense</strong></td><td>Past, Pres, Fut</td><td>VERB, AUX</td><td>Narrative (Past) vs argumentative (Pres) style</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'><strong>Mood</strong></td><td>Ind, Sub, Imp, Cnd</td><td>VERB, AUX</td><td>Certainty (Ind) vs hedging/doubt (Sub, Cnd)</td></tr>
+        <tr><td style='padding:6px;'><strong>Number</strong></td><td>Sing, Plur</td><td>NOUN, PRON, DET, ADJ, VERB</td><td>Generalization patterns</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'><strong>Person</strong></td><td>1, 2, 3</td><td>VERB, AUX, PRON</td><td>Personal (1st) vs impersonal (3rd) style</td></tr>
+        <tr><td style='padding:6px;'><strong>VerbForm</strong></td><td>Fin, Inf, Part, Ger, Conv</td><td>VERB, AUX</td><td>Finite vs non-finite verb usage</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'><strong>Degree</strong></td><td>Pos, Cmp, Sup</td><td>ADJ, ADV</td><td>Use of comparatives and superlatives</td></tr>
+        <tr><td style='padding:6px;'><strong>Gender</strong></td><td>Masc, Fem, Neut</td><td>NOUN, PRON, ADJ, DET</td><td>Grammatical gender distribution (language-dependent)</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'><strong>Case</strong></td><td>Nom, Acc, Gen, Dat, ...</td><td>NOUN, PRON, ADJ</td><td>Syntactic roles (language-dependent)</td></tr>
+        <tr><td style='padding:6px;'><strong>Voice</strong></td><td>Act, Pass</td><td>VERB</td><td>Active vs passive constructions</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'><strong>Definite</strong></td><td>Def, Ind</td><td>DET, NOUN</td><td>Definiteness marking</td></tr>
+        <tr><td style='padding:6px;'><strong>PronType</strong></td><td>Prs, Dem, Rel, Int, ...</td><td>PRON, DET</td><td>Pronoun/determiner types</td></tr>
+      </tbody>
+    </table>
+
+    <p>The <strong>bar chart</strong> shows the frequency of each value for the selected feature. The <strong>cross-tabulation table</strong> shows how each feature value distributes across PoS tags (e.g., Tense=Past appears in both VERB and AUX).</p>
+
+    <p><strong>Note:</strong> Available features depend on the language model used for tokenization. Not all features are annotated in every language.</p>
+
+    <p><strong>Reference:</strong><br>
+    <strong>Zeman, D.</strong> (2017) <i>Universal Dependencies v2: An evergrowing multilingual treebank collection.</i> In <strong>Proceedings of LREC</strong>.</p>
+
                                     <div class='references'>
                                       <h4><strong>References</strong></h4>
                                       <p><strong>Baayen, R. H.</strong> <i>The effect of lexical specialization on the growth curve of vocabulary.</i> <strong>Computational Linguistics</strong>, 22(2), 1996.</p>
@@ -1682,6 +1717,120 @@ helpContent <- function() {
     </body>"
 
   ## polarity detection ----
+  ## syntactic complexity ----
+  syntacticcomplexity <- "<body>
+
+    <h3><strong>Syntactic Complexity Analysis in TALL</strong></h3>
+
+    <p>Syntactic complexity analysis quantifies the structural properties of sentences in a corpus using <strong>dependency parsing</strong>. For each document, TALL computes a set of metrics that characterize writing style, readability, and linguistic sophistication.</p>
+
+    <hr>
+    <h4><strong>Metrics</strong></h4>
+
+    <h4><em>Mean Sentence Length</em></h4>
+    <p>Average number of content words per sentence (excluding punctuation). Longer sentences generally indicate more complex writing.</p>
+
+    <h4><em>Mean Tree Depth</em></h4>
+    <p>Average maximum depth of the dependency tree across sentences. Deeper trees indicate more levels of syntactic embedding (e.g., nested relative clauses, complex noun phrases). Based on BFS traversal from the root.</p>
+    <div style='text-align: center; margin: 20px 0;'>
+      <img src='dep_tree_example.png' style='max-width: 100%; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);' alt='Dependency tree example' />
+      <p style='color: #888; font-size: 12px; margin-top: 8px;'><em>Example of a dependency tree showing syntactic relations between tokens. Tree depth is the longest path from root to leaf.</em></p>
+    </div>
+
+    <h4><em>Mean Dependency Distance</em></h4>
+    <p>Average absolute distance (in token positions) between each word and its syntactic head (<strong>Liu, 2008</strong>). Longer distances indicate more complex processing demands. Languages and styles with more head-final or head-initial constructions tend to show different profiles.</p>
+
+    <h4><em>Clauses per Sentence</em></h4>
+    <p>Average number of clauses per sentence, computed as: 1 (main clause) + subordinate clauses + coordinate verb clauses. Higher values indicate more complex multi-clause constructions.</p>
+
+    <h4><em>Subordination Ratio</em></h4>
+    <p>Proportion of subordinate clauses (advcl, acl, ccomp, xcomp, csubj) relative to total clauses. Higher ratios indicate more hypotactic writing style (subordination), while lower ratios suggest paratactic style (coordination). A key indicator of academic vs. informal writing.</p>
+
+    <h4><em>Branching Factor</em></h4>
+    <p>Average number of direct dependents per non-leaf node in the dependency tree. Higher branching indicates flatter but wider syntactic structures (e.g., enumerations, multiple modifiers).</p>
+
+    <hr>
+    <h4><strong>Analysis Tabs</strong></h4>
+    <ul>
+      <li><strong>Document Metrics</strong> &mdash; Full table with all metrics per document. Sortable and filterable.</li>
+      <li><strong>Corpus Summary</strong> &mdash; Six summary cards showing corpus-level averages for each metric.</li>
+      <li><strong>Distributions</strong> &mdash; Overlaid histograms of all metrics (toggle visibility via legend). Shows how documents are distributed along each complexity dimension.</li>
+    </ul>
+
+    <hr>
+    <h4><strong>Applications</strong></h4>
+    <ul>
+      <li><strong>Readability assessment:</strong> Higher tree depth and dependency distance correlate with lower readability.</li>
+      <li><strong>Authorship analysis:</strong> Different authors exhibit characteristic syntactic profiles.</li>
+      <li><strong>Genre comparison:</strong> Academic writing typically shows higher subordination ratios than journalistic or informal text.</li>
+      <li><strong>Language development:</strong> Syntactic complexity increases with proficiency in L2 learner corpora.</li>
+      <li><strong>Temporal analysis:</strong> Track how writing complexity evolves over time in a corpus.</li>
+    </ul>
+
+    <hr>
+    <div class='references'>
+      <h4><strong>References</strong></h4>
+
+      <p><strong>Liu, H.</strong> (2008) <i>Dependency distance as a metric of language comprehension difficulty.</i> <strong>Journal of Cognitive Science</strong>, 9(2), 159-191.</p>
+
+      <p><strong>Lu, X.</strong> (2010) <i>Automatic analysis of syntactic complexity in second language writing.</i> <strong>International Journal of Corpus Linguistics</strong>, 15(4), 474-496.</p>
+
+      <p><strong>de Marneffe, M.-C., Manning, C.D., Nivre, J., &amp; Zeman, D.</strong> (2021) <i>Universal Dependencies.</i> <strong>Computational Linguistics</strong>, 47(2), 255-308.</p>
+    </div>
+
+    </body>"
+
+  ## SVO triplets ----
+  svo <- "<body>
+
+    <h3><strong>SVO Triplet Extraction in TALL</strong></h3>
+
+    <p>SVO (Subject-Verb-Object) triplet extraction uses <strong>dependency parsing</strong> to identify structured semantic relationships in text. For each verb in the corpus, the algorithm extracts its syntactic subject and object, producing triplets that answer the question: <strong>who does what to whom?</strong></p>
+
+    <hr>
+    <h4><strong>How It Works</strong></h4>
+    <p>The algorithm traverses the dependency tree of each sentence and, for every verb (VERB/AUX), identifies:</p>
+    <ul>
+      <li><strong>Subject</strong> &mdash; tokens with dependency relation <code>nsubj</code> (nominal subject), <code>nsubj:pass</code> (passive subject), or <code>csubj</code> (clausal subject).</li>
+      <li><strong>Object</strong> &mdash; tokens with relation <code>obj</code> (direct object), <code>iobj</code> (indirect object), <code>obl</code> (oblique argument), <code>xcomp</code> or <code>ccomp</code> (clausal complement).</li>
+    </ul>
+    <p>For transitive verbs, all subject-object pairs are generated. For intransitive verbs, subject-verb pairs are emitted with an empty object field. The extraction is implemented in <strong>C++</strong> for high performance.</p>
+
+    <hr>
+    <h4><strong>Analysis Tabs</strong></h4>
+    <ul>
+      <li><strong>SVO Table</strong> &mdash; Full table of extracted triplets with frequency counts. Sortable and filterable by subject, verb, object, or relation type.</li>
+      <li><strong>SVO Network</strong> &mdash; Sankey diagram showing the flow from subjects (blue) through verbs (green) to objects (red). Edge width reflects frequency. Reveals which actors perform which actions on which targets.</li>
+      <li><strong>Verb Frequency</strong> &mdash; Bar chart of the most frequent verbs in SVO triplets. Highlights the dominant actions in the corpus.</li>
+    </ul>
+
+    <hr>
+    <h4><strong>Parameters</strong></h4>
+    <ul>
+      <li><strong>Min. Frequency</strong> &mdash; Minimum number of occurrences for a triplet to be included (default: 2). Increase to focus on recurring patterns.</li>
+      <li><strong>Top N Triplets</strong> &mdash; Number of top triplets to display in the Sankey network (default: 50). Controls visual complexity.</li>
+    </ul>
+
+    <hr>
+    <h4><strong>Applications</strong></h4>
+    <ul>
+      <li><strong>Content analysis:</strong> Identify dominant actors, actions, and targets in a corpus (e.g., &quot;government implements policy&quot;).</li>
+      <li><strong>Comparative studies:</strong> Compare SVO patterns across groups, time periods, or sources.</li>
+      <li><strong>Event extraction:</strong> Discover recurring events described in news, scientific abstracts, or reports.</li>
+      <li><strong>Narrative analysis:</strong> Map the structure of narratives by examining who does what.</li>
+    </ul>
+
+    <hr>
+    <div class='references'>
+      <h4><strong>References</strong></h4>
+
+      <p><strong>de Marneffe, M.-C., Manning, C.D., Nivre, J., &amp; Zeman, D.</strong> (2021) <i>Universal Dependencies.</i> <strong>Computational Linguistics</strong>, 47(2), 255-308.</p>
+
+      <p><strong>Jurafsky, D., &amp; Martin, J.H.</strong> (2024) <i>Speech and Language Processing.</i> 3rd edition (draft). Chapter 18: Information Extraction.</p>
+    </div>
+
+    </body>"
+
   polaritydetection <- "<body>
 
     <h3><strong>Polarity Detection in TALL</strong></strong></h3>
@@ -1860,6 +2009,8 @@ helpContent <- function() {
     embeddingsimilarity = embeddingsimilarity,
     tmkchoice = tmkchoice,
     tmmodelestimation = tmmodelestimation,
+    syntacticcomplexity = syntacticcomplexity,
+    svo = svo,
     polaritydetection = polaritydetection,
     summarization = summarization
   ))

@@ -246,6 +246,12 @@ body <- dashboardBody(
     #### Doc Classification ----
     docClassificationUI(),
 
+    ### Syntactic Complexity ----
+    documents_ui$syntactic_complexity,
+
+    ### SVO Triplets ----
+    documents_ui$svo_analysis,
+
     ### Polarity Detection ----
     documents_ui$polarity,
 

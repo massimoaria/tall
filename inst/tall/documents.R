@@ -571,6 +571,242 @@ documentsUI <- function() {
     )
   )
 
+  ### Syntactic Complexity ----
+
+  syntactic_complexity <- tabItem(
+    tabName = "d_syntactic",
+    fluidPage(
+      fluidRow(
+        column(
+          9,
+          h3(strong("Syntactic Complexity"), align = "center")
+        ),
+        div(
+          title = t_run,
+          column(
+            1,
+            do.call(
+              "actionButton",
+              c(
+                run_bttn,
+                list(inputId = "d_syntacticApply")
+              )
+            )
+          )
+        ),
+        div(
+          title = t_export,
+          column(
+            1,
+            do.call(
+              "actionButton",
+              c(
+                export_bttn,
+                list(inputId = "d_syntacticExport")
+              )
+            )
+          )
+        ),
+        div(
+          title = t_report,
+          column(
+            1,
+            do.call(
+              "actionButton",
+              c(
+                report_bttn,
+                list(inputId = "d_syntacticReport")
+              )
+            )
+          )
+        )
+      ),
+      tabsetPanel(
+        type = "tabs",
+        tabPanel(
+          "Document Metrics",
+          br(),
+          shinycssloaders::withSpinner(
+            DT::DTOutput("d_syntacticTable"),
+            color = getOption("spinner.color", default = "#4F7942")
+          )
+        ),
+        tabPanel(
+          "Corpus Summary",
+          br(),
+          shinycssloaders::withSpinner(
+            uiOutput("d_syntacticSummaryUI"),
+            color = getOption("spinner.color", default = "#4F7942")
+          )
+        ),
+        tabPanel(
+          "Distributions",
+          shinycssloaders::withSpinner(
+            plotlyOutput(
+              outputId = "d_syntacticDistPlot",
+              height = "80vh",
+              width = "98.9%"
+            ),
+            color = getOption("spinner.color", default = "#4F7942")
+          )
+        ),
+        tabPanel(
+          "Info & References",
+          fluidPage(
+            fluidRow(
+              column(1),
+              column(
+                10,
+                br(),
+                HTML(infoTexts$syntacticcomplexity)
+              ),
+              column(1)
+            )
+          )
+        )
+      )
+    )
+  )
+
+  ### SVO Triplets ----
+
+  svo_analysis <- tabItem(
+    tabName = "d_svo",
+    fluidPage(
+      fluidRow(
+        column(
+          8,
+          h3(strong("SVO Triplet Extraction"), align = "center")
+        ),
+        div(
+          title = t_run,
+          column(
+            1,
+            do.call(
+              "actionButton",
+              c(
+                run_bttn,
+                list(inputId = "d_svoApply")
+              )
+            )
+          )
+        ),
+        div(
+          title = t_export,
+          column(
+            1,
+            do.call(
+              "actionButton",
+              c(
+                export_bttn,
+                list(inputId = "d_svoExport")
+              )
+            )
+          )
+        ),
+        div(
+          title = t_report,
+          column(
+            1,
+            do.call(
+              "actionButton",
+              c(
+                report_bttn,
+                list(inputId = "d_svoReport")
+              )
+            )
+          )
+        ),
+        div(
+          column(
+            1,
+            dropdown(
+              h4(strong("Options: ")),
+              br(),
+              div(
+                class = "config-section",
+                div(
+                  class = "config-section-header",
+                  icon("gear"),
+                  "Configuration"
+                ),
+                numericInput(
+                  "svoFreqMin",
+                  label = "Min. Frequency",
+                  value = 2,
+                  min = 1,
+                  step = 1
+                ),
+                numericInput(
+                  "svoTopN",
+                  label = "Top N Triplets",
+                  value = 50,
+                  min = 10,
+                  step = 10
+                )
+              ),
+              style = "gradient",
+              right = TRUE,
+              animate = TRUE,
+              circle = TRUE,
+              tooltip = tooltipOptions(title = "Options"),
+              icon = icon("sliders", lib = "font-awesome"),
+              width = "320px"
+            )
+          ),
+          style = style_opt
+        )
+      ),
+      tabsetPanel(
+        type = "tabs",
+        tabPanel(
+          "SVO Table",
+          br(),
+          shinycssloaders::withSpinner(
+            DT::DTOutput("d_svoTable"),
+            color = getOption("spinner.color", default = "#4F7942")
+          )
+        ),
+        tabPanel(
+          "SVO Network",
+          shinycssloaders::withSpinner(
+            plotlyOutput(
+              outputId = "d_svoNetwork",
+              height = "80vh",
+              width = "98.9%"
+            ),
+            color = getOption("spinner.color", default = "#4F7942")
+          )
+        ),
+        tabPanel(
+          "Verb Frequency",
+          shinycssloaders::withSpinner(
+            plotlyOutput(
+              outputId = "d_svoVerbPlot",
+              height = "75vh",
+              width = "98.9%"
+            ),
+            color = getOption("spinner.color", default = "#4F7942")
+          )
+        ),
+        tabPanel(
+          "Info & References",
+          fluidPage(
+            fluidRow(
+              column(1),
+              column(
+                10,
+                br(),
+                HTML(infoTexts$svo)
+              ),
+              column(1)
+            )
+          )
+        )
+      )
+    )
+  )
+
   ### Polarity detection ----
 
   polarity <- tabItem(
@@ -1071,6 +1307,8 @@ documentsUI <- function() {
   return(list(
     tm_k = tm_k,
     tm_analysis = tm_analysis,
+    syntactic_complexity = syntactic_complexity,
+    svo_analysis = svo_analysis,
     polarity = polarity,
     abs_summ = abs_summ,
     ext_summ = ext_summ
@@ -1971,6 +2209,356 @@ documentsServer <- function(input, output, session, values, statsValues) {
       )
       values$wb <- wb
       popUp(title = "Model Estimation Results", type = "success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type = "error")
+    }
+  })
+
+  ## Syntactic Complexity ----
+
+  syntacticFunction <- eventReactive(
+    ignoreNULL = TRUE,
+    eventExpr = {
+      input$d_syntacticApply
+    },
+    valueExpr = {
+      filtered <- values$dfTag %>% dplyr::filter(docSelected)
+      values$syntacticResults <- computeSyntacticComplexity(filtered)
+    }
+  )
+
+  output$d_syntacticTable <- renderDT(server = FALSE, {
+    syntacticFunction()
+    req(values$syntacticResults)
+    df <- values$syntacticResults %>%
+      rename(
+        "Document" = doc_id,
+        "Sentences" = n_sentences,
+        "Mean Sent. Length" = mean_sent_length,
+        "Mean Tree Depth" = mean_tree_depth,
+        "Max Tree Depth" = max_tree_depth,
+        "Mean Dep. Distance" = mean_dep_distance,
+        "Clauses/Sent." = mean_clauses_per_sent,
+        "Subordinate/Sent." = mean_subordinate,
+        "Coordinate/Sent." = mean_coordinate,
+        "Subordination Ratio" = subordination_ratio,
+        "Branching Factor" = mean_branching_factor
+      )
+    DTformat(
+      df,
+      size = "100%",
+      filename = "SyntacticComplexity",
+      pagelength = TRUE,
+      dom = TRUE,
+      filter = "top"
+    )
+  })
+
+  output$d_syntacticSummaryUI <- renderUI({
+    syntacticFunction()
+    req(values$syntacticResults)
+    df <- values$syntacticResults
+    n_docs <- nrow(df)
+
+    metrics <- list(
+      list(name = "Mean Sentence Length", val = mean(df$mean_sent_length), desc = "words per sentence (excl. punctuation)"),
+      list(name = "Mean Tree Depth", val = mean(df$mean_tree_depth), desc = "levels of syntactic nesting"),
+      list(name = "Mean Dependency Distance", val = mean(df$mean_dep_distance), desc = "tokens between head and dependent"),
+      list(name = "Mean Clauses per Sentence", val = mean(df$mean_clauses_per_sent), desc = "main + subordinate + coordinate"),
+      list(name = "Subordination Ratio", val = mean(df$subordination_ratio), desc = "proportion of subordinate clauses"),
+      list(name = "Mean Branching Factor", val = mean(df$mean_branching_factor), desc = "children per non-leaf node")
+    )
+
+    cards <- lapply(metrics, function(m) {
+      column(
+        4,
+        div(
+          style = "padding: 20px; background-color: #f8f9fa; border-radius: 10px; border-left: 4px solid #4F7942; margin-bottom: 15px; text-align: center;",
+          h3(strong(round(m$val, 2)), style = "color: #4F7942; margin: 0;"),
+          h5(strong(m$name), style = "margin: 5px 0;"),
+          p(m$desc, style = "color: #888; font-size: 12px; margin: 0;")
+        )
+      )
+    })
+
+    tagList(
+      div(
+        style = "padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px; margin-bottom: 20px;",
+        h4(icon("chart-bar"), strong("Corpus-Level Syntactic Profile"),
+          style = "margin-top: 0; color: white;"),
+        h5(paste0(n_docs, " documents analyzed"), style = "opacity: 0.9; color: white;")
+      ),
+      fluidRow(cards[1:3]),
+      fluidRow(cards[4:6])
+    )
+  })
+
+  output$d_syntacticDistPlot <- renderPlotly({
+    syntacticFunction()
+    req(values$syntacticResults)
+    df <- values$syntacticResults
+
+    # Multi-panel distribution plot
+    metrics_to_plot <- list(
+      list(col = "mean_sent_length", title = "Sentence Length"),
+      list(col = "mean_tree_depth", title = "Tree Depth"),
+      list(col = "mean_dep_distance", title = "Dependency Distance"),
+      list(col = "mean_clauses_per_sent", title = "Clauses per Sentence"),
+      list(col = "subordination_ratio", title = "Subordination Ratio"),
+      list(col = "mean_branching_factor", title = "Branching Factor")
+    )
+
+    colors <- c("#4575B4", "#4F7942", "#D73027", "#FF7F00", "#984EA3", "#E41A1C")
+
+    fig <- plot_ly()
+    for (i in seq_along(metrics_to_plot)) {
+      m <- metrics_to_plot[[i]]
+      fig <- fig %>%
+        add_trace(
+          x = df[[m$col]],
+          type = "histogram",
+          name = m$title,
+          marker = list(color = colors[i], line = list(color = "white", width = 1)),
+          opacity = 0.8,
+          visible = if (i == 1) TRUE else "legendonly"
+        )
+    }
+
+    values$syntacticDistPlot <- fig %>%
+      layout(
+        title = list(
+          text = "<b>Distribution of Syntactic Complexity Metrics</b>",
+          font = list(size = 16, color = "gray30"),
+          x = 0.5
+        ),
+        xaxis = list(title = "Value"),
+        yaxis = list(title = "Number of Documents"),
+        barmode = "overlay",
+        paper_bgcolor = "white",
+        plot_bgcolor = "white",
+        legend = list(orientation = "h", x = 0.5, xanchor = "center", y = -0.12)
+      ) %>%
+      config(displaylogo = FALSE)
+
+    values$syntacticDistPlot
+  })
+
+  ## Syntactic Complexity Export (PNG)
+  observeEvent(input$d_syntacticExport, {
+    req(values$syntacticDistPlot)
+    file <- paste("SyntacticComplexity-", sys.time(), ".png", sep = "")
+    file <- destFolder(file, values$wdTall)
+    plot2png(values$syntacticDistPlot, filename = file, type = "plotly", dpi = values$dpi, height = values$h)
+    popUp(title = "Saved in your working folder", type = "saved")
+  })
+
+  ## Syntactic Complexity Report
+  observeEvent(input$d_syntacticReport, {
+    if (!is.null(values$syntacticResults) && nrow(values$syntacticResults) > 0) {
+      popUp(title = NULL, type = "waiting")
+      sheetname <- "SyntacticComplexity"
+      list_df <- list(values$syntacticResults)
+      res <- addDataScreenWb(list_df, wb = values$wb, sheetname = sheetname)
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      values$fileSyntacticDist <- plot2png(
+        values$syntacticDistPlot,
+        filename = "SyntacticDist.png",
+        type = "plotly",
+        dpi = values$report_dpi, height = values$h
+      )
+      values$list_file <- rbind(
+        values$list_file,
+        c(sheetname = res$sheetname, values$fileSyntacticDist, res$col)
+      )
+      popUp(title = "Syntactic Complexity Results", type = "success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type = "error")
+    }
+  })
+
+  ## SVO Triplet Extraction ----
+
+  svoFunction <- eventReactive(
+    ignoreNULL = TRUE,
+    eventExpr = {
+      input$d_svoApply
+    },
+    valueExpr = {
+      filtered <- LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected)
+
+      values$svoResults <- extractSVO(
+        filtered,
+        term = values$generalTerm,
+        freq.min = input$svoFreqMin
+      )
+
+      if (nrow(values$svoResults) > 0) {
+        # Top N for display
+        values$svoTop <- values$svoResults %>%
+          slice_head(n = input$svoTopN)
+      }
+    }
+  )
+
+  output$d_svoTable <- renderDT(server = FALSE, {
+    svoFunction()
+    req(values$svoResults)
+    DTformat(
+      values$svoResults %>%
+        rename(
+          Subject = subject,
+          Verb = verb,
+          Object = object,
+          Frequency = freq,
+          "Relation Type" = rel_type
+        ),
+      size = "100%",
+      filename = "SVO_Triplets",
+      pagelength = TRUE,
+      dom = TRUE,
+      filter = "top"
+    )
+  })
+
+  output$d_svoNetwork <- renderPlotly({
+    svoFunction()
+    req(values$svoTop)
+    df <- values$svoTop %>% filter(object != "")
+
+    if (nrow(df) == 0) return(plotly_empty())
+
+    # Build a Sankey-like network: Subject -> Verb -> Object
+    subjects <- unique(df$subject)
+    verbs <- unique(df$verb)
+    objects <- unique(df$object[df$object != ""])
+    all_nodes <- c(subjects, verbs, objects)
+
+    # Source: subject -> verb
+    sv_source <- match(df$subject, all_nodes) - 1
+    sv_target <- match(df$verb, all_nodes) - 1
+    sv_value <- df$freq
+
+    # Target: verb -> object
+    vo_source <- match(df$verb, all_nodes) - 1
+    vo_target <- match(df$object, all_nodes) - 1
+    vo_value <- df$freq
+
+    # Node colors
+    node_colors <- c(
+      rep("#4575B4", length(subjects)),
+      rep("#4F7942", length(verbs)),
+      rep("#D73027", length(objects))
+    )
+
+    values$svoSankeyPlot <- plot_ly(
+      type = "sankey",
+      orientation = "h",
+      node = list(
+        label = all_nodes,
+        color = node_colors,
+        pad = 15,
+        thickness = 20,
+        line = list(color = "black", width = 0.5)
+      ),
+      link = list(
+        source = c(sv_source, vo_source),
+        target = c(sv_target, vo_target),
+        value = c(sv_value, vo_value),
+        color = "rgba(200,200,200,0.4)"
+      )
+    ) %>%
+      layout(
+        title = list(
+          text = "<b>SVO Triplet Flow</b><br><sub>Subject (blue) -> Verb (green) -> Object (red)</sub>",
+          font = list(size = 16, color = "gray30"),
+          x = 0.5
+        ),
+        font = list(size = 11),
+        paper_bgcolor = "white"
+      ) %>%
+      config(displaylogo = FALSE)
+
+    values$svoSankeyPlot
+  })
+
+  output$d_svoVerbPlot <- renderPlotly({
+    svoFunction()
+    req(values$svoResults)
+
+    verb_freq <- values$svoResults %>%
+      group_by(verb) %>%
+      summarise(freq = sum(freq), .groups = "drop") %>%
+      arrange(desc(freq)) %>%
+      slice_head(n = 30) %>%
+      mutate(verb = factor(verb, levels = rev(verb)))
+
+    values$svoVerbPlot <- plot_ly(
+      verb_freq,
+      x = ~freq,
+      y = ~verb,
+      type = "bar",
+      orientation = "h",
+      marker = list(color = "#4F7942")
+    ) %>%
+      layout(
+        title = list(
+          text = "<b>Most Frequent Verbs in SVO Triplets</b>",
+          font = list(size = 16, color = "gray30"),
+          x = 0.5
+        ),
+        xaxis = list(title = "Frequency"),
+        yaxis = list(title = ""),
+        paper_bgcolor = "white",
+        plot_bgcolor = "white",
+        margin = list(l = 120)
+      ) %>%
+      config(displaylogo = FALSE)
+
+    values$svoVerbPlot
+  })
+
+  ## SVO Export (PNG images)
+  observeEvent(input$d_svoExport, {
+    req(values$svoResults)
+    file1 <- paste("SVO-Network-", sys.time(), ".png", sep = "")
+    file1 <- destFolder(file1, values$wdTall)
+    file2 <- paste("SVO-VerbFreq-", sys.time(), ".png", sep = "")
+    file2 <- destFolder(file2, values$wdTall)
+    plot2png(values$svoSankeyPlot, filename = file1, type = "plotly", dpi = values$dpi, height = values$h)
+    plot2png(values$svoVerbPlot, filename = file2, type = "plotly", dpi = values$dpi, height = values$h)
+    popUp(title = "Saved in your working folder", type = "saved")
+  })
+
+  ## SVO Report (tables + images)
+  observeEvent(input$d_svoReport, {
+    if (!is.null(values$svoResults) && nrow(values$svoResults) > 0) {
+      popUp(title = NULL, type = "waiting")
+      sheetname <- "SVOTriplets"
+      list_df <- list(values$svoResults)
+      res <- addDataScreenWb(list_df, wb = values$wb, sheetname = sheetname)
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      values$fileSVOSankey <- plot2png(
+        values$svoSankeyPlot,
+        filename = "SVONetwork.png",
+        type = "plotly",
+        dpi = values$report_dpi, height = values$h
+      )
+      values$fileSVOVerb <- plot2png(
+        values$svoVerbPlot,
+        filename = "SVOVerbFreq.png",
+        type = "plotly",
+        dpi = values$report_dpi, height = values$h
+      )
+      values$list_file <- rbind(
+        values$list_file,
+        c(sheetname = res$sheetname, values$fileSVOSankey, res$col),
+        c(sheetname = res$sheetname, values$fileSVOVerb, res$col)
+      )
+      popUp(title = "SVO Triplet Results", type = "success")
       values$myChoices <- sheets(values$wb)
     } else {
       popUp(type = "error")

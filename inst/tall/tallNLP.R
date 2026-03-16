@@ -397,6 +397,63 @@ rakeReset <- function(x) {
 #' @param type Type of extraction: "automatic" or other (default: "automatic")
 #' @param keywordList Optional keyword list (default: NULL)
 #' @param method Extraction method: "rake", "pmi", "md", "lfmd", "is" (default: "rake")
+### Syntactic Complexity ----
+
+computeSyntacticComplexity <- function(x) {
+  req_cols <- c("doc_id", "sentence_id", "token_id", "head_token_id", "dep_rel", "upos")
+  if (!all(req_cols %in% names(x))) return(data.frame())
+
+  result <- tall::compute_syntactic_complexity(
+    doc_id = as.character(x$doc_id),
+    sent_id = as.integer(x$sentence_id),
+    token_id = as.integer(x$token_id),
+    head_token_id = as.integer(x$head_token_id),
+    dep_rel = as.character(x$dep_rel),
+    upos = as.character(x$upos)
+  )
+
+  # Round numeric columns
+  num_cols <- sapply(result, is.numeric)
+  result[num_cols] <- lapply(result[num_cols], round, 3)
+
+  return(result)
+}
+
+### SVO Triplet Extraction ----
+
+extractSVO <- function(x, term = "lemma", freq.min = 2) {
+  req_cols <- c("doc_id", "sentence_id", "token_id", "head_token_id", "dep_rel", "upos", term)
+  if (!all(req_cols %in% names(x))) {
+    return(data.frame())
+  }
+
+  sent_factor <- as.integer(factor(paste0(x$doc_id, "_", x$sentence_id)))
+
+  svo_raw <- tall::extract_svo_triplets(
+    sent_id = sent_factor,
+    token_id = as.integer(x$token_id),
+    head_token_id = as.integer(x$head_token_id),
+    dep_rel = as.character(x$dep_rel),
+    upos = as.character(x$upos),
+    terms = as.character(x[[term]])
+  )
+
+  if (nrow(svo_raw) == 0) return(data.frame())
+
+  # Aggregate
+  svo_stats <- svo_raw %>%
+    group_by(subject, verb, object) %>%
+    summarise(
+      freq = n(),
+      rel_type = first(rel_type),
+      .groups = "drop"
+    ) %>%
+    filter(freq >= freq.min) %>%
+    arrange(desc(freq))
+
+  return(svo_stats)
+}
+
 ### Noun Phrase Extraction via Dependency Parsing ----
 
 extractNounPhrases <- function(x, term = "lemma", freq.min = 3, ngram_max = 5) {

@@ -1,34 +1,40 @@
 # tall 1.0.0
  Major update: image export system, topic modeling, homepage, and feature roles
 
-  - Rewrite image export system following biblioshiny approach:
-    - New plot2png() with DPI-aware rendering (dpi/height instead of zoom)
-    - Graph export settings in Settings (export DPI, report DPI, height, aspect
-  ratio)
-    - Persistent settings saved to ~/.tall_graph_settings.txt
-    - Automatic cleanup of temporary HTML files after screenshot
-    - DPI-aware visNetwork canvas capture via JavaScript
+Image Export System:                                                                                                                                                                       
+  - Rewrite plot2png() with DPI-aware rendering (biblioshiny approach)
+  - Add graph export settings (export/report DPI, height, aspect ratio)                                                                                                                      
+  - Persistent settings, temp file cleanup, visNetwork JS canvas capture
 
-  - Implement CTM and STM topic models alongside LDA:
-    - CTM (Correlated Topic Model) with logistic normal prior
-    - STM (Structural Topic Model) with prevalence covariates
-    - Multi-metric comparison plot for K selection
-    - Consensus K recommendation from all metrics
-    - Model diagnostics tab (log-likelihood, entropy, coherence, exclusivity)
-    - Covariate effects tab for STM (effect plots + regression coefficients)
-    - K estimation auto-transferred to model estimation panel
-    - Updated Info & References for all three approaches
+  Topic Modeling:
+  - Add CTM (Correlated Topic Model) and STM (Structural Topic Model)
+  - STM prevalence covariates with effect plots and regression coefficients
+  - Model diagnostics tab (coherence, exclusivity, log-likelihood)
+  - Multi-metric comparison plot and consensus K recommendation
+  - K estimation auto-transferred to model estimation panel
 
-  - Redesign homepage in biblioshiny style:
-    - Modern layout with logo, title, citation box, and info cards
-    - Updated citation to SoftwareX paper (Aria et al., 2026)
-    - Added open-access paper and supplementary material links
+  Dependency Parsing Features:
+  - Noun phrase extraction via dependency tree (C++ backend)
+  - Dependency-based word network as alternative to co-occurrence
+  - Configurable dependency relation filters (all/noun_mod/SVO/custom)
 
-  - Enhance feature roles time variable:
-    - Detect Date vs numeric variables
-    - Date aggregation selector (day, week, month, quarter, year)
-    - Aggregated preview with period distribution
+  Homepage & References:
+  - Redesign homepage in biblioshiny style
+  - Update citation to SoftwareX paper (Aria et al., 2026)
+  - Add open-access paper and supplementary material links
 
+  Settings & UI:
+  - Improved working folder selector with visual feedback
+  - Reorganized settings layout (2x2 grid)
+  - Time variable aggregation for Date types (day/week/month/quarter/year)
+
+  Code Quality:
+  - Propagate random seed to all analyses (topic models, networks, wordclouds, sampling)
+  - Switch default community detection from walktrap to louvain
+  - Remove deprecated Grako module
+  - Rename Co-Word Analysis to Word Network Analysis
+  - Update all Info & References sections
+  - Add stm to DESCRIPTION imports
   - Update CITATION, zzz.R welcome message, and DESCRIPTION (add stm dependency)
 
 # tall 0.5.2

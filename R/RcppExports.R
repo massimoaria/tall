@@ -17,6 +17,10 @@ extract_np_cpp <- function(sent_id, token_id, head_token_id, dep_rel, upos, term
     .Call('_tall_extract_np_cpp', PACKAGE = 'tall', sent_id, token_id, head_token_id, dep_rel, upos, terms, ngram_max, max_gap)
 }
 
+extract_svo_cpp <- function(sent_id, token_id, head_token_id, dep_rel, upos, terms) {
+    .Call('_tall_extract_svo_cpp', PACKAGE = 'tall', sent_id, token_id, head_token_id, dep_rel, upos, terms)
+}
+
 calc_reciprocal_sum_cpp <- function(ngram_words, word_freq_names, word_freq_values) {
     .Call('_tall_calc_reciprocal_sum_cpp', PACKAGE = 'tall', ngram_words, word_freq_names, word_freq_values)
 }
@@ -27,6 +31,10 @@ count_lexical_cpp <- function(ngram_pos, lexical_pos) {
 
 generate_ngrams_cpp <- function(sentences_terms, sentences_pos, max_ngram, lexical_pos) {
     .Call('_tall_generate_ngrams_cpp', PACKAGE = 'tall', sentences_terms, sentences_pos, max_ngram, lexical_pos)
+}
+
+syntactic_complexity_cpp <- function(doc_id, sent_id, token_id, head_token_id, dep_rel, upos) {
+    .Call('_tall_syntactic_complexity_cpp', PACKAGE = 'tall', doc_id, sent_id, token_id, head_token_id, dep_rel, upos)
 }
 
 txt_recode_cpp <- function(x, from, to, na_rm = FALSE) {

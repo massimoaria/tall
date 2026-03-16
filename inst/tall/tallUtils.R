@@ -342,6 +342,8 @@ dfLabel <- function() {
     "EmbeddingSimilarity",
     "KChoice",
     "ModelEstim",
+    "SyntacticComplexity",
+    "SVOTriplets",
     "PolarityDetection",
     "AbstractiveSummarization",
     "ExtractiveSummarization"
@@ -363,6 +365,8 @@ dfLabel <- function() {
     "Word Embedding Similarity",
     "TM-K choice",
     "TM-Model Estimation",
+    "Syntactic Complexity",
+    "SVO Triplets",
     "Polarity Detection",
     "Abstractive Summarization",
     "Extractive Summarization"

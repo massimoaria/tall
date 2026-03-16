@@ -693,6 +693,8 @@ settingsServer <- function(input, output, session, values, statsValues) {
         # ===== DOCUMENTS ANALYSIS =====
         d_tm_select = c("d_tm_selectTable"),
         d_tm_estim = c("d_tm_estimBpTable", "d_tm_estimTpTable"),
+        d_syntactic = c("d_syntacticTable"),
+        d_svo = c("d_svoTable"),
         d_polDet = c("d_polDetTable"),
         d_summarization = c("RelSentData")
       )
