@@ -698,9 +698,10 @@ geminiGenerate <- function(
     "d_emo" = {
       req(values$emotionBarChart)
       p1 <- values$emotionBarChart
-      p2 <- values$emotionHeatmap
+      p2 <- values$emotionRadarPlot
+      p3 <- values$emotionHeatmap
 
-      files <- unlist(lapply(c("emo1", "emo2"), function(x) {
+      files <- unlist(lapply(c("emo1", "emo2", "emo3"), function(x) {
         paste0(tempdir(), "/", x, ".png")
       }))
 
@@ -713,6 +714,12 @@ geminiGenerate <- function(
       suppressWarnings(plot2png(
         p2,
         filename = files[2],
+        type = "plotly",
+        dpi = 150, height = 7
+      ))
+      suppressWarnings(plot2png(
+        p3,
+        filename = files[3],
         type = "plotly",
         dpi = 150, height = 7
       ))

@@ -1,41 +1,112 @@
 # tall 1.0.0
- Major update: image export system, topic modeling, homepage, and feature roles
-
-Image Export System:                                                                                                                                                                       
-  - Rewrite plot2png() with DPI-aware rendering (biblioshiny approach)
-  - Add graph export settings (export/report DPI, height, aspect ratio)                                                                                                                      
-  - Persistent settings, temp file cleanup, visNetwork JS canvas capture
-
-  Topic Modeling:
-  - Add CTM (Correlated Topic Model) and STM (Structural Topic Model)
+⏺ Changelog:                                      
+                                         
+  New Analyses                                                                    
+   
+  SVO Triplets (Subject-Verb-Object)                                              
+  - New analysis for extracting subject-verb-object triplets from the dependency
+  tree                                                                            
+  - C++ backend (extract_svo.cpp) for high performance
+  - Dedicated UI under Documents with Run/Export/Report, results table, Info &    
+  References, TALL AI                                                             
+  - Exported R function: extract_svo_triplets()                                   
+                                                                                  
+  Syntactic Complexity                                                            
+  - New document-level syntactic complexity analysis based on dependency parsing  
+  - C++ backend (syntactic_complexity.cpp) for computing syntactic metrics        
+  - Dedicated UI under Documents with Run/Export/Report, results table, Info &    
+  References, TALL AI                                                             
+  - Exported R function: compute_syntactic_complexity()                           
+                                                                                  
+  Emotion Analysis (NRC EmoLex)                                                   
+  - New emotion analysis based on the NRC Word-Emotion Association Lexicon        
+  - Detection of 8 emotions: anger, anticipation, disgust, fear, joy, sadness,    
+  surprise, trust                                                                 
+  - Core functions: emotionAnalysis(), emotionBarChart(), emotionWordPlot(),      
+  emotionHeatmap()                                                          
+  - loadEmotionLexicon() for loading NRC data (English: mapped via Italian        
+  lexicon's English Word column)                                          
+  - Dedicated UI with 6 tabs: Emotion Distribution, Top Words by Emotion, Document
+   Heatmap, Table, Info & References, TALL AI                                     
+  - PNG export and Excel report integrated                                        
+  - Gemini AI integration across all 5 switch points        
+                                                                                  
+  Noun Phrase Extraction                                                          
+  - Noun phrase extraction via dependency tree                                    
+  - C++ backend (extract_np.cpp)                                                  
+  - Exported R function: extract_noun_phrases()             
+                                                                                  
+  ---                                                       
+  Topic Modeling (major enhancement)                                              
+                                                            
+  - CTM (Correlated Topic Model) and STM (Structural Topic Model) added as new
+  methods                                                                         
   - STM prevalence covariates with effect plots and regression coefficients
-  - Model diagnostics tab (coherence, exclusivity, log-likelihood)
+  - Model diagnostics tab: coherence, exclusivity, log-likelihood                 
   - Multi-metric comparison plot and consensus K recommendation
-  - K estimation auto-transferred to model estimation panel
+  - Estimated K automatically transferred to the model estimation panel           
+                                                                                  
+  ---
+  Image Export System (complete rewrite)                                          
+                                                                                  
+  - Rewrite of plot2png() with DPI-aware rendering (biblioshiny approach)
+  - Graph export settings: export/report DPI, height, aspect ratio                
+  - Persistent settings, temporary file cleanup                                   
+  - JavaScript canvas capture for visNetwork                                      
+                                                                                  
+  ---                                                       
+  Homepage & References
+                       
+  - Complete homepage redesign in biblioshiny style
+  - Updated citation to the SoftwareX paper (Aria et al., 2026)                   
+  - Added open-access paper and supplementary material links                      
+                                                                                  
+  ---                                                                             
+  Settings & UI                                             
 
-  Dependency Parsing Features:
-  - Noun phrase extraction via dependency tree (C++ backend)
-  - Dependency-based word network as alternative to co-occurrence
-  - Configurable dependency relation filters (all/noun_mod/SVO/custom)
-
-  Homepage & References:
-  - Redesign homepage in biblioshiny style
-  - Update citation to SoftwareX paper (Aria et al., 2026)
-  - Add open-access paper and supplementary material links
-
-  Settings & UI:
   - Improved working folder selector with visual feedback
   - Reorganized settings layout (2x2 grid)
-  - Time variable aggregation for Date types (day/week/month/quarter/year)
-
-  Code Quality:
-  - Propagate random seed to all analyses (topic models, networks, wordclouds, sampling)
-  - Switch default community detection from walktrap to louvain
-  - Remove deprecated Grako module
-  - Rename Co-Word Analysis to Word Network Analysis
-  - Update all Info & References sections
-  - Add stm to DESCRIPTION imports
-  - Update CITATION, zzz.R welcome message, and DESCRIPTION (add stm dependency)
+  - Time variable aggregation for Date types (day/week/month/quarter/year)        
+  
+  ---                                                                             
+  Dependency Parsing Features                               
+                             
+  - Dependency-based word network as an alternative to co-occurrence
+  - Configurable dependency relation filters (all/noun_mod/SVO/custom)            
+                                                                                  
+  ---                                                                             
+  Architectural Refactoring                                                       
+                                                            
+  - Split tallFunctions.R into 10 thematic modules:
+  tallSentiment.R, tallNetwork.R, tallTopicModel.R, tallEmbeddings.R,             
+  tallOverview.R, tallUtils.R, tallVisualization.R, tallTextIO.R, tallNLP.R,      
+  tallReport.R, tallLanguages.R                                                   
+  - Extracted static CSS into www/tall-static.css                                 
+  - Added www/tall-handlers.js for JavaScript handlers      
+  - Modernized icons (migrated to FontAwesome 6)                                  
+  - Cleaned up NAMESPACE (removed unnecessary exports)
+  - Added test suite: test-calculate_ngram_is.R, test-process_multiwords.R,       
+  test-reinert.R, test-txt_recode_fast.R                                          
+  - Added stm dependency to DESCRIPTION
+                                                                                  
+  ---                                                       
+  Code Quality
+              
+  - Propagated random seed to all analyses (topic models, networks, wordclouds,
+  sampling)                                                                       
+  - Default community detection switched from walktrap to louvain
+  - Removed deprecated Grako module                                               
+  - Renamed "Co-Word Analysis" to "Word Network Analysis"                         
+  - Updated all Info & References sections                                        
+  - Removed legacy code from tallEmbeddings.R and words.R (~1,160 lines removed)  
+                                                                                  
+  ---                                                                             
+  Bug Fixes                                                                       
+                                                                                  
+  - Fixed KWIC on filtered collections                      
+  - Fixed overview with filtered corpus                                           
+  - Fixed group handling in filters_groups.R
+  - Minor fixes in import, edit, settings, collocation  
 
 # tall 0.5.2
 

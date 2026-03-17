@@ -660,6 +660,59 @@ emotionWordPlot <- function(word_emotions, emotion_sel, n = 10) {
   fig
 }
 
+emotionRadarPlot <- function(corpus_emotions) {
+  colors <- emotion_colors()
+
+  # Close the polygon by repeating the first point
+  df <- rbind(corpus_emotions, corpus_emotions[1, ])
+
+  fig <- plot_ly(
+    type = "scatterpolar",
+    r = df$proportion,
+    theta = df$emotion,
+    fill = "toself",
+    fillcolor = "rgba(74, 124, 89, 0.25)",
+    line = list(color = "#4a7c59", width = 2),
+    marker = list(
+      color = colors[df$emotion],
+      size = 8,
+      line = list(color = "white", width = 1)
+    ),
+    hovertemplate = paste0(
+      "<b>%{theta}</b><br>",
+      "Proportion: %{r:.3f}<br>",
+      "Count: ", df$count,
+      "<extra></extra>"
+    )
+  ) %>%
+    layout(
+      polar = list(
+        radialaxis = list(
+          visible = TRUE,
+          range = c(0, max(corpus_emotions$proportion) * 1.15),
+          showticklabels = TRUE,
+          tickfont = list(size = 10, color = "gray50")
+        ),
+        angularaxis = list(
+          tickfont = list(size = 13, color = "gray30")
+        )
+      ),
+      showlegend = FALSE,
+      plot_bgcolor = "rgba(0, 0, 0, 0)",
+      paper_bgcolor = "rgba(0, 0, 0, 0)"
+    ) %>%
+    config(
+      displaylogo = FALSE,
+      modeBarButtonsToRemove = c(
+        "sendDataToCloud", "pan2d", "select2d", "lasso2d",
+        "toggleSpikelines", "hoverClosestCartesian",
+        "hoverCompareCartesian"
+      )
+    )
+
+  fig
+}
+
 emotionHeatmap <- function(doc_emotions_long) {
   fig <- plot_ly(
     data = doc_emotions_long,

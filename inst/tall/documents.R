@@ -1112,13 +1112,29 @@ documentsUI <- function() {
           type = "tabs",
           tabPanel(
             "Emotion Distribution",
-            shinycssloaders::withSpinner(
-              plotlyOutput(
-                outputId = "d_emoBarPlot",
-                height = "75vh",
-                width = "98.9%"
+            fluidRow(
+              column(
+                6,
+                shinycssloaders::withSpinner(
+                  plotlyOutput(
+                    outputId = "d_emoBarPlot",
+                    height = "75vh",
+                    width = "98.9%"
+                  ),
+                  color = getOption("spinner.color", default = "#4F7942")
+                )
               ),
-              color = getOption("spinner.color", default = "#4F7942")
+              column(
+                6,
+                shinycssloaders::withSpinner(
+                  plotlyOutput(
+                    outputId = "d_emoRadarPlot",
+                    height = "75vh",
+                    width = "98.9%"
+                  ),
+                  color = getOption("spinner.color", default = "#4F7942")
+                )
+              )
             )
           ),
           tabPanel(
@@ -3118,6 +3134,9 @@ documentsServer <- function(input, output, session, values, statsValues) {
         values$emotionBarChart <- emotionBarChart(
           values$docEmotionData$corpus_emotions
         )
+        values$emotionRadarPlot <- emotionRadarPlot(
+          values$docEmotionData$corpus_emotions
+        )
         values$emotionHeatmap <- emotionHeatmap(
           values$docEmotionData$doc_emotions_long
         )
@@ -3137,6 +3156,11 @@ documentsServer <- function(input, output, session, values, statsValues) {
   output$d_emoBarPlot <- renderPlotly({
     docEmotionEstim()
     values$emotionBarChart
+  })
+
+  output$d_emoRadarPlot <- renderPlotly({
+    docEmotionEstim()
+    values$emotionRadarPlot
   })
 
   output$d_emoWordPlot <- renderPlotly({
@@ -3178,11 +3202,14 @@ documentsServer <- function(input, output, session, values, statsValues) {
     handlerExpr = {
       file1 <- paste("EmotionDistribution-", sys.time(), ".png", sep = "")
       file1 <- destFolder(file1, values$wdTall)
-      file2 <- paste("EmotionHeatmap-", sys.time(), ".png", sep = "")
+      file2 <- paste("EmotionRadar-", sys.time(), ".png", sep = "")
       file2 <- destFolder(file2, values$wdTall)
+      file3 <- paste("EmotionHeatmap-", sys.time(), ".png", sep = "")
+      file3 <- destFolder(file3, values$wdTall)
 
       plot2png(values$emotionBarChart, filename = file1, type = "plotly", dpi = values$dpi, height = values$h)
-      plot2png(values$emotionHeatmap, filename = file2, type = "plotly", dpi = values$dpi, height = values$h)
+      plot2png(values$emotionRadarPlot, filename = file2, type = "plotly", dpi = values$dpi, height = values$h)
+      plot2png(values$emotionHeatmap, filename = file3, type = "plotly", dpi = values$dpi, height = values$h)
 
       popUp(title = "Saved in your working folder", type = "saved")
     }
@@ -3202,6 +3229,7 @@ documentsServer <- function(input, output, session, values, statsValues) {
       on.exit(setwd(owd))
       files <- c(
         "EmotionDistribution.png",
+        "EmotionRadar.png",
         "EmotionHeatmap.png"
       )
       values$fileEmotionBar <- plot2png(
@@ -3209,14 +3237,20 @@ documentsServer <- function(input, output, session, values, statsValues) {
         filename = files[1],
         type = "plotly", dpi = values$report_dpi, height = values$h
       )
+      values$fileEmotionRadar <- plot2png(
+        values$emotionRadarPlot,
+        filename = files[2],
+        type = "plotly", dpi = values$report_dpi, height = values$h
+      )
       values$fileEmotionHeatmap <- plot2png(
         values$emotionHeatmap,
-        filename = files[2],
+        filename = files[3],
         type = "plotly", dpi = values$report_dpi, height = values$h
       )
       values$list_file <- rbind(
         values$list_file,
         c(sheetname = res$sheetname, values$fileEmotionBar, res$col),
+        c(sheetname = res$sheetname, values$fileEmotionRadar, res$col),
         c(sheetname = res$sheetname, values$fileEmotionHeatmap, res$col)
       )
       popUp(title = "Emotion Analysis Results", type = "success")
