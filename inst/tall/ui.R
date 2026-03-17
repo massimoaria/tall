@@ -255,6 +255,9 @@ body <- dashboardBody(
     ### Polarity Detection ----
     documents_ui$polarity,
 
+    ### Emotion Analysis ----
+    documents_ui$emotion,
+
     ### Abstractive Summarization ----
     documents_ui$abs_summ,
 

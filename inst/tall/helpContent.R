@@ -833,18 +833,68 @@ helpContent <- function() {
 
     <p><strong>Note:</strong> Available features depend on the language model used for tokenization. Not all features are annotated in every language.</p>
 
-    <p><strong>Reference:</strong><br>
-    <strong>Zeman, D.</strong> (2017) <i>Universal Dependencies v2: An evergrowing multilingual treebank collection.</i> In <strong>Proceedings of LREC</strong>.</p>
+    <hr>
+    <h4><strong>Dependency Tree Viewer</strong></h4>
+    <p>The <strong>Dependency Tree</strong> tab provides an interactive visualization of the syntactic structure of individual sentences. Users can select any document and sentence in the corpus to inspect how the parser has analyzed its grammatical structure.</p>
+
+    <h4><em>How to Read the Tree</em></h4>
+    <ul>
+      <li><strong>Tokens</strong> are displayed horizontally in sentence order, shown as labeled boxes colored by Part of Speech:
+        <span style='color:#4F7942;'>NOUN/PROPN (green)</span>,
+        <span style='color:#E41A1C;'>VERB/AUX (red)</span>,
+        <span style='color:#377EB8;'>ADJ (blue)</span>,
+        <span style='color:#FF7F00;'>ADV (orange)</span>,
+        <span style='color:#984EA3;'>PRON (purple)</span>,
+        <span style='color:#999999;'>DET/ADP (gray)</span>.</li>
+      <li><strong>Arcs</strong> connect each token to its syntactic head. The arc height is proportional to the distance between the dependent and the head &mdash; longer arcs indicate more distant dependencies.</li>
+      <li><strong>Arc labels</strong> show the dependency relation (e.g., <code>nsubj</code>, <code>obj</code>, <code>amod</code>).</li>
+      <li><strong>Arc colors</strong> indicate the relation type:
+        <span style='color:#E41A1C;'>subject relations (red)</span>,
+        <span style='color:#377EB8;'>object relations (blue)</span>,
+        <span style='color:#4DAF4A;'>nominal modifiers (green)</span>,
+        <span style='color:#FF7F00;'>adverbial modifiers (orange)</span>,
+        <span style='color:#984EA3;'>compounds (purple)</span>.</li>
+    </ul>
+
+    <h4><em>Token Details Table</em></h4>
+    <p>Below the tree, a table shows the full annotation for each token: ID, Token, Lemma, PoS tag, Dependency Relation, Head ID, and Head Token. This allows precise inspection of the parse output.</p>
+
+    <h4><em>Common Dependency Relations</em></h4>
+    <table style='width:100%; border-collapse:collapse; margin-bottom:15px;'>
+      <thead>
+        <tr style='background-color:#f0f0f0; border-bottom:2px solid #ccc;'>
+          <th style='padding:8px; text-align:left;'>Relation</th>
+          <th style='padding:8px; text-align:left;'>Meaning</th>
+          <th style='padding:8px; text-align:left;'>Example</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style='padding:6px;'><code>nsubj</code></td><td>Nominal subject</td><td><em>The <u>cat</u> sat</em> (cat &rarr; sat)</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'><code>obj</code></td><td>Direct object</td><td><em>She read a <u>book</u></em> (book &rarr; read)</td></tr>
+        <tr><td style='padding:6px;'><code>amod</code></td><td>Adjective modifier</td><td><em>a <u>big</u> house</em> (big &rarr; house)</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'><code>nmod</code></td><td>Nominal modifier (via preposition)</td><td><em>rate of <u>growth</u></em> (growth &rarr; rate)</td></tr>
+        <tr><td style='padding:6px;'><code>advmod</code></td><td>Adverbial modifier</td><td><em>runs <u>quickly</u></em> (quickly &rarr; runs)</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'><code>compound</code></td><td>Compound word</td><td><em><u>machine</u> learning</em> (machine &rarr; learning)</td></tr>
+        <tr><td style='padding:6px;'><code>det</code></td><td>Determiner</td><td><em><u>the</u> house</em> (the &rarr; house)</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'><code>case</code></td><td>Preposition/postposition</td><td><em>rate <u>of</u> growth</em> (of &rarr; growth)</td></tr>
+        <tr><td style='padding:6px;'><code>conj</code></td><td>Conjunct</td><td><em>cats <u>and</u> dogs</em> (dogs &rarr; cats)</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'><code>advcl</code></td><td>Adverbial clause</td><td><em>He left <u>because</u> it rained</em></td></tr>
+        <tr><td style='padding:6px;'><code>acl</code></td><td>Adnominal clause</td><td><em>the man <u>who</u> came</em></td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'><code>xcomp</code></td><td>Open clausal complement</td><td><em>I want <u>to go</u></em></td></tr>
+      </tbody>
+    </table>
 
                                     <div class='references'>
                                       <h4><strong>References</strong></h4>
                                       <p><strong>Baayen, R. H.</strong> <i>The effect of lexical specialization on the growth curve of vocabulary.</i> <strong>Computational Linguistics</strong>, 22(2), 1996.</p>
-                                      <p><strong>Bentz, C., Alikaniotis, D., Cysouw, M., & Ferrer-i-Cancho, R.</strong> <i>The entropy of words—learnability and expressivity across more than 1000 languages.</i> <strong>Entropy</strong>, 19(6), 2017.</p>
+                                      <p><strong>Bentz, C., Alikaniotis, D., Cysouw, M., &amp; Ferrer-i-Cancho, R.</strong> <i>The entropy of words &mdash; learnability and expressivity across more than 1000 languages.</i> <strong>Entropy</strong>, 19(6), 2017.</p>
                                       <p><strong>Biber, D.</strong> <i>Variation across speech and writing.</i> <strong>Cambridge University Press</strong>, 1988.</p>
-                                      <p><strong>Guiraud, P.</strong> <i>Les caractères statistiques du vocabulaire.</i> <strong>Presse Universitaire de France</strong>, 1954.</p>
-                                      <p><strong>Tweedie, F. J., & Baayen, R. H.</strong> <i>How variable may a constant be? Measures of lexical richness in perspective.</i> <strong>Computers and the Humanities</strong>, 32(5), 323–352, 1998.</p>
-                                      <p><strong>Ure, J.</strong> <i>Lexical density and register differentiation. In G. Perren and J.L.M. Trim (eds).</i> <strong>Applications of Linguistics</strong>, Cambridge University Press, 443–452, 1971.</p>
+                                      <p><strong>de Marneffe, M.-C., Manning, C.D., Nivre, J., &amp; Zeman, D.</strong> (2021) <i>Universal Dependencies.</i> <strong>Computational Linguistics</strong>, 47(2), 255-308.</p>
+                                      <p><strong>Guiraud, P.</strong> <i>Les caract&egrave;res statistiques du vocabulaire.</i> <strong>Presse Universitaire de France</strong>, 1954.</p>
+                                      <p><strong>Tweedie, F. J., &amp; Baayen, R. H.</strong> <i>How variable may a constant be? Measures of lexical richness in perspective.</i> <strong>Computers and the Humanities</strong>, 32(5), 323-352, 1998.</p>
+                                      <p><strong>Ure, J.</strong> <i>Lexical density and register differentiation.</i> In G. Perren and J.L.M. Trim (eds), <strong>Applications of Linguistics</strong>, Cambridge University Press, 443-452, 1971.</p>
                                       <p><strong>Yule, G. U.</strong> <i>The statistical study of literary vocabulary.</i> <strong>Cambridge University Press</strong>, 1944.</p>
+                                      <p><strong>Zeman, D.</strong> (2017) <i>Universal Dependencies v2: An evergrowing multilingual treebank collection.</i> In <strong>Proceedings of LREC</strong>.</p>
                                       </div>
                                       </div>
                                       </body>"
@@ -1899,6 +1949,63 @@ helpContent <- function() {
 
       </body>"
 
+  ## emotion analysis ----
+  emotionanalysis <- "<body>
+
+    <h3><strong>Emotion Analysis in TALL</strong></h3>
+
+    <p>Emotion analysis goes beyond simple positive/negative polarity by identifying <strong>specific emotions</strong> expressed in text.
+    TALL uses the <strong>NRC Word-Emotion Association Lexicon (EmoLex)</strong> to detect eight primary emotions:
+    <strong>Anger, Anticipation, Disgust, Fear, Joy, Sadness, Surprise, and Trust</strong>.</p>
+    <hr>
+    <h4><strong>How Emotion Analysis Works in TALL</strong></h4>
+
+    <h4>1. Lexicon-Based Emotion Detection</h4>
+    <ul>
+    <li>Each lemma in the text is matched against the <strong>NRC EmoLex</strong>, which provides binary associations between words and eight emotions.</li>
+    <li>A single word can be associated with <strong>multiple emotions</strong> (e.g., 'abandon' may evoke both <strong>fear</strong> and <strong>sadness</strong>).</li>
+    </ul>
+
+    <h4>2. Document-Level Aggregation</h4>
+    <ul>
+    <li>For each document, emotion word counts are <strong>summed across all matched lemmas</strong>.</li>
+    <li>Counts are <strong>normalized to proportions</strong>, allowing comparison across documents of different lengths.</li>
+    </ul>
+
+    <h4>3. Corpus-Level Summary</h4>
+    <ul>
+    <li>Emotion counts are aggregated across all documents to provide a <strong>corpus-level emotion profile</strong>.</li>
+    <li>The <strong>Emotion Distribution</strong> chart shows the relative prevalence of each emotion in the corpus.</li>
+    </ul>
+
+    <h4>4. Word-Level Analysis</h4>
+    <ul>
+    <li>For each emotion, the <strong>most frequent contributing words</strong> are identified.</li>
+    <li>This helps understand <strong>which vocabulary drives</strong> each emotion category.</li>
+    </ul>
+    <hr>
+    <h4><strong>The NRC EmoLex</strong></h4>
+    <ul>
+    <li>Created by <strong>Saif Mohammad and Peter Turney</strong> using crowdsourcing via Amazon Mechanical Turk.</li>
+    <li>Contains approximately <strong>14,000 words</strong> annotated with eight emotion categories.</li>
+    <li>Available in <strong>multiple languages</strong> through automatic translation from the English source.</li>
+    <li>Widely used in <strong>social media analysis, literary studies, psychological research, and opinion mining</strong>.</li>
+    </ul>
+    <hr>
+    <div class='references'>
+      <h4><strong>References</strong></h4>
+
+      <p><strong>Mohammad, S.M., & Turney, P.D.</strong></p>
+      <p><i>Crowdsourcing a word-emotion association lexicon.</i> <strong>Computational Intelligence</strong>, 29(3), 436-465, 2013.</p>
+
+      <p><strong>Mohammad, S.M., & Turney, P.D.</strong></p>
+      <p><i>Emotions evoked by common words and phrases: Using Mechanical Turk to create an emotion lexicon.</i>
+      In <strong>Proceedings of the NAACL HLT 2010 Workshop on Computational Approaches to Analysis and Generation of Emotion in Text</strong>,
+      26-34. Los Angeles, CA: Association for Computational Linguistics.</p>
+      </div>
+
+      </body>"
+
   ## summarzation ----
   summarization <- "<body>
 
@@ -2012,6 +2119,7 @@ helpContent <- function() {
     syntacticcomplexity = syntacticcomplexity,
     svo = svo,
     polaritydetection = polaritydetection,
+    emotionanalysis = emotionanalysis,
     summarization = summarization
   ))
 }

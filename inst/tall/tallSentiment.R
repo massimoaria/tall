@@ -465,6 +465,234 @@ sentimentBoxPlot <- function(sent_overall) {
     )
 }
 
+### EMOTION ANALYSIS: NRC EmoLex -----
+
+emotion_colors <- function() {
+  c(
+    anger = "#E74C3C",
+    anticipation = "#F39C12",
+    disgust = "#8E44AD",
+    fear = "#2C3E50",
+    joy = "#F1C40F",
+    sadness = "#3498DB",
+    surprise = "#E67E22",
+    trust = "#27AE60"
+  )
+}
+
+loadEmotionLexicon <- function(language) {
+  emotion_names <- c(
+    "anger", "anticipation", "disgust", "fear",
+    "joy", "sadness", "surprise", "trust"
+  )
+
+  if (language == "english") {
+    # English lexicon lacks emotion columns; extract from Italian lexicon
+    # which has English Word -> emotion mapping from NRC EmoLex
+    sentimentData <- loadSentimentLanguage("italian")
+    if (!"English Word" %in% names(sentimentData)) return(NULL)
+    emotion_lexicon <- sentimentData %>%
+      select(`English Word`, all_of(emotion_names)) %>%
+      rename(Word = `English Word`) %>%
+      distinct(Word, .keep_all = TRUE) %>%
+      filter(rowSums(across(all_of(emotion_names))) > 0)
+  } else {
+    sentimentData <- loadSentimentLanguage(language)
+    if (!all(emotion_names %in% names(sentimentData))) return(NULL)
+    emotion_lexicon <- sentimentData %>%
+      select(Word, all_of(emotion_names)) %>%
+      distinct(Word, .keep_all = TRUE) %>%
+      filter(rowSums(across(all_of(emotion_names))) > 0)
+  }
+  return(emotion_lexicon)
+}
+
+emotionAnalysis <- function(dfTag, language = "english") {
+  unsupported <- c(
+    "ancient_greek", "classical_chinese", "coptic", "gothic",
+    "north_sami", "old_church_slavonic", "old_french",
+    "old_russian", "scottish_gaelic", "wolof"
+  )
+  if (language %in% unsupported) return(NA)
+
+  emotion_names <- c(
+    "anger", "anticipation", "disgust", "fear",
+    "joy", "sadness", "surprise", "trust"
+  )
+
+  emotion_lexicon <- loadEmotionLexicon(language)
+  if (is.null(emotion_lexicon)) return(NA)
+
+  # Get lemmas from tagged data
+  df <- dfTag %>% filter(docSelected)
+
+  # Join lemmas with emotion lexicon
+  word_emotions <- df %>%
+    select(doc_id, lemma) %>%
+    inner_join(emotion_lexicon, by = c("lemma" = "Word"))
+
+  if (nrow(word_emotions) == 0) return(NA)
+
+  # Per-document emotion counts
+  doc_emotions <- word_emotions %>%
+    group_by(doc_id) %>%
+    summarise(across(all_of(emotion_names), sum), .groups = "drop") %>%
+    mutate(total = rowSums(across(all_of(emotion_names)))) %>%
+    mutate(
+      across(
+        all_of(emotion_names),
+        ~ ifelse(total > 0, . / total, 0),
+        .names = "{.col}_prop"
+      )
+    )
+
+  # Corpus-level proportions
+  total_count <- sum(colSums(doc_emotions[emotion_names]))
+  corpus_emotions <- data.frame(
+    emotion = emotion_names,
+    count = as.numeric(colSums(doc_emotions[emotion_names])),
+    stringsAsFactors = FALSE
+  ) %>%
+    mutate(proportion = if (total_count > 0) count / total_count else 0)
+
+  # Word-level emotion counts (long format for word plots)
+  word_emotion_long <- word_emotions %>%
+    group_by(lemma) %>%
+    summarise(across(all_of(emotion_names), sum), .groups = "drop") %>%
+    pivot_longer(
+      cols = all_of(emotion_names),
+      names_to = "emotion",
+      values_to = "count"
+    ) %>%
+    filter(count > 0)
+
+  # Doc emotions in long format for heatmap
+  doc_emotions_long <- doc_emotions %>%
+    select(doc_id, all_of(paste0(emotion_names, "_prop"))) %>%
+    pivot_longer(cols = -doc_id, names_to = "emotion", values_to = "proportion") %>%
+    mutate(emotion = gsub("_prop$", "", emotion))
+
+  return(list(
+    doc_emotions = doc_emotions,
+    doc_emotions_long = doc_emotions_long,
+    corpus_emotions = corpus_emotions,
+    word_emotions = word_emotion_long
+  ))
+}
+
+emotionBarChart <- function(corpus_emotions) {
+  colors <- emotion_colors()
+
+  fig <- plot_ly(
+    data = corpus_emotions,
+    x = ~emotion,
+    y = ~proportion,
+    type = "bar",
+    marker = list(
+      color = colors[corpus_emotions$emotion],
+      line = list(color = "white", width = 1)
+    ),
+    hovertemplate = paste0(
+      "<b>%{x}</b><br>",
+      "Proportion: %{y:.3f}<br>",
+      "Count: ", corpus_emotions$count,
+      "<extra></extra>"
+    )
+  ) %>%
+    layout(
+      xaxis = list(
+        title = "Emotion",
+        categoryorder = "total descending"
+      ),
+      yaxis = list(title = "Proportion"),
+      plot_bgcolor = "rgba(0, 0, 0, 0)",
+      paper_bgcolor = "rgba(0, 0, 0, 0)"
+    ) %>%
+    config(
+      displaylogo = FALSE,
+      modeBarButtonsToRemove = c(
+        "sendDataToCloud", "pan2d", "select2d", "lasso2d",
+        "toggleSpikelines", "hoverClosestCartesian",
+        "hoverCompareCartesian"
+      )
+    )
+
+  fig
+}
+
+emotionWordPlot <- function(word_emotions, emotion_sel, n = 10) {
+  colors <- emotion_colors()
+
+  df <- word_emotions %>%
+    filter(emotion == emotion_sel) %>%
+    slice_max(count, n = n) %>%
+    arrange(count)
+
+  if (nrow(df) == 0) return(NULL)
+
+  fig <- plot_ly(
+    data = df,
+    x = ~count,
+    y = ~ reorder(lemma, count),
+    type = "bar",
+    orientation = "h",
+    marker = list(
+      color = paste0(colors[emotion_sel], "80"),
+      line = list(color = colors[emotion_sel], width = 1)
+    ),
+    hovertemplate = "<b>%{y}</b><br>Count: %{x}<extra></extra>"
+  ) %>%
+    layout(
+      xaxis = list(title = "Count"),
+      yaxis = list(title = ""),
+      plot_bgcolor = "rgba(0, 0, 0, 0)",
+      paper_bgcolor = "rgba(0, 0, 0, 0)"
+    ) %>%
+    config(
+      displaylogo = FALSE,
+      modeBarButtonsToRemove = c(
+        "sendDataToCloud", "pan2d", "select2d", "lasso2d",
+        "toggleSpikelines", "hoverClosestCartesian",
+        "hoverCompareCartesian"
+      )
+    )
+
+  fig
+}
+
+emotionHeatmap <- function(doc_emotions_long) {
+  fig <- plot_ly(
+    data = doc_emotions_long,
+    x = ~emotion,
+    y = ~doc_id,
+    z = ~proportion,
+    type = "heatmap",
+    colorscale = list(c(0, "#F7F9FA"), c(1, "#4a7c59")),
+    hovertemplate = paste0(
+      "<b>Doc:</b> %{y}<br>",
+      "<b>Emotion:</b> %{x}<br>",
+      "<b>Proportion:</b> %{z:.3f}",
+      "<extra></extra>"
+    )
+  ) %>%
+    layout(
+      xaxis = list(title = ""),
+      yaxis = list(title = "", autorange = "reversed"),
+      plot_bgcolor = "rgba(0, 0, 0, 0)",
+      paper_bgcolor = "rgba(0, 0, 0, 0)"
+    ) %>%
+    config(
+      displaylogo = FALSE,
+      modeBarButtonsToRemove = c(
+        "sendDataToCloud", "pan2d", "select2d", "lasso2d",
+        "toggleSpikelines", "hoverClosestCartesian",
+        "hoverCompareCartesian"
+      )
+    )
+
+  fig
+}
+
 ### TEXT SUMMARIZATION: TEXTRANK -----
 
 highlightSentences <- function(dfTag, id) {

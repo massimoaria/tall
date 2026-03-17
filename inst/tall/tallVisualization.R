@@ -918,6 +918,11 @@ menuList <- function(menu) {
       tabName = "d_polDet",
       icon = icon("chevron-right")
     ),
+    menuSubItem(
+      "Emotion Analysis",
+      tabName = "d_emo",
+      icon = icon("chevron-right")
+    ),
     menuItem(
       "Summarization",
       tabName = "summarization",

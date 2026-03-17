@@ -1014,6 +1014,192 @@ documentsUI <- function() {
     )
   )
 
+  ### Emotion Analysis ----
+
+  emotion <- tabItem(
+    tabName = "d_emo",
+    fluidPage(
+      fluidRow(
+        column(
+          8,
+          h3(strong("Emotion Analysis"), align = "center")
+        ),
+        div(
+          title = t_run,
+          column(
+            1,
+            do.call(
+              "actionButton",
+              c(
+                run_bttn,
+                list(
+                  inputId = "d_emoApply"
+                )
+              )
+            )
+          )
+        ),
+        div(
+          title = t_export,
+          column(
+            1,
+            do.call(
+              "actionButton",
+              c(
+                export_bttn,
+                list(
+                  inputId = "d_emoExport"
+                )
+              )
+            )
+          )
+        ),
+        div(
+          title = t_report,
+          column(
+            1,
+            do.call(
+              "actionButton",
+              c(
+                report_bttn,
+                list(
+                  inputId = "d_emoReport"
+                )
+              )
+            )
+          )
+        ),
+        div(
+          column(
+            1,
+            dropdown(
+              h4(strong("Options: ")),
+              br(),
+
+              # Main Configuration
+              div(
+                class = "config-section",
+                div(
+                  class = "config-section-header",
+                  icon("gear"),
+                  "Main Configuration"
+                ),
+                selectInput(
+                  inputId = "groupEmotion",
+                  label = "Emotion Analysis of",
+                  choices = c(
+                    "Groups" = "Groups",
+                    "Docs" = "doc_id"
+                  ),
+                  selected = "doc_id"
+                )
+              ),
+
+              style = "gradient",
+              right = TRUE,
+              animate = TRUE,
+              circle = TRUE,
+              tooltip = tooltipOptions(title = "Options"),
+              icon = icon("sliders", lib = "font-awesome"),
+              width = "300px"
+            )
+          ),
+          style = style_opt
+        )
+      ),
+      fluidRow(
+        tabsetPanel(
+          type = "tabs",
+          tabPanel(
+            "Emotion Distribution",
+            shinycssloaders::withSpinner(
+              plotlyOutput(
+                outputId = "d_emoBarPlot",
+                height = "75vh",
+                width = "98.9%"
+              ),
+              color = getOption("spinner.color", default = "#4F7942")
+            )
+          ),
+          tabPanel(
+            "Top Words by Emotion",
+            fluidRow(
+              column(
+                4,
+                selectInput(
+                  inputId = "d_emoSelectEmotion",
+                  label = "Select Emotion",
+                  choices = c(
+                    "anger", "anticipation", "disgust", "fear",
+                    "joy", "sadness", "surprise", "trust"
+                  ),
+                  selected = "joy"
+                )
+              )
+            ),
+            shinycssloaders::withSpinner(
+              plotlyOutput(
+                outputId = "d_emoWordPlot",
+                height = "75vh",
+                width = "98.9%"
+              ),
+              color = getOption("spinner.color", default = "#4F7942")
+            )
+          ),
+          tabPanel(
+            "Document Heatmap",
+            shinycssloaders::withSpinner(
+              plotlyOutput(
+                outputId = "d_emoHeatmap",
+                height = "75vh",
+                width = "98.9%"
+              ),
+              color = getOption("spinner.color", default = "#4F7942")
+            )
+          ),
+          tabPanel(
+            "Table",
+            shinycssloaders::withSpinner(
+              DT::DTOutput("d_emoTable"),
+              color = getOption("spinner.color", default = "#4F7942")
+            )
+          ),
+          tabPanel(
+            "Info & References",
+            fluidPage(
+              fluidRow(
+                column(1),
+                column(
+                  10,
+                  br(),
+                  HTML(infoTexts$emotionanalysis)
+                ),
+                column(1)
+              )
+            )
+          ),
+          tabPanel(
+            "TALL AI",
+            fluidPage(
+              fluidRow(
+                column(
+                  12,
+                  br(),
+                  shinycssloaders::withSpinner(
+                    htmlOutput("d_emo_GeminiUI"),
+                    caption = HTML("<br><strong>Thinking...</strong>"),
+                    image = "ai_small2.gif",
+                    color = "#4F7942"
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+
   ### Abstractive Summarization ----
 
   abs_summ <- tabItem(
@@ -1310,6 +1496,7 @@ documentsUI <- function() {
     syntactic_complexity = syntactic_complexity,
     svo_analysis = svo_analysis,
     polarity = polarity,
+    emotion = emotion,
     abs_summ = abs_summ,
     ext_summ = ext_summ
   ))
@@ -2843,6 +3030,196 @@ documentsServer <- function(input, output, session, values, statsValues) {
         c(sheetname = res$sheetname, values$filedocPolNeg, res$col)
       )
       popUp(title = "Polarity Detection Results", type = "success")
+      values$myChoices <- sheets(values$wb)
+    } else {
+      popUp(type = "error")
+    }
+  })
+
+  ## Emotion Analysis ----
+
+  docEmotionEstim <- eventReactive(
+    ignoreNULL = TRUE,
+    eventExpr = {
+      input$d_emoApply
+    },
+    valueExpr = {
+      choices <- c(
+        "english",
+        "italian",
+        "french",
+        "german",
+        "spanish",
+        "afrikaans",
+        "arabic",
+        "armenian",
+        "basque",
+        "belarusian",
+        "bulgarian",
+        "catalan",
+        "chinese",
+        "croatian",
+        "czech",
+        "danish",
+        "dutch",
+        "estonian",
+        "finnish",
+        "galician",
+        "greek",
+        "hebrew",
+        "hindi",
+        "hungarian",
+        "indonesian",
+        "irish",
+        "japanese",
+        "korean",
+        "latin",
+        "latvian",
+        "lithuanian",
+        "maltese",
+        "marathi",
+        "norwegian",
+        "persian",
+        "polish",
+        "portuguese",
+        "romanian",
+        "russian",
+        "serbian",
+        "slovak",
+        "slovenian",
+        "swedish",
+        "tamil",
+        "telugu",
+        "turkish",
+        "ukrainian",
+        "urdu",
+        "uyghur",
+        "vietnamese"
+      )
+      if (values$language %in% choices) {
+        ## check to verify if groups exist or not
+        if (
+          input$groupEmotion == "doc_id" &
+            "ungroupDoc_id" %in% names(values$dfTag)
+        ) {
+          values$docEmotionData <- emotionAnalysis(
+            backToOriginalGroups(values$dfTag) %>% filter(docSelected),
+            language = values$language
+          )
+        } else {
+          values$docEmotionData <- emotionAnalysis(
+            values$dfTag %>% filter(docSelected),
+            language = values$language
+          )
+        }
+
+        if (!is.list(values$docEmotionData)) return(NULL)
+
+        values$emotionBarChart <- emotionBarChart(
+          values$docEmotionData$corpus_emotions
+        )
+        values$emotionHeatmap <- emotionHeatmap(
+          values$docEmotionData$doc_emotions_long
+        )
+
+        # Prepare table data
+        emotion_names <- c(
+          "anger", "anticipation", "disgust", "fear",
+          "joy", "sadness", "surprise", "trust"
+        )
+        values$docEmotionTableData <- values$docEmotionData$doc_emotions %>%
+          select(doc_id, all_of(emotion_names), total) %>%
+          rename(Total = total)
+      }
+    }
+  )
+
+  output$d_emoBarPlot <- renderPlotly({
+    docEmotionEstim()
+    values$emotionBarChart
+  })
+
+  output$d_emoWordPlot <- renderPlotly({
+    docEmotionEstim()
+    req(values$docEmotionData)
+    emotion_sel <- input$d_emoSelectEmotion
+    if (is.null(emotion_sel)) emotion_sel <- "joy"
+    emotionWordPlot(values$docEmotionData$word_emotions, emotion_sel, n = 10)
+  })
+
+  output$d_emoHeatmap <- renderPlotly({
+    docEmotionEstim()
+    values$emotionHeatmap
+  })
+
+  output$d_emo_GeminiUI <- renderUI({
+    values$gemini_model_parameters <- geminiParameterPrompt(
+      values,
+      input$sidebarmenu,
+      input
+    )
+    geminiOutput(title = "Gemini AI", content = values$d_emo_Gemini, values)
+  })
+
+  output$d_emoTable <- renderDT(server = FALSE, {
+    docEmotionEstim()
+    DTformat(
+      values$docEmotionTableData,
+      filename = "DocEmotion",
+      numeric = 2:9,
+      round = 0
+    )
+  })
+
+  observeEvent(
+    eventExpr = {
+      input$d_emoExport
+    },
+    handlerExpr = {
+      file1 <- paste("EmotionDistribution-", sys.time(), ".png", sep = "")
+      file1 <- destFolder(file1, values$wdTall)
+      file2 <- paste("EmotionHeatmap-", sys.time(), ".png", sep = "")
+      file2 <- destFolder(file2, values$wdTall)
+
+      plot2png(values$emotionBarChart, filename = file1, type = "plotly", dpi = values$dpi, height = values$h)
+      plot2png(values$emotionHeatmap, filename = file2, type = "plotly", dpi = values$dpi, height = values$h)
+
+      popUp(title = "Saved in your working folder", type = "saved")
+    }
+  )
+
+  ## Emotion Report
+  observeEvent(input$d_emoReport, {
+    if (!is.null(values$docEmotionTableData)) {
+      popUp(title = NULL, type = "waiting")
+      sheetname <- "EmotionAnalysis"
+
+      Gem <- values$d_emo_Gemini %>% string_to_sentence_df()
+
+      list_df <- list(Gem, values$docEmotionTableData)
+      res <- addDataScreenWb(list_df, wb = values$wb, sheetname = sheetname)
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      files <- c(
+        "EmotionDistribution.png",
+        "EmotionHeatmap.png"
+      )
+      values$fileEmotionBar <- plot2png(
+        values$emotionBarChart,
+        filename = files[1],
+        type = "plotly", dpi = values$report_dpi, height = values$h
+      )
+      values$fileEmotionHeatmap <- plot2png(
+        values$emotionHeatmap,
+        filename = files[2],
+        type = "plotly", dpi = values$report_dpi, height = values$h
+      )
+      values$list_file <- rbind(
+        values$list_file,
+        c(sheetname = res$sheetname, values$fileEmotionBar, res$col),
+        c(sheetname = res$sheetname, values$fileEmotionHeatmap, res$col)
+      )
+      popUp(title = "Emotion Analysis Results", type = "success")
       values$myChoices <- sheets(values$wb)
     } else {
       popUp(type = "error")

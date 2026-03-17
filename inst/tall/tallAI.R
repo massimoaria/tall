@@ -524,6 +524,9 @@ gemini2clip <- function(values, activeTab) {
     },
     "d_polDet" = {
       values$d_polDet_Gemini
+    },
+    "d_emo" = {
+      values$d_emo_Gemini
     }
   )
 }
@@ -691,6 +694,37 @@ geminiGenerate <- function(
         desc = desc,
         values = values
       )
+    },
+    "d_emo" = {
+      req(values$emotionBarChart)
+      p1 <- values$emotionBarChart
+      p2 <- values$emotionHeatmap
+
+      files <- unlist(lapply(c("emo1", "emo2"), function(x) {
+        paste0(tempdir(), "/", x, ".png")
+      }))
+
+      suppressWarnings(plot2png(
+        p1,
+        filename = files[1],
+        type = "plotly",
+        dpi = 150, height = 7
+      ))
+      suppressWarnings(plot2png(
+        p2,
+        filename = files[2],
+        type = "plotly",
+        dpi = 150, height = 7
+      ))
+
+      values$d_emo_Gemini <- geminiPromptImage(
+        obj = files,
+        type = "multi",
+        prompt = prompt,
+        key = values$geminiAPI,
+        desc = desc,
+        values = values
+      )
     }
   )
   return(values)
@@ -782,6 +816,10 @@ geminiParameterPrompt <- function(values, activeTab, input) {
     },
     "d_polDet" = {
       req(values$docPolPlots)
+      txt
+    },
+    "d_emo" = {
+      req(values$emotionBarChart)
       txt
     },
     {
@@ -915,6 +953,10 @@ geminiWaitingMessage <- function(values, activeTab) {
     "d_polDet" = {
       req(values$docPolPlots)
       values$d_polDet_Gemini <- messageTxt
+    },
+    "d_emo" = {
+      req(values$emotionBarChart)
+      values$d_emo_Gemini <- messageTxt
     }
   )
   return(values)
@@ -957,6 +999,10 @@ geminiSave <- geminiSave <- function(values, activeTab) {
     "d_polDet" = {
       req(values$docPolPlots)
       gemini <- values$d_polDet_Gemini
+    },
+    "d_emo" = {
+      req(values$emotionBarChart)
+      gemini <- values$d_emo_Gemini
     }
   )
   if (is.null(gemini)) {
