@@ -913,15 +913,20 @@ menuList <- function(menu) {
       tabName = "d_svo",
       icon = icon("chevron-right")
     ),
-    menuSubItem(
-      "Polarity Detection",
-      tabName = "d_polDet",
-      icon = icon("chevron-right")
-    ),
-    menuSubItem(
-      "Emotion Analysis",
-      tabName = "d_emo",
-      icon = icon("chevron-right")
+    menuItem(
+      "Sentiment Analysis",
+      tabName = "d_sentiment",
+      icon = icon("chevron-right"),
+      menuSubItem(
+        "Polarity Detection",
+        tabName = "d_polDet",
+        icon = icon("chevron-right")
+      ),
+      menuSubItem(
+        "Emotion Analysis",
+        tabName = "d_emo",
+        icon = icon("chevron-right")
+      )
     ),
     menuItem(
       "Summarization",
