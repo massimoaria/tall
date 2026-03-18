@@ -54,6 +54,44 @@ server <- function(input, output, session) {
   ## Setup async execution for AI calls
   future::plan(future::multisession, workers = 2)
 
+  ## Inject JS for DPI-aware visNetwork canvas capture (same approach as biblioshiny)
+  session$onFlushed(function() {
+    shinyjs::runjs('
+      window._captureVisCanvas = function(networkId, dpi, callback) {
+        var widget = HTMLWidgets.find("#" + networkId);
+        if (!widget || !widget.network) return;
+        var network = widget.network;
+        var canvas = network.canvas.frame.canvas;
+        var targetScale = (dpi || 96) / 96;
+        Object.defineProperty(window, "devicePixelRatio", {
+          value: targetScale, configurable: true
+        });
+        network.redraw();
+        var dataURL = canvas.toDataURL("image/png");
+        delete window.devicePixelRatio;
+        network.redraw();
+        callback(dataURL);
+      };
+      window.captureVisExport = function(networkId, filename, dpi) {
+        _captureVisCanvas(networkId, dpi, function(dataURL) {
+          var link = document.createElement("a");
+          link.href = dataURL;
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        });
+      };
+      window.captureVisReport = function(networkId, dpi) {
+        _captureVisCanvas(networkId, dpi, function(dataURL) {
+          Shiny.setInputValue("vis_canvas_report", {
+            data: dataURL
+          }, {priority: "event"});
+        });
+      };
+    ')
+  }, once = TRUE)
+
   ### Initial values ----
   values <- resetValues()
   statsValues <- updateStats(NULL, "token")

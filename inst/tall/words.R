@@ -2405,18 +2405,14 @@ wordsServer <- function(input, output, session, values, statsValues) {
     )
   })
 
-  ## export Network button
-  observeEvent(
-    eventExpr = {
-      input$w_networkCoocExport
-    },
-    handlerExpr = {
-      file <- paste("Network-Docs-", sys.time(), ".png", sep = "")
-      file <- destFolder(file, values$wdTall)
-      plot2png(values$netVis, filename = file, type = "vis", dpi = values$dpi, height = values$h)
-      popUp(title = "Saved in your working folder", type = "saved")
-    }
-  )
+  ## export Network button (JS canvas capture for crisp DPI-aware rendering)
+  observeEvent(input$w_networkCoocExport, {
+    file <- paste0("Network-Docs-", sys.time(), ".png")
+    shinyjs::runjs(sprintf(
+      'captureVisExport("w_networkCoocPlot", "%s", %d);',
+      file, values$dpi
+    ))
+  })
 
   ## Report
 
@@ -2506,7 +2502,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
             filter(docSelected) %>%
             filter(.data[[values$generalTerm]] %in% word_search) %>%
             ungroup() %>%
-            select(doc_id, lemma, token, sentence_hl)
+            select(doc_id, lemma, token, any_of(c("sentence_hl", "sentence")))
         },
         {
           word_search <- values$network$nodes$label[
@@ -2516,7 +2512,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
             filter(docSelected) %>%
             filter(lemma %in% word_search) %>%
             ungroup() %>%
-            select(doc_id, lemma, token, sentence_hl)
+            select(doc_id, lemma, token, any_of(c("sentence_hl", "sentence")))
         }
       )
 
@@ -2606,7 +2602,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
         filter(docSelected) %>%
         filter(lemma %in% word_search) %>%
         ungroup() %>%
-        select(doc_id, lemma, token, sentence_hl)
+        select(doc_id, lemma, token, any_of(c("sentence_hl", "sentence")))
 
       # find sentences containing the tokens/lemma
       DTformat(
