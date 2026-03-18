@@ -94,10 +94,7 @@ editUI <- function() {
                               label = NULL,
                               style = "display:block; height: 37px; width: 37px; border-radius: 50%;
                                       border: 1px; margin-top: 16px;",
-                              icon = icon(
-                                name = "floppy-save",
-                                lib = "glyphicon"
-                              ),
+                              icon = icon("floppy-disk"),
                               inputId = "splitTextSave"
                             ))
                           )
@@ -219,10 +216,7 @@ editUI <- function() {
                             label = NULL,
                             style = "display:block; height: 37px; width: 37px; border-radius: 50%;
                                                           border: 1px; margin-top: 16px;",
-                            icon = icon(
-                              name = "floppy-save",
-                              lib = "glyphicon"
-                            ),
+                            icon = icon("floppy-disk"),
                             inputId = "randomTextSave"
                           ))
                         )
@@ -367,10 +361,7 @@ editUI <- function() {
                                 label = NULL,
                                 style = "display:block; height: 37px; width: 37px; border-radius: 50%;
                                       border: 1px; margin-top: 16px;",
-                                icon = icon(
-                                  name = "floppy-save",
-                                  lib = "glyphicon"
-                                )
+                                icon = icon("floppy-disk")
                               ),
                               list(
                                 inputId = "extInfoSave"
@@ -507,6 +498,7 @@ editServer <- function(input, output, session, values, statsValues) {
   })
 
   randomTextFunc <- eventReactive(input$randomTextRun, {
+    set.seed(values$random_seed)
     values$txt <- samplingText(
       values$txt,
       n = as.numeric(round((input$sampleSize / 100) * nrow(values$txt)), 0)

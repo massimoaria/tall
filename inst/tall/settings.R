@@ -17,35 +17,37 @@ settingsUI <- function() {
         )
       ),
 
+      # ROW 1: Working Folder + Reproducibility + Language Models
       fluidRow(
-        # LEFT COLUMN - Working Folder & Language Models
         column(
           6,
           wellPanel(
             style = "background-color: #f8f9fa; border: 1px solid #dee2e6;",
-            h4(icon("folder"), strong("Working Folder")),
-            h5("Select a folder where the analysis outputs will be saved"),
-            br(),
-            shinyDirButton(
-              "workingfolder",
-              "Select a Working Folder",
-              "Select",
-              style = "color:white;"
+            h4(icon("folder-open"), strong("Working Folder")),
+            p(
+              "All outputs (plots, reports, exported files) will be saved here.",
+              style = "color: #666; font-size: 13px; margin-bottom: 15px;"
             ),
+            uiOutput("wdFolderDisplay"),
             br(),
-            br(),
-            textOutput("wdFolder"),
-            hr(),
-            h4(icon("database"), strong("Language Models")),
-            actionButton(
-              inputId = "cache",
-              style = "color:white;",
-              label = "Clean model folder"
+            div(
+              style = "display: flex; gap: 10px; align-items: center;",
+              shinyDirButton(
+                "workingfolder",
+                label = "Change Folder",
+                title = "Select a Working Folder",
+                icon = icon("folder-open"),
+                style = "color: white; border-radius: 20px; padding: 8px 20px;"
+              ),
+              actionButton(
+                inputId = "cache",
+                style = "color:white; border-radius: 20px; padding: 8px 20px;",
+                label = "Clean Model Cache",
+                icon = icon("database")
+              )
             )
           )
         ),
-
-        # RIGHT COLUMN - Reproducibility Settings
         column(
           6,
           wellPanel(
@@ -79,7 +81,7 @@ settingsUI <- function() {
               style = "background-color: #d1f2d5; padding: 10px; border-radius: 5px; border-left: 4px solid #4caf50;",
               icon("info-circle", style = "color: #2e7d32;"),
               span(
-                " Using the same seed value ensures that analyses involving randomization will produce identical results when re-run.",
+                " The seed ensures reproducible results for topic models, clustering, and all randomized analyses.",
                 style = "color: #2e7d32;"
               )
             )
@@ -87,70 +89,120 @@ settingsUI <- function() {
         )
       ),
 
-      hr(),
-
-      # TALL AI Section
+      # ROW 2: Graph Export Settings + TALL AI
       fluidRow(
         column(
-          12,
+          6,
+          wellPanel(
+            style = "background-color: #e3f2fd; border: 1px solid #bbdefb;",
+            h4(icon("image"), strong("Graph Export Settings")),
+            br(),
+            div(
+              style = "margin-bottom: 25px;",
+              tags$label(
+                "Export Resolution (DPI)",
+                style = "font-weight: 600; color: #2E86AB; margin-bottom: 8px; display: block;"
+              ),
+              uiOutput("dpi_slider"),
+              helpText(
+                "Resolution for exported images (download button). Higher DPI = better quality but larger files.",
+                style = "margin-top: 5px; color: #666; font-size: 12px;"
+              )
+            ),
+            div(
+              style = "margin-bottom: 25px;",
+              tags$label(
+                "Report Resolution (DPI)",
+                style = "font-weight: 600; color: #2E86AB; margin-bottom: 8px; display: block;"
+              ),
+              uiOutput("report_dpi_slider"),
+              helpText(
+                "Resolution for images added to the Excel report. Lower DPI keeps the report file size small.",
+                style = "margin-top: 5px; color: #666; font-size: 12px;"
+              )
+            ),
+            div(
+              style = "margin-bottom: 25px;",
+              tags$label(
+                "Plot Height (inches)",
+                style = "font-weight: 600; color: #2E86AB; margin-bottom: 8px; display: block;"
+              ),
+              uiOutput("h_slider"),
+              helpText(
+                "Adjust the height of exported plots. Width is automatically calculated to maintain aspect ratio.",
+                style = "margin-top: 5px; color: #666; font-size: 12px;"
+              )
+            ),
+            div(
+              style = "margin-bottom: 10px;",
+              tags$label(
+                "Plot Aspect Ratio",
+                style = "font-weight: 600; color: #2E86AB; margin-bottom: 8px; display: block;"
+              ),
+              uiOutput("aspect_radio"),
+              helpText(
+                "Publication (3:2) is ideal for papers and books. Wide (2:1) is better for presentations and dashboards.",
+                style = "margin-top: 5px; color: #666; font-size: 12px;"
+              )
+            )
+          )
+        ),
+        column(
+          6,
           wellPanel(
             style = "background-color: #fff3e0; border: 1px solid #ffe0b2;",
-            h3(icon("robot"), strong("Tall AI - Google Gemini Integration")),
-            h5(
-              "Enable advanced AI-powered features by providing your Google Gemini API Key. If you don't have one, you can generate it at ",
+            h4(icon("robot"), strong("Tall AI - Google Gemini Integration")),
+            p(
+              "Enable AI-powered features by providing your Google Gemini API Key. Generate one at ",
               tags$a(
                 "AI Studio",
                 href = "https://aistudio.google.com/app/apikey",
                 target = "_blank"
               ),
-              "."
+              ".",
+              style = "color: #666; font-size: 13px; margin-bottom: 15px;"
             ),
-            br(),
 
+            h5(strong("API Key")),
+            passwordInput(
+              "api_key",
+              label = NULL,
+              value = "",
+              width = "100%"
+            ),
+            uiOutput("apiStatus"),
+            br(),
             fluidRow(
               column(
-                4,
-                h5(strong("API Key")),
-                passwordInput(
-                  "api_key",
-                  "Enter your Gemini API Key:",
-                  "",
+                6,
+                actionButton(
+                  "set_key",
+                  "Set API Key",
+                  icon = icon("check"),
+                  style = "color:white;",
                   width = "100%"
-                ),
-                uiOutput("apiStatus"),
-                br(),
-                fluidRow(
-                  column(
-                    6,
-                    actionButton(
-                      "set_key",
-                      "Set API Key",
-                      icon = icon("check"),
-                      style = "color:white;",
-                      width = "100%"
-                    )
-                  ),
-                  column(
-                    6,
-                    actionButton(
-                      "remove_key",
-                      "Remove Key",
-                      icon = icon("trash"),
-                      style = "color:white;",
-                      width = "100%"
-                    )
-                  )
                 )
               ),
-
               column(
-                4,
-                h5(strong("Model Selection")),
+                6,
+                actionButton(
+                  "remove_key",
+                  "Remove Key",
+                  icon = icon("trash"),
+                  style = "color:white;",
+                  width = "100%"
+                )
+              )
+            ),
+            hr(),
+            fluidRow(
+              column(
+                6,
+                h5(strong("Model")),
                 uiOutput("geminiModelChoice")
               ),
-
               column(
-                4,
+                6,
                 h5(strong("Output Size")),
                 uiOutput("geminiOutputSize")
               )
@@ -274,6 +326,45 @@ settingsServer <- function(input, output, session, values, statsValues) {
   })
 
   ### SETTINGS ----
+
+  ## Graph Settings ----
+  saveGraphSettings <- function() {
+    home <- homeFolder()
+    path_tall <- file.path(home, "tall")
+    if (!file.exists(path_tall)) {
+      dir.create(path_tall)
+    }
+    writeLines(
+      c(
+        as.character(values$dpi),
+        as.character(values$report_dpi),
+        as.character(values$h),
+        as.character(values$aspect)
+      ),
+      file.path(path_tall, ".tall_graph_settings.txt")
+    )
+  }
+
+  observeEvent(input$dpi, {
+    values$dpi <- as.numeric(input$dpi)
+    saveGraphSettings()
+  }, ignoreInit = TRUE)
+
+  observeEvent(input$report_dpi, {
+    values$report_dpi <- as.numeric(input$report_dpi)
+    saveGraphSettings()
+  }, ignoreInit = TRUE)
+
+  observeEvent(input$h, {
+    values$h <- as.numeric(input$h)
+    saveGraphSettings()
+  }, ignoreInit = TRUE)
+
+  observeEvent(input$aspect, {
+    values$aspect <- as.numeric(input$aspect)
+    saveGraphSettings()
+  }, ignoreInit = TRUE)
+
   observeEvent(input$cache, {
     deleteCache()
   })
@@ -314,6 +405,33 @@ settingsServer <- function(input, output, session, values, statsValues) {
 
   output$wdFolder <- renderText({
     values$wdTall
+  })
+
+  output$wdFolderDisplay <- renderUI({
+    folder <- values$wdTall
+    if (is.null(folder) || length(folder) == 0 || folder == "") {
+      div(
+        style = "padding: 12px; background-color: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;",
+        icon("exclamation-triangle", style = "color: #856404;"),
+        span(
+          " No working folder selected. Please select a folder to save your outputs.",
+          style = "color: #856404; font-size: 13px;"
+        )
+      )
+    } else {
+      div(
+        style = "padding: 12px; background-color: #e8f5e9; border-left: 4px solid #4caf50; border-radius: 4px;",
+        div(
+          style = "display: flex; align-items: center; gap: 8px;",
+          icon("check-circle", style = "color: #4caf50; font-size: 18px;"),
+          div(
+            span("Current folder:", style = "color: #666; font-size: 12px;"),
+            br(),
+            strong(folder, style = "font-size: 14px; color: #2e7d32; word-break: break-all;")
+          )
+        )
+      )
+    }
   })
 
   # Random Seed Management
@@ -368,11 +486,10 @@ settingsServer <- function(input, output, session, values, statsValues) {
         label = "Select the Gemini Model",
         choices = c(
           "Gemini 2.5 Flash" = "2.5-flash",
-          "Gemini 2.5 Flash Lite" = "2.5-flash-lite" #,
-          # "Gemini 2.0 Flash" = "2.0-flash",
-          # "Gemini 2.0 Flash Lite" = "2.0-flash-lite",
-          # "Gemini 1.5 Flash" = "1.5-flash",
-          # "Gemini 1.5 Flash Lite" = "1.5-flash-8b"
+          "Gemini 2.5 Flash Lite" = "2.5-flash-lite",
+          "Gemini 3.0 Flash" = "3-flash-preview",
+          "Gemini 3.1 Pro" = "3.1-pro-preview",
+          "Gemini Pro Latest" = "pro-latest"
         ),
         selected = ifelse(
           is.null(values$gemini_api_model),
@@ -401,51 +518,27 @@ settingsServer <- function(input, output, session, values, statsValues) {
           tags$br(),
           "Latency time: Low"
         ))
-      ) #,
-      # conditionalPanel(
-      #   condition = "input.gemini_api_model == '2.0-flash-lite'",
-      #   helpText(strong("Free Tier Rate Limits:")),
-      #   helpText(em(
-      #     "Request per Minutes: 30",
-      #     tags$br(),
-      #     "Requests per Day: 1500",
-      #     tags$br(),
-      #     "Latency time: Low"
-      #   ))
-      # ),
-      # conditionalPanel(
-      #   condition = "input.gemini_api_model == '2.0-flash'",
-      #   helpText(strong("Free Tier Rate Limits:")),
-      #   helpText(em(
-      #     "Request per Minutes: 15",
-      #     tags$br(),
-      #     "Requests per Day: 1500",
-      #     tags$br(),
-      #     "Latency time: Medium"
-      #   ))
-      # ),
-      # conditionalPanel(
-      #   condition = "input.gemini_api_model == '1.5-flash'",
-      #   helpText(strong("Free Tier Rate Limits:")),
-      #   helpText(em(
-      #     "Request per Minutes: 15",
-      #     tags$br(),
-      #     "Requests per Day: 1500",
-      #     tags$br(),
-      #     "Latency time: Medium"
-      #   ))
-      # ),
-      # conditionalPanel(
-      #   condition = "input.gemini_api_model == '1.5-flash-8b'",
-      #   helpText(strong("Free Tier Rate Limits:")),
-      #   helpText(em(
-      #     "Request per Minutes: 15",
-      #     tags$br(),
-      #     "Requests per Day: 1500",
-      #     tags$br(),
-      #     "Latency time: Low"
-      #   ))
-      # )
+      ),
+      conditionalPanel(
+        condition = "input.gemini_api_model == '3-flash-preview'",
+        helpText(strong("Free Tier Rate Limits:")),
+        helpText(em(
+          "Request per Minutes: 10",
+          tags$br(),
+          "Requests per Day: 500",
+          tags$br(),
+          "Latency time: Medium"
+        ))
+      ),
+      conditionalPanel(
+        condition = "input.gemini_api_model == '3.1-pro-preview' || input.gemini_api_model == 'pro-latest'",
+        helpText(strong(style = "color: #d9534f;", "Paid API Key Required")),
+        helpText(em(
+          "Pro models require a paid (non-free tier) API key.",
+          tags$br(),
+          "Free tier API keys will not work with these models."
+        ))
+      )
     )
   })
 
@@ -457,6 +550,18 @@ settingsServer <- function(input, output, session, values, statsValues) {
       )
       values$gemini_api_model <- input$gemini_api_model
       values$gemini_output_size <- input$gemini_output_size
+
+      # Alert for Pro models requiring paid API key
+      if (input$gemini_api_model %in% c("3.1-pro-preview", "pro-latest")) {
+        showModal(modalDialog(
+          title = "Paid API Key Required",
+          tags$p("The selected Pro model requires a ", tags$strong("paid (non-free tier)"), " Google AI API key."),
+          tags$p("Free tier API keys do not support Pro models. If you are using a free tier key, the API calls will fail."),
+          tags$p("You can upgrade your API key at: ", tags$a(href = "https://aistudio.google.com/apikey", target = "_blank", "Google AI Studio")),
+          easyClose = TRUE,
+          footer = modalButton("OK")
+        ))
+      }
     }
   })
 
@@ -473,29 +578,78 @@ settingsServer <- function(input, output, session, values, statsValues) {
 
   observeEvent(input$set_key, {
     key <- input$api_key
-    last <- setGeminiAPI(key)
 
-    if (!last$valid) {
+    # Quick sync validations
+    if (is.null(key) || !is.character(key) || nchar(key) == 0) {
       output$apiStatus <- renderUI({
-        output$status <- renderText(last$message)
+        output$status <- renderText("\u274c API key must be a non-empty string.")
       })
       values$geminiAPI <- FALSE
-    } else {
-      output$apiStatus <- renderUI({
-        output$status <- renderText(paste0(
-          "✅ API key has been set: ",
-          last$message
-        ))
-      })
-      values$geminiAPI <- TRUE
-      home <- homeFolder()
-      path_gemini_key <- paste0(
-        home,
-        "/tall/.tall_gemini_key.txt",
-        collapse = ""
-      )
-      writeLines(Sys.getenv("GEMINI_API_KEY"), path_gemini_key)
+      return()
     }
+    if (nchar(key) < 10) {
+      output$apiStatus <- renderUI({
+        output$status <- renderText("\u274c API key seems too short. Please verify your key.")
+      })
+      values$geminiAPI <- FALSE
+      return()
+    }
+
+    output$apiStatus <- renderUI({
+      output$status <- renderText("\u231b Validating API key...")
+    })
+
+    # Async: validate key via API call in background
+    promises::future_promise({
+      apiCheck <- gemini_ai(
+        image = NULL, prompt = "Hello", model = "2.5-flash",
+        type = "png", retry_503 = 5, api_key = key
+      )
+      contains_error <- grepl("HTTP\\s*[1-5][0-9]{2}", apiCheck)
+      list(valid = !contains_error, key = key)
+    }, seed = TRUE) %...>%
+      (function(result) {
+        if (!result$valid) {
+          output$apiStatus <- renderUI({
+            output$status <- renderText(
+              "\u274c API key seems be not valid! Please, check it or your connection."
+            )
+          })
+          values$geminiAPI <- FALSE
+        } else {
+          Sys.setenv(GEMINI_API_KEY = result$key)
+          last4 <- substr(
+            result$key,
+            max(1, nchar(result$key) - 3),
+            nchar(result$key)
+          )
+          masked <- paste0(
+            paste0(rep("*", nchar(result$key) - 4), collapse = ""),
+            last4
+          )
+          output$apiStatus <- renderUI({
+            output$status <- renderText(
+              paste0("\u2705 API key has been set: ", masked)
+            )
+          })
+          values$geminiAPI <- TRUE
+          home <- homeFolder()
+          path_gemini_key <- paste0(
+            home, "/tall/.tall_gemini_key.txt", collapse = ""
+          )
+          writeLines(result$key, path_gemini_key)
+        }
+      }) %...!%
+      (function(err) {
+        output$apiStatus <- renderUI({
+          output$status <- renderText(
+            paste("Error validating key:", conditionMessage(err))
+          )
+        })
+        values$geminiAPI <- FALSE
+      })
+
+    NULL
   })
 
   observeEvent(input$remove_key, {
@@ -572,14 +726,11 @@ settingsServer <- function(input, output, session, values, statsValues) {
         ),
         w_networkTM = c("w_networkTMClusterTable", "w_networkTMWordTable"),
         w_word2vec = c("w_word2vecTable"),
-        w_networkGrako = c(
-          "w_networkGrakoNodesTable",
-          "w_networkGrakoEdgesTable"
-        ),
-
         # ===== DOCUMENTS ANALYSIS =====
         d_tm_select = c("d_tm_selectTable"),
         d_tm_estim = c("d_tm_estimBpTable", "d_tm_estimTpTable"),
+        d_syntactic = c("d_syntacticTable"),
+        d_svo = c("d_svoTable"),
         d_polDet = c("d_polDetTable"),
         d_summarization = c("RelSentData")
       )

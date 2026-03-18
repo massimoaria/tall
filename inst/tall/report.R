@@ -43,7 +43,7 @@ reportUI <- function() {
             actionBttn(
               inputId = "allSheets",
               label = strong("Select All"),
-              icon = icon("ok-circle", lib = "glyphicon"),
+              icon = icon("circle-check"),
               style = "pill",
               color = "primary",
               block = TRUE
@@ -52,7 +52,7 @@ reportUI <- function() {
             actionBttn(
               inputId = "noSheets",
               label = strong("Deselect All"),
-              icon = icon("remove-circle", lib = "glyphicon"),
+              icon = icon("circle-xmark"),
               style = "pill",
               color = "primary",
               block = TRUE
@@ -67,14 +67,14 @@ reportUI <- function() {
               size = "md",
               block = TRUE,
               no_outline = TRUE,
-              icon = icon(name = "download-alt", lib = "glyphicon")
+              icon = icon("download")
             ),
             br(),
             hr(),
             actionBttn(
               inputId = "deleteAll",
               label = strong("Delete Report"),
-              icon = icon("exclamation-sign", lib = "glyphicon"),
+              icon = icon("circle-exclamation"),
               style = "pill",
               color = "danger",
               block = TRUE

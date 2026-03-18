@@ -87,10 +87,7 @@ preprocessingUI <- function() {
                               label = NULL,
                               style = "display:block; height: 37px; width: 37px; border-radius: 50%;
                                       border: 1px; margin-top: 15px;",
-                              icon = icon(
-                                name = "floppy-save",
-                                lib = "glyphicon"
-                              )
+                              icon = icon("floppy-disk")
                             ),
                             list(
                               inputId = "tokPosSave"
@@ -710,26 +707,41 @@ preprocessingUI <- function() {
                     "MWmethod",
                     "Relevant Collocation Algorithm",
                     choices = c(
+                      "Dependency Parsing (NP)" = "dep",
                       "Rake" = "rake",
                       "Pointwise Mutual Information" = "pmi",
                       "Mutual Dependency" = "md",
                       "Log-Frequency Biased Mutual Dependency" = "lfmd",
                       "Absorption Index (IS)" = "is"
                     ),
-                    selected = "rake"
+                    selected = "dep"
                   )
                 )
               ),
               fluidRow(
                 column(
                   6,
-                  numericInput(
-                    inputId = "ngram_max",
-                    label = "Ngrams",
-                    min = 2,
-                    max = 10,
-                    value = 4,
-                    step = 1
+                  conditionalPanel(
+                    'input.MWmethod == "dep"',
+                    numericInput(
+                      inputId = "ngram_max_dep",
+                      label = "Max Phrase Length",
+                      min = 2,
+                      max = 10,
+                      value = 5,
+                      step = 1
+                    )
+                  ),
+                  conditionalPanel(
+                    'input.MWmethod != "dep"',
+                    numericInput(
+                      inputId = "ngram_max",
+                      label = "Ngrams",
+                      min = 2,
+                      max = 10,
+                      value = 4,
+                      step = 1
+                    )
                   )
                 ),
                 column(
@@ -745,7 +757,18 @@ preprocessingUI <- function() {
                 )
               ),
               conditionalPanel(
-                'input.MWmethod != "is"',
+                'input.MWmethod == "dep"',
+                div(
+                  style = "padding: 10px; background-color: #e3f2fd; border-left: 4px solid #2196F3; border-radius: 4px; margin-bottom: 10px;",
+                  icon("info-circle", style = "color: #1976d2;"),
+                  span(
+                    " Noun phrases are extracted from the syntactic dependency tree. PoS tag selection is not required.",
+                    style = "color: #1976d2; font-size: 12px;"
+                  )
+                )
+              ),
+              conditionalPanel(
+                'input.MWmethod != "dep" && input.MWmethod != "is"',
                 fluidRow(
                   column(
                     12,
@@ -762,12 +785,15 @@ preprocessingUI <- function() {
                   ),
                 )
               ),
-              fluidRow(
-                column(
-                  12,
-                  div(
-                    class = "multicol",
-                    uiOutput("multiwordPosSel")
+              conditionalPanel(
+                'input.MWmethod != "dep"',
+                fluidRow(
+                  column(
+                    12,
+                    div(
+                      class = "multicol",
+                      uiOutput("multiwordPosSel")
+                    )
                   )
                 )
               ),
@@ -2468,16 +2494,22 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
 
       values$dfTag <- rakeReset(values$dfTag) ## reset previous multiword creation steps
 
-      values$posMwSel <- gsub(
-        ":",
-        "",
-        gsub(":.*", "", input$multiwordPosSelGroup)
-      )
+      if (input$MWmethod == "dep") {
+        values$posMwSel <- c("NOUN", "PROPN", "ADJ")
+      } else {
+        values$posMwSel <- gsub(
+          ":",
+          "",
+          gsub(":.*", "", input$multiwordPosSelGroup)
+        )
+      }
+
+      ngram_max_val <- if (input$MWmethod == "dep") input$ngram_max_dep else input$ngram_max
 
       values$rakeResults <- rake(
         values$dfTag,
         group = "doc_id",
-        ngram_max = input$ngram_max,
+        ngram_max = ngram_max_val,
         relevant = values$posMwSel,
         freq.min = input$freq_minMW,
         term = values$generalTerm,

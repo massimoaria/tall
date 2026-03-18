@@ -301,7 +301,7 @@ overviewUI <- function() {
                         class = "config-section",
                         div(
                           class = "config-section-header",
-                          icon("cog", lib = "glyphicon"),
+                          icon("gear"),
                           "Main Configuration"
                         ),
                         numericInput(
@@ -411,7 +411,7 @@ overviewUI <- function() {
                         class = "config-section",
                         div(
                           class = "config-section-header",
-                          icon("cog", lib = "glyphicon"),
+                          icon("gear"),
                           "Main Configuration"
                         ),
                         numericInput(
@@ -460,6 +460,170 @@ overviewUI <- function() {
             )
           ),
           tabPanel(
+            "Morphological Features",
+            fluidPage(
+              fluidRow(
+                column(
+                  12,
+                  h3(strong("Morphological Features"), align = "center"),
+                  p(
+                    "Distribution of morphological features extracted from the Universal Dependencies annotation.",
+                    style = "text-align: center; color: #666; margin-bottom: 20px;"
+                  )
+                )
+              ),
+              fluidRow(
+                column(
+                  12,
+                  uiOutput("morphFeatureDesc")
+                )
+              ),
+              fluidRow(
+                column(
+                  3,
+                  selectInput(
+                    "morphFeature",
+                    "Select Feature:",
+                    choices = c(
+                      "Tense" = "Tense",
+                      "Mood" = "Mood",
+                      "Number" = "Number",
+                      "Person" = "Person",
+                      "VerbForm" = "VerbForm",
+                      "Degree" = "Degree",
+                      "Gender" = "Gender",
+                      "Case" = "Case",
+                      "Voice" = "Voice",
+                      "Definite" = "Definite",
+                      "PronType" = "PronType"
+                    ),
+                    selected = "Tense"
+                  )
+                ),
+                column(
+                  9,
+                  shinycssloaders::withSpinner(
+                    plotlyOutput(
+                      outputId = "morphFeaturePlot",
+                      height = "55vh",
+                      width = "98.9%"
+                    ),
+                    color = getOption("spinner.color", default = "#4F7942")
+                  )
+                )
+              ),
+              fluidRow(
+                column(
+                  12,
+                  br(),
+                  h5(strong("Cross-tabulation: Feature Values by Part of Speech"),
+                    style = "color: #555; margin-bottom: 10px;"),
+                  shinycssloaders::withSpinner(
+                    DT::DTOutput("morphFeatureTable"),
+                    color = getOption("spinner.color", default = "#4F7942")
+                  )
+                )
+              )
+            )
+          ),
+          tabPanel(
+            "Dependency Tree",
+            fluidPage(
+              fluidRow(
+                column(
+                  9,
+                  h3(strong("Dependency Tree Viewer"), align = "center")
+                ),
+                div(
+                  title = t_export,
+                  column(
+                    1,
+                    do.call(
+                      "actionButton",
+                      c(
+                        export_bttn,
+                        list(inputId = "depTreeExport")
+                      )
+                    )
+                  )
+                ),
+                div(
+                  title = t_report,
+                  column(
+                    1,
+                    do.call(
+                      "actionButton",
+                      c(
+                        report_bttn,
+                        list(inputId = "depTreeReport")
+                      )
+                    )
+                  )
+                )
+              ),
+              fluidRow(
+                column(
+                  3,
+                  textInput(
+                    "depTreeSearch",
+                    "Search word:",
+                    value = "",
+                    placeholder = "Type a word to filter sentences..."
+                  )
+                ),
+                column(
+                  3,
+                  uiOutput("depTreeDocSelect")
+                ),
+                column(
+                  3,
+                  uiOutput("depTreeSentSelect")
+                ),
+                column(
+                  3,
+                  div(
+                    style = "margin-top: 25px;",
+                    actionBttn(
+                      inputId = "depTreeApply",
+                      label = "Show Tree",
+                      style = "bordered",
+                      color = "success",
+                      size = "sm",
+                      icon = icon("sitemap")
+                    )
+                  )
+                )
+              ),
+              fluidRow(
+                column(
+                  12,
+                  uiOutput("depTreeSentenceText")
+                )
+              ),
+              fluidRow(
+                column(
+                  12,
+                  br(),
+                  shinycssloaders::withSpinner(
+                    uiOutput("depTreePlotUI"),
+                    color = getOption("spinner.color", default = "#4F7942")
+                  )
+                )
+              ),
+              fluidRow(
+                column(
+                  12,
+                  br(),
+                  h5(strong("Token Details"), style = "color: #555; margin-bottom: 10px;"),
+                  shinycssloaders::withSpinner(
+                    DT::DTOutput("depTreeTable"),
+                    color = getOption("spinner.color", default = "#4F7942")
+                  )
+                )
+              )
+            )
+          ),
+          tabPanel(
             "TALL AI",
             fluidPage(
               fluidRow(
@@ -499,14 +663,11 @@ overviewUI <- function() {
 overviewServer <- function(input, output, session, values, statsValues) {
   ## BOX ----
 
-  # ============================================
-  # CORPUS SIZE & STRUCTURE (GREEN)
-  # ============================================
-
-  #### box1 - Documents ---------------
-  output$nDoc <- renderValueBox({
+  # Eagerly recompute value box indices whenever dfTag changes (e.g. after filtering)
+  observe({
+    req(values$dfTag)
+    req("docSelected" %in% names(values$dfTag))
     values$vb <- valueBoxesIndices(values$dfTag %>% filter(docSelected))
-
     values$VbData <- data.frame(
       Description = c(
         "Documents",
@@ -532,7 +693,14 @@ overviewServer <- function(input, output, session, values, statsValues) {
       ),
       Values = unlist(values$vb)
     )
+  })
 
+  # ============================================
+  # CORPUS SIZE & STRUCTURE (GREEN)
+  # ============================================
+
+  #### box1 - Documents ---------------
+  output$nDoc <- renderValueBox({
     valueBox(
       value = strong(values$vb$nDoc),
       subtitle = "Documents",
@@ -547,7 +715,7 @@ overviewServer <- function(input, output, session, values, statsValues) {
     valueBox(
       value = strong(values$vb$nSentences),
       subtitle = "Sentences",
-      icon = icon("align-left", class = "fa-2x", lib = "glyphicon"),
+      icon = icon("align-left", class = "fa-2x"),
       color = "green",
       width = NULL
     )
@@ -558,7 +726,7 @@ overviewServer <- function(input, output, session, values, statsValues) {
     valueBox(
       value = strong(values$vb$nTokens),
       subtitle = "Tokens",
-      icon = icon("font", class = "fa-2x", lib = "glyphicon"),
+      icon = icon("font", class = "fa-2x"),
       color = "green",
       width = NULL
     )
@@ -569,7 +737,7 @@ overviewServer <- function(input, output, session, values, statsValues) {
     valueBox(
       value = strong(values$vb$nDictionary),
       subtitle = "Types",
-      icon = icon("list-alt", class = "fa-2x", lib = "glyphicon"),
+      icon = icon("rectangle-list", class = "fa-2x"),
       color = "green",
       width = NULL
     )
@@ -599,7 +767,7 @@ overviewServer <- function(input, output, session, values, statsValues) {
         values$vb$avgDocLengthCharsSD
       )),
       subtitle = "Doc Avg Length in Chars",
-      icon = icon("list-alt", class = "fa-2x", lib = "glyphicon"),
+      icon = icon("rectangle-list", class = "fa-2x"),
       color = "blue",
       width = NULL
     )
@@ -644,7 +812,7 @@ overviewServer <- function(input, output, session, values, statsValues) {
         values$vb$avgSentLengthTokensSD
       )),
       subtitle = "Sent Avg Length in Tokens",
-      icon = icon("align-justify", class = "fa-2x", lib = "glyphicon"),
+      icon = icon("align-justify", class = "fa-2x"),
       color = "blue",
       width = NULL
     )
@@ -779,13 +947,12 @@ overviewServer <- function(input, output, session, values, statsValues) {
     },
     {
       N <- input$nWC # showing the first 100 lemma
-      pos <- LemmaSelection(values$dfTag) %>%
-        dplyr::filter(docSelected) %>%
-        select(upos)
-      pos <- unique(pos$upos)
+      filtered <- LemmaSelection(values$dfTag) %>%
+        dplyr::filter(docSelected)
+      pos <- unique(filtered$upos)
 
       values$wcDfPlot <- freqByPos(
-        LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected),
+        filtered,
         term = values$generalTerm,
         pos = pos
       ) %>%
@@ -795,6 +962,7 @@ overviewServer <- function(input, output, session, values, statsValues) {
           value = n
         )
 
+      set.seed(values$random_seed)
       values$WCplot <- wordcloud(
         values$wcDfPlot,
         shape = "circle",
@@ -825,7 +993,7 @@ overviewServer <- function(input, output, session, values, statsValues) {
         plot = values$WCplot,
         dpi = values$dpi,
         height = values$h,
-        width = values$h * 2,
+        width = values$h * values$aspect,
         bg = "transparent"
       )
 
@@ -842,7 +1010,8 @@ overviewServer <- function(input, output, session, values, statsValues) {
         list_df,
         list_plot,
         sheetname = "WordCloud",
-        wb = values$wb
+        wb = values$wb,
+        dpi = values$report_dpi
       )
       values$wb <- wb
       popUp(
@@ -977,7 +1146,7 @@ overviewServer <- function(input, output, session, values, statsValues) {
         plot = values$wFreqGgplot,
         dpi = values$dpi,
         height = values$h,
-        width = values$h * 2,
+        width = values$h * values$aspect,
         bg = "transparent"
       )
       popUp(title = "Saved in your working folder", type = "saved")
@@ -1000,7 +1169,8 @@ overviewServer <- function(input, output, session, values, statsValues) {
         list_df,
         list_plot,
         sheetname = "WordsFreq",
-        wb = values$wb
+        wb = values$wb,
+        dpi = values$report_dpi
       )
       values$wb <- wb
       popUp(
@@ -1082,7 +1252,7 @@ overviewServer <- function(input, output, session, values, statsValues) {
         plot = values$posGgplot,
         dpi = values$dpi,
         height = values$h,
-        width = values$h * 2,
+        width = values$h * values$aspect,
         bg = "transparent"
       )
       popUp(title = "Saved in your working folder", type = "saved")
@@ -1106,7 +1276,8 @@ overviewServer <- function(input, output, session, values, statsValues) {
         list_df,
         list_plot,
         sheetname = "PoSFreq",
-        wb = values$wb
+        wb = values$wb,
+        dpi = values$report_dpi
       )
       values$wb <- wb
       popUp(title = "PoS Tag Frequency", type = "success")
@@ -1114,5 +1285,472 @@ overviewServer <- function(input, output, session, values, statsValues) {
     } else {
       popUp(type = "error")
     }
+  })
+
+  ## Dependency Tree Viewer ----
+
+  # Reactive: filtered data based on search word
+  depTreeFiltered <- reactive({
+    req(values$dfTag)
+    df <- values$dfTag %>% filter(docSelected)
+    search <- trimws(tolower(input$depTreeSearch))
+    if (!is.null(search) && nchar(search) > 0) {
+      # Find doc_id + sentence_id pairs containing the search word
+      matching <- df %>%
+        filter(tolower(token) == search | tolower(lemma) == search) %>%
+        distinct(doc_id, sentence_id)
+      df <- df %>% semi_join(matching, by = c("doc_id", "sentence_id"))
+    }
+    df
+  })
+
+  output$depTreeDocSelect <- renderUI({
+    df <- depTreeFiltered()
+    docs <- unique(df$doc_id)
+    if (length(docs) == 0) {
+      return(div(
+        style = "margin-top: 25px; color: #856404; font-size: 13px;",
+        icon("exclamation-triangle"), " No matching sentences found."
+      ))
+    }
+    selectInput(
+      "depTreeDoc",
+      "Document:",
+      choices = docs,
+      selected = docs[1],
+      width = "100%"
+    )
+  })
+
+  output$depTreeSentSelect <- renderUI({
+    req(input$depTreeDoc)
+    df <- depTreeFiltered()
+    sents <- df %>%
+      filter(doc_id == input$depTreeDoc) %>%
+      pull(sentence_id) %>%
+      unique() %>%
+      sort()
+    if (length(sents) == 0) return(NULL)
+
+    # Build preview labels: sentence_id + first words
+    sent_labels <- sapply(sents, function(s) {
+      tokens <- df %>%
+        filter(doc_id == input$depTreeDoc, sentence_id == s) %>%
+        pull(token)
+      preview <- paste(head(tokens, 8), collapse = " ")
+      if (length(tokens) > 8) preview <- paste0(preview, "...")
+      paste0("S", s, ": ", preview)
+    })
+    names(sents) <- sent_labels
+
+    selectInput(
+      "depTreeSent",
+      "Sentence:",
+      choices = sents,
+      selected = sents[1],
+      width = "100%"
+    )
+  })
+
+  depTreeData <- eventReactive(input$depTreeApply, {
+    req(input$depTreeDoc, input$depTreeSent)
+    values$dfTag %>%
+      filter(
+        doc_id == input$depTreeDoc,
+        sentence_id == as.integer(input$depTreeSent),
+        !upos %in% c("NGRAM_MERGED")
+      ) %>%
+      mutate(
+        tid = as.integer(token_id),
+        hid = as.integer(head_token_id)
+      ) %>%
+      select(tid, hid, token, lemma, upos, dep_rel)
+  })
+
+  output$depTreeSentenceText <- renderUI({
+    df <- depTreeData()
+    req(nrow(df) > 0)
+    sentence <- paste(df$token, collapse = " ")
+    div(
+      style = "padding: 12px 15px; background-color: #f8f9fa; border-left: 4px solid #4F7942; border-radius: 4px; margin-top: 10px; font-size: 15px; line-height: 1.6;",
+      icon("quote-left", style = "color: #4F7942; margin-right: 5px;"),
+      sentence
+    )
+  })
+
+  output$depTreePlotUI <- renderUI({
+    df <- depTreeData()
+    req(nrow(df) > 0)
+    n_tokens <- nrow(df)
+    # Min 80px per token, min total 800px
+    plot_width <- max(800, n_tokens * 80)
+    plot_height <- max(400, min(700, n_tokens * 12 + 200))
+    div(
+      style = paste0("overflow-x: auto; overflow-y: hidden; border: 1px solid #eee; border-radius: 8px; background: white; padding: 10px;"),
+      plotOutput(
+        outputId = "depTreePlot",
+        height = paste0(plot_height, "px"),
+        width = paste0(plot_width, "px")
+      )
+    )
+  })
+
+  output$depTreePlot <- renderPlot({
+    df <- depTreeData()
+    req(nrow(df) > 0)
+
+    n <- nrow(df)
+    # x positions = token order
+    df$x <- seq_len(n)
+
+    # Build arc data: from dependent to head
+    arcs <- df %>%
+      filter(hid > 0) %>%
+      mutate(
+        x_from = x,
+        x_to = match(hid, df$tid)
+      ) %>%
+      filter(!is.na(x_to))
+
+    if (nrow(arcs) == 0) return(NULL)
+
+    # Arc height proportional to distance
+    arcs$height <- abs(arcs$x_from - arcs$x_to) * 0.5
+    arcs$xmid <- (arcs$x_from + arcs$x_to) / 2
+
+    # Color by relation category
+    rel_colors <- c(
+      nsubj = "#E41A1C", `nsubj:pass` = "#E41A1C", csubj = "#E41A1C",
+      obj = "#377EB8", dobj = "#377EB8", iobj = "#377EB8",
+      amod = "#4DAF4A", nmod = "#4DAF4A", `nmod:poss` = "#4DAF4A",
+      advmod = "#FF7F00",
+      det = "#999999", case = "#999999",
+      compound = "#984EA3", flat = "#984EA3", `flat:name` = "#984EA3",
+      conj = "#A65628", cc = "#A65628",
+      punct = "#CCCCCC",
+      root = "#000000"
+    )
+    arcs$color <- ifelse(
+      arcs$dep_rel %in% names(rel_colors),
+      rel_colors[arcs$dep_rel],
+      "#666666"
+    )
+
+    # PoS colors for tokens
+    pos_colors <- c(
+      NOUN = "#4F7942", PROPN = "#2E5A1E",
+      VERB = "#E41A1C", AUX = "#FB9A99",
+      ADJ = "#377EB8", ADV = "#FF7F00",
+      DET = "#999999", ADP = "#999999",
+      PRON = "#984EA3", CCONJ = "#A65628", SCONJ = "#A65628",
+      PUNCT = "#CCCCCC", NUM = "#666666"
+    )
+    df$pos_color <- ifelse(
+      df$upos %in% names(pos_colors),
+      pos_colors[df$upos],
+      "#666666"
+    )
+
+    # Build arc curves manually
+    arc_curves <- do.call(rbind, lapply(seq_len(nrow(arcs)), function(i) {
+      x1 <- arcs$x_from[i]
+      x2 <- arcs$x_to[i]
+      h <- arcs$height[i]
+      t_seq <- seq(0, pi, length.out = 50)
+      data.frame(
+        arc_id = i,
+        x = x1 + (x2 - x1) * (1 - cos(t_seq)) / 2,
+        y = h * sin(t_seq),
+        dep_rel = arcs$dep_rel[i],
+        color = arcs$color[i],
+        stringsAsFactors = FALSE
+      )
+    }))
+
+    # Build plot
+    p <- ggplot() +
+      # Arcs
+      geom_path(
+        data = arc_curves,
+        aes(x = x, y = y, group = arc_id, color = color),
+        linewidth = 0.7,
+        show.legend = FALSE
+      ) +
+      scale_color_identity() +
+      # Arc labels (dep_rel)
+      geom_text(
+        data = arcs,
+        aes(x = xmid, y = height + 0.15, label = dep_rel),
+        size = 2.8,
+        color = arcs$color,
+        fontface = "bold"
+      ) +
+      # Token boxes
+      geom_label(
+        data = df,
+        aes(x = x, y = -0.3, label = token),
+        fill = "white",
+        color = df$pos_color,
+        label.size = 0.5,
+        size = 3.5,
+        fontface = "bold",
+        label.padding = unit(0.25, "lines")
+      ) +
+      # PoS labels
+      geom_text(
+        data = df,
+        aes(x = x, y = -0.7, label = upos),
+        size = 2.5,
+        color = df$pos_color
+      ) +
+      # Styling
+      theme_void() +
+      theme(
+        plot.margin = margin(20, 20, 20, 20),
+        plot.background = element_rect(fill = "white", color = NA)
+      ) +
+      coord_cartesian(
+        ylim = c(-1, max(arcs$height) + 0.8),
+        clip = "off"
+      )
+
+    values$depTreeGgplot <- p
+    p
+  })
+
+  ## Dep Tree Export (PNG)
+  observeEvent(input$depTreeExport, {
+    req(values$depTreeGgplot)
+    df <- depTreeData()
+    n_tokens <- nrow(df)
+    w <- min(49, max(10, n_tokens * 1.2))
+    h <- max(5, min(10, n_tokens * 0.15 + 3))
+    file <- paste("DependencyTree-", sys.time(), ".png", sep = "")
+    file <- destFolder(file, values$wdTall)
+    ggsave(
+      filename = file,
+      plot = values$depTreeGgplot,
+      dpi = values$dpi,
+      width = w,
+      height = h,
+      bg = "white",
+      limitsize = FALSE
+    )
+    popUp(title = "Saved in your working folder", type = "saved")
+  })
+
+  ## Dep Tree Report
+  observeEvent(input$depTreeReport, {
+    req(values$depTreeGgplot)
+    df <- depTreeData()
+    req(nrow(df) > 0)
+    popUp(title = NULL, type = "waiting")
+
+    display_df <- df %>%
+      select(tid, token, lemma, upos, dep_rel, hid) %>%
+      left_join(
+        df %>% select(tid, token) %>% rename(head_token = token),
+        by = c("hid" = "tid")
+      ) %>%
+      mutate(head_token = ifelse(hid == 0, "ROOT", head_token))
+
+    sheetname <- "DependencyTree"
+    n_tokens <- nrow(df)
+    w <- max(10, n_tokens * 1.2)
+    h <- max(5, min(10, n_tokens * 0.15 + 3))
+    list_df <- list(display_df)
+    list_plot <- list(values$depTreeGgplot)
+    wb <- addSheetToReport(
+      list_df,
+      list_plot,
+      sheetname = sheetname,
+      wb = values$wb,
+      dpi = values$report_dpi
+    )
+    values$wb <- wb
+    popUp(title = "Dependency Tree Results", type = "success")
+    values$myChoices <- sheets(values$wb)
+  })
+
+  output$depTreeTable <- renderDT(server = FALSE, {
+    df <- depTreeData()
+    req(nrow(df) > 0)
+
+    display_df <- df %>%
+      select(tid, token, lemma, upos, dep_rel, hid) %>%
+      left_join(
+        df %>% select(tid, token) %>% rename(head_token = token),
+        by = c("hid" = "tid")
+      ) %>%
+      mutate(head_token = ifelse(hid == 0, "ROOT", head_token)) %>%
+      rename(
+        "ID" = tid,
+        "Token" = token,
+        "Lemma" = lemma,
+        "PoS" = upos,
+        "Relation" = dep_rel,
+        "Head ID" = hid,
+        "Head Token" = head_token
+      )
+
+    DTformat(
+      display_df,
+      size = "100%",
+      filename = "DependencyTree",
+      dom = FALSE
+    )
+  })
+
+  ## Morphological Features ----
+
+  # Human-readable labels for morphological feature values
+  morphLabels <- list(
+    Tense = c(Past = "Past", Pres = "Present", Fut = "Future", Imp = "Imperfect", Pqp = "Pluperfect"),
+    Mood = c(Ind = "Indicative", Sub = "Subjunctive", Imp = "Imperative", Cnd = "Conditional"),
+    Number = c(Sing = "Singular", Plur = "Plural", Dual = "Dual"),
+    Person = c("1" = "1st Person", "2" = "2nd Person", "3" = "3rd Person"),
+    VerbForm = c(Fin = "Finite", "Inf" = "Infinitive", Part = "Participle", Ger = "Gerund", Conv = "Converb", Sup = "Supine"),
+    Degree = c(Pos = "Positive", Cmp = "Comparative", Sup = "Superlative", Abs = "Absolute Superlative"),
+    Gender = c(Masc = "Masculine", Fem = "Feminine", Neut = "Neuter", Com = "Common"),
+    Case = c(Nom = "Nominative", Acc = "Accusative", Gen = "Genitive", Dat = "Dative", Ins = "Instrumental", Loc = "Locative", Voc = "Vocative", Abl = "Ablative"),
+    Voice = c(Act = "Active", Pass = "Passive", Mid = "Middle"),
+    Definite = c(Def = "Definite", Ind = "Indefinite", Com = "Complex", Cons = "Construct"),
+    PronType = c(Prs = "Personal", Dem = "Demonstrative", Rel = "Relative", Int = "Interrogative", Ind = "Indefinite", Neg = "Negative", Tot = "Total", Art = "Article", Exc = "Exclamative")
+  )
+
+  morphDescriptions <- c(
+    Tense = "Verb tense distribution. Reveals whether the corpus is predominantly narrative (Past), descriptive/argumentative (Present), or forward-looking (Future).",
+    Mood = "Verbal mood distribution. Indicative conveys facts; Subjunctive signals uncertainty, doubt, or desire; Imperative expresses commands; Conditional marks hypothetical situations.",
+    Number = "Grammatical number distribution across nouns, pronouns, adjectives, and verbs.",
+    Person = "Verb person distribution. 1st person signals personal/subjective style; 3rd person indicates impersonal/objective style; 2nd person suggests direct address.",
+    VerbForm = "Verb form distribution. The ratio of finite to non-finite forms (infinitives, participles, gerunds) reflects syntactic complexity.",
+    Degree = "Adjective/adverb degree distribution. High use of comparatives and superlatives may indicate evaluative or argumentative discourse.",
+    Gender = "Grammatical gender distribution (language-dependent). Available for languages with grammatical gender marking.",
+    Case = "Grammatical case distribution (language-dependent). Available for languages with case systems (e.g., German, Russian, Latin).",
+    Voice = "Active vs passive voice distribution. High passive usage may indicate formal, scientific, or bureaucratic writing style.",
+    Definite = "Definiteness marking. The ratio of definite to indefinite articles/determiners reveals information structure patterns.",
+    PronType = "Pronoun and determiner type distribution. Shows the balance between personal, demonstrative, relative, and other pronoun types."
+  )
+
+  parseMorphFeatures <- function(feats_col, feature_name) {
+    # Parse feats column (format: "Number=Plur|Tense=Past|Mood=Ind")
+    # Extract values for the requested feature
+    pattern <- paste0("(?:^|\\|)", feature_name, "=([^|]+)")
+    matches <- regmatches(feats_col, regexpr(pattern, feats_col, perl = TRUE))
+    values <- sub(paste0(".*", feature_name, "="), "", matches)
+    values[matches == ""] <- NA
+    # Handle non-matching rows
+    result <- rep(NA_character_, length(feats_col))
+    has_match <- nchar(matches) > 0
+    result[has_match] <- values[has_match]
+    return(result)
+  }
+
+  output$morphFeatureDesc <- renderUI({
+    feature <- input$morphFeature
+    desc <- morphDescriptions[feature]
+    if (is.na(desc)) desc <- ""
+    div(
+      style = "padding: 10px; background-color: #f0f7ee; border-left: 4px solid #4F7942; border-radius: 4px; margin-bottom: 15px;",
+      icon("info-circle", style = "color: #4F7942;"),
+      span(desc, style = "color: #333; font-size: 13px;")
+    )
+  })
+
+  output$morphFeaturePlot <- renderPlotly({
+    req(values$dfTag)
+    feature <- input$morphFeature
+
+    df <- values$dfTag %>%
+      dplyr::filter(docSelected) %>%
+      mutate(feat_value = parseMorphFeatures(feats, feature)) %>%
+      filter(!is.na(feat_value))
+
+    if (nrow(df) == 0) return(plotly_empty())
+
+    # Apply human-readable labels
+    labels <- morphLabels[[feature]]
+    if (!is.null(labels)) {
+      df$feat_label <- ifelse(
+        df$feat_value %in% names(labels),
+        labels[df$feat_value],
+        df$feat_value
+      )
+    } else {
+      df$feat_label <- df$feat_value
+    }
+
+    freq_table <- df %>%
+      count(feat_label) %>%
+      arrange(desc(n)) %>%
+      mutate(
+        pct = round(100 * n / sum(n), 1),
+        feat_label = factor(feat_label, levels = rev(feat_label))
+      )
+
+    values$morphPlot <- plot_ly(
+      freq_table,
+      x = ~n,
+      y = ~feat_label,
+      type = "bar",
+      orientation = "h",
+      marker = list(color = "#4F7942"),
+      text = ~paste0(n, " (", pct, "%)"),
+      textposition = "auto",
+      hovertemplate = "<b>%{y}</b><br>Count: %{x}<br>%{text}<extra></extra>"
+    ) %>%
+      layout(
+        title = list(
+          text = paste0("<b>", feature, " Distribution</b>"),
+          font = list(size = 16, color = "gray30"),
+          x = 0.5
+        ),
+        xaxis = list(title = "Count"),
+        yaxis = list(title = ""),
+        paper_bgcolor = "white",
+        plot_bgcolor = "white",
+        margin = list(l = 150)
+      ) %>%
+      config(displaylogo = FALSE)
+
+    values$morphPlot
+  })
+
+  output$morphFeatureTable <- renderDT(server = FALSE, {
+    req(values$dfTag)
+    feature <- input$morphFeature
+
+    df <- values$dfTag %>%
+      dplyr::filter(docSelected) %>%
+      mutate(feat_value = parseMorphFeatures(feats, feature)) %>%
+      filter(!is.na(feat_value))
+
+    if (nrow(df) == 0) return(NULL)
+
+    # Apply human-readable labels
+    labels <- morphLabels[[feature]]
+    if (!is.null(labels)) {
+      df$feat_label <- ifelse(
+        df$feat_value %in% names(labels),
+        paste0(labels[df$feat_value], " (", df$feat_value, ")"),
+        df$feat_value
+      )
+    } else {
+      df$feat_label <- df$feat_value
+    }
+
+    # Cross-tabulation: feature value x PoS
+    cross_tab <- df %>%
+      count(feat_label, upos) %>%
+      pivot_wider(names_from = upos, values_from = n, values_fill = 0) %>%
+      mutate(Total = rowSums(across(where(is.numeric)))) %>%
+      arrange(desc(Total)) %>%
+      rename(!!feature := feat_label)
+
+    DTformat(
+      cross_tab,
+      size = "100%",
+      filename = paste0("MorphFeature_", feature)
+    )
   })
 }

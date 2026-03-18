@@ -3,7 +3,17 @@
 #  Function source ----
 files <- c(
   "libraries.R",
-  "tallFunctions.R",
+  "tallUtils.R",
+  "tallTextIO.R",
+  "tallNLP.R",
+  "tallOverview.R",
+  "tallNetwork.R",
+  "tallTopicModel.R",
+  "tallEmbeddings.R",
+  "tallSentiment.R",
+  "tallReport.R",
+  "tallVisualization.R",
+  "tallLanguages.R",
   "helpContent.R",
   "cssTags.R",
   "header.R",
@@ -59,40 +69,40 @@ t_back <- "Back to the original text(s)"
 run_bttn <- list(
   label = NULL,
   style = "display:block; height: 37px; width: 37px; border-radius: 50%; border: 3px; margin-top: 15px",
-  icon = icon(name = "play", lib = "glyphicon")
+  icon = icon("play")
 )
 
 view_bttn <- list(
   label = NULL,
   style = "display:block; height: 37px; width: 37px; border-radius: 50%; border: 3px; margin-top: 15px",
   icon = fa_i(name = "magnifying-glass", prefer_type = "solid")
-  # icon = icon("search", lib="glyphicon")
+  # icon = icon("magnifying-glass")
 )
 
 export_bttn <- list(
   label = NULL,
   style = "display:block; height: 37px; width: 37px; border-radius: 50%; border: 3px; margin-top: 15px",
-  icon = icon(name = "download-alt", lib = "glyphicon")
+  icon = icon("download")
 )
 report_bttn <- list(
   label = NULL,
   style = "display:block; height: 37px; width: 37px; border-radius: 50%; border: 3px; margin-top: 15px",
-  icon = icon(name = "plus", lib = "glyphicon")
+  icon = icon("plus")
 )
 save_bttn <- list(
   label = NULL,
   style = "display:block; height: 37px; width: 37px; border-radius: 50%; border: 1px;", # margin-top: 15px",
-  icon = icon(name = "floppy-save", lib = "glyphicon")
+  icon = icon("floppy-disk")
 )
 back_bttn <- list(
   label = NULL,
   style = "display:block; height: 37px; width: 37px; border-radius: 50%; border: 3px; margin-top: 15px",
-  icon = icon(name = "repeat", lib = "glyphicon")
+  icon = icon("rotate")
 )
 x_bttn <- list(
   label = NULL,
   style = "display:block; height: 37px; width: 37px; border-radius: 50%; border: 3px; margin-top: 15px",
-  icon = icon(name = "remove", lib = "glyphicon")
+  icon = icon("xmark")
 )
 
 ## HEADER ----
@@ -133,6 +143,13 @@ sidebar <- dashboardSidebar(
 
 ## BODY ----
 
+# Build each composite UI once, then extract sub-elements
+edit_ui <- editUI()
+preprocessing_ui <- preprocessingUI()
+words_ui <- wordsUI()
+documents_ui <- documentsUI()
+fg_ui <- filters_groupsUI()
+
 body <- dashboardBody(
   customTheme(),
   cssTags(), ## CSS tags
@@ -146,40 +163,40 @@ body <- dashboardBody(
     ## EDIT ----
 
     ### Split ----
-    editUI()$split,
+    edit_ui$split,
 
     ### Random selection ----
-    editUI()$randomText,
+    edit_ui$randomText,
 
     ### EXTERNAL INFORMATION ----
-    editUI()$extInfo,
+    edit_ui$extInfo,
 
     ## PRE-PROCESSING ----
 
     ### Tokenization & PoS Tagging -----
-    preprocessingUI()$tokpos,
+    preprocessing_ui$tokpos,
 
     ### Special Entities Tagging ----
-    preprocessingUI()$specialentities,
+    preprocessing_ui$specialentities,
 
     ### Multi-Word Units ----
-    preprocessingUI()$mwcreation,
-    preprocessingUI()$mwlist,
+    preprocessing_ui$mwcreation,
+    preprocessing_ui$mwlist,
 
     ### Custom Term List ----
-    preprocessingUI()$custompos,
+    preprocessing_ui$custompos,
 
     ### Synonyms Merging ----
-    preprocessingUI()$synonyms,
+    preprocessing_ui$synonyms,
 
     ### PoS Selection ----
-    preprocessingUI()$postagselection,
+    preprocessing_ui$postagselection,
 
     ## FILTER ----
-    filters_groupsUI()$filters,
+    fg_ui$filters,
 
     ## GROUPS ----
-    filters_groupsUI()$groups,
+    fg_ui$groups,
 
     ## FEATURE ROLES ----
     featureRolesUI(),
@@ -197,46 +214,55 @@ body <- dashboardBody(
     collocationUI(),
 
     ### KWIC ----
-    #wordsUI()$kwic,
+    #words_ui$kwic,
 
     ### Reinert Clustering ----
-    wordsUI()$reinert,
+    words_ui$reinert,
 
     ### Correspondence Analysis ----
-    wordsUI()$ca,
+    words_ui$ca,
 
-    ### Co-Word Analysis ----
-    wordsUI()$coword,
+    ### Word Network Analysis ----
+    words_ui$coword,
 
     ### Thematic Analysis ----
-    wordsUI()$tm,
+    words_ui$tm,
 
     ### Embedding Training ----
-    wordsUI()$we_training,
+    words_ui$we_training,
 
     ### Embedding Similarity ----
-    wordsUI()$we_similarity,
+    words_ui$we_similarity,
 
     ## DOCUMENTS ----
 
     ### Topic Modeling ----
     #### TM K Choices ----
-    documentsUI()$tm_k,
+    documents_ui$tm_k,
 
     #### TM Analysis ----
-    documentsUI()$tm_analysis,
+    documents_ui$tm_analysis,
 
     #### Doc Classification ----
     docClassificationUI(),
 
+    ### Syntactic Complexity ----
+    documents_ui$syntactic_complexity,
+
+    ### SVO Triplets ----
+    documents_ui$svo_analysis,
+
     ### Polarity Detection ----
-    documentsUI()$polarity,
+    documents_ui$polarity,
+
+    ### Emotion Analysis ----
+    documents_ui$emotion,
 
     ### Abstractive Summarization ----
-    documentsUI()$abs_summ,
+    documents_ui$abs_summ,
 
     ### Extractive Summarization ----
-    documentsUI()$ext_summ,
+    documents_ui$ext_summ,
 
     ## REPORT ----
     reportUI(),

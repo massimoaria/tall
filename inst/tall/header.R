@@ -26,14 +26,9 @@ headerUI <- function() {
     tags$li(
       class = "dropdown",
       tags$a(
-        title = "Total downloads from CRAN", # ← Tooltip
+        title = "Total downloads from CRAN",
         icon("cloud-arrow-down", lib = "font-awesome"),
-        tags$span(
-          HTML(suppressWarnings(format_abbreviated(total_downloads(
-            "tall"
-          )))),
-          style = "margin-left: 5px; font-weight: bold;"
-        )
+        uiOutput("header_download_count", inline = TRUE)
       )
     ),
     tags$li(
@@ -95,6 +90,15 @@ headerUI <- function() {
 }
 
 headerServer <- function(input, output, session, values) {
+  ## CRAN download count (async, non-blocking) ----
+  output$header_download_count <- renderUI({
+    downloads <- suppressWarnings(total_downloads("tall"))
+    tags$span(
+      HTML(format_abbreviated(downloads)),
+      style = "margin-left: 5px; font-weight: bold;"
+    )
+  })
+
   ## Team Card ----
   observeEvent(input$show_team, {
     showModal(modalDialog(

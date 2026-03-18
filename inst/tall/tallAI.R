@@ -364,17 +364,52 @@ tallAiPrompts <- function(values, activeTab) {
   switch(
     activeTab,
     "overview" = {
+      # Build morphological features summary if available
+      morph_text <- ""
+      if (!is.null(values$dfTag) && "feats" %in% names(values$dfTag)) {
+        morph_features <- c("Tense", "Mood", "Number", "Person", "VerbForm",
+                            "Degree", "Gender", "Case", "Voice")
+        morph_parts <- c()
+        for (feat in morph_features) {
+          pattern <- paste0("(?:^|\\|)", feat, "=([^|]+)")
+          feats_col <- values$dfTag$feats[values$dfTag$docSelected]
+          matches <- regmatches(feats_col, regexpr(pattern, feats_col, perl = TRUE))
+          feat_vals <- sub(paste0(".*", feat, "="), "", matches)
+          feat_vals <- feat_vals[nchar(feat_vals) > 0]
+          if (length(feat_vals) > 0) {
+            tbl <- sort(table(feat_vals), decreasing = TRUE)
+            pcts <- round(100 * tbl / sum(tbl), 1)
+            top_vals <- paste0(names(pcts), " (", pcts, "%)", collapse = ", ")
+            morph_parts <- c(morph_parts, paste0(feat, ": ", top_vals))
+          }
+        }
+        if (length(morph_parts) > 0) {
+          morph_text <- paste0(
+            " Morphological features distribution: ",
+            paste(morph_parts, collapse = "; "), ". "
+          )
+        }
+      }
+
       prompt <- paste0(
         "A user has analyzed a text corpus and obtained the following summary statistics. Provide a detailed interpretation of these results based on the values provided. ",
         "Corpus metrics: ",
         merge_df_to_string(values$VbData),
+        morph_text,
         "Structure your response in the following way: ",
         "1.  **General Summary**: Based on the data provided, start with a paragraph that summarizes the main characteristics of the corpus. ",
         "2.  **Corpus Size and Structure**: Explain the meaning of `Documents`, `Tokens`, `Types`, `Lemma`, and `Sentences` based on their provided values. Relate the `Tokens` count to the `Types` count to give a first impression of vocabulary size. ",
         "3.  **Document and Sentence Characteristics**: Interpret the provided averages (`Avg Length`) and standard deviations (`SD Length`) for documents and sentences. Explain what the specific `SD` values imply about the consistency of lengths across the corpus (e.g., a low SD suggests uniform lengths, a high SD suggests high variability). ",
         "4.  **Lexical Richness and Variety**: Analyze the provided values for the lexical richness indices: `TTR (%)`, `Hapax (%)`, `Guiraud Index`, and `Yule's K`. For each, explain what its value indicates about the richness of the vocabulary. Clarify why multiple indices are useful (e.g., correcting for corpus length). ",
         "5.  **Stylistic and Distributional Indices**: Explain the meaning of the given values for `Lexical Density`, `Nominal Ratio`, and `Gini Index`. For each metric, interpret what the provided value suggests about the text's nature (e.g., for `Lexical Density`: informational vs. conversational; for `Nominal Ratio`: descriptive vs. narrative style; for `Gini Index`: word distribution). ",
-        "6.  **Conclusion and Potential Next Steps**: End with a summary conclusion and suggest to the user what subsequent analyses might be interesting based on the specific results they obtained."
+        if (nchar(morph_text) > 0) {
+          "6.  **Morphological Profile**: Interpret the morphological features distribution (Tense, Mood, Number, Person, VerbForm, etc.). Explain what the dominant morphological patterns reveal about the text's style, register, and linguistic characteristics. "
+        } else { "" },
+        if (nchar(morph_text) > 0) {
+          "7.  **Conclusion and Potential Next Steps**: End with a summary conclusion and suggest to the user what subsequent analyses might be interesting based on the specific results they obtained."
+        } else {
+          "6.  **Conclusion and Potential Next Steps**: End with a summary conclusion and suggest to the user what subsequent analyses might be interesting based on the specific results they obtained."
+        }
       )
     },
     "kwic" = {
@@ -486,6 +521,33 @@ tallAiPrompts <- function(values, activeTab) {
         " Always provide interpretations that are statistically sound, linguistically meaningful, and methodologically rigorous for probabilistic text analysis."
       )
     },
+    "d_syntactic" = {
+      prompt <- paste0(
+        "You have to provide an interpretation of Syntactic Complexity analysis results from the TALL software package in R. ",
+        "Your expertise covers syntactic structure analysis, dependency parsing metrics, and linguistic complexity measurement. ",
+        "You help users understand: ",
+        " - Mean Dependency Distance (MDD) and its implications for processing difficulty ",
+        " - Parse tree depth and sentence structural complexity ",
+        " - Subordination ratios and clause embedding patterns ",
+        " - Noun phrase complexity and modifier density ",
+        " - Variation across documents and distribution patterns ",
+        " - What the overall syntactic profile reveals about text register and style. ",
+        "Always provide interpretations that are linguistically grounded, methodologically sound, and actionable for text analysis research."
+      )
+    },
+    "d_svo" = {
+      prompt <- paste0(
+        "You have to provide an interpretation of Subject-Verb-Object (SVO) triplet extraction results from the TALL software package in R. ",
+        "Your expertise covers dependency-based syntactic analysis, semantic role labeling, and argument structure interpretation. ",
+        "You help users understand: ",
+        " - The most frequent SVO patterns and what they reveal about the corpus content ",
+        " - Subject and object distributions and their semantic roles ",
+        " - Verb frequency patterns and the dominant actions or processes described ",
+        " - Network structure of SVO relationships and thematic clusters ",
+        " - What the SVO patterns reveal about discourse structure and argumentation. ",
+        "Always provide interpretations that are linguistically informed and actionable for content analysis and discourse research."
+      )
+    },
     {
       prompt <- paste0(
         "Provide an interpretation of this plot creted with 'TALL R Package'"
@@ -524,6 +586,15 @@ gemini2clip <- function(values, activeTab) {
     },
     "d_polDet" = {
       values$d_polDet_Gemini
+    },
+    "d_emo" = {
+      values$d_emo_Gemini
+    },
+    "d_syntactic" = {
+      values$d_syntactic_Gemini
+    },
+    "d_svo" = {
+      values$d_svo_Gemini
     }
   )
 }
@@ -620,14 +691,14 @@ geminiGenerate <- function(
       suppressWarnings(plot2png(
         p1,
         filename = files[1],
-        zoom = 2,
-        type = "vis"
+        type = "vis",
+        dpi = 150, height = 7
       ))
       suppressWarnings(plot2png(
         p2,
         filename = files[2],
-        zoom = 2,
-        type = "plotly"
+        type = "plotly",
+        dpi = 150, height = 7
       ))
       values$w_w2vGemini <- geminiPromptImage(
         obj = files,
@@ -667,25 +738,110 @@ geminiGenerate <- function(
       suppressWarnings(plot2png(
         p1,
         filename = files[1],
-        zoom = 2,
-        type = "plotly"
+        type = "plotly",
+        dpi = 150, height = 7
       ))
       suppressWarnings(plot2png(
         p2,
         filename = files[2],
-        zoom = 2,
-        type = "plotly"
+        type = "plotly",
+        dpi = 150, height = 7
       ))
       suppressWarnings(plot2png(
         p3,
         filename = files[3],
-        zoom = 2,
-        type = "plotly"
+        type = "plotly",
+        dpi = 150, height = 7
       ))
 
       values$d_polDet_Gemini <- geminiPromptImage(
         obj = files,
         type = "multi",
+        prompt = prompt,
+        key = values$geminiAPI,
+        desc = desc,
+        values = values
+      )
+    },
+    "d_emo" = {
+      req(values$emotionBarChart)
+      p1 <- values$emotionBarChart
+      p2 <- values$emotionRadarPlot
+      p3 <- values$emotionHeatmap
+
+      files <- unlist(lapply(c("emo1", "emo2", "emo3"), function(x) {
+        paste0(tempdir(), "/", x, ".png")
+      }))
+
+      suppressWarnings(plot2png(
+        p1,
+        filename = files[1],
+        type = "plotly",
+        dpi = 150, height = 7
+      ))
+      suppressWarnings(plot2png(
+        p2,
+        filename = files[2],
+        type = "plotly",
+        dpi = 150, height = 7
+      ))
+      suppressWarnings(plot2png(
+        p3,
+        filename = files[3],
+        type = "plotly",
+        dpi = 150, height = 7
+      ))
+
+      values$d_emo_Gemini <- geminiPromptImage(
+        obj = files,
+        type = "multi",
+        prompt = prompt,
+        key = values$geminiAPI,
+        desc = desc,
+        values = values
+      )
+    },
+    "d_syntactic" = {
+      req(values$syntacticResults)
+      prompt <- paste0(
+        prompt,
+        " Syntactic complexity metrics (corpus-level averages): ",
+        "Mean Sentence Length: ", round(mean(values$syntacticResults$mean_sent_length), 2),
+        "; Mean Tree Depth: ", round(mean(values$syntacticResults$mean_tree_depth), 2),
+        "; Mean Dependency Distance: ", round(mean(values$syntacticResults$mean_dep_distance), 2),
+        "; Mean Clauses per Sentence: ", round(mean(values$syntacticResults$mean_clauses_per_sent), 2),
+        "; Subordination Ratio: ", round(mean(values$syntacticResults$subordination_ratio), 2),
+        "; Mean Branching Factor: ", round(mean(values$syntacticResults$mean_branching_factor), 2),
+        ". Per-document metrics: ",
+        merge_df_to_string(head(values$syntacticResults, 20))
+      )
+      values$d_syntactic_Gemini <- geminiPromptImage(
+        obj = NULL,
+        type = "text",
+        prompt = prompt,
+        key = values$geminiAPI,
+        desc = desc,
+        values = values
+      )
+    },
+    "d_svo" = {
+      req(values$svoResults)
+      top_svo <- head(values$svoResults, 30)
+      verb_freq <- values$svoResults %>%
+        dplyr::group_by(verb) %>%
+        dplyr::summarise(freq = sum(freq), .groups = "drop") %>%
+        dplyr::arrange(dplyr::desc(freq)) %>%
+        head(15)
+      prompt <- paste0(
+        prompt,
+        " Top SVO triplets (subject-verb-object with frequency): ",
+        merge_df_to_string(top_svo),
+        ". Most frequent verbs: ",
+        paste(paste0(verb_freq$verb, " (", verb_freq$freq, ")"), collapse = ", ")
+      )
+      values$d_svo_Gemini <- geminiPromptImage(
+        obj = NULL,
+        type = "text",
         prompt = prompt,
         key = values$geminiAPI,
         desc = desc,
@@ -784,6 +940,18 @@ geminiParameterPrompt <- function(values, activeTab, input) {
       req(values$docPolPlots)
       txt
     },
+    "d_emo" = {
+      req(values$emotionBarChart)
+      txt
+    },
+    "d_syntactic" = {
+      req(values$syntacticResults)
+      txt <- paste0(txt, "Syntactic complexity was computed using dependency parsing metrics.")
+    },
+    "d_svo" = {
+      req(values$svoResults)
+      txt <- paste0(txt, "Subject-Verb-Object triplets were extracted using dependency parsing.")
+    },
     {
       ""
     }
@@ -826,16 +994,16 @@ geminiPromptImage <- function(
         suppressWarnings(plot2png(
           obj,
           filename = file_path,
-          zoom = 2,
-          type = "vis"
+          type = "vis",
+          dpi = 150, height = 7
         ))
       },
       "plotly" = {
         suppressWarnings(plot2png(
           obj,
           filename = file_path,
-          zoom = 2,
-          type = "plotly"
+          type = "plotly",
+          dpi = 150, height = 7
         ))
       },
       "text" = {
@@ -847,7 +1015,9 @@ geminiPromptImage <- function(
       "html" = {
         html_name <- tempfile(fileext = ".html")
         htmltools::save_html(obj, html_name)
-        tallShot(html_name, zoom = 2, file = file_path)
+        tallShot(html_name, zoom = 150 / 96, file = file_path)
+        unlink(html_name)
+        unlink(paste0(tools::file_path_sans_ext(html_name), "_files"), recursive = TRUE)
       },
       "ggplot2" = {
         ggsave(
@@ -872,6 +1042,286 @@ geminiPromptImage <- function(
   }
 
   return(res)
+}
+
+## Async-ready preparation: does everything geminiPromptImage does EXCEPT calling gemini_ai
+geminiPrepareImage <- function(
+  obj,
+  type = "vis",
+  prompt = "Explain the topics in this map",
+  key,
+  desc = NULL,
+  values
+) {
+  ## Check Computer configuration to work with TALL AI
+  ### Internet Connection
+  if (!is_online()) {
+    return(list(error = "\u26a0\ufe0f **Note**: TALL AI requires an active internet connection to work."))
+  }
+  ### Chromium Browser
+  if (is.null(values$Chrome_url)) {
+    return(list(error = "\u26a0\ufe0f **Note**: TALL AI requires a **Chrome-based browser** (such as Google Chrome or Microsoft Edge) installed on your computer to work correctly."))
+  }
+  ### Gemini API key
+  if (!key) {
+    return(list(error = 'To access this feature, please provide a valid Gemini AI API key. You can obtain your API key by visiting the official <a href="https://aistudio.google.com/" target="_blank">Google AI Studio website</a>.'))
+  }
+
+  if (!is.null(desc)) {
+    prompt <- paste0(prompt, desc, collapse = ". ")
+  }
+
+  # Snapshot API key for the future worker (env vars don't propagate)
+  api_key <- Sys.getenv("GEMINI_API_KEY")
+
+  tmpdir <- tempdir()
+  owd <- setwd(tmpdir)
+  on.exit(setwd(owd))
+  file_path <- paste0(tempfile(), ".png", collapse = "")
+
+  switch(
+    type,
+    "vis" = {
+      suppressWarnings(plot2png(
+        obj, filename = file_path, type = "vis", dpi = 150, height = 7
+      ))
+    },
+    "plotly" = {
+      suppressWarnings(plot2png(
+        obj, filename = file_path, type = "plotly", dpi = 150, height = 7
+      ))
+    },
+    "text" = {
+      file_path <- NULL
+    },
+    "multi" = {
+      file_path <- obj
+    },
+    "html" = {
+      html_name <- tempfile(fileext = ".html")
+      htmltools::save_html(obj, html_name)
+      tallShot(html_name, zoom = 150 / 96, file = file_path)
+      unlink(html_name)
+      unlink(paste0(tools::file_path_sans_ext(html_name), "_files"), recursive = TRUE)
+    },
+    "ggplot2" = {
+      ggsave(
+        filename = file_path, plot = obj,
+        dpi = 72, height = 7, width = 14, bg = "transparent"
+      )
+    }
+  )
+
+  return(list(
+    image = file_path,
+    prompt = prompt,
+    model = values$gemini_api_model,
+    outputSize = values$gemini_output_size,
+    api_key = api_key
+  ))
+}
+
+## Async-ready preparation: builds prompt, converts plots, returns data for future
+geminiPrepare <- function(
+  values,
+  activeTab,
+  gemini_additional,
+  gemini_model_parameters,
+  input
+) {
+  # Build desc (same logic as geminiGenerate)
+  if (gemini_additional != "") {
+    desc <- paste0(
+      values$corpus_description,
+      gemini_additional,
+      gemini_model_parameters,
+      collapse = ". "
+    )
+  } else {
+    desc <- paste0(
+      values$corpus_description,
+      gemini_model_parameters,
+      collapse = ". "
+    )
+  }
+  prompt <- tallAiPrompts(values, activeTab)
+
+  # Map activeTab to reactive field name
+  field <- switch(
+    activeTab,
+    "overview" = "overviewGemini",
+    "kwic" = "contextGemini",
+    "ca" = "caGemini",
+    "w_networkCooc" = "w_networkGemini",
+    "w_networkTM" = "w_networkTMGemini",
+    "w_w2v_similarity" = "w_w2vGemini",
+    "d_tm_estim" = "tmGemini",
+    "d_polDet" = "d_polDet_Gemini",
+    "d_emo" = "d_emo_Gemini",
+    "d_syntactic" = "d_syntactic_Gemini",
+    "d_svo" = "d_svo_Gemini",
+    NULL
+  )
+
+  if (is.null(field)) {
+    return(list(field = "overviewGemini", error = "Unsupported analysis tab"))
+  }
+
+  # Tab-specific image preparation
+  prep <- switch(
+    activeTab,
+    "overview" = {
+      req(values$VbData)
+      geminiPrepareImage(
+        obj = values$VbData, type = "text",
+        prompt = prompt, key = values$geminiAPI, desc = desc, values = values
+      )
+    },
+    "kwic" = {
+      req(values$contextNetwork)
+      geminiPrepareImage(
+        obj = values$contextNetwork, type = "vis",
+        prompt = prompt, key = values$geminiAPI, desc = desc, values = values
+      )
+    },
+    "ca" = {
+      req(values$plotCA)
+      geminiPrepareImage(
+        obj = values$plotCA, type = "plotly",
+        prompt = prompt, key = values$geminiAPI, desc = desc, values = values
+      )
+    },
+    "w_networkCooc" = {
+      req(values$netVis)
+      geminiPrepareImage(
+        obj = values$netVis, type = "vis",
+        prompt = prompt, key = values$geminiAPI, desc = desc, values = values
+      )
+    },
+    "w_networkTM" = {
+      req(values$TMmap)
+      geminiPrepareImage(
+        obj = plotTM(values$TM$df, size = 0.5, gemini = TRUE), type = "plotly",
+        prompt = prompt, key = values$geminiAPI, desc = desc, values = values
+      )
+    },
+    "w_w2v_similarity" = {
+      req(values$w2vNetworkPlot)
+      p1 <- values$w2vNetworkPlot
+      p2 <- values$w2vUMAPplot
+      files <- unlist(lapply(c("similarity", "umqp"), function(x) {
+        paste0(tempdir(), "/", x, ".png")
+      }))
+      suppressWarnings(plot2png(
+        p1, filename = files[1], type = "vis", dpi = 150, height = 7
+      ))
+      suppressWarnings(plot2png(
+        p2, filename = files[2], type = "plotly", dpi = 150, height = 7
+      ))
+      geminiPrepareImage(
+        obj = files, type = "multi",
+        prompt = prompt, key = values$geminiAPI, desc = desc, values = values
+      )
+    },
+    "d_tm_estim" = {
+      req(values$TMestim_result)
+      tmPlot <- topicGplot(
+        values$TMestim_result$beta, nPlot = 10, type = "beta"
+      )
+      geminiPrepareImage(
+        obj = tmPlot, type = "ggplot2",
+        prompt = prompt, key = values$geminiAPI, desc = desc, values = values
+      )
+    },
+    "d_polDet" = {
+      req(values$docPolPlots)
+      p1 <- values$sentimentPieChart
+      p2 <- values$docPolPlots$positive %>% layout(showlegend = FALSE)
+      p3 <- values$docPolPlots$negative %>% layout(showlegend = FALSE)
+      files <- unlist(lapply(c("topic1", "topic2", "topic3"), function(x) {
+        paste0(tempdir(), "/", x, ".png")
+      }))
+      suppressWarnings(plot2png(
+        p1, filename = files[1], type = "plotly", dpi = 150, height = 7
+      ))
+      suppressWarnings(plot2png(
+        p2, filename = files[2], type = "plotly", dpi = 150, height = 7
+      ))
+      suppressWarnings(plot2png(
+        p3, filename = files[3], type = "plotly", dpi = 150, height = 7
+      ))
+      geminiPrepareImage(
+        obj = files, type = "multi",
+        prompt = prompt, key = values$geminiAPI, desc = desc, values = values
+      )
+    },
+    "d_emo" = {
+      req(values$emotionBarChart)
+      p1 <- values$emotionBarChart
+      p2 <- values$emotionRadarPlot
+      p3 <- values$emotionHeatmap
+      files <- unlist(lapply(c("emo1", "emo2", "emo3"), function(x) {
+        paste0(tempdir(), "/", x, ".png")
+      }))
+      suppressWarnings(plot2png(
+        p1, filename = files[1], type = "plotly", dpi = 150, height = 7
+      ))
+      suppressWarnings(plot2png(
+        p2, filename = files[2], type = "plotly", dpi = 150, height = 7
+      ))
+      suppressWarnings(plot2png(
+        p3, filename = files[3], type = "plotly", dpi = 150, height = 7
+      ))
+      geminiPrepareImage(
+        obj = files, type = "multi",
+        prompt = prompt, key = values$geminiAPI, desc = desc, values = values
+      )
+    },
+    "d_syntactic" = {
+      req(values$syntacticResults)
+      prompt <- paste0(
+        prompt,
+        " Syntactic complexity metrics (corpus-level averages): ",
+        "Mean Sentence Length: ", round(mean(values$syntacticResults$mean_sent_length), 2),
+        "; Mean Tree Depth: ", round(mean(values$syntacticResults$mean_tree_depth), 2),
+        "; Mean Dependency Distance: ", round(mean(values$syntacticResults$mean_dep_distance), 2),
+        "; Mean Clauses per Sentence: ", round(mean(values$syntacticResults$mean_clauses_per_sent), 2),
+        "; Subordination Ratio: ", round(mean(values$syntacticResults$subordination_ratio), 2),
+        "; Mean Branching Factor: ", round(mean(values$syntacticResults$mean_branching_factor), 2),
+        ". Per-document metrics: ",
+        merge_df_to_string(head(values$syntacticResults, 20))
+      )
+      geminiPrepareImage(
+        obj = NULL, type = "text",
+        prompt = prompt, key = values$geminiAPI, desc = desc, values = values
+      )
+    },
+    "d_svo" = {
+      req(values$svoResults)
+      top_svo <- head(values$svoResults, 30)
+      # Build verb frequency summary
+      verb_freq <- values$svoResults %>%
+        dplyr::group_by(verb) %>%
+        dplyr::summarise(freq = sum(freq), .groups = "drop") %>%
+        dplyr::arrange(dplyr::desc(freq)) %>%
+        head(15)
+      prompt <- paste0(
+        prompt,
+        " Top SVO triplets (subject-verb-object with frequency): ",
+        merge_df_to_string(top_svo),
+        ". Most frequent verbs: ",
+        paste(paste0(verb_freq$verb, " (", verb_freq$freq, ")"), collapse = ", ")
+      )
+      geminiPrepareImage(
+        obj = NULL, type = "text",
+        prompt = prompt, key = values$geminiAPI, desc = desc, values = values
+      )
+    }
+  )
+
+  # Always include field in result
+  prep$field <- field
+  return(prep)
 }
 
 geminiWaitingMessage <- function(values, activeTab) {
@@ -913,6 +1363,18 @@ geminiWaitingMessage <- function(values, activeTab) {
     "d_polDet" = {
       req(values$docPolPlots)
       values$d_polDet_Gemini <- messageTxt
+    },
+    "d_emo" = {
+      req(values$emotionBarChart)
+      values$d_emo_Gemini <- messageTxt
+    },
+    "d_syntactic" = {
+      req(values$syntacticResults)
+      values$d_syntactic_Gemini <- messageTxt
+    },
+    "d_svo" = {
+      req(values$svoResults)
+      values$d_svo_Gemini <- messageTxt
     }
   )
   return(values)
@@ -955,6 +1417,18 @@ geminiSave <- geminiSave <- function(values, activeTab) {
     "d_polDet" = {
       req(values$docPolPlots)
       gemini <- values$d_polDet_Gemini
+    },
+    "d_emo" = {
+      req(values$emotionBarChart)
+      gemini <- values$d_emo_Gemini
+    },
+    "d_syntactic" = {
+      req(values$syntacticResults)
+      gemini <- values$d_syntactic_Gemini
+    },
+    "d_svo" = {
+      req(values$svoResults)
+      gemini <- values$d_svo_Gemini
     }
   )
   if (is.null(gemini)) {
@@ -1060,52 +1534,82 @@ gemini_to_html <- function(text, font_size = "16px", type = "tall_ai") {
   # Divide text into lines
   lines <- unlist(strsplit(text, "\n", fixed = TRUE))
 
-  # Remove empty rows
-  lines <- lines[lines != ""]
-
   # Initialize HTML output with CSS styles including font size
   if (type == "tall_ai") {
     html_lines <- c(
       paste0(
-        "<div style='font-family: Arial, sans-serif; line-height: 1.3; margin: 0 auto; padding: 20px; font-size: ",
+        "<div style='font-family: Arial, sans-serif; line-height: 1.4; margin: 0 auto; padding: 15px; font-size: ",
         font_size,
         ";'>"
       )
     )
   } else {
     html_lines <-
-      "<div style='font-family: \'Georgia\', \'Times New Roman\', serif; line-height: 1.8; margin: 0 auto; padding: 20px; font-size: 1.1em;'>"
+      "<div style='font-family: \"Georgia\", \"Times New Roman\", serif; line-height: 1.8; margin: 0 auto; padding: 15px; font-size: 1.1em;'>"
   }
 
   in_list <- FALSE
   list_type <- ""
+  last_ol_number <- 0  # Track numbering for continued <ol>
 
-  for (i in 1:length(lines)) {
+  close_list <- function() {
+    if (in_list) {
+      if (list_type == "ul") {
+        html_lines <<- c(html_lines, "</ul>")
+      } else {
+        html_lines <<- c(html_lines, "</ol>")
+      }
+      in_list <<- FALSE
+    }
+  }
+
+  for (i in seq_along(lines)) {
     line <- trimws(lines[i])
 
-    # Jump empty lines
-    if (line == "") {
-      next
-    }
+    # Skip empty lines
+    if (line == "") next
 
-    # Title management (lines enclosed in **)
-    if (stringr::str_detect(line, "^\\*\\*[^*]+\\*\\*$")) {
-      # Close any open lists
-      if (in_list) {
-        if (list_type == "ul") {
-          html_lines <- c(html_lines, "</ul>")
-        } else {
-          html_lines <- c(html_lines, "</ol>")
-        }
-        in_list <- FALSE
-      }
+    # Skip horizontal rules (--- or ***)
+    if (grepl("^[-*_]{3,}\\s*$", line)) next
 
-      # Convert titles
-      title_text <- stringr::str_replace_all(line, "^\\*\\*(.+)\\*\\*$", "\\1")
+    # Markdown header management (lines starting with #, ##, ###, ####)
+    if (stringr::str_detect(line, "^#{1,4}\\s+")) {
+      close_list()
+
+      header_level <- nchar(stringr::str_extract(line, "^#+"))
+      header_text <- stringr::str_replace(line, "^#+\\s+", "")
+      header_text <- stringr::str_replace(header_text, "\\s*#+\\s*$", "")
+      header_text <- stringr::str_replace_all(header_text, "\\*\\*([^*]+)\\*\\*", "\\1")
+
+      h_tag <- paste0("h", min(header_level + 1, 5))
+      h_size <- switch(as.character(header_level),
+        "1" = "font-size: 1.3em;",
+        "2" = "font-size: 1.15em;",
+        "3" = "font-size: 1.05em;",
+        "font-size: 1em;"
+      )
       html_lines <- c(
         html_lines,
         paste0(
-          "<h3 style='color: #333; border-bottom: 2px solid #007acc; padding-bottom: 5px; margin-bottom: 10px; margin-top: 20px;'>",
+          "<", h_tag, " style='color: #333; border-bottom: 1px solid #007acc; padding-bottom: 4px; margin-bottom: 6px; margin-top: 14px; ", h_size, "'>",
+          header_text,
+          "</", h_tag, ">"
+        )
+      )
+      next
+    }
+
+    # Title management (lines enclosed in ** only)
+    if (stringr::str_detect(line, "^\\*\\*[^*]+\\*\\*$")) {
+      close_list()
+
+      title_text <- stringr::str_replace_all(line, "^\\*\\*(.+)\\*\\*$", "\\1")
+      # Remove leading number+dot if present (e.g. "1. General Summary")
+      title_text <- stringr::str_replace(title_text, "^\\d+\\.\\s*", "")
+      html_lines <- c(
+        html_lines,
+        paste0(
+          "<h3 style='color: #333; border-bottom: 1px solid #007acc; padding-bottom: 4px; margin-bottom: 6px; margin-top: 14px;'>",
           title_text,
           "</h3>"
         )
@@ -1113,84 +1617,67 @@ gemini_to_html <- function(text, font_size = "16px", type = "tall_ai") {
       next
     }
 
-    # Managing bulleted lists (starting with *)
-    if (stringr::str_detect(line, "^\\s*\\*\\s+")) {
-      # If we are not already in a bulleted list, start it
+    # Managing bulleted lists (starting with * or -)
+    if (stringr::str_detect(line, "^\\s*[*\\-]\\s+")) {
       if (!in_list || list_type != "ul") {
-        if (in_list && list_type == "ol") {
-          html_lines <- c(html_lines, "</ol>")
-        }
+        close_list()
         html_lines <- c(
           html_lines,
-          "<ul style='margin-bottom: 10px; margin-top: 5px;'>"
+          "<ul style='margin-bottom: 6px; margin-top: 4px;'>"
         )
         in_list <- TRUE
         list_type <- "ul"
       }
 
-      # Remove the asterisk and format the content
-      item_text <- stringr::str_replace(line, "^\\s*\\*\\s+", "")
-
+      item_text <- stringr::str_replace(line, "^\\s*[*\\-]\\s+", "")
       item_text <- format_inline_text(item_text, type = type)
 
       html_lines <- c(
         html_lines,
-        paste0("<li style='margin-bottom: 3px;'>", item_text, "</li>")
+        paste0("<li style='margin-bottom: 2px;'>", item_text, "</li>")
       )
       next
     }
 
     # Managing numbered lists (starting with a number followed by a period)
     if (stringr::str_detect(line, "^\\s*\\d+\\.\\s+")) {
-      # If we are not already in a numbered list, start it
+      item_number <- as.integer(stringr::str_extract(line, "^\\s*\\d+"))
+
       if (!in_list || list_type != "ol") {
-        if (in_list && list_type == "ul") {
-          html_lines <- c(html_lines, "</ul>")
-        }
+        close_list()
+        # Use start attribute to continue numbering from where we left off
+        start_attr <- if (item_number > 1) paste0(" start='", item_number, "'") else ""
         html_lines <- c(
           html_lines,
-          "<ol style='margin-bottom: 10px; margin-top: 5px;'>"
+          paste0("<ol style='margin-bottom: 6px; margin-top: 4px;'", start_attr, ">")
         )
         in_list <- TRUE
         list_type <- "ol"
       }
 
-      # Remove the number and format the content
+      last_ol_number <- item_number
       item_text <- stringr::str_replace(line, "^\\s*\\d+\\.\\s+", "")
       item_text <- format_inline_text(item_text, type = type)
       html_lines <- c(
         html_lines,
-        paste0("<li style='margin-bottom: 3px;'>", item_text, "</li>")
+        paste0("<li style='margin-bottom: 2px;'>", item_text, "</li>")
       )
       next
     }
 
-    # If we get here and we're in a list, let's close it
-    if (in_list) {
-      if (list_type == "ul") {
-        html_lines <- c(html_lines, "</ul>")
-      } else {
-        html_lines <- c(html_lines, "</ol>")
-      }
-      in_list <- FALSE
-    }
+    # Non-list, non-header line: close any open list
+    close_list()
 
     # Normal paragraph management
     formatted_line <- format_inline_text(line, type = type)
     html_lines <- c(
       html_lines,
-      paste0("<p style='margin-bottom: 8px;'>", formatted_line, "</p>")
+      paste0("<p style='margin-bottom: 5px; margin-top: 2px;'>", formatted_line, "</p>")
     )
   }
 
   # Close any lists that remain open
-  if (in_list) {
-    if (list_type == "ul") {
-      html_lines <- c(html_lines, "</ul>")
-    } else {
-      html_lines <- c(html_lines, "</ol>")
-    }
-  }
+  close_list()
 
   # Close the container div
   html_lines <- c(html_lines, "</div>")

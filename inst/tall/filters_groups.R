@@ -212,12 +212,11 @@ filters_groupsServer <- function(input, output, session, values, statsValues) {
     })
   })
 
-  filterDATA <- eventReactive(
+  # Eagerly update docSelected when filter is applied
+  observeEvent(
     ignoreNULL = TRUE,
-    eventExpr = {
-      input$filterRun
-    },
-    valueExpr = {
+    eventExpr = input$filterRun,
+    handlerExpr = {
       if (!is.null(input$filterList)) {
         docSelected <- data.frame(matrix(ncol = 0, nrow = nrow(values$dfTag)))
         for (var in input$filterList) {
@@ -248,40 +247,36 @@ filters_groupsServer <- function(input, output, session, values, statsValues) {
             docSelected[[var]] <- TRUE
           }
         }
-        values$dfTag$docSelected <- ifelse(
+        df <- values$dfTag
+        df$docSelected <- ifelse(
           rowSums(docSelected) >= ncol(docSelected),
           TRUE,
           FALSE
         )
+        values$dfTag <- df
       } else {
-        values$dfTag$docSelected <- TRUE
+        df <- values$dfTag
+        df$docSelected <- TRUE
+        values$dfTag <- df
       }
-      values$dfTag
-    }
-  )
 
-  observeEvent(
-    eventExpr = input$filterRun,
-    handlerExpr = {
+      # Update filter summary
       output$filterSummary <- renderUI({
-        num_docs <- length(unique(
-          LemmaSelection(values$dfTag) %>% filter(docSelected) %>% pull(doc_id)
-        ))
+        filtered <- LemmaSelection(values$dfTag) %>% filter(docSelected)
+        num_docs <- n_distinct(filtered$doc_id)
         num_paragraphs <- sum(
-          LemmaSelection(values$dfTag) %>%
-            filter(docSelected) %>%
+          filtered %>%
             group_by(doc_id) %>%
             summarize(sent = max(paragraph_id)) %>%
             pull()
         )
         num_sentences <- sum(
-          LemmaSelection(values$dfTag) %>%
-            filter(docSelected) %>%
+          filtered %>%
             group_by(doc_id) %>%
             summarize(sent = max(sentence_id)) %>%
             pull()
         )
-        num_tokens <- nrow(LemmaSelection(values$dfTag) %>% filter(docSelected))
+        num_tokens <- nrow(filtered)
 
         HTML(paste(
           "<div style='border: 1px solid #ddd; padding: 10px; border-radius: 5px; background-color: #f9f9f9;'>",
@@ -306,7 +301,8 @@ filters_groupsServer <- function(input, output, session, values, statsValues) {
   )
 
   output$filterData <- renderDT({
-    filterDATA()
+    req(values$dfTag)
+    input$filterRun
     DTformat(
       LemmaSelection(values$dfTag) %>%
         dplyr::filter(docSelected) %>%
@@ -342,7 +338,9 @@ filters_groupsServer <- function(input, output, session, values, statsValues) {
       input$filterBack
     },
     handlerExpr = {
-      values$dfTag$docSelected <- TRUE
+      df <- values$dfTag
+      df$docSelected <- TRUE
+      values$dfTag <- df
       lapply(input$filterList, function(var) {
         removeUI(paste0("filter_", var))
         if (is.factor(values$dfTag[[var]])) {

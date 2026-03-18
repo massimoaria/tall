@@ -75,7 +75,7 @@ helpContent <- function() {
   ## split ----
   split <- "<body>
 
-    <h3><strong>Splitting the Corpus in TALL</strong></strong></h3>
+    <h3><strong>Splitting the Corpus in TALL</strong></h3>
 
     <p>TALL allows users to split textual data into smaller segments based on a specified sequence of characters. This feature is particularly useful when dealing with large documents containing multiple sections or structured content that needs to be analyzed separately.</p>
     <hr>
@@ -95,23 +95,29 @@ helpContent <- function() {
 
     <p>By offering a flexible splitting mechanism, TALL ensures that text segmentation aligns with the user's analytical needs, preserving the original structure for meaningful interpretation.</p>
 
+    <hr>
+    <div class='references'>
+      <h4><strong>References</strong></h4>
+      <p><strong>Aria, M., Cuccurullo, C., D'Aniello, L., Misuraca, M., &amp; Spano, M.</strong> (2024) <i>Breaking Barriers with TALL: A Text Analysis Shiny app for ALL.</i> In A. Dister, D. Longr&eacute;e (eds.), <i>Mots competes textes d&eacute;chiffr&eacute;s (JADT24)</i>, Presses Universitaires De Louvain, Vol.1, pp.39-48.</p>
+    </div>
+
 </body>"
 
   # random sample ----
   random <- "<body>
 
-    <h3><strong>Random Text Selection in TALL</strong></strong></h3>
+    <h3><strong>Random Text Selection in TALL</strong></h3>
 
     <p>TALL allows users to extract a random subset of imported texts for focused analysis. This feature is particularly useful when working with large corpora, enabling users to explore representative samples without processing the entire dataset.</p>
     <hr>
-    <h4><strong>How It Works</strong></strong></h4>
+    <h4><strong>How It Works</strong></h4>
     <ul>
     <li>The total number of imported texts is displayed, providing an overview of the dataset size.</li>
     <li>Users can define the <strong>sample size</strong> as a percentage (%) of the total corpus.</li>
     <li>The selection process is <strong>random</strong>, ensuring an unbiased representation of the dataset.</li>
     </ul>
     <hr>
-    <h4><strong>Example Use Cases</strong></strong></h4>
+    <h4><strong>Example Use Cases</strong></h4>
     <ul>
     <li><strong>Analyzing Social Media Data:</strong> Selecting 10% of tweets from a large dataset to perform sentiment analysis.</li>
     <li><strong>Survey Research:</strong> Extracting a random subset of open-ended responses for qualitative coding.</li>
@@ -119,43 +125,56 @@ helpContent <- function() {
     </ul>
 
     <p>By enabling controlled sampling, TALL helps users balance efficiency and analytical depth, making text exploration more manageable and meaningful.</p>
+
+    <hr>
+    <div class='references'>
+      <h4><strong>References</strong></h4>
+      <p><strong>Aria, M., Cuccurullo, C., D'Aniello, L., Misuraca, M., &amp; Spano, M.</strong> (2024) <i>Breaking Barriers with TALL: A Text Analysis Shiny app for ALL.</i> In A. Dister, D. Longr&eacute;e (eds.), <i>Mots competes textes d&eacute;chiffr&eacute;s (JADT24)</i>, Presses Universitaires De Louvain, Vol.1, pp.39-48.</p>
+    </div>
+
     </body>"
 
   ## external info ----
   externalinfo <- "<body>
 
-    <h3><strong>Importing External Information in TALL</strong></strong></h3>
+    <h3><strong>Importing External Information in TALL</strong></h3>
 
     <p>TALL allows users to integrate additional information into their analysis by importing external datasets. This feature is particularly useful for enriching text data with metadata, annotations, or categorical variables, enabling a more comprehensive exploration of textual patterns.</p>
     <hr>
-    <h4><strong>How to Import External Data</strong></strong></h4>
+    <h4><strong>How to Import External Data</strong></h4>
     <ul>
     <li>The external file must be in <strong>Excel format</strong> (<code>.xlsx</code>).</li>
     <li>The dataset must include a column labeled <strong>'doc_id'</strong>, which is used to match external information with the previously imported text data.</li>
     <li>The <strong>'doc_id'</strong> values must correspond exactly to the document identifiers assigned during text import to ensure proper alignment.</li>
     </ul>
     <hr>
-    <h4><strong>Using External Information</strong></strong></h4>
+    <h4><strong>Using External Information</strong></h4>
     <ul>
     <li>Imported external data can be used to <strong>filter</strong> or <strong>group documents</strong> based on specific attributes (e.g., author, category, sentiment).</li>
     <li>This allows users to segment text collections efficiently, focusing on subsets relevant to their research questions.</li>
     </ul>
     <hr>
-    <h4><strong>Download Document Identifiers</strong></strong></h4>
+    <h4><strong>Download Document Identifiers</strong></h4>
     <p>To facilitate the integration process, users can download a list of <strong>'doc_id'</strong> values associated with the imported text files below. This ensures that external data is formatted correctly before uploading.</p>
 
     <p>By supporting the import of structured external data, TALL enhances text analysis capabilities, allowing users to incorporate contextual information for richer insights.</p>
+
+    <hr>
+    <div class='references'>
+      <h4><strong>References</strong></h4>
+      <p><strong>Aria, M., Cuccurullo, C., D'Aniello, L., Misuraca, M., &amp; Spano, M.</strong> (2024) <i>Breaking Barriers with TALL: A Text Analysis Shiny app for ALL.</i> In A. Dister, D. Longr&eacute;e (eds.), <i>Mots competes textes d&eacute;chiffr&eacute;s (JADT24)</i>, Presses Universitaires De Louvain, Vol.1, pp.39-48.</p>
+    </div>
 
     </body>"
 
   ## tokenization ----
   tokenization <- "<body>
 
-    <h3><strong>Tokenization, Lemmatization, and PoS Tagging in TALL</strong></strong></h3>
+    <h3><strong>Tokenization, Lemmatization, and PoS Tagging in TALL</strong></h3>
 
     <p>TALL provides robust Natural Language Processing (NLP) capabilities for preprocessing textual data, including <strong>tokenization, lemmatization, and Part-of-Speech (PoS) tagging</strong>. These steps are essential for transforming raw text into a structured format suitable for further analysis.</p>
     <hr>
-    <h4><strong>Powered by UDPipe for NLP Preprocessing</strong></strong></h4>
+    <h4><strong>Powered by UDPipe for NLP Preprocessing</strong></h4>
     <p>TALL leverages the <strong>UDPipe</strong> library to perform tokenization, tagging, lemmatization, and dependency parsing. The <a href='https://cran.r-project.org/web/packages/udpipe/index.html' target='_blank'>udpipe R package</a> offers seamless access to pre-trained annotation models, supporting multiple languages.</p>
 
       <ul>
@@ -165,12 +184,12 @@ helpContent <- function() {
       <li><strong>Dependency Parsing:</strong> Identifies syntactic relationships between words in a sentence.</li>
       </ul>
       <hr>
-      <h4><strong>Updated Pre-trained Language Models</strong></strong></h4>
+      <h4><strong>Updated Pre-trained Language Models</strong></h4>
       <p>By default, UDPipe includes models based on <a href='https://universaldependencies.org/' target='_blank'>Universal Dependencies (UD)</a> version 2.5, but these had not been updated in some time. To enhance accuracy and ensure better linguistic processing, TALL now integrates updated <strong>pre-trained NLP language models</strong> from <strong>Universal Dependencies (UD) version 2.15</strong>.</p>
 
         <p>These models were trained using <strong>gold standard annotated corpora</strong> from the UD project, significantly improving the quality of text analysis in TALL. The updated pre-trained models used in TALL can be accessed through our <a href='https://github.com/massimoaria/tall.language.models' target='_blank'>GitHub repository</a>.</p>
       <hr>
-          <h4><strong>Applications in NLP and Text Analysis</strong></strong></h4>
+          <h4><strong>Applications in NLP and Text Analysis</strong></h4>
           <ul>
           <li><strong>Sentiment Analysis:</strong> Better understanding of word usage and context.</li>
           <li><strong>Topic Modeling:</strong> Improved preprocessing for cleaner topic extraction.</li>
@@ -180,7 +199,7 @@ helpContent <- function() {
           <p>By integrating updated NLP models and leveraging powerful preprocessing techniques, TALL ensures high-quality text analysis, making it a valuable tool for researchers and practitioners in computational linguistics.</p>
          <hr>
           <div class='references'>
-            <h4><strong>References</strong></strong></h4>
+            <h4><strong>References</strong></h4>
             <p><strong>TALL Pre-trained Models Repository:</strong> <a href='https://github.com/massimoaria/tall.language.models' target='_blank'>GitHub repository for pre-trained models</a></p>
               <p><strong>UDPipe R Package:</strong> <a href='https://cran.r-project.org/web/packages/udpipe/index.html' target='_blank'>CRAN link to UDPipe</a></p>
                 <p><strong>Universal Dependencies Repository:</strong> <a href='https://universaldependencies.org/' target='_blank'>Universal Dependencies project</a></p>
@@ -191,12 +210,12 @@ helpContent <- function() {
   ## special entities ----
   specialentities <- "<body>
 
-    <h3><strong>Tagging Special Entities in TALL</strong></strong></h3>
+    <h3><strong>Tagging Special Entities in TALL</strong></h3>
 
     <p>TALL automatically detects and tags <strong>special entities</strong> within texts, ensuring that key non-linguistic elements are properly identified and can be leveraged in further analysis.
     <br>Recognizing these entities helps improve text preprocessing, pattern recognition, and contextual analysis.</p>
     <hr>
-    <h4><strong>Detected Special Entities</strong></strong></h4>
+    <h4><strong>Detected Special Entities</strong></h4>
     <p>When processing textual data, TALL assigns specific tags to the following entities:</p>
     <ul>
     <li><strong>Email Addresses:</strong> Recognizes and tags email formats (e.g., <code>example@domain.com</code>).</li>
@@ -207,7 +226,7 @@ helpContent <- function() {
     <li><strong>Mentions:</strong> Identifies references to usernames, particularly in social media or chat applications (e.g., <code>@username</code>).</li>
     </ul>
     <hr>
-    <h4><strong>Why Special Entity Tagging Matters?</strong></strong></h4>
+    <h4><strong>Why Special Entity Tagging Matters?</strong></h4>
     <ul>
     <li><strong>Enhanced Text Cleaning:</strong> Filtering out or isolating elements that may not contribute to linguistic analysis.</li>
     <li><strong>Social Media and Web Analysis:</strong> Extracting meaningful patterns from hashtags, mentions, and URLs.</li>
@@ -217,6 +236,13 @@ helpContent <- function() {
 
     <p>By integrating special entity recognition, TALL enhances the preprocessing phase, ensuring that these elements are structured for more effective text analysis.</p>
 
+    <hr>
+    <div class='references'>
+      <h4><strong>References</strong></h4>
+      <p><strong>Jurafsky, D., &amp; Martin, J.H.</strong> (2024) <i>Speech and Language Processing.</i> 3rd edition (draft). Chapter 8: Sequence Labeling for Parts of Speech and Named Entities.</p>
+      <p><strong>Nadeau, D., &amp; Sekine, S.</strong> (2007) <i>A survey of named entity recognition and classification.</i> <strong>Lingvisticae Investigationes</strong>, 30(1), 3-26.</p>
+    </div>
+
     </body>"
 
   ## multiword creation ----
@@ -224,7 +250,36 @@ helpContent <- function() {
   multiwordcreation <- "
 <body>
     <h3><strong>Algorithms for Automatic Multi-Word Extraction</strong></h3>
-    <p>The software <strong>TALL - Text Analysis for All</strong> employs five key algorithms to automatically generate multi-word sequences from a corpus of documents. These methods, widely recognized in computational linguistics and text mining, include <strong>IS Index (Absorption Index)</strong>, <strong>Rapid Automatic Keyword Extraction (RAKE)</strong>, <strong>Pointwise Mutual Information (PMI)</strong>, <strong>Mutual Dependency (MD)</strong>, and <strong>Log-Frequency Biased Mutual Dependency (LF-MD)</strong>.</p>
+    <p>TALL implements six methods to automatically extract multi-word expressions from a corpus. These include a <strong>syntactic approach</strong> based on dependency parsing and five <strong>statistical approaches</strong> based on co-occurrence measures.</p>
+
+    <hr>
+    <h4><strong>Syntactic Approach</strong></h4>
+
+    <br><h4><strong>- Dependency Parsing (NP)</strong></h4>
+    <p>This method extracts <strong>noun phrases</strong> by traversing the syntactic dependency tree produced during tokenization. Unlike statistical methods that rely on sequential co-occurrence patterns, this approach identifies linguistically motivated multi-word units based on their grammatical structure.</p>
+    <p>The algorithm works as follows:</p>
+    <ul>
+      <li>For each <strong>NOUN</strong> or <strong>PROPN</strong> in the corpus, the dependency tree is traversed to find its syntactic dependents.</li>
+      <li>Dependents with the following relations are collected: <strong>amod</strong> (adjective modifier, e.g., &quot;higher rate&quot;), <strong>compound</strong> (compound noun, e.g., &quot;machine learning&quot;), <strong>flat</strong> (flat multiword, e.g., &quot;New York&quot;), <strong>nmod</strong> (prepositional modifier, e.g., &quot;rate of prediabetes&quot;), and <strong>nummod</strong> (numeric modifier).</li>
+      <li>For <strong>nmod</strong> dependents, the connecting preposition (<strong>case</strong> relation) is also included.</li>
+      <li>The resulting tokens are sorted by position and assembled into a phrase.</li>
+    </ul>
+    <p><strong>Advantages over statistical methods:</strong></p>
+    <ul>
+      <li>Captures <strong>non-adjacent</strong> multi-word units (e.g., &quot;rate of prediabetes&quot; where &quot;of&quot; is a function word).</li>
+      <li>Does not require <strong>PoS tag selection</strong> &mdash; the algorithm follows the syntactic structure automatically.</li>
+      <li><strong>No false positives</strong> from coincidental co-occurrence &mdash; only grammatically related words are grouped.</li>
+      <li>Implemented in <strong>C++</strong> for high performance on large corpora.</li>
+    </ul>
+    <p><strong>Parameters:</strong> <em>Max Phrase Length</em> (max tokens per phrase, default 5) and <em>Freq Min</em> (minimum occurrences).</p>
+    <p><strong>Score:</strong> DEP = frequency &times; phrase length (longer frequent phrases score higher).</p>
+    <p><strong>References:</strong><br>
+    de Marneffe, M.-C., Manning, C.D., Nivre, J., &amp; Zeman, D. (2021). <em>Universal Dependencies</em>. Computational Linguistics, 47(2), 255-308.<br>
+    Straka, M., &amp; Strakov&aacute;, J. (2017). <em>Tokenizing, POS Tagging, Lemmatizing and Parsing UD 2.0 with UDPipe</em>. In CoNLL Shared Task.</p>
+
+    <hr>
+    <h4><strong>Statistical Approaches</strong></h4>
+    <p>The following methods identify multi-word expressions based on statistical co-occurrence patterns. They require the user to select which <strong>PoS tags</strong> to consider for candidate terms.</p>
 
     <br><h4><strong>- Rapid Automatic Keyword Extraction (RAKE)</strong></h4>
     <p>RAKE is a domain-independent keyword extraction algorithm that identifies key phrases by analyzing word co-occurrences within a document. It segments text into candidate keyword phrases based on stopword delimiters and then assigns scores based on word co-occurrence and frequency. Higher-scoring phrases are considered more relevant as multi-word expressions.</p>
@@ -246,30 +301,49 @@ helpContent <- function() {
     Thanopoulos, A., Fakotakis, N., &amp; Kokkinakis, G. (2002, May). <em>Comparative Evaluation of Collocation Extraction Metrics.</em> In LREC (Vol. 2, pp. 620-625).</p>
 
     <br><h4><strong>- Log-Frequency Biased Mutual Dependency (LF-MD)</strong></h4>
-    <p>LF-MD refines the MD approach by incorporating word frequency into the dependency calculation. This method biases the selection of multi-word expressions toward frequent collocations while maintaining a balance between statistical significance and linguistic relevance. It is particularly useful in extracting meaningful multi-word expressions in large corpora where rare but statistically significant collocations might otherwise dominate.</p>
+    <p>LF-MD refines the MD approach by incorporating word frequency into the dependency calculation. This method biases the selection of multi-word expressions toward frequent collocations while maintaining a balance between statistical significance and linguistic relevance.</p>
     <p><strong>Reference:</strong><br>
     Thanopoulos, A., Fakotakis, N., &amp; Kokkinakis, G. (2002, May). <em>Comparative Evaluation of Collocation Extraction Metrics.</em> In LREC (Vol. 2, pp. 620-625).</p>
 
     <br><h4><strong>- IS Index (Absorption Index)</strong></h4>
-    <p>The IS Index, proposed by Morrone (1996), is a cohesiveness measure for word sequences that combines three key factors: word rarity, sequence frequency, and lexical density. The index is calculated as:</p>
+    <p>The IS Index, proposed by Morrone (1993), is a cohesiveness measure for word sequences that combines three key factors: word rarity, sequence frequency, and lexical density. The index is calculated as:</p>
     <p style='text-align: center;'>
-        <em>IS(s) = (Σ 1/freq(w<sub>i</sub>)) × freq(s) × n<sub>lexical</sub></em>
+        <em>IS(s) = (&Sigma; 1/freq(w<sub>i</sub>)) &times; freq(s) &times; n<sub>lexical</sub></em>
     </p>
-    <p>where freq(w<sub>i</sub>) is the frequency of each word in the sequence, freq(s) is the frequency of the complete sequence, and n<sub>lexical</sub> is the number of lexical words (e.g. NOUN, ADJ, ADV, etc.) in the sequence. The normalized version, IS<sub>norm</sub> = IS / L², allows fair comparison between sequences of different lengths, where L is the sequence length.</p>
-    <p>The algorithm generates n-grams within sentence boundaries and applies an optimization strategy: only sequences that start AND end with lexical words are considered, significantly reducing computation time while focusing on meaningful expressions. High IS values identify sequences with rare words that frequently co-occur, making them excellent candidates for terminology extraction and theme identification.</p>
+    <p>where freq(w<sub>i</sub>) is the frequency of each word in the sequence, freq(s) is the frequency of the complete sequence, and n<sub>lexical</sub> is the number of lexical words in the sequence. The normalized version, IS<sub>norm</sub> = IS / L&sup2;, allows fair comparison between sequences of different lengths.</p>
     <p><strong>Reference:</strong><br>
-    Morrone, A. (1993). <em>Alcuni criteri di valutazione della significatività dei segmenti ripetuti</em>. In JADT (pp. 445-453).</p>
+    Morrone, A. (1993). <em>Alcuni criteri di valutazione della significativit&agrave; dei segmenti ripetuti</em>. In JADT (pp. 445-453).</p>
+
+    <hr>
+    <h4><strong>Choosing the Right Method</strong></h4>
+    <table style='width:100%; border-collapse:collapse; margin-bottom:15px;'>
+      <thead>
+        <tr style='background-color:#f0f0f0; border-bottom:2px solid #ccc;'>
+          <th style='padding:8px; text-align:left;'>Method</th>
+          <th style='padding:8px; text-align:left;'>Basis</th>
+          <th style='padding:8px; text-align:left;'>Best for</th>
+          <th style='padding:8px; text-align:center;'>PoS selection</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style='padding:6px;'><strong>Dep. Parsing (NP)</strong></td><td>Syntactic structure</td><td>Linguistically accurate phrases, prepositional phrases</td><td style='text-align:center;'>No</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'>RAKE</td><td>Co-occurrence + frequency</td><td>General-purpose keyword extraction</td><td style='text-align:center;'>Yes</td></tr>
+        <tr><td style='padding:6px;'>PMI</td><td>Probabilistic association</td><td>Identifying strongly associated word pairs</td><td style='text-align:center;'>Yes</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'>MD / LF-MD</td><td>Mutual dependency</td><td>Balanced extraction in large corpora</td><td style='text-align:center;'>Yes</td></tr>
+        <tr><td style='padding:6px;'>IS Index</td><td>Rarity + frequency + density</td><td>Terminology extraction, domain-specific terms</td><td style='text-align:center;'>No (auto)</td></tr>
+      </tbody>
+    </table>
 </body>
 "
 
   ## multiword list ----
   multiwordlist <- "<body>
 
-    <h3><strong>Multi-Word Creation by a List in TALL</strong></strong></h3>
+    <h3><strong>Multi-Word Creation by a List in TALL</strong></h3>
 
     <p>TALL allows users to define <strong>multi-word expressions (MWEs)</strong> by importing a predefined list of multi-word terms. This feature is particularly useful for ensuring that specific phrases or domain-specific expressions are treated as single units during text processing, improving linguistic analysis.</p>
     <hr>
-    <h4><strong>How to Import a Multi-Word List</strong></strong></h4>
+    <h4><strong>How to Import a Multi-Word List</strong></h4>
     <p>To integrate multi-word expressions into the analysis, users must provide a properly formatted list:</p>
     <ul>
     <li>The list must be in <strong>Excel (<code>.xlsx</code>) or CSV (<code>.csv</code>) format</strong>.</li>
@@ -277,7 +351,7 @@ helpContent <- function() {
     <li><strong>Each term within a multi-word expression must be separated by a single whitespace<br></strong> (e.g., <code>machine learning</code>, <code>natural language processing</code>).</li>
     </ul>
     <hr>
-    <h4><strong>Why Use Multi-Word Expressions?</strong></strong></h4>
+    <h4><strong>Why Use Multi-Word Expressions?</strong></h4>
     <ul>
     <li><strong>Preserving Meaningful Phrases:</strong> Ensuring that key terms (e.g., <code>artificial intelligence</code>) are not split into separate words.</li>
     <li><strong>Improving Text Preprocessing:</strong> Enhancing tokenization and lemmatization by treating phrases as cohesive units.</li>
@@ -286,16 +360,22 @@ helpContent <- function() {
 
     <p>By supporting multi-word recognition, TALL provides users with greater flexibility in structuring their text analysis and ensures that critical expressions are accurately identified and processed.</p>
 
+    <hr>
+    <div class='references'>
+      <h4><strong>References</strong></h4>
+      <p><strong>Sag, I.A., Baldwin, T., Bond, F., Copestake, A., &amp; Flickinger, D.</strong> (2002) <i>Multiword expressions: A pain in the neck for NLP.</i> In <strong>Proceedings of the Third International Conference on Intelligent Text Processing and Computational Linguistics (CICLing)</strong>, 1-15.</p>
+    </div>
+
     </body>"
 
   ## custom pos ----
   customterm <- "<body>
 
-    <h3><strong>Custom PoS List in TALL</strong></strong></h3>
+    <h3><strong>Custom PoS List in TALL</strong></h3>
 
     <p>TALL allows users to define a <strong>Custom PoS List</strong>, enabling more precise control over text processing and linguistic analysis. This feature allows users to manually assign custom PoS tags to specific terms, overriding their default categorization by the language model.</p>
     <hr>
-    <h4><strong>Why Use a Custom PoS List?</strong></strong></h4>
+    <h4><strong>Why Use a Custom PoS List?</strong></h4>
     <ul>
     <li><strong>Highlighting Specific Concepts:</strong> Identifying key terms related to methodologies, specialized vocabulary, or domain-specific jargon.</li>
     <li><strong>Filtering Stop Words:</strong> Removing terms that are irrelevant to the analysis, ensuring a cleaner dataset.</li>
@@ -303,7 +383,7 @@ helpContent <- function() {
     <li><strong>Overriding Default PoS Assignments:</strong> Ensuring consistency in tagging across texts by defining a fixed categorization for certain terms.</li>
     </ul>
     <hr>
-    <h4><strong>How to Import a Custom PoS List</strong></strong></h4>
+    <h4><strong>How to Import a Custom PoS List</strong></h4>
     <p>To integrate a custom list of terms, users must provide a properly formatted file:</p>
     <ul>
     <li>The list must be in <strong>Excel format (<code>.xlsx</code>)</strong>.</li>
@@ -346,114 +426,105 @@ helpContent <- function() {
 <br>
     <p>By allowing users to define and control term tagging, TALL provides enhanced flexibility for text analysis, making it a powerful tool for domain-specific research and refined linguistic processing.</p>
 
+    <hr>
+    <div class='references'>
+      <h4><strong>References</strong></h4>
+      <p><strong>Petrov, S., Das, D., &amp; McDonald, R.</strong> (2012) <i>A universal part-of-speech tagset.</i> In <strong>Proceedings of the Eighth International Conference on Language Resources and Evaluation (LREC)</strong>, Istanbul, Turkey.</p>
+      <p><strong>de Marneffe, M.-C., Manning, C.D., Nivre, J., &amp; Zeman, D.</strong> (2021) <i>Universal Dependencies.</i> <strong>Computational Linguistics</strong>, 47(2), 255-308.</p>
+    </div>
+
     </body>"
 
   ## synonyms ----
-  synonyms <- "
-                        <div style=\'padding: 20px; background-color: #f8f9fa; border-radius: 8px;\'>
-                          <h4 style=\'color: #4F7942; margin-bottom: 15px;\'><strong>Synonyms Merging Instructions</strong></h4>
+  synonyms <- "<body>
 
-                          <h5 style=\'color: #333; margin-top: 20px;\'>📋 File Format Requirements</h5>
-                          <p>Your synonyms file must be in <strong>CSV</strong> or <strong>XLSX</strong> format with the following structure:</p>
-                          <ul>
-                            <li><strong>Column 1 (target_term):</strong> The standardized term that will replace all synonyms</li>
-                            <li><strong>Column 2 (upos):</strong> The Part-of-Speech tag to assign to the target term (e.g., NOUN, VERB, ADJ)</li>
-                            <li><strong>Columns 3+ (synonym1, synonym2, ...):</strong> Alternative terms to be replaced</li>
-                          </ul>
+    <h3><strong>Synonyms Merging in TALL</strong></h3>
 
-                          <h5 style=\'color: #333; margin-top: 20px;\'>📝 Example File Structure</h5>
-                          <table style=\'border-collapse: collapse; width: 100%; margin: 10px 0;\'>
-                            <thead>
-                              <tr style=\'background-color: #4F7942; color: white;\'>
-                                <th style=\'border: 1px solid #ddd; padding: 8px;\'>target_term</th>
-                                <th style=\'border: 1px solid #ddd; padding: 8px;\'>upos</th>
-                                <th style=\'border: 1px solid #ddd; padding: 8px;\'>synonym1</th>
-                                <th style=\'border: 1px solid #ddd; padding: 8px;\'>synonym2</th>
-                                <th style=\'border: 1px solid #ddd; padding: 8px;\'>synonym3</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr>
-                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>machine_learning</td>
-                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>NOUN</td>
-                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>ml</td>
-                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>ML</td>
-                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>machine learning</td>
-                              </tr>
-                              <tr style=\'background-color: #f8f9fa;\'>
-                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>artificial_intelligence</td>
-                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>NOUN</td>
-                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>ai</td>
-                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>AI</td>
-                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>A.I.</td>
-                              </tr>
-                            </tbody>
-                          </table>
+    <p>TALL allows users to merge <strong>synonyms and variant forms</strong> into standardized target terms. This feature is essential for reducing vocabulary noise, consolidating spelling variants, abbreviations, and domain-specific synonyms into a single canonical form, thereby improving the quality of downstream analyses such as topic modeling, co-occurrence networks, and frequency distributions.</p>
+    <hr>
+    <h4><strong>File Format Requirements</strong></h4>
+    <p>The synonyms file must be in <strong>CSV</strong> or <strong>XLSX</strong> format with the following structure:</p>
+    <ul>
+      <li><strong>Column 1 (target_term):</strong> The standardized term that will replace all synonyms.</li>
+      <li><strong>Column 2 (upos):</strong> The Part-of-Speech tag to assign to the target term (e.g., NOUN, VERB, ADJ).</li>
+      <li><strong>Columns 3+ (synonym1, synonym2, ...):</strong> Alternative terms to be replaced.</li>
+    </ul>
+    <hr>
+    <h4><strong>Example File Structure</strong></h4>
 
-                          <h5 style=\'color: #333; margin-top: 20px;\'>⚙️ How It Works</h5>
-                          <ol>
-                            <li><strong>Upload your synonyms file</strong> (CSV or Excel format)</li>
-                            <li><strong>Select the type:</strong> Choose whether to replace <em>tokens</em> or <em>lemmas</em></li>
-                            <li><strong>Preview:</strong> Check your synonyms list in the \'Synonyms List Preview\' tab</li>
-                            <li><strong>Apply:</strong> Click <strong>Run</strong> to replace all synonyms with target terms</li>
-                            <li><strong>Review:</strong> See processed data in \'Processed Data with Synonyms\' tab</li>
-                          </ol>
+    <table style='width:100%; border-collapse:collapse; margin-bottom:15px;'>
+      <thead>
+        <tr style='background-color:#f0f0f0; border-bottom:2px solid #ccc;'>
+          <th style='padding:8px; text-align:left;'>target_term</th>
+          <th style='padding:8px; text-align:left;'>upos</th>
+          <th style='padding:8px; text-align:left;'>synonym1</th>
+          <th style='padding:8px; text-align:left;'>synonym2</th>
+          <th style='padding:8px; text-align:left;'>synonym3</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style='padding:6px;'>machine_learning</td><td>NOUN</td><td>ml</td><td>ML</td><td>machine learning</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'>artificial_intelligence</td><td>NOUN</td><td>ai</td><td>AI</td><td>A.I.</td></tr>
+      </tbody>
+    </table>
 
-                          <h5 style=\'color: #333; margin-top: 20px;\'>🎯 Processing Logic</h5>
-                          <ul>
-                            <li><strong>Token-based:</strong> Searches and replaces synonym tokens, updates their <code>upos</code> value</li>
-                            <li><strong>Lemma-based:</strong> Searches and replaces synonym lemmas, updates their <code>upos</code> value</li>
-                            <li><strong>Case-insensitive:</strong> Matching ignores case differences</li>
-                            <li><strong>PoS Update:</strong> When a synonym is replaced, its Part-of-Speech tag is also updated to the specified <code>upos</code></li>
-                          </ul>
+    <hr>
+    <h4><strong>How It Works</strong></h4>
+    <ol>
+      <li><strong>Upload</strong> your synonyms file (CSV or Excel format).</li>
+      <li><strong>Select the replacement type:</strong> Choose whether to match against <em>tokens</em> or <em>lemmas</em>.</li>
+      <li><strong>Preview</strong> your synonyms list in the preview tab before applying.</li>
+      <li><strong>Apply:</strong> Click Run to replace all synonyms with their target terms.</li>
+      <li><strong>Review</strong> the processed data in the results tab.</li>
+    </ol>
+    <hr>
+    <h4><strong>Processing Details</strong></h4>
+    <ul>
+      <li><strong>Token-based replacement:</strong> Searches and replaces synonym tokens, updating their <code>upos</code> tag.</li>
+      <li><strong>Lemma-based replacement:</strong> Searches and replaces synonym lemmas, updating their <code>upos</code> tag.</li>
+      <li><strong>Case-insensitive matching:</strong> Matching ignores case differences.</li>
+      <li><strong>PoS tag update:</strong> When a synonym is replaced, its Part-of-Speech tag is also updated to the specified value.</li>
+    </ul>
+    <hr>
+    <h4><strong>Important Notes</strong></h4>
+    <ul>
+      <li>The merging process is <strong>irreversible</strong> after saving. Always verify your synonyms list in the preview tab before applying.</li>
+      <li>Ensure <code>upos</code> values correspond to valid Universal PoS tags (NOUN, VERB, ADJ, ADV, PROPN, PRON, DET, ADP, NUM, CONJ, INTJ).</li>
+      <li>Empty cells in synonym columns are ignored.</li>
+    </ul>
 
-                          <h5 style=\'color: #333; margin-top: 20px;\'>📚 Valid PoS Tags</h5>
-                          <p>Common Universal Part-of-Speech tags you can use:</p>
-                          <ul>
-                            <li><strong>NOUN:</strong> Noun (e.g., machine_learning, data)</li>
-                            <li><strong>VERB:</strong> Verb (e.g., analyze, compute)</li>
-                            <li><strong>ADJ:</strong> Adjective (e.g., statistical, significant)</li>
-                            <li><strong>ADV:</strong> Adverb (e.g., significantly, approximately)</li>
-                            <li><strong>PROPN:</strong> Proper noun (e.g., Python, R)</li>
-                            <li>Other tags: PRON, DET, ADP, NUM, CONJ, INTJ, etc.</li>
-                          </ul>
+    <hr>
+    <div class='references'>
+      <h4><strong>References</strong></h4>
+      <p><strong>Jurafsky, D., &amp; Martin, J.H.</strong> (2024) <i>Speech and Language Processing.</i> 3rd edition (draft). Chapter 6: Vector Semantics and Embeddings.</p>
+      <p><strong>Manning, C.D., Raghavan, P., &amp; Sch&uuml;tze, H.</strong> (2008) <i>Introduction to Information Retrieval.</i> Cambridge University Press. Chapter 2: The term vocabulary and postings lists.</p>
+    </div>
 
-                          <div style=\'background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; margin-top: 20px;\'>
-                            <strong>⚠️ Important Notes:</strong>
-                            <ul style=\'margin: 5px 0;\'>
-                              <li>The process is <strong>irreversible</strong> after saving</li>
-                              <li>Always verify your synonyms list in the preview tab</li>
-                              <li>Ensure <code>upos</code> values are valid PoS tags</li>
-                              <li>Empty cells in synonym columns are ignored</li>
-                              <li>The <code>upos</code> column in <code>dfTag</code> will be updated for matched terms</li>
-                            </ul>
-                          </div>
-                        </div>
-                      "
+    </body>"
 
   ## pos selection ----
   posselection <- "<body>
 
-    <h3><strong>PoS Tagging Selection in TALL</strong></strong></h3>
+    <h3><strong>PoS Tagging Selection in TALL</strong></h3>
 
     <p>TALL provides users with the flexibility to <strong>select specific Part-of-Speech (PoS) tags</strong> to be used in subsequent analyses.
     This feature allows for greater control over the linguistic elements included in text processing,
     ensuring that only relevant grammatical categories are considered.</p>
     <hr>
-    <h4><strong>Why Select PoS Tags?</strong></strong></h4>
+    <h4><strong>Why Select PoS Tags?</strong></h4>
     <ul>
     <li><strong>Filtering Out Unnecessary Elements:</strong> Excluding determiners, conjunctions, or punctuation that may not contribute to the analysis.</li>
     <li><strong>Focusing on Key Linguistic Features:</strong> Selecting only nouns and verbs for topic modeling, or adjectives and adverbs for sentiment analysis.</li>
     <li><strong>Improving Computational Efficiency:</strong> Reducing data size and processing time by analyzing only the most relevant word categories.</li>
     </ul>
     <hr>
-    <h4><strong>How It Works in TALL</strong></strong></h4>
+    <h4><strong>How It Works in TALL</strong></h4>
     <ul>
     <li>Users can manually <strong>select or deselect</strong> PoS categories from a predefined list.</li>
     <li>The available PoS tags follow the <strong>Universal Dependencies (UD) annotation scheme</strong>, ensuring consistency across different languages.</li>
     </ul>
     <hr>
-    <h4><strong>Default Selected PoS Tags</strong></strong></h4>
+    <h4><strong>Default Selected PoS Tags</strong></h4>
     <p>By default, TALL selects the following PoS categories:</p>
     <ul>
     <li><strong>ADJ:</strong> Adjective – Descriptive words (e.g., 'beautiful', 'quick').</li>
@@ -463,7 +534,7 @@ helpContent <- function() {
     <li><strong>HAPAX:</strong> Words appearing only once in the text, useful for lexical richness analysis.</li>
     </ul>
     <hr>
-    <h4><strong>Available PoS Categories in TALL</strong></strong></h4>
+    <h4><strong>Available PoS Categories in TALL</strong></h4>
     <table border='1' cellspacing='0' cellpadding='5'>
     <tr>
     <th>PoS Tag</th>
@@ -490,11 +561,11 @@ helpContent <- function() {
     <tr><td>Single Character</td><td>Individual symbols or characters</td></tr>
     </table>
     <hr>
-    <h4><strong>Custom Categories</strong></strong></h4>
+    <h4><strong>Custom Categories</strong></h4>
     <p>In addition to predefined PoS categories, users may have also <strong>generated custom categories</strong> through the <strong>Custom List</strong> and <strong>Multi-Word</strong> menus.
     <br>These user-defined tags allow for specialized analysis by grouping specific terms under a unique classification system.</p>
     <hr>
-    <h4><strong>Enhancing Analysis with PoS Selection</strong></strong></h4>
+    <h4><strong>Enhancing Analysis with PoS Selection</strong></h4>
     <p>By allowing users to choose specific PoS categories, TALL ensures that the analysis is tailored to the user's research goals.
     <br>Whether performing <strong>keyword extraction, syntactic analysis, topic modeling, or sentiment analysis</strong>,
     the ability to refine PoS selection enhances the precision and interpretability of results.</p>
@@ -518,7 +589,7 @@ helpContent <- function() {
 
   <h4><strong>Available Feature Roles</strong></h4>
 
-  <h5><i class='glyphicon glyphicon-time' style='color: #3f51b5;'></i> <strong>Time Variable</strong></h5>
+  <h5><i class='fas fa-clock' style='color: #3f51b5;'></i> <strong>Time Variable</strong></h5>
 
   <p>A numeric or date variable that serves as a temporal indicator for diachronic text analysis.</p>
 
@@ -534,7 +605,7 @@ helpContent <- function() {
 
   <hr>
 
-  <h5><i class='glyphicon glyphicon-tag' style='color: #00bcd4;'></i> <strong>Label Variable</strong></h5>
+  <h5><i class='fas fa-tag' style='color: #00bcd4;'></i> <strong>Label Variable</strong></h5>
 
   <p>A categorical variable representing the response or target class in supervised text classification tasks.</p>
 
@@ -551,7 +622,7 @@ helpContent <- function() {
 
   <hr>
 
-  <h5><i class='glyphicon glyphicon-transfer' style='color: #ff9800;'></i> <strong>Keyness Group Variable</strong></h5>
+  <h5><i class='fas fa-right-left' style='color: #ff9800;'></i> <strong>Keyness Group Variable</strong></h5>
 
   <p>A binary or categorical variable that divides the corpus into distinct groups for comparative analysis.</p>
 
@@ -603,7 +674,7 @@ helpContent <- function() {
     <h3><strong>Corpus Metrics in TALL</strong></h3>
     <p>These metrics provide a summary of the key textual characteristics of the analyzed corpus.</p>
 
-    <h4><strong>📂 Corpus Size & Structure</strong></h4>
+    <h4><strong>Corpus Size &amp; Structure</strong></h4>
     <ul>
     <li><strong>Documents →</strong> The total number of documents in the corpus.</li>
     <li><strong>Sentences →</strong> The total number of sentences in the corpus.</li>
@@ -612,7 +683,7 @@ helpContent <- function() {
     <li><strong>Lemma →</strong> The number of unique lemmas, considering the base form of words.</li>
     </ul>
 
-    <h4><strong>📏 Average Length Metrics</strong></h4>
+    <h4><strong>Average Length Metrics</strong></h4>
     <ul>
     <li><strong>Doc Avg Length in Chars →</strong> The average number of characters per document.<br>
     <math xmlns='http://www.w3.org/1998/Math/MathML' style='font-size: 1.5em; display: block; text-align: center; margin-top: 4px; margin-bottom: 12px;'>
@@ -656,7 +727,7 @@ helpContent <- function() {
             </li>
             </ul>
 
-            <h4><strong>📊 Lexical Metrics</strong></h4>
+            <h4><strong>Lexical Metrics</strong></h4>
             <ul>
             <li><strong>Type-Token Ratio (TTR) →</strong> Ratio of unique words (types) to total words (tokens). Higher values indicate greater lexical diversity.<br>
             <math xmlns='http://www.w3.org/1998/Math/MathML' style='font-size: 1.5em; display: block; text-align: center; margin-top: 4px; margin-bottom: 12px;'>
@@ -699,7 +770,7 @@ helpContent <- function() {
                         </li>
                         </ul>
 
-                        <h4><strong>📊 Additional Lexical Measures</strong></h4>
+                        <h4><strong>Additional Lexical Measures</strong></h4>
                         <ul>
                         <li><strong>Lexical Density →</strong> Proportion of content words over total tokens.<br>
                         <math xmlns='http://www.w3.org/1998/Math/MathML' style='font-size: 1.5em; display: block; text-align: center; margin-top: 4px; margin-bottom: 12px;'>
@@ -753,15 +824,100 @@ helpContent <- function() {
                                     </li>
                                     </ul>
 
+    <h4><strong>Morphological Features</strong></h4>
+    <p>The <strong>Morphological Features</strong> tab displays the distribution of grammatical features extracted from the <code>feats</code> column of the Universal Dependencies annotation. Each token is annotated with morphological properties that reveal grammatical patterns in the corpus.</p>
+
+    <h4><em>Available Features</em></h4>
+    <table style='width:100%; border-collapse:collapse; margin-bottom:15px;'>
+      <thead>
+        <tr style='background-color:#f0f0f0; border-bottom:2px solid #ccc;'>
+          <th style='padding:8px; text-align:left;'>Feature</th>
+          <th style='padding:8px; text-align:left;'>Values</th>
+          <th style='padding:8px; text-align:left;'>Applies to</th>
+          <th style='padding:8px; text-align:left;'>What it reveals</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style='padding:6px;'><strong>Tense</strong></td><td>Past, Pres, Fut</td><td>VERB, AUX</td><td>Narrative (Past) vs argumentative (Pres) style</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'><strong>Mood</strong></td><td>Ind, Sub, Imp, Cnd</td><td>VERB, AUX</td><td>Certainty (Ind) vs hedging/doubt (Sub, Cnd)</td></tr>
+        <tr><td style='padding:6px;'><strong>Number</strong></td><td>Sing, Plur</td><td>NOUN, PRON, DET, ADJ, VERB</td><td>Generalization patterns</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'><strong>Person</strong></td><td>1, 2, 3</td><td>VERB, AUX, PRON</td><td>Personal (1st) vs impersonal (3rd) style</td></tr>
+        <tr><td style='padding:6px;'><strong>VerbForm</strong></td><td>Fin, Inf, Part, Ger, Conv</td><td>VERB, AUX</td><td>Finite vs non-finite verb usage</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'><strong>Degree</strong></td><td>Pos, Cmp, Sup</td><td>ADJ, ADV</td><td>Use of comparatives and superlatives</td></tr>
+        <tr><td style='padding:6px;'><strong>Gender</strong></td><td>Masc, Fem, Neut</td><td>NOUN, PRON, ADJ, DET</td><td>Grammatical gender distribution (language-dependent)</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'><strong>Case</strong></td><td>Nom, Acc, Gen, Dat, ...</td><td>NOUN, PRON, ADJ</td><td>Syntactic roles (language-dependent)</td></tr>
+        <tr><td style='padding:6px;'><strong>Voice</strong></td><td>Act, Pass</td><td>VERB</td><td>Active vs passive constructions</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'><strong>Definite</strong></td><td>Def, Ind</td><td>DET, NOUN</td><td>Definiteness marking</td></tr>
+        <tr><td style='padding:6px;'><strong>PronType</strong></td><td>Prs, Dem, Rel, Int, ...</td><td>PRON, DET</td><td>Pronoun/determiner types</td></tr>
+      </tbody>
+    </table>
+
+    <p>The <strong>bar chart</strong> shows the frequency of each value for the selected feature. The <strong>cross-tabulation table</strong> shows how each feature value distributes across PoS tags (e.g., Tense=Past appears in both VERB and AUX).</p>
+
+    <p><strong>Note:</strong> Available features depend on the language model used for tokenization. Not all features are annotated in every language.</p>
+
+    <hr>
+    <h4><strong>Dependency Tree Viewer</strong></h4>
+    <p>The <strong>Dependency Tree</strong> tab provides an interactive visualization of the syntactic structure of individual sentences. Users can select any document and sentence in the corpus to inspect how the parser has analyzed its grammatical structure.</p>
+
+    <h4><em>How to Read the Tree</em></h4>
+    <ul>
+      <li><strong>Tokens</strong> are displayed horizontally in sentence order, shown as labeled boxes colored by Part of Speech:
+        <span style='color:#4F7942;'>NOUN/PROPN (green)</span>,
+        <span style='color:#E41A1C;'>VERB/AUX (red)</span>,
+        <span style='color:#377EB8;'>ADJ (blue)</span>,
+        <span style='color:#FF7F00;'>ADV (orange)</span>,
+        <span style='color:#984EA3;'>PRON (purple)</span>,
+        <span style='color:#999999;'>DET/ADP (gray)</span>.</li>
+      <li><strong>Arcs</strong> connect each token to its syntactic head. The arc height is proportional to the distance between the dependent and the head &mdash; longer arcs indicate more distant dependencies.</li>
+      <li><strong>Arc labels</strong> show the dependency relation (e.g., <code>nsubj</code>, <code>obj</code>, <code>amod</code>).</li>
+      <li><strong>Arc colors</strong> indicate the relation type:
+        <span style='color:#E41A1C;'>subject relations (red)</span>,
+        <span style='color:#377EB8;'>object relations (blue)</span>,
+        <span style='color:#4DAF4A;'>nominal modifiers (green)</span>,
+        <span style='color:#FF7F00;'>adverbial modifiers (orange)</span>,
+        <span style='color:#984EA3;'>compounds (purple)</span>.</li>
+    </ul>
+
+    <h4><em>Token Details Table</em></h4>
+    <p>Below the tree, a table shows the full annotation for each token: ID, Token, Lemma, PoS tag, Dependency Relation, Head ID, and Head Token. This allows precise inspection of the parse output.</p>
+
+    <h4><em>Common Dependency Relations</em></h4>
+    <table style='width:100%; border-collapse:collapse; margin-bottom:15px;'>
+      <thead>
+        <tr style='background-color:#f0f0f0; border-bottom:2px solid #ccc;'>
+          <th style='padding:8px; text-align:left;'>Relation</th>
+          <th style='padding:8px; text-align:left;'>Meaning</th>
+          <th style='padding:8px; text-align:left;'>Example</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style='padding:6px;'><code>nsubj</code></td><td>Nominal subject</td><td><em>The <u>cat</u> sat</em> (cat &rarr; sat)</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'><code>obj</code></td><td>Direct object</td><td><em>She read a <u>book</u></em> (book &rarr; read)</td></tr>
+        <tr><td style='padding:6px;'><code>amod</code></td><td>Adjective modifier</td><td><em>a <u>big</u> house</em> (big &rarr; house)</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'><code>nmod</code></td><td>Nominal modifier (via preposition)</td><td><em>rate of <u>growth</u></em> (growth &rarr; rate)</td></tr>
+        <tr><td style='padding:6px;'><code>advmod</code></td><td>Adverbial modifier</td><td><em>runs <u>quickly</u></em> (quickly &rarr; runs)</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'><code>compound</code></td><td>Compound word</td><td><em><u>machine</u> learning</em> (machine &rarr; learning)</td></tr>
+        <tr><td style='padding:6px;'><code>det</code></td><td>Determiner</td><td><em><u>the</u> house</em> (the &rarr; house)</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'><code>case</code></td><td>Preposition/postposition</td><td><em>rate <u>of</u> growth</em> (of &rarr; growth)</td></tr>
+        <tr><td style='padding:6px;'><code>conj</code></td><td>Conjunct</td><td><em>cats <u>and</u> dogs</em> (dogs &rarr; cats)</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'><code>advcl</code></td><td>Adverbial clause</td><td><em>He left <u>because</u> it rained</em></td></tr>
+        <tr><td style='padding:6px;'><code>acl</code></td><td>Adnominal clause</td><td><em>the man <u>who</u> came</em></td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'><code>xcomp</code></td><td>Open clausal complement</td><td><em>I want <u>to go</u></em></td></tr>
+      </tbody>
+    </table>
+
                                     <div class='references'>
                                       <h4><strong>References</strong></h4>
                                       <p><strong>Baayen, R. H.</strong> <i>The effect of lexical specialization on the growth curve of vocabulary.</i> <strong>Computational Linguistics</strong>, 22(2), 1996.</p>
-                                      <p><strong>Bentz, C., Alikaniotis, D., Cysouw, M., & Ferrer-i-Cancho, R.</strong> <i>The entropy of words—learnability and expressivity across more than 1000 languages.</i> <strong>Entropy</strong>, 19(6), 2017.</p>
+                                      <p><strong>Bentz, C., Alikaniotis, D., Cysouw, M., &amp; Ferrer-i-Cancho, R.</strong> <i>The entropy of words &mdash; learnability and expressivity across more than 1000 languages.</i> <strong>Entropy</strong>, 19(6), 2017.</p>
                                       <p><strong>Biber, D.</strong> <i>Variation across speech and writing.</i> <strong>Cambridge University Press</strong>, 1988.</p>
-                                      <p><strong>Guiraud, P.</strong> <i>Les caractères statistiques du vocabulaire.</i> <strong>Presse Universitaire de France</strong>, 1954.</p>
-                                      <p><strong>Tweedie, F. J., & Baayen, R. H.</strong> <i>How variable may a constant be? Measures of lexical richness in perspective.</i> <strong>Computers and the Humanities</strong>, 32(5), 323–352, 1998.</p>
-                                      <p><strong>Ure, J.</strong> <i>Lexical density and register differentiation. In G. Perren and J.L.M. Trim (eds).</i> <strong>Applications of Linguistics</strong>, Cambridge University Press, 443–452, 1971.</p>
+                                      <p><strong>de Marneffe, M.-C., Manning, C.D., Nivre, J., &amp; Zeman, D.</strong> (2021) <i>Universal Dependencies.</i> <strong>Computational Linguistics</strong>, 47(2), 255-308.</p>
+                                      <p><strong>Guiraud, P.</strong> <i>Les caract&egrave;res statistiques du vocabulaire.</i> <strong>Presse Universitaire de France</strong>, 1954.</p>
+                                      <p><strong>Tweedie, F. J., &amp; Baayen, R. H.</strong> <i>How variable may a constant be? Measures of lexical richness in perspective.</i> <strong>Computers and the Humanities</strong>, 32(5), 323-352, 1998.</p>
+                                      <p><strong>Ure, J.</strong> <i>Lexical density and register differentiation.</i> In G. Perren and J.L.M. Trim (eds), <strong>Applications of Linguistics</strong>, Cambridge University Press, 443-452, 1971.</p>
                                       <p><strong>Yule, G. U.</strong> <i>The statistical study of literary vocabulary.</i> <strong>Cambridge University Press</strong>, 1944.</p>
+                                      <p><strong>Zeman, D.</strong> (2017) <i>Universal Dependencies v2: An evergrowing multilingual treebank collection.</i> In <strong>Proceedings of LREC</strong>.</p>
                                       </div>
                                       </div>
                                       </body>"
@@ -783,7 +939,7 @@ helpContent <- function() {
     </ul>
 
     <div class='example'>
-      📌 <strong>Example:</strong><br>
+      <strong>Example:</strong><br>
       If analyzing the term <strong>'sustainable'</strong> in a corpus of news articles, KWIC might show:<br>
       - 'sustainable <strong>development</strong> is a key focus of international policies'<br>
       - 'the company promotes <strong>sustainable</strong> and ethical supply chains'<br>
@@ -798,7 +954,7 @@ helpContent <- function() {
       </ul>
 
       <div class='example'>
-        📌 <strong>Example:</strong><br>
+        <strong>Example:</strong><br>
         When studying <strong>'risk'</strong> in financial reports, adjusting the window size allows users to see if it is used in association with:<br>
         - <strong>'risk management,' 'high-risk investments'</strong> (short window)<br>
         - <strong>'the recent economic downturn has increased financial risk for small businesses'</strong> (larger window)<br>
@@ -811,7 +967,7 @@ helpContent <- function() {
         </ul>
 
         <div class='example'>
-          📌 <strong>Example:</strong><br>
+          <strong>Example:</strong><br>
           In a dataset of <strong>customer reviews</strong>, the word <strong>'expensive'</strong> might frequently co-occur with:<br>
           - <strong>'but worth it'</strong> in <strong>positive reviews</strong><br>
           - <strong>'not justified for the quality'</strong> in <strong>negative reviews</strong><br>
@@ -1099,7 +1255,7 @@ helpContent <- function() {
   ## correspondece analysis ----
   correspondenceanalysis <- "<body>
 
-    <h3><strong>Correspondence Analysis in TALL</strong></strong></h3>
+    <h3><strong>Correspondence Analysis in TALL</strong></h3>
 
     <p>Correspondence Analysis (<strong>CA</strong>) is a fundamental technique for exploring <strong>semantic relationships</strong> among words within a text collection (<strong>Benzécri, 1982; Lebart et al., 1997</strong>). By applying <strong>dimensionality reduction</strong>, CA represents the most relevant information in a low-rank vector space, uncovering <strong>latent structures</strong> within the data. These structures are then <strong>visualized on factorial maps</strong>, allowing users to detect associations between terms and documents effectively.</p>
     <hr>
@@ -1131,7 +1287,7 @@ helpContent <- function() {
     <p>By integrating <strong>Correspondence Analysis</strong> with <strong>clustering methods</strong>, TALL enhances the <strong>interpretability and usability</strong> of text mining workflows, offering a <strong>powerful framework</strong> for <strong>unsupervised exploration</strong> of large document collections.</p>
     <hr>
     <div class='references'>
-      <h4><strong>References</strong></strong></h4>
+      <h4><strong>References</strong></h4>
       <p><strong>Benzécri, J. P.</strong> (1982). <i>Histoire et préhistoire de l’analyse des données.</i> Paris: Dunod.</p>
       <p><strong>Lebart, L., Salem, A., & Berry, L.</strong> (1997). <i>Exploring textual data.</i> Volume 4. Springer Science & Business Media.</p>
       <p><strong>Misuraca, M., & Spano, M.</strong> (2020). <i>Unsupervised Analytic Strategies to Explore Large Document Collections.</i> Heidelberg: Springer, 06, 17-28.</p>
@@ -1142,73 +1298,102 @@ helpContent <- function() {
   ## co-word analysis ----
   cowordanalysis <- "<body>
 
-    <h3><strong>Co-Word Analysis in TALL</strong></strong></h3>
+    <h3><strong>Word Network Analysis in TALL</strong></h3>
 
-    <p>Co-word analysis is a <strong>network-based text mining technique</strong> that examines <strong>co-occurrence patterns</strong> of words within a corpus, identifying <strong>semantic structures</strong> based on term relationships (<strong>Callon et al., 1983</strong>). This method is particularly valuable in <strong>detecting thematic clusters</strong> within large textual datasets, as it helps uncover <strong>conceptual linkages</strong> and <strong>emerging research topics</strong> in various fields.</p>
+    <p>TALL provides two complementary approaches for building word networks: <strong>Co-occurrence networks</strong> based on statistical proximity, and <strong>Dependency networks</strong> based on syntactic structure. Both approaches produce interactive network visualizations with community detection for thematic clustering.</p>
+
     <hr>
-    <h4><strong>How Co-Word Analysis Works</strong></h4>
+    <h4><strong>Network Type: Co-occurrence</strong></h4>
+    <p>Co-occurrence analysis is a classic <strong>network-based text mining technique</strong> that examines how often words appear together within the same context unit (<strong>Callon et al., 1983</strong>). Two words are connected if they co-occur in the same sentence, paragraph, document, or group.</p>
     <ul>
-    <li><strong>Nodes represent words</strong> (terms extracted from the corpus).</li>
-    <li><strong>Edges represent co-occurrence relationships</strong> (connections between words appearing together in the same context).</li>
-    <li><strong>Edge weights reflect frequency</strong>, meaning stronger relationships are represented by thicker connections.</li>
+      <li><strong>Nodes</strong> represent words (terms extracted from the corpus).</li>
+      <li><strong>Edges</strong> represent co-occurrence relationships based on the selected grouping level.</li>
+      <li><strong>Edge weights</strong> reflect co-occurrence frequency: stronger relationships produce thicker connections.</li>
     </ul>
+    <p><strong>Co-occurrence level:</strong> Users can choose the unit of analysis (Sentences, Paragraphs, Documents, or Groups). Smaller units (sentences) capture tighter semantic relationships, while larger units (documents) capture broader thematic associations.</p>
+
     <hr>
-    <h4><strong>Normalization Measures in Co-Word Analysis</strong></h4>
-    <p>Raw co-occurrence frequencies can be <strong>biased by term frequency</strong> in the corpus, making normalization essential to provide meaningful co-word relationships. TALL allows users to apply different normalization measures to refine co-occurrence networks (<strong>Eck & Waltman, 2009</strong>):</p>
+    <h4><strong>Network Type: Dependency</strong></h4>
+    <p>Dependency networks use the <strong>syntactic dependency tree</strong> produced during tokenization to build word connections. Two words are linked only if one syntactically depends on the other in the parse tree, regardless of their linear distance in the text.</p>
+    <ul>
+      <li><strong>Nodes</strong> represent words, as in co-occurrence networks.</li>
+      <li><strong>Edges</strong> represent <strong>grammatical relationships</strong> (e.g., a noun modified by an adjective, a verb with its subject or object).</li>
+      <li><strong>Edge weights</strong> reflect how many times the syntactic relationship occurs across the corpus.</li>
+    </ul>
+    <p><strong>Relation filters:</strong></p>
+    <ul>
+      <li><strong>All syntactic</strong> &mdash; includes all major dependency relations (nsubj, obj, amod, nmod, compound, conj, advcl, etc.).</li>
+      <li><strong>Noun modifiers</strong> &mdash; focuses on noun-centered relations (amod, nmod, compound, flat, nummod, appos). Reveals the descriptive structure of concepts.</li>
+      <li><strong>Subject-Verb-Object</strong> &mdash; focuses on core argument structure (nsubj, obj, iobj). Shows &quot;who does what to whom&quot;.</li>
+      <li><strong>Custom</strong> &mdash; lets users select specific dependency relations.</li>
+    </ul>
+
+    <hr>
+    <h4><strong>Co-occurrence vs Dependency: When to Use Which</strong></h4>
+    <table style='width:100%; border-collapse:collapse; margin-bottom:15px;'>
+      <thead>
+        <tr style='background-color:#f0f0f0; border-bottom:2px solid #ccc;'>
+          <th style='padding:8px; text-align:left;'>Aspect</th>
+          <th style='padding:8px; text-align:left;'>Co-occurrence</th>
+          <th style='padding:8px; text-align:left;'>Dependency</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style='padding:6px;'>Connection basis</td><td>Proximity (same context unit)</td><td>Grammatical relation</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'>Noise level</td><td>Higher (coincidental proximity)</td><td>Lower (only structural links)</td></tr>
+        <tr><td style='padding:6px;'>Distant relations</td><td>Missed if outside window</td><td>Captured if syntactically linked</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'>Interpretability</td><td>Thematic association</td><td>Grammatical roles</td></tr>
+        <tr><td style='padding:6px;'>Best for</td><td>Broad thematic mapping</td><td>Precise semantic relationships</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+    <h4><strong>Normalization Measures</strong></h4>
+    <p>Both network types support the same normalization measures to control for term frequency bias (<strong>Eck &amp; Waltman, 2009</strong>):</p>
 
     <h4><em>Association Index</em></h4>
-    <p>The <strong>Association Index (AI)</strong> normalizes co-occurrence counts relative to the <strong>expected frequency of terms</strong> in the corpus:</p>
-    <p><code>AI<sub>ij</sub> = C<sub>ij</sub> / (C<sub>i</sub> × C<sub>j</sub>)</code></p>
+    <p>Normalizes co-occurrence relative to expected frequency: <code>AI<sub>ij</sub> = C<sub>ij</sub> / (C<sub>i</sub> &times; C<sub>j</sub>)</code></p>
 
-      <h4><em>Cosine Similarity</em></h4>
-      <p><strong>Cosine Similarity</strong> measures how similar two terms are based on their co-occurrence across different documents:</p>
-      <p><code>cos(θ) = C<sub>ij</sub> / sqrt(C<sub>i</sub> × C<sub>j</sub>)</code></p>
+    <h4><em>Cosine Similarity</em></h4>
+    <p>Geometric similarity measure: <code>cos(&theta;) = C<sub>ij</sub> / sqrt(C<sub>i</sub> &times; C<sub>j</sub>)</code></p>
 
-        <h4><em>Jaccard Similarity</em></h4>
-        <p>The <strong>Jaccard Similarity</strong> measures the co-occurrence strength relative to the total occurrences of both words:</p>
-        <p><code>J<sub>ij</sub> = C<sub>ij</sub> / (C<sub>i</sub> + C<sub>j</sub> - C<sub>ij</sub>)</code></p>
+    <h4><em>Jaccard Similarity</em></h4>
+    <p>Set-based overlap measure: <code>J<sub>ij</sub> = C<sub>ij</sub> / (C<sub>i</sub> + C<sub>j</sub> - C<sub>ij</sub>)</code></p>
+
     <hr>
-          <h4><strong>Community Detection for Semantic Clustering</strong></h4>
-          <p>To extract thematic clusters, TALL applies the <strong>Walktrap algorithm</strong> for community detection (<strong>Pons & Latapy, 2006</strong>):</p>
-          <ul>
-          <li>Uses <strong>random walks</strong> on the co-occurrence network to detect <strong>structurally cohesive word communities</strong>.</li>
-          <li>Efficiently discovers <strong>hierarchical relationships</strong> among terms.</li>
-          <li>Groups words into <strong>non-overlapping clusters</strong>, representing <strong>latent topics</strong> or <strong>conceptual domains</strong> within the corpus.</li>
-          </ul>
+    <h4><strong>Community Detection</strong></h4>
+    <p>TALL applies the <strong>Louvain algorithm</strong> (<strong>Blondel et al., 2008</strong>) for community detection, which optimizes modularity to find dense clusters of connected words:</p>
+    <ul>
+      <li>Runs <strong>10 iterations</strong> with different random seeds and selects the solution with highest modularity.</li>
+      <li>Groups words into <strong>non-overlapping clusters</strong> representing latent topics or conceptual domains.</li>
+      <li>Applies <strong>community repulsion</strong> to spatially separate clusters in the visualization.</li>
+    </ul>
+
     <hr>
-          <h4><strong>Applications of Co-Word Analysis</strong></h4>
-          <ul>
-          <li><strong>Bibliometric and Scientometric Studies:</strong> Identifying research trends and thematic structures in academic literature.</li>
-          <li><strong>Topic Detection in Large Text Collections:</strong> Extracting underlying themes from newspapers, reports, or social media content.</li>
-          <li><strong>Keyword Network Exploration:</strong> Understanding <strong>how keywords interconnect</strong> and contribute to discourse formation.</li>
-          <li><strong>Patent and Innovation Analysis:</strong> Revealing technological trends by examining term co-occurrence in patent databases.</li>
-          <li><strong>Social Media and Sentiment Analysis:</strong> Discovering key discussion topics within online platforms.</li>
-          </ul>
+    <h4><strong>Applications</strong></h4>
+    <ul>
+      <li><strong>Thematic mapping:</strong> Identifying research trends and conceptual structures in academic literature.</li>
+      <li><strong>Topic detection:</strong> Extracting underlying themes from news, reports, or social media.</li>
+      <li><strong>Semantic role analysis</strong> (dependency mode): Understanding &quot;who does what&quot; patterns in a corpus.</li>
+      <li><strong>Terminology extraction:</strong> Discovering domain-specific concept networks.</li>
+    </ul>
+
     <hr>
-          <h4><strong>Advantages of Co-Word Analysis in TALL</strong></h4>
-          <ul>
-          <li><strong>Unsupervised Approach:</strong> Extracts thematic clusters <strong>without requiring predefined categories</strong>.</li>
-          <li><strong>Graph-Based Representation:</strong> Provides an <strong>intuitive visualization</strong> of textual structures.</li>
-          <li><strong>Scalable to Large Text Corpora:</strong> Efficiently handles extensive document collections.</li>
-          <li><strong>Integration with Other Analytical Techniques:</strong> Can be combined with <strong>Correspondence Analysis</strong>, <strong>Topic Modeling</strong>, and <strong>Sentiment Analysis</strong> for richer insights.</li>
-          </ul>
-    <hr>
-          <div class='references'>
-            <h4><strong>References</strong></h4>
-            <p><strong>Callon, M., Courtial, J.-P., Turner, W.A., & Bauin, S.</strong></p>
-            <p><i>From translations to problematic networks: An introduction to co-word analysis.</i> <strong>Social Science Information</strong>, 22(2), 191-235.</p>
+    <div class='references'>
+      <h4><strong>References</strong></h4>
 
-            <p><strong>Eck, N. J. V., & Waltman, L.</strong></p>
-            <p><i>How to normalize co-occurrence data? An analysis of some well‐known similarity measures.</i> <strong>Journal of the American Society for Information Science and Technology</strong>, 60(8), 1635-1651.</p>
+      <p><strong>Callon, M., Courtial, J.-P., Turner, W.A., &amp; Bauin, S.</strong> (1983) <i>From translations to problematic networks: An introduction to co-word analysis.</i> <strong>Social Science Information</strong>, 22(2), 191-235.</p>
 
-            <p><strong>Fortunato, S., & Hric, D.</strong></p>
-            <p><i>Community detection in networks: A user guide.</i> <strong>Physics Reports</strong>, 659, 1-44.</p>
+      <p><strong>Eck, N.J.V., &amp; Waltman, L.</strong> (2009) <i>How to normalize co-occurrence data? An analysis of some well-known similarity measures.</i> <strong>Journal of the American Society for Information Science and Technology</strong>, 60(8), 1635-1651.</p>
 
-            <p><strong>Pons, P., & Latapy, M.</strong></p>
-            <p><i>Computing communities in large networks using random walks.</i> Retrieved from <a href='https://arxiv.org/abs/physics/0512106' target='_blank'>arXiv:physics/0512106</a>.</p>
-              </div>
+      <p><strong>Blondel, V.D., Guillaume, J.-L., Lambiotte, R., &amp; Lefebvre, E.</strong> (2008) <i>Fast unfolding of communities in large networks.</i> <strong>Journal of Statistical Mechanics</strong>, 2008(10), P10008.</p>
 
-              </body>"
+      <p><strong>de Marneffe, M.-C., Manning, C.D., Nivre, J., &amp; Zeman, D.</strong> (2021) <i>Universal Dependencies.</i> <strong>Computational Linguistics</strong>, 47(2), 255-308.</p>
+
+      <p><strong>Fortunato, S., &amp; Hric, D.</strong> (2016) <i>Community detection in networks: A user guide.</i> <strong>Physics Reports</strong>, 659, 1-44.</p>
+    </div>
+
+    </body>"
 
   ## thematic map ----
   thematicmap <- "
@@ -1418,116 +1603,310 @@ helpContent <- function() {
 
   <h3><strong>Topic Modeling in TALL: K Selection</strong></h3>
 
-  <p>Topic modeling is a fundamental technique in <strong>unsupervised text mining</strong>, allowing users to uncover <strong>latent themes</strong> within large collections of documents. One of the key challenges in <strong>Latent Dirichlet Allocation (LDA)</strong> and other topic modeling techniques is determining the <strong>optimal number of topics (K)</strong>.</p>
-
-  <p>TALL estimates <strong>K automatically</strong> using well-established statistical measures (<strong>Deveaud et al., 2014; Cao et al., 2009; Arun et al., 2010</strong>), including <strong>Perplexity</strong>.
-<br>However, users can also <strong>manually adjust K</strong> and explore different solutions in the <strong>Model Estimation Menu</strong>, enabling greater flexibility based on the dataset and research objectives.</p>
+  <p>Determining the <strong>optimal number of topics (K)</strong> is one of the most critical steps in topic modeling. TALL provides a comprehensive K selection framework that supports three model types: <strong>LDA</strong>, <strong>CTM</strong>, and <strong>STM</strong>.</p>
 
   <hr>
   <h4><strong>Why is K Selection Important?</strong></h4>
   <ul>
-  <li>A <strong>too small K</strong> may <strong>merge distinct topics</strong>, reducing the model's ability to separate different thematic structures.</li>
+    <li>A <strong>too small K</strong> may <strong>merge distinct topics</strong>, reducing the model's ability to separate different thematic structures.</li>
     <li>A <strong>too large K</strong> may <strong>fragment coherent topics</strong>, introducing unnecessary complexity and reducing interpretability.</li>
     <li>The <strong>correct K</strong> ensures that topics are <strong>coherent, interpretable, and representative</strong> of the dataset.</li>
   </ul>
 
   <hr>
-  <h4><strong>Automatic K Estimation in TALL</strong></h4>
-  <p>TALL integrates several standard measures for determining the optimal number of topics in LDA:</p>
-
-  <h4><em>Blei et al. (2003) – Perplexity Measure</em></h4>
-  <p>- Perplexity (Probabilistic Evaluation of Generalization) is a <strong>likelihood-based metric</strong> that measures how well a model generalizes to unseen data.</p>
-  <p>- It evaluates the model's ability to predict a held-out test set, with <strong>lower values indicating better performance</strong>.</p>
-  <p>- Perplexity is defined as the inverse geometric mean of the likelihood function, computed over the test corpus.</p>
-
-  <h4><em>Cao et al. (2009) – Topic Coherence Measure</em></h4>
-  <p>- Computes the <strong>average pairwise similarity</strong> between topics based on word distributions.</p>
-  <p>- The <strong>optimal K</strong> is found when inter-topic similarity is minimized, ensuring that topics are well-separated.</p>
-
-  <h4><em>Arun et al. (2010) – KL Divergence-Based Measure</em></h4>
-  <p>- Compares the <strong>word-topic distribution</strong> and <strong>document-topic distribution</strong> using <strong>Kullback-Leibler (KL) divergence</strong>.</p>
-  <p>- The <strong>optimal K</strong> is identified as the point where KL divergence stabilizes, meaning topics balance between coherence and specificity.</p>
-
-  <h4><em>Deveaud et al. (2014) – A Hybrid Approach</em></h4>
-  <p>- A refinement of previous approaches that balances topic coherence and diversity.</p>
-  <p>- The <strong>optimal K</strong> is chosen where <strong>topic distinctiveness</strong> is maximized while preserving thematic coverage.</p>
+  <h4><strong>Supported Models</strong></h4>
+  <p>TALL supports K selection for three topic modeling approaches:</p>
+  <ul>
+    <li><strong>LDA (Latent Dirichlet Allocation)</strong> – The classic probabilistic topic model (Blei et al., 2003). Topics are assumed to be independent.</li>
+    <li><strong>CTM (Correlated Topic Model)</strong> – An extension of LDA that allows topics to be correlated with each other (Blei & Lafferty, 2007), using a logistic normal distribution instead of Dirichlet.</li>
+    <li><strong>STM (Structural Topic Model)</strong> – Allows external covariates (e.g., time, source, metadata) to influence topic prevalence and content (Roberts et al., 2019).</li>
+  </ul>
 
   <hr>
-  <h4><strong>Manual K Adjustment for Customization</strong></h4>
-  <p>While <strong>automatic estimation</strong> provides a strong baseline, users may need to adjust <strong>K manually</strong> based on <strong>domain knowledge and interpretability</strong>:</p>
+  <h4><strong>Metrics for LDA and CTM</strong></h4>
+  <p>For LDA and CTM, TALL computes four standard metrics across the K range and identifies the optimal K using the <strong>elbow method</strong> (maximum distance from line):</p>
+
+  <h4><em>Cao et al. (2009) – Topic Coherence</em></h4>
+  <p>Computes the <strong>average pairwise cosine similarity</strong> between topics. The optimal K minimizes inter-topic similarity, ensuring well-separated topics. <strong>Lower values are better.</strong></p>
+
+  <h4><em>Arun et al. (2010) – KL Divergence</em></h4>
+  <p>Compares the <strong>word-topic distribution</strong> (via SVD) and <strong>document-topic distribution</strong> using <strong>symmetric Kullback-Leibler divergence</strong>. The optimal K is where divergence stabilizes. <strong>Lower values are better.</strong></p>
+
+  <h4><em>Deveaud et al. (2014) – Jensen-Shannon Divergence</em></h4>
+  <p>Measures <strong>pairwise Jensen-Shannon divergence</strong> between topic distributions. Balances topic coherence and diversity. <strong>Lower values indicate more separated topics.</strong></p>
+
+  <h4><em>Perplexity (Blei et al., 2003)</em></h4>
+  <p>A <strong>likelihood-based metric</strong> measuring how well the model generalizes. Defined as the inverse geometric mean of the likelihood. <strong>Lower values indicate better generalization.</strong></p>
+
+  <hr>
+  <h4><strong>Metrics for STM</strong></h4>
+  <p>For STM, TALL uses <code>stm::searchK()</code> which provides STM-specific quality metrics:</p>
+
+  <h4><em>Exclusivity</em></h4>
+  <p>Measures how <strong>exclusive</strong> the top words of each topic are. High exclusivity means topic words are not shared across topics. <strong>Higher values are better.</strong></p>
+
+  <h4><em>Semantic Coherence (Mimno et al., 2011)</em></h4>
+  <p>Measures how often the <strong>top words of a topic co-occur</strong> within documents. Highly coherent topics are easier to interpret. <strong>Higher (less negative) values are better.</strong></p>
+
+  <h4><em>Combined Score (Exclusivity + Coherence)</em></h4>
+  <p>A synthetic metric that sums exclusivity and semantic coherence, balancing both dimensions. <strong>Higher values indicate a better trade-off.</strong></p>
+
+  <h4><em>Lower Bound</em></h4>
+  <p>The variational <strong>lower bound on the log-likelihood</strong>. Higher values indicate better model fit.</p>
+
+  <hr>
+  <h4><strong>Analysis Tabs</strong></h4>
   <ul>
-  <li><strong>For exploratory research:</strong> Start with <strong>low K</strong> values (e.g., <strong>5–20 topics</strong>) to gain an <strong>overview of broad themes</strong>.</li>
-  <li><strong>For fine-grained analysis:</strong> Use <strong>higher K values</strong> (e.g., <strong>30–100 topics</strong>) to capture <strong>more nuanced subtopics</strong>.</li>
-  <li><strong>For benchmarking:</strong> Compare different <strong>K values</strong> using topic coherence scores and human interpretability.</li>
+    <li><strong>Tuning Plot</strong> – Interactive plot of the selected metric across K values. The optimal K (elbow point) is highlighted in red.</li>
+    <li><strong>Multi-Metric Comparison</strong> – All four metrics normalized to [0, 1] and plotted together. Each metric's elbow point is marked with a diamond. This allows visual comparison of where different metrics agree or disagree.</li>
+    <li><strong>K Recommendation</strong> – A consensus panel showing the optimal K suggested by each metric and the <strong>overall recommended K</strong> (mode of all suggestions). The consensus approach is more robust than relying on a single metric.</li>
+    <li><strong>Table</strong> – Full table with raw and normalized metric values for all K values.</li>
+  </ul>
+
+  <hr>
+  <h4><strong>Integration with Model Estimation</strong></h4>
+  <p>When K selection is completed, the recommended K is <strong>automatically transferred</strong> to the Model Estimation panel. Users can accept the recommendation or adjust K manually based on domain knowledge.</p>
+
+  <hr>
+  <h4><strong>Practical Guidelines</strong></h4>
+  <ul>
+    <li><strong>For exploratory research:</strong> Start with <strong>low K</strong> values (e.g., <strong>5-20 topics</strong>) to gain an overview of broad themes.</li>
+    <li><strong>For fine-grained analysis:</strong> Use <strong>higher K values</strong> (e.g., <strong>30-100 topics</strong>) to capture more nuanced subtopics.</li>
+    <li><strong>For benchmarking:</strong> Compare different K values using the Multi-Metric Comparison tab.</li>
+    <li><strong>For STM:</strong> Look for K values that maximize both exclusivity and semantic coherence simultaneously (upper-right quadrant in the Model Diagnostics scatter plot).</li>
   </ul>
 
   <hr>
   <div class='references'>
     <h4><strong>References</strong></h4>
 
-    <p><strong>Blei, D. M., Ng, A. Y., & Jordan, M. I.</strong> (2003) <i>Latent Dirichlet Allocation.</i> <strong>Journal of Machine Learning Research</strong>, 3, 993–1022.</p>
+    <p><strong>Blei, D.M., Ng, A.Y., & Jordan, M.I.</strong> (2003) <i>Latent Dirichlet Allocation.</i> <strong>Journal of Machine Learning Research</strong>, 3, 993-1022.</p>
 
-    <p><strong>Deveaud, R., Sanjuan, E., & Bellot, P.</strong> (2014) <i>Accurate and effective latent concept modeling for ad hoc information retrieval.</i> <strong>Document Numérique</strong>, 17, 61–84.</p>
+    <p><strong>Blei, D.M. & Lafferty, J.D.</strong> (2007) <i>A correlated topic model of Science.</i> <strong>The Annals of Applied Statistics</strong>, 1(1), 17-35.</p>
 
-    <p><strong>Cao, J., Xia, T., Li, J., Zhang, Y., & Tang, S.</strong> (2009) <i>A density-based method for adaptive LDA model selection.</i> <strong>Neurocomputing</strong>, 72(7), 1775–1781.</p>
+    <p><strong>Cao, J., Xia, T., Li, J., Zhang, Y., & Tang, S.</strong> (2009) <i>A density-based method for adaptive LDA model selection.</i> <strong>Neurocomputing</strong>, 72(7), 1775-1781.</p>
 
-    <p><strong>Arun, R., Suresh, V., Veni Madhavan, C.E., & Narasimha Murthy, M.N.</strong> (2010) <i>On finding the natural number of topics with latent Dirichlet allocation: Some observations.</i> In Zaki, M.J., Yu, J.X., Ravindran, B., & Pudi, V. (Eds.), <strong>Advances in Knowledge Discovery and Data Mining</strong> (pp. 391–402). Berlin, Heidelberg: Springer.</p>
-    </div>
+    <p><strong>Arun, R., Suresh, V., Veni Madhavan, C.E., & Narasimha Murthy, M.N.</strong> (2010) <i>On finding the natural number of topics with latent Dirichlet allocation: Some observations.</i> In <strong>Advances in Knowledge Discovery and Data Mining</strong> (pp. 391-402). Springer.</p>
 
-    </body>"
+    <p><strong>Mimno, D., Wallach, H.M., Talley, E., Leenders, M., & McCallum, A.</strong> (2011) <i>Optimizing semantic coherence in topic models.</i> In <strong>Proceedings of EMNLP</strong> (pp. 262-272).</p>
 
-  ## te estimation ----
+    <p><strong>Deveaud, R., Sanjuan, E., & Bellot, P.</strong> (2014) <i>Accurate and effective latent concept modeling for ad hoc information retrieval.</i> <strong>Document Numerique</strong>, 17, 61-84.</p>
+
+    <p><strong>Roberts, M.E., Stewart, B.M., & Tingley, D.</strong> (2019) <i>stm: An R package for structural topic models.</i> <strong>Journal of Statistical Software</strong>, 91(2), 1-40.</p>
+  </div>
+
+  </body>"
+
+  ## topic model estimation ----
   tmmodelestimation <- "<body>
 
-    <h3><strong>Topic Modeling in TALL: Model Estimation</strong></strong></h3>
+    <h3><strong>Topic Modeling in TALL: Model Estimation</strong></h3>
 
-    <p>Topic modeling is a <strong>family of generative statistical models</strong> designed to uncover <strong>semantic structures</strong> within large document collections. These models aim to <strong>identify latent topics</strong> that explain the observed word distributions in text corpora, allowing for a <strong>low-dimensional representation</strong> of textual data.</p>
+    <p>TALL implements three topic modeling approaches, each suited to different analytical needs. All three produce <strong>beta</strong> (term-topic) and <strong>theta</strong> (document-topic) probability matrices that can be explored through interactive visualizations.</p>
 
-    <p>Through <strong>probabilistic modeling</strong>, topic modeling enables:</p>
-    <ul>
-    <li><strong>Discovery of underlying themes</strong> within a collection of documents.</li>
-    <li><strong>Assignment of probabilistic membership scores</strong> to documents, indicating their association with different topics.</li>
-    <li><strong>Dimensionality reduction</strong>, making it easier to analyze large text datasets by structuring them into meaningful clusters.</li>
-    <li><strong>Human interpretability</strong>, as each topic is characterized by a set of <strong>highly associated terms</strong>, making it easier for users to extract insights.</li>
-    </ul>
     <hr>
-    <h4><strong>Latent Dirichlet Allocation (LDA) in TALL</strong></h4>
-    <p>TALL implements the <strong>Latent Dirichlet Allocation (LDA) algorithm</strong> (<strong>Blei et al., 2003</strong>), one of the most widely used topic modeling techniques. LDA is a <strong>Bayesian probabilistic model</strong> that assumes:</p>
+    <h4><strong>LDA – Latent Dirichlet Allocation</strong></h4>
+    <p><strong>Blei et al. (2003)</strong> introduced LDA as a Bayesian generative model where:</p>
     <ul>
-    <li><strong>Each document is a mixture of multiple topics</strong>, with different proportions.</li>
-    <li><strong>Each topic is defined by a probability distribution over words</strong>, meaning that some words are more strongly associated with a given topic.</li>
-    <li><strong>The goal of LDA is to infer these hidden topic distributions</strong>, making it possible to automatically organize, summarize, and analyze large textual datasets.</li>
+      <li>Each document is a <strong>mixture of topics</strong> with different proportions (theta).</li>
+      <li>Each topic is a <strong>probability distribution over words</strong> (beta).</li>
+      <li>Topics are assumed to be <strong>independent</strong> of each other.</li>
     </ul>
+    <p>TALL estimates LDA using <strong>Gibbs sampling</strong> (500 iterations), which tends to produce more stable results than variational inference for small-to-medium corpora.</p>
 
-    <p>LDA operates by:</p>
-    <ul>
-    <li>Assigning each word in a document to a <strong>latent topic</strong>, estimating topic-word distributions.</li>
-    <li>Iteratively adjusting <strong>topic probabilities</strong> to maximize likelihood, ensuring that words are grouped into <strong>meaningful semantic structures</strong>.</li>
-    <li>Producing a <strong>document-topic matrix</strong>, where each document is represented as a probability distribution over the identified topics.</li>
-    </ul>
     <hr>
-    <h4><strong>Advantages of Topic Modeling in TALL</strong></h4>
+    <h4><strong>CTM – Correlated Topic Model</strong></h4>
+    <p><strong>Blei & Lafferty (2007)</strong> extended LDA by replacing the Dirichlet prior on topic proportions with a <strong>logistic normal distribution</strong>, which allows topics to be correlated. This is useful when:</p>
     <ul>
-    <li><strong>Unsupervised Learning</strong> – No prior labeling is required; topics emerge naturally from the dataset.</li>
-    <li><strong>Scalability</strong> – LDA efficiently handles <strong>large text corpora</strong>, making it useful for applications ranging from <strong>scientific literature</strong> to <strong>customer reviews</strong>.</li>
-    <li><strong>Flexibility</strong> – Users can define <strong>K (number of topics)</strong> manually or use <strong>automatic estimation techniques</strong> (see the <strong>K Selection Menu</strong>).</li>
-    <li><strong>Enhanced Text Understanding</strong> – Topics provide a <strong>thematic summary</strong> of a collection, improving text exploration and classification.</li>
+      <li>Topics are naturally <strong>related</strong> (e.g., &quot;politics&quot; and &quot;economics&quot; often co-occur).</li>
+      <li>You want to <strong>model inter-topic dependencies</strong> rather than assuming independence.</li>
+    </ul>
+    <p>The <strong>Topic Correlation</strong> tab is particularly informative with CTM, as correlations reflect the model's learned structure rather than post-hoc observations.</p>
+
+    <hr>
+    <h4><strong>STM – Structural Topic Model</strong></h4>
+    <p><strong>Roberts, Stewart & Tingley (2019)</strong> developed STM to incorporate <strong>document-level metadata</strong> (covariates) into the topic model. STM allows:</p>
+    <ul>
+      <li><strong>Prevalence covariates</strong> – External variables (e.g., publication year, source, author) that influence <strong>how much</strong> each topic appears in a document.</li>
+      <li><strong>Correlated topics</strong> – Like CTM, STM allows topic correlations.</li>
+    </ul>
+    <p>Covariates are selected in the Options panel. After estimation, the <strong>Covariate Effects</strong> tab shows how each covariate influences topic prevalence, with regression coefficients and effect plots.</p>
+
+    <hr>
+    <h4><strong>Analysis Tabs</strong></h4>
+    <ul>
+      <li><strong>Topic by Words Plot</strong> – Top words per topic ranked by beta probability, displayed in groups of three for easy comparison. Navigate with arrow buttons.</li>
+      <li><strong>Topic by Docs Plot</strong> – Documents most associated with each topic, ranked by theta probability.</li>
+      <li><strong>Beta Probability</strong> – Full term-topic probability table.</li>
+      <li><strong>Theta Probability</strong> – Full document-topic probability table.</li>
+      <li><strong>Topic Correlation</strong> – Heatmap of correlations between topics based on their word distributions, with embedded mini-scatterplots showing the data distribution.</li>
+      <li><strong>Model Diagnostics</strong> – Global quality metrics and per-topic indicators:
+        <ul>
+          <li><strong>LDA/CTM:</strong> Log-Likelihood, topic share, word entropy, and top word probability per topic.</li>
+          <li><strong>STM:</strong> Variational lower bound, semantic coherence, exclusivity per topic, plus a scatter plot of coherence vs. exclusivity (ideal topics are in the upper-right quadrant).</li>
+        </ul>
+      </li>
+      <li><strong>Covariate Effects</strong> (STM only) – For each prevalence covariate:
+        <ul>
+          <li><strong>Effect plots</strong> showing how the covariate influences each topic's prevalence (continuous variables show trend lines with 95% CI; categorical variables show point estimates).</li>
+          <li><strong>Regression coefficients table</strong> with estimates, standard errors, t-values, and p-values per topic.</li>
+        </ul>
+      </li>
     </ul>
 
-    <p>By integrating <strong>state-of-the-art topic modeling techniques</strong>, TALL enables researchers and analysts to <strong>discover hidden structures in textual data</strong>, making it an essential tool for <strong>content analysis, knowledge extraction, and thematic clustering</strong>.</p>
+    <hr>
+    <h4><strong>Choosing the Right Model</strong></h4>
+    <table style='width:100%; border-collapse:collapse; margin-bottom:15px;'>
+      <thead>
+        <tr style='background-color:#f0f0f0; border-bottom:2px solid #ccc;'>
+          <th style='padding:8px; text-align:left;'>Feature</th>
+          <th style='padding:8px; text-align:center;'>LDA</th>
+          <th style='padding:8px; text-align:center;'>CTM</th>
+          <th style='padding:8px; text-align:center;'>STM</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style='padding:6px;'>Topic independence</td><td style='text-align:center;'>Assumed</td><td style='text-align:center;'>Correlated</td><td style='text-align:center;'>Correlated</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'>External covariates</td><td style='text-align:center;'>No</td><td style='text-align:center;'>No</td><td style='text-align:center;'>Yes</td></tr>
+        <tr><td style='padding:6px;'>Inference method</td><td style='text-align:center;'>Gibbs sampling</td><td style='text-align:center;'>Variational EM</td><td style='text-align:center;'>Variational EM</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'>Best for</td><td style='text-align:center;'>General use</td><td style='text-align:center;'>Correlated themes</td><td style='text-align:center;'>Metadata-rich corpora</td></tr>
+        <tr><td style='padding:6px;'>Speed</td><td style='text-align:center;'>Moderate</td><td style='text-align:center;'>Fast</td><td style='text-align:center;'>Moderate</td></tr>
+      </tbody>
+    </table>
+
     <hr>
     <div class='references'>
       <h4><strong>References</strong></h4>
 
-      <p><strong>Blei, D.M., Ng, A.Y., & Jordan, M.I.</strong> <i>Latent Dirichlet Allocation.</i> <strong>Journal of Machine Learning Research</strong>, 3(Jan), 993-1022.</p>
-      </div>
+      <p><strong>Blei, D.M., Ng, A.Y., & Jordan, M.I.</strong> (2003) <i>Latent Dirichlet Allocation.</i> <strong>Journal of Machine Learning Research</strong>, 3, 993-1022.</p>
 
-      </body>"
+      <p><strong>Blei, D.M. & Lafferty, J.D.</strong> (2007) <i>A correlated topic model of Science.</i> <strong>The Annals of Applied Statistics</strong>, 1(1), 17-35.</p>
+
+      <p><strong>Mimno, D., Wallach, H.M., Talley, E., Leenders, M., & McCallum, A.</strong> (2011) <i>Optimizing semantic coherence in topic models.</i> In <strong>Proceedings of EMNLP</strong> (pp. 262-272).</p>
+
+      <p><strong>Roberts, M.E., Stewart, B.M., & Tingley, D.</strong> (2019) <i>stm: An R package for structural topic models.</i> <strong>Journal of Statistical Software</strong>, 91(2), 1-40.</p>
+    </div>
+
+    </body>"
 
   ## polarity detection ----
+  ## syntactic complexity ----
+  syntacticcomplexity <- "<body>
+
+    <h3><strong>Syntactic Complexity Analysis in TALL</strong></h3>
+
+    <p>Syntactic complexity analysis quantifies the structural properties of sentences in a corpus using <strong>dependency parsing</strong>. For each document, TALL computes a set of metrics that characterize writing style, readability, and linguistic sophistication.</p>
+
+    <hr>
+    <h4><strong>Metrics</strong></h4>
+
+    <h4><em>Mean Sentence Length</em></h4>
+    <p>Average number of content words per sentence (excluding punctuation). Longer sentences generally indicate more complex writing.</p>
+
+    <h4><em>Mean Tree Depth</em></h4>
+    <p>Average maximum depth of the dependency tree across sentences. Deeper trees indicate more levels of syntactic embedding (e.g., nested relative clauses, complex noun phrases). Based on BFS traversal from the root.</p>
+    <div style='text-align: center; margin: 20px 0;'>
+      <img src='dep_tree_example.png' style='max-width: 100%; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);' alt='Dependency tree example' />
+      <p style='color: #888; font-size: 12px; margin-top: 8px;'><em>Example of a dependency tree showing syntactic relations between tokens. Tree depth is the longest path from root to leaf.</em></p>
+    </div>
+
+    <h4><em>Mean Dependency Distance</em></h4>
+    <p>Average absolute distance (in token positions) between each word and its syntactic head (<strong>Liu, 2008</strong>). Longer distances indicate more complex processing demands. Languages and styles with more head-final or head-initial constructions tend to show different profiles.</p>
+
+    <h4><em>Clauses per Sentence</em></h4>
+    <p>Average number of clauses per sentence, computed as: 1 (main clause) + subordinate clauses + coordinate verb clauses. Higher values indicate more complex multi-clause constructions.</p>
+
+    <h4><em>Subordination Ratio</em></h4>
+    <p>Proportion of subordinate clauses (advcl, acl, ccomp, xcomp, csubj) relative to total clauses. Higher ratios indicate more hypotactic writing style (subordination), while lower ratios suggest paratactic style (coordination). A key indicator of academic vs. informal writing.</p>
+
+    <h4><em>Branching Factor</em></h4>
+    <p>Average number of direct dependents per non-leaf node in the dependency tree. Higher branching indicates flatter but wider syntactic structures (e.g., enumerations, multiple modifiers).</p>
+
+    <hr>
+    <h4><strong>Analysis Tabs</strong></h4>
+    <ul>
+      <li><strong>Document Metrics</strong> &mdash; Full table with all metrics per document. Sortable and filterable.</li>
+      <li><strong>Corpus Summary</strong> &mdash; Six summary cards showing corpus-level averages for each metric.</li>
+      <li><strong>Distributions</strong> &mdash; Overlaid histograms of all metrics (toggle visibility via legend). Shows how documents are distributed along each complexity dimension.</li>
+    </ul>
+
+    <hr>
+    <h4><strong>Applications</strong></h4>
+    <ul>
+      <li><strong>Readability assessment:</strong> Higher tree depth and dependency distance correlate with lower readability.</li>
+      <li><strong>Authorship analysis:</strong> Different authors exhibit characteristic syntactic profiles.</li>
+      <li><strong>Genre comparison:</strong> Academic writing typically shows higher subordination ratios than journalistic or informal text.</li>
+      <li><strong>Language development:</strong> Syntactic complexity increases with proficiency in L2 learner corpora.</li>
+      <li><strong>Temporal analysis:</strong> Track how writing complexity evolves over time in a corpus.</li>
+    </ul>
+
+    <hr>
+    <div class='references'>
+      <h4><strong>References</strong></h4>
+
+      <p><strong>Liu, H.</strong> (2008) <i>Dependency distance as a metric of language comprehension difficulty.</i> <strong>Journal of Cognitive Science</strong>, 9(2), 159-191.</p>
+
+      <p><strong>Lu, X.</strong> (2010) <i>Automatic analysis of syntactic complexity in second language writing.</i> <strong>International Journal of Corpus Linguistics</strong>, 15(4), 474-496.</p>
+
+      <p><strong>de Marneffe, M.-C., Manning, C.D., Nivre, J., &amp; Zeman, D.</strong> (2021) <i>Universal Dependencies.</i> <strong>Computational Linguistics</strong>, 47(2), 255-308.</p>
+    </div>
+
+    </body>"
+
+  ## SVO triplets ----
+  svo <- "<body>
+
+    <h3><strong>SVO Triplet Extraction in TALL</strong></h3>
+
+    <p>SVO (Subject-Verb-Object) triplet extraction uses <strong>dependency parsing</strong> to identify structured semantic relationships in text. For each verb in the corpus, the algorithm extracts its syntactic subject and object, producing triplets that answer the question: <strong>who does what to whom?</strong></p>
+
+    <hr>
+    <h4><strong>How It Works</strong></h4>
+    <p>The algorithm traverses the dependency tree of each sentence and, for every verb (VERB/AUX), identifies:</p>
+    <ul>
+      <li><strong>Subject</strong> &mdash; tokens with dependency relation <code>nsubj</code> (nominal subject), <code>nsubj:pass</code> (passive subject), or <code>csubj</code> (clausal subject).</li>
+      <li><strong>Object</strong> &mdash; tokens with relation <code>obj</code> (direct object), <code>iobj</code> (indirect object), <code>obl</code> (oblique argument), <code>xcomp</code> or <code>ccomp</code> (clausal complement).</li>
+    </ul>
+    <p>For transitive verbs, all subject-object pairs are generated. For intransitive verbs, subject-verb pairs are emitted with an empty object field. The extraction is implemented in <strong>C++</strong> for high performance.</p>
+
+    <hr>
+    <h4><strong>Analysis Tabs</strong></h4>
+    <ul>
+      <li><strong>SVO Table</strong> &mdash; Full table of extracted triplets with frequency counts. Sortable and filterable by subject, verb, object, or relation type.</li>
+      <li><strong>SVO Network</strong> &mdash; Sankey diagram showing the flow from subjects (blue) through verbs (green) to objects (red). Edge width reflects frequency. Reveals which actors perform which actions on which targets.</li>
+      <li><strong>Verb Frequency</strong> &mdash; Bar chart of the most frequent verbs in SVO triplets. Highlights the dominant actions in the corpus.</li>
+    </ul>
+
+    <hr>
+    <h4><strong>Parameters</strong></h4>
+    <ul>
+      <li><strong>Min. Frequency</strong> &mdash; Minimum number of occurrences for a triplet to be included (default: 2). Increase to focus on recurring patterns.</li>
+      <li><strong>Top N Triplets</strong> &mdash; Number of top triplets to display in the Sankey network (default: 50). Controls visual complexity.</li>
+    </ul>
+
+    <hr>
+    <h4><strong>Applications</strong></h4>
+    <ul>
+      <li><strong>Content analysis:</strong> Identify dominant actors, actions, and targets in a corpus (e.g., &quot;government implements policy&quot;).</li>
+      <li><strong>Comparative studies:</strong> Compare SVO patterns across groups, time periods, or sources.</li>
+      <li><strong>Event extraction:</strong> Discover recurring events described in news, scientific abstracts, or reports.</li>
+      <li><strong>Narrative analysis:</strong> Map the structure of narratives by examining who does what.</li>
+    </ul>
+
+    <hr>
+    <div class='references'>
+      <h4><strong>References</strong></h4>
+
+      <p><strong>de Marneffe, M.-C., Manning, C.D., Nivre, J., &amp; Zeman, D.</strong> (2021) <i>Universal Dependencies.</i> <strong>Computational Linguistics</strong>, 47(2), 255-308.</p>
+
+      <p><strong>Jurafsky, D., &amp; Martin, J.H.</strong> (2024) <i>Speech and Language Processing.</i> 3rd edition (draft). Chapter 18: Information Extraction.</p>
+    </div>
+
+    </body>"
+
   polaritydetection <- "<body>
 
-    <h3><strong>Polarity Detection in TALL</strong></strong></h3>
+    <h3><strong>Polarity Detection in TALL</strong></h3>
 
     <p>Polarity detection is a fundamental <strong>sentiment analysis technique</strong> used to determine whether a document expresses a <strong>positive, negative, or neutral</strong> sentiment. This process is essential in analyzing <strong>consumer feedback, financial reports, product reviews, and social media discussions</strong>, where understanding sentiment trends can provide valuable insights into public opinion and decision-making processes.</p>
     <hr>
@@ -1589,6 +1968,63 @@ helpContent <- function() {
 
       <p><strong>Mohammad, S., & Turney, P.</strong></p>
       <p><i>Emotions evoked by common words and phrases: Using Mechanical Turk to create an emotion lexicon.</i> In <strong>Proceedings of the NAACL HLT 2010 Workshop on Computational Approaches to Analysis and Generation of Emotion in Text</strong>, 26-34. Los Angeles, CA: Association for Computational Linguistics.</p>
+      </div>
+
+      </body>"
+
+  ## emotion analysis ----
+  emotionanalysis <- "<body>
+
+    <h3><strong>Emotion Analysis in TALL</strong></h3>
+
+    <p>Emotion analysis goes beyond simple positive/negative polarity by identifying <strong>specific emotions</strong> expressed in text.
+    TALL uses the <strong>NRC Word-Emotion Association Lexicon (EmoLex)</strong> to detect eight primary emotions:
+    <strong>Anger, Anticipation, Disgust, Fear, Joy, Sadness, Surprise, and Trust</strong>.</p>
+    <hr>
+    <h4><strong>How Emotion Analysis Works in TALL</strong></h4>
+
+    <h4>1. Lexicon-Based Emotion Detection</h4>
+    <ul>
+    <li>Each lemma in the text is matched against the <strong>NRC EmoLex</strong>, which provides binary associations between words and eight emotions.</li>
+    <li>A single word can be associated with <strong>multiple emotions</strong> (e.g., 'abandon' may evoke both <strong>fear</strong> and <strong>sadness</strong>).</li>
+    </ul>
+
+    <h4>2. Document-Level Aggregation</h4>
+    <ul>
+    <li>For each document, emotion word counts are <strong>summed across all matched lemmas</strong>.</li>
+    <li>Counts are <strong>normalized to proportions</strong>, allowing comparison across documents of different lengths.</li>
+    </ul>
+
+    <h4>3. Corpus-Level Summary</h4>
+    <ul>
+    <li>Emotion counts are aggregated across all documents to provide a <strong>corpus-level emotion profile</strong>.</li>
+    <li>The <strong>Emotion Distribution</strong> chart shows the relative prevalence of each emotion in the corpus.</li>
+    </ul>
+
+    <h4>4. Word-Level Analysis</h4>
+    <ul>
+    <li>For each emotion, the <strong>most frequent contributing words</strong> are identified.</li>
+    <li>This helps understand <strong>which vocabulary drives</strong> each emotion category.</li>
+    </ul>
+    <hr>
+    <h4><strong>The NRC EmoLex</strong></h4>
+    <ul>
+    <li>Created by <strong>Saif Mohammad and Peter Turney</strong> using crowdsourcing via Amazon Mechanical Turk.</li>
+    <li>Contains approximately <strong>14,000 words</strong> annotated with eight emotion categories.</li>
+    <li>Available in <strong>multiple languages</strong> through automatic translation from the English source.</li>
+    <li>Widely used in <strong>social media analysis, literary studies, psychological research, and opinion mining</strong>.</li>
+    </ul>
+    <hr>
+    <div class='references'>
+      <h4><strong>References</strong></h4>
+
+      <p><strong>Mohammad, S.M., & Turney, P.D.</strong></p>
+      <p><i>Crowdsourcing a word-emotion association lexicon.</i> <strong>Computational Intelligence</strong>, 29(3), 436-465, 2013.</p>
+
+      <p><strong>Mohammad, S.M., & Turney, P.D.</strong></p>
+      <p><i>Emotions evoked by common words and phrases: Using Mechanical Turk to create an emotion lexicon.</i>
+      In <strong>Proceedings of the NAACL HLT 2010 Workshop on Computational Approaches to Analysis and Generation of Emotion in Text</strong>,
+      26-34. Los Angeles, CA: Association for Computational Linguistics.</p>
       </div>
 
       </body>"
@@ -1703,7 +2139,10 @@ helpContent <- function() {
     embeddingsimilarity = embeddingsimilarity,
     tmkchoice = tmkchoice,
     tmmodelestimation = tmmodelestimation,
+    syntacticcomplexity = syntacticcomplexity,
+    svo = svo,
     polaritydetection = polaritydetection,
+    emotionanalysis = emotionanalysis,
     summarization = summarization
   ))
 }

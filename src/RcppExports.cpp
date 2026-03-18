@@ -47,6 +47,40 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// extract_np_cpp
+DataFrame extract_np_cpp(IntegerVector sent_id, IntegerVector token_id, IntegerVector head_token_id, CharacterVector dep_rel, CharacterVector upos, CharacterVector terms, int ngram_max, int max_gap);
+RcppExport SEXP _tall_extract_np_cpp(SEXP sent_idSEXP, SEXP token_idSEXP, SEXP head_token_idSEXP, SEXP dep_relSEXP, SEXP uposSEXP, SEXP termsSEXP, SEXP ngram_maxSEXP, SEXP max_gapSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type sent_id(sent_idSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type token_id(token_idSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type head_token_id(head_token_idSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type dep_rel(dep_relSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type upos(uposSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type terms(termsSEXP);
+    Rcpp::traits::input_parameter< int >::type ngram_max(ngram_maxSEXP);
+    Rcpp::traits::input_parameter< int >::type max_gap(max_gapSEXP);
+    rcpp_result_gen = Rcpp::wrap(extract_np_cpp(sent_id, token_id, head_token_id, dep_rel, upos, terms, ngram_max, max_gap));
+    return rcpp_result_gen;
+END_RCPP
+}
+// extract_svo_cpp
+DataFrame extract_svo_cpp(IntegerVector sent_id, IntegerVector token_id, IntegerVector head_token_id, CharacterVector dep_rel, CharacterVector upos, CharacterVector terms);
+RcppExport SEXP _tall_extract_svo_cpp(SEXP sent_idSEXP, SEXP token_idSEXP, SEXP head_token_idSEXP, SEXP dep_relSEXP, SEXP uposSEXP, SEXP termsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type sent_id(sent_idSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type token_id(token_idSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type head_token_id(head_token_idSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type dep_rel(dep_relSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type upos(uposSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type terms(termsSEXP);
+    rcpp_result_gen = Rcpp::wrap(extract_svo_cpp(sent_id, token_id, head_token_id, dep_rel, upos, terms));
+    return rcpp_result_gen;
+END_RCPP
+}
 // calc_reciprocal_sum_cpp
 NumericVector calc_reciprocal_sum_cpp(List ngram_words, CharacterVector word_freq_names, NumericVector word_freq_values);
 RcppExport SEXP _tall_calc_reciprocal_sum_cpp(SEXP ngram_wordsSEXP, SEXP word_freq_namesSEXP, SEXP word_freq_valuesSEXP) {
@@ -83,6 +117,22 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type max_ngram(max_ngramSEXP);
     Rcpp::traits::input_parameter< CharacterVector >::type lexical_pos(lexical_posSEXP);
     rcpp_result_gen = Rcpp::wrap(generate_ngrams_cpp(sentences_terms, sentences_pos, max_ngram, lexical_pos));
+    return rcpp_result_gen;
+END_RCPP
+}
+// syntactic_complexity_cpp
+DataFrame syntactic_complexity_cpp(CharacterVector doc_id, IntegerVector sent_id, IntegerVector token_id, IntegerVector head_token_id, CharacterVector dep_rel, CharacterVector upos);
+RcppExport SEXP _tall_syntactic_complexity_cpp(SEXP doc_idSEXP, SEXP sent_idSEXP, SEXP token_idSEXP, SEXP head_token_idSEXP, SEXP dep_relSEXP, SEXP uposSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< CharacterVector >::type doc_id(doc_idSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type sent_id(sent_idSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type token_id(token_idSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type head_token_id(head_token_idSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type dep_rel(dep_relSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type upos(uposSEXP);
+    rcpp_result_gen = Rcpp::wrap(syntactic_complexity_cpp(doc_id, sent_id, token_id, head_token_id, dep_rel, upos));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -133,9 +183,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_tall_cpp_chisq", (DL_FUNC) &_tall_cpp_chisq, 3},
     {"_tall_cpp_split_tab", (DL_FUNC) &_tall_cpp_split_tab, 2},
     {"_tall_cpp_switch_docs", (DL_FUNC) &_tall_cpp_switch_docs, 2},
+    {"_tall_extract_np_cpp", (DL_FUNC) &_tall_extract_np_cpp, 8},
+    {"_tall_extract_svo_cpp", (DL_FUNC) &_tall_extract_svo_cpp, 6},
     {"_tall_calc_reciprocal_sum_cpp", (DL_FUNC) &_tall_calc_reciprocal_sum_cpp, 3},
     {"_tall_count_lexical_cpp", (DL_FUNC) &_tall_count_lexical_cpp, 2},
     {"_tall_generate_ngrams_cpp", (DL_FUNC) &_tall_generate_ngrams_cpp, 4},
+    {"_tall_syntactic_complexity_cpp", (DL_FUNC) &_tall_syntactic_complexity_cpp, 6},
     {"_tall_txt_recode_cpp", (DL_FUNC) &_tall_txt_recode_cpp, 4},
     {"_tall_txt_recode_ngram_cpp", (DL_FUNC) &_tall_txt_recode_ngram_cpp, 4},
     {"_tall_txt_recode_batch_cpp", (DL_FUNC) &_tall_txt_recode_batch_cpp, 4},

@@ -12,7 +12,7 @@ featureRolesUI <- function() {
           12,
           div(
             h2(
-              icon("tags", lib = "glyphicon"),
+              icon("tags"),
               strong("Feature Roles"),
               style = "color: #4F7942; text-align: center; margin-bottom: 20px;"
             ),
@@ -41,7 +41,7 @@ featureRolesUI <- function() {
                   # Time Variable Box
                   box(
                     title = strong(
-                      icon("time", lib = "glyphicon"),
+                      icon("clock"),
                       " Time Variable",
                       style = "font-size: 18px;"
                     ),
@@ -57,25 +57,29 @@ featureRolesUI <- function() {
 
                     fluidRow(
                       column(
-                        6,
+                        4,
                         uiOutput("timeVarSelect")
                       ),
                       column(
                         3,
+                        uiOutput("timeAggregationSelect")
+                      ),
+                      column(
+                        2,
                         div(
                           style = "margin-top: 25px;",
                           actionBttn(
                             inputId = "previewTimeVar",
-                            label = "Preview Values",
+                            label = "Preview",
                             style = "bordered",
                             color = "primary",
                             size = "sm",
-                            icon = icon("eye-open", lib = "glyphicon")
+                            icon = icon("eye")
                           )
                         )
                       ),
                       column(
-                        3,
+                        2,
                         div(
                           style = "margin-top: 25px;",
                           actionBttn(
@@ -84,7 +88,7 @@ featureRolesUI <- function() {
                             style = "bordered",
                             color = "danger",
                             size = "sm",
-                            icon = icon("remove", lib = "glyphicon")
+                            icon = icon("xmark")
                           )
                         )
                       )
@@ -96,8 +100,7 @@ featureRolesUI <- function() {
                       div(
                         style = "margin-top: 15px; padding: 10px; background-color: #e8f5e9; border-left: 4px solid #4caf50; border-radius: 4px;",
                         icon(
-                          "ok",
-                          lib = "glyphicon",
+                          "check",
                           style = "color: #4caf50;"
                         ),
                         strong(" Current selection: "),
@@ -109,7 +112,7 @@ featureRolesUI <- function() {
                   # Label Variable Box
                   box(
                     title = strong(
-                      icon("tag", lib = "glyphicon"),
+                      icon("tag"),
                       " Label Variable",
                       style = "font-size: 18px;"
                     ),
@@ -138,7 +141,7 @@ featureRolesUI <- function() {
                             style = "bordered",
                             color = "primary",
                             size = "sm",
-                            icon = icon("eye-open", lib = "glyphicon")
+                            icon = icon("eye")
                           )
                         )
                       ),
@@ -152,7 +155,7 @@ featureRolesUI <- function() {
                             style = "bordered",
                             color = "danger",
                             size = "sm",
-                            icon = icon("remove", lib = "glyphicon")
+                            icon = icon("xmark")
                           )
                         )
                       )
@@ -164,8 +167,7 @@ featureRolesUI <- function() {
                       div(
                         style = "margin-top: 15px; padding: 10px; background-color: #e3f2fd; border-left: 4px solid #2196f3; border-radius: 4px;",
                         icon(
-                          "ok",
-                          lib = "glyphicon",
+                          "check",
                           style = "color: #2196f3;"
                         ),
                         strong(" Current selection: "),
@@ -177,7 +179,7 @@ featureRolesUI <- function() {
                   # Keyness Group Variable Box
                   box(
                     title = strong(
-                      icon("transfer", lib = "glyphicon"),
+                      icon("right-left"),
                       " Keyness Group Variable",
                       style = "font-size: 18px;"
                     ),
@@ -206,7 +208,7 @@ featureRolesUI <- function() {
                             style = "bordered",
                             color = "primary",
                             size = "sm",
-                            icon = icon("eye-open", lib = "glyphicon")
+                            icon = icon("eye")
                           )
                         )
                       ),
@@ -220,7 +222,7 @@ featureRolesUI <- function() {
                             style = "bordered",
                             color = "danger",
                             size = "sm",
-                            icon = icon("remove", lib = "glyphicon")
+                            icon = icon("xmark")
                           )
                         )
                       )
@@ -232,8 +234,7 @@ featureRolesUI <- function() {
                       div(
                         style = "margin-top: 15px; padding: 10px; background-color: #fff3e0; border-left: 4px solid #ff9800; border-radius: 4px;",
                         icon(
-                          "ok",
-                          lib = "glyphicon",
+                          "check",
                           style = "color: #ff9800;"
                         ),
                         strong(" Current selection: "),
@@ -260,7 +261,7 @@ featureRolesUI <- function() {
                     div(
                       class = "box-header with-border",
                       h4(
-                        icon("list-alt", lib = "glyphicon"),
+                        icon("rectangle-list"),
                         strong("Summary"),
                         style = "margin: 0; color: #4F7942;"
                       )
@@ -297,8 +298,7 @@ featureRolesUI <- function() {
                           div(
                             style = "margin-bottom: 10px;",
                             icon(
-                              "time",
-                              lib = "glyphicon",
+                              "clock",
                               style = "color: #3f51b5;"
                             ),
                             strong(" Time: "),
@@ -313,7 +313,6 @@ featureRolesUI <- function() {
                             style = "margin-bottom: 10px;",
                             icon(
                               "tag",
-                              lib = "glyphicon",
                               style = "color: #00bcd4;"
                             ),
                             strong(" Label: "),
@@ -326,8 +325,7 @@ featureRolesUI <- function() {
 
                           div(
                             icon(
-                              "transfer",
-                              lib = "glyphicon",
+                              "right-left",
                               style = "color: #ff9800;"
                             ),
                             strong(" Keyness: "),
@@ -351,7 +349,7 @@ featureRolesUI <- function() {
                           color = "success",
                           size = "md",
                           block = TRUE,
-                          icon = icon("ok", lib = "glyphicon")
+                          icon = icon("check")
                         ),
                         br(),
                         actionBttn(
@@ -361,7 +359,7 @@ featureRolesUI <- function() {
                           color = "danger",
                           size = "sm",
                           block = TRUE,
-                          icon = icon("refresh", lib = "glyphicon")
+                          icon = icon("arrows-rotate")
                         )
                       )
                     )
@@ -429,7 +427,7 @@ featureRolesServer <- function(input, output, session, values) {
     if (length(choices) == 0) {
       div(
         style = "padding: 10px; background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 4px;",
-        icon("warning-sign", lib = "glyphicon", style = "color: #856404;"),
+        icon("triangle-exclamation", style = "color: #856404;"),
         span(
           " No numeric or date variables available",
           style = "color: #856404; margin-left: 5px;"
@@ -442,6 +440,34 @@ featureRolesServer <- function(input, output, session, values) {
         choices = c("None" = "", choices),
         selected = values$timeVariable,
         width = "100%"
+      )
+    }
+  })
+
+  # Time Aggregation Selection UI (only for Date variables)
+  output$timeAggregationSelect <- renderUI({
+    req(input$timeVarInput, input$timeVarInput != "")
+    col_data <- values$dfTag[[input$timeVarInput]]
+
+    if (inherits(col_data, c("Date", "POSIXct", "POSIXlt"))) {
+      selectInput(
+        inputId = "timeAggregation",
+        label = "Aggregate by:",
+        choices = c(
+          "Day" = "day",
+          "Week" = "week",
+          "Month" = "month",
+          "Quarter" = "quarter",
+          "Year" = "year"
+        ),
+        selected = if (!is.null(values$timeAggregation)) values$timeAggregation else "year",
+        width = "100%"
+      )
+    } else {
+      # Numeric variable: no aggregation needed
+      div(
+        style = "margin-top: 25px; padding: 8px; background-color: #f0f0f0; border-radius: 4px; text-align: center;",
+        span("Numeric variable", style = "color: #888; font-size: 12px;")
       )
     }
   })
@@ -491,7 +517,16 @@ featureRolesServer <- function(input, output, session, values) {
   # Display current selections
   output$timeVarDisplay <- renderText({
     if (!is.null(values$timeVariable) && values$timeVariable != "") {
-      values$timeVariable
+      if (!is.null(values$timeAggregation)) {
+        agg_label <- switch(
+          values$timeAggregation,
+          "day" = "Day", "week" = "Week", "month" = "Month",
+          "quarter" = "Quarter", "year" = "Year"
+        )
+        paste0(values$timeVariable, " (aggregated by ", agg_label, ")")
+      } else {
+        values$timeVariable
+      }
     } else {
       "None"
     }
@@ -516,10 +551,23 @@ featureRolesServer <- function(input, output, session, values) {
   # Summary outputs - Changed to renderUI for dynamic updates
   output$summaryTimeVar <- renderUI({
     if (!is.null(values$timeVariable) && values$timeVariable != "") {
+      agg_info <- ""
+      if (!is.null(values$timeAggregation)) {
+        agg_label <- switch(
+          values$timeAggregation,
+          "day" = "Day", "week" = "Week", "month" = "Month",
+          "quarter" = "Quarter", "year" = "Year"
+        )
+        agg_info <- paste0(
+          "<br><small style='color: #666;'>Aggregated by: <strong>",
+          agg_label, "</strong></small>"
+        )
+      }
       HTML(paste0(
         "<span style='color: #4F7942; font-weight: bold;'>",
         values$timeVariable,
-        "</span>"
+        "</span>",
+        agg_info
       ))
     } else {
       HTML("<span style='color: #999;'>Not assigned</span>")
@@ -573,6 +621,19 @@ featureRolesServer <- function(input, output, session, values) {
     }
   })
 
+  # Helper: aggregate date variable by selected period
+  aggregateTimeVar <- function(date_values, aggregation) {
+    switch(
+      aggregation,
+      "day" = as.character(date_values),
+      "week" = format(date_values, "%Y-W%V"),
+      "month" = format(date_values, "%Y-%m"),
+      "quarter" = paste0(format(date_values, "%Y"), "-", quarters(date_values)),
+      "year" = format(date_values, "%Y"),
+      as.character(date_values)
+    )
+  }
+
   # Preview Time Variable - IMPROVED LAYOUT
   observeEvent(input$previewTimeVar, {
     req(input$timeVarInput, input$timeVarInput != "")
@@ -589,86 +650,33 @@ featureRolesServer <- function(input, output, session, values) {
 
     var_data <- doc_level_data$var_value
     total_docs <- nrow(doc_level_data)
+    is_date <- inherits(var_data, c("Date", "POSIXct", "POSIXlt"))
 
-    # Create summary statistics with improved layout
-    if (is.numeric(var_data)) {
-      summary_stats <- summary(var_data)
-      unique_vals <- length(unique(var_data[!is.na(var_data)]))
-
-      preview_text <- paste0(
-        "<div style='text-align: left; padding: 15px;'>",
-
-        # Header section
-        "<div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>",
-        "<h3 style='margin: 0; font-size: 18px;'><i class='glyphicon glyphicon-time'></i> ",
-        input$timeVarInput,
-        "</h3>",
-        "<p style='margin: 5px 0 0 0; opacity: 0.9; font-size: 13px;'>Time Variable Preview</p>",
-        "</div>",
-
-        # Basic info
-        "<div style='background-color: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 15px;'>",
-        "<table style='width: 100%; border-collapse: collapse;'>",
-        "<tr><td style='padding: 6px; color: #666; font-weight: 600;'>Variable Type:</td><td style='padding: 6px; text-align: right;'><span style='background-color: #667eea; color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px;'>Numeric</span></td></tr>",
-        "<tr style='background-color: white;'><td style='padding: 6px; color: #666; font-weight: 600;'>Total Documents:</td><td style='padding: 6px; text-align: right; font-weight: bold; color: #4F7942;'>",
-        format(total_docs, big.mark = ","),
-        "</td></tr>",
-        "<tr><td style='padding: 6px; color: #666; font-weight: 600;'>Unique Values:</td><td style='padding: 6px; text-align: right; font-weight: bold; color: #667eea;'>",
-        format(unique_vals, big.mark = ","),
-        "</td></tr>",
-        "</table>",
-        "</div>",
-
-        # Statistics
-        "<div style='background-color: #fff; border: 2px solid #e0e0e0; padding: 12px; border-radius: 6px;'>",
-        "<h4 style='margin: 0 0 10px 0; color: #333; font-size: 14px; border-bottom: 2px solid #667eea; padding-bottom: 5px;'><i class='glyphicon glyphicon-stats'></i> Descriptive Statistics</h4>",
-        "<table style='width: 100%; border-collapse: collapse;'>",
-        "<tr><td style='padding: 6px; color: #666;'>Minimum:</td><td style='padding: 6px; text-align: right; font-weight: bold;'>",
-        format(round(summary_stats["Min."], 2), big.mark = ","),
-        "</td></tr>",
-        "<tr style='background-color: #f8f9fa;'><td style='padding: 6px; color: #666;'>1st Quartile:</td><td style='padding: 6px; text-align: right; font-weight: bold;'>",
-        format(round(summary_stats["1st Qu."], 2), big.mark = ","),
-        "</td></tr>",
-        "<tr><td style='padding: 6px; color: #666;'>Median:</td><td style='padding: 6px; text-align: right; font-weight: bold; color: #667eea;'>",
-        format(round(summary_stats["Median"], 2), big.mark = ","),
-        "</td></tr>",
-        "<tr style='background-color: #f8f9fa;'><td style='padding: 6px; color: #666;'>Mean:</td><td style='padding: 6px; text-align: right; font-weight: bold; color: #4F7942;'>",
-        format(round(summary_stats["Mean"], 2), big.mark = ","),
-        "</td></tr>",
-        "<tr><td style='padding: 6px; color: #666;'>3rd Quartile:</td><td style='padding: 6px; text-align: right; font-weight: bold;'>",
-        format(round(summary_stats["3rd Qu."], 2), big.mark = ","),
-        "</td></tr>",
-        "<tr style='background-color: #f8f9fa;'><td style='padding: 6px; color: #666;'>Maximum:</td><td style='padding: 6px; text-align: right; font-weight: bold;'>",
-        format(round(summary_stats["Max."], 2), big.mark = ","),
-        "</td></tr>",
-        "</table>",
-        "</div>",
-
-        "</div>"
+    if (is_date) {
+      # Date variable: show aggregated distribution
+      aggregation <- if (!is.null(input$timeAggregation)) input$timeAggregation else "year"
+      agg_label <- switch(
+        aggregation,
+        "day" = "Day", "week" = "Week", "month" = "Month",
+        "quarter" = "Quarter", "year" = "Year"
       )
-    } else {
-      freq_table <- table(var_data, useNA = "ifany")
-      top_10 <- head(sort(freq_table, decreasing = TRUE), 10)
 
-      # Create table rows for categories
+      agg_values <- aggregateTimeVar(var_data, aggregation)
+      freq_table <- sort(table(agg_values, useNA = "ifany"))
+      unique_periods <- length(freq_table)
+
+      # Create table rows for time periods
       category_rows <- paste(
-        sapply(seq_along(top_10), function(i) {
+        sapply(seq_along(freq_table), function(i) {
           bg_color <- if (i %% 2 == 0) "#f8f9fa" else "white"
           paste0(
-            "<tr style='background-color: ",
-            bg_color,
-            ";'>",
-            "<td style='padding: 8px; color: #333; font-weight: 500;'>",
-            names(top_10)[i],
-            "</td>",
-            "<td style='padding: 8px; text-align: right; font-weight: bold; color: #4F7942;'>",
-            format(top_10[i], big.mark = ","),
-            "</td>",
-            "<td style='padding: 8px; text-align: right;'>",
+            "<tr style='background-color: ", bg_color, ";'>",
+            "<td style='padding: 6px; color: #333; font-weight: 500;'>", names(freq_table)[i], "</td>",
+            "<td style='padding: 6px; text-align: right; font-weight: bold; color: #4F7942;'>",
+            format(freq_table[i], big.mark = ","), "</td>",
+            "<td style='padding: 6px; text-align: right;'>",
             "<span style='background-color: #667eea; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px;'>",
-            round(100 * top_10[i] / sum(freq_table), 1),
-            "%",
-            "</span></td>",
+            round(100 * freq_table[i] / sum(freq_table), 1), "%</span></td>",
             "</tr>"
           )
         }),
@@ -677,49 +685,78 @@ featureRolesServer <- function(input, output, session, values) {
 
       preview_text <- paste0(
         "<div style='text-align: left; padding: 15px;'>",
+        "<div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>",
+        "<h3 style='margin: 0; font-size: 18px;'><i class='fa fa-clock'></i> ", input$timeVarInput, "</h3>",
+        "<p style='margin: 5px 0 0 0; opacity: 0.9; font-size: 13px;'>Time Variable Preview (aggregated by ", agg_label, ")</p>",
+        "</div>",
+        "<div style='background-color: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 15px;'>",
+        "<table style='width: 100%; border-collapse: collapse;'>",
+        "<tr><td style='padding: 6px; color: #666; font-weight: 600;'>Variable Type:</td>",
+        "<td style='padding: 6px; text-align: right;'><span style='background-color: #667eea; color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px;'>Date</span></td></tr>",
+        "<tr style='background-color: white;'><td style='padding: 6px; color: #666; font-weight: 600;'>Aggregation:</td>",
+        "<td style='padding: 6px; text-align: right;'><span style='background-color: #764ba2; color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px;'>", agg_label, "</span></td></tr>",
+        "<tr><td style='padding: 6px; color: #666; font-weight: 600;'>Total Documents:</td>",
+        "<td style='padding: 6px; text-align: right; font-weight: bold; color: #4F7942;'>", format(total_docs, big.mark = ","), "</td></tr>",
+        "<tr style='background-color: white;'><td style='padding: 6px; color: #666; font-weight: 600;'>Date Range:</td>",
+        "<td style='padding: 6px; text-align: right; font-weight: bold;'>", format(min(var_data, na.rm = TRUE)), " to ", format(max(var_data, na.rm = TRUE)), "</td></tr>",
+        "<tr><td style='padding: 6px; color: #666; font-weight: 600;'>Time Periods:</td>",
+        "<td style='padding: 6px; text-align: right; font-weight: bold; color: #667eea;'>", format(unique_periods, big.mark = ","), "</td></tr>",
+        "</table></div>",
+        "<div style='background-color: #fff; border: 2px solid #e0e0e0; padding: 12px; border-radius: 6px; max-height: 400px; overflow-y: auto;'>",
+        "<h4 style='margin: 0 0 10px 0; color: #333; font-size: 14px; border-bottom: 2px solid #667eea; padding-bottom: 5px;'><i class='fa fa-calendar'></i> Documents per ", agg_label, "</h4>",
+        "<table style='width: 100%; border-collapse: collapse;'>",
+        "<thead><tr style='background-color: #f5f5f5; border-bottom: 2px solid #ddd;'>",
+        "<th style='padding: 6px; text-align: left; color: #666; font-weight: 600;'>Period</th>",
+        "<th style='padding: 6px; text-align: right; color: #666; font-weight: 600;'>Documents</th>",
+        "<th style='padding: 6px; text-align: right; color: #666; font-weight: 600;'>Percentage</th>",
+        "</tr></thead><tbody>",
+        category_rows,
+        "</tbody></table></div></div>"
+      )
+    } else if (is.numeric(var_data)) {
+      # Numeric variable: show descriptive statistics
+      summary_stats <- summary(var_data)
+      unique_vals <- length(unique(var_data[!is.na(var_data)]))
+
+      preview_text <- paste0(
+        "<div style='text-align: left; padding: 15px;'>",
 
         # Header section
-        "<div style='background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>",
-        "<h3 style='margin: 0; font-size: 18px;'><i class='glyphicon glyphicon-tag'></i> ",
-        input$timeVarInput,
-        "</h3>",
-        "<p style='margin: 5px 0 0 0; opacity: 0.9; font-size: 13px;'>Categorical Variable Preview</p>",
+        "<div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>",
+        "<h3 style='margin: 0; font-size: 18px;'><i class='fa fa-clock'></i> ", input$timeVarInput, "</h3>",
+        "<p style='margin: 5px 0 0 0; opacity: 0.9; font-size: 13px;'>Time Variable Preview</p>",
         "</div>",
 
         # Basic info
         "<div style='background-color: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 15px;'>",
         "<table style='width: 100%; border-collapse: collapse;'>",
-        "<tr><td style='padding: 6px; color: #666; font-weight: 600;'>Variable Type:</td><td style='padding: 6px; text-align: right;'><span style='background-color: #f5576c; color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px;'>",
-        class(var_data)[1],
-        "</span></td></tr>",
+        "<tr><td style='padding: 6px; color: #666; font-weight: 600;'>Variable Type:</td><td style='padding: 6px; text-align: right;'><span style='background-color: #667eea; color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px;'>Numeric</span></td></tr>",
         "<tr style='background-color: white;'><td style='padding: 6px; color: #666; font-weight: 600;'>Total Documents:</td><td style='padding: 6px; text-align: right; font-weight: bold; color: #4F7942;'>",
-        format(total_docs, big.mark = ","),
-        "</td></tr>",
-        "<tr><td style='padding: 6px; color: #666; font-weight: 600;'>Total Categories:</td><td style='padding: 6px; text-align: right; font-weight: bold; color: #f5576c;'>",
-        length(unique(var_data[!is.na(var_data)])),
-        "</td></tr>",
-        "</table>",
-        "</div>",
+        format(total_docs, big.mark = ","), "</td></tr>",
+        "<tr><td style='padding: 6px; color: #666; font-weight: 600;'>Unique Values:</td><td style='padding: 6px; text-align: right; font-weight: bold; color: #667eea;'>",
+        format(unique_vals, big.mark = ","), "</td></tr>",
+        "</table></div>",
 
-        # Category distribution
-        "<div style='background-color: #fff; border: 2px solid #e0e0e0; padding: 12px; border-radius: 6px; max-height: 400px; overflow-y: auto;'>",
-        "<h4 style='margin: 0 0 10px 0; color: #333; font-size: 14px; border-bottom: 2px solid #f5576c; padding-bottom: 5px;'><i class='glyphicon glyphicon-list'></i> Top 10 Categories</h4>",
+        # Statistics
+        "<div style='background-color: #fff; border: 2px solid #e0e0e0; padding: 12px; border-radius: 6px;'>",
+        "<h4 style='margin: 0 0 10px 0; color: #333; font-size: 14px; border-bottom: 2px solid #667eea; padding-bottom: 5px;'><i class='fa fa-chart-bar'></i> Descriptive Statistics</h4>",
         "<table style='width: 100%; border-collapse: collapse;'>",
-        "<thead>",
-        "<tr style='background-color: #f5f5f5; border-bottom: 2px solid #ddd;'>",
-        "<th style='padding: 8px; text-align: left; color: #666; font-weight: 600;'>Category</th>",
-        "<th style='padding: 8px; text-align: right; color: #666; font-weight: 600;'>Documents</th>",
-        "<th style='padding: 8px; text-align: right; color: #666; font-weight: 600;'>Percentage</th>",
-        "</tr>",
-        "</thead>",
-        "<tbody>",
-        category_rows,
-        "</tbody>",
-        "</table>",
-        "</div>",
-
-        "</div>"
+        "<tr><td style='padding: 6px; color: #666;'>Minimum:</td><td style='padding: 6px; text-align: right; font-weight: bold;'>",
+        format(round(summary_stats["Min."], 2), big.mark = ","), "</td></tr>",
+        "<tr style='background-color: #f8f9fa;'><td style='padding: 6px; color: #666;'>1st Quartile:</td><td style='padding: 6px; text-align: right; font-weight: bold;'>",
+        format(round(summary_stats["1st Qu."], 2), big.mark = ","), "</td></tr>",
+        "<tr><td style='padding: 6px; color: #666;'>Median:</td><td style='padding: 6px; text-align: right; font-weight: bold; color: #667eea;'>",
+        format(round(summary_stats["Median"], 2), big.mark = ","), "</td></tr>",
+        "<tr style='background-color: #f8f9fa;'><td style='padding: 6px; color: #666;'>Mean:</td><td style='padding: 6px; text-align: right; font-weight: bold; color: #4F7942;'>",
+        format(round(summary_stats["Mean"], 2), big.mark = ","), "</td></tr>",
+        "<tr><td style='padding: 6px; color: #666;'>3rd Quartile:</td><td style='padding: 6px; text-align: right; font-weight: bold;'>",
+        format(round(summary_stats["3rd Qu."], 2), big.mark = ","), "</td></tr>",
+        "<tr style='background-color: #f8f9fa;'><td style='padding: 6px; color: #666;'>Maximum:</td><td style='padding: 6px; text-align: right; font-weight: bold;'>",
+        format(round(summary_stats["Max."], 2), big.mark = ","), "</td></tr>",
+        "</table></div></div>"
       )
+    } else {
+      preview_text <- "<p>Unsupported variable type for time variable.</p>"
     }
 
     sendSweetAlert(
@@ -780,7 +817,7 @@ featureRolesServer <- function(input, output, session, values) {
 
       # Header section
       "<div style='background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>",
-      "<h3 style='margin: 0; font-size: 18px;'><i class='glyphicon glyphicon-tag'></i> ",
+      "<h3 style='margin: 0; font-size: 18px;'><i class='fa fa-tag'></i>",
       input$labelVarInput,
       "</h3>",
       "<p style='margin: 5px 0 0 0; opacity: 0.9; font-size: 13px;'>Label Variable Preview</p>",
@@ -803,7 +840,7 @@ featureRolesServer <- function(input, output, session, values) {
 
       # Category distribution
       "<div style='background-color: #fff; border: 2px solid #e0e0e0; padding: 12px; border-radius: 6px; max-height: 400px; overflow-y: auto;'>",
-      "<h4 style='margin: 0 0 10px 0; color: #333; font-size: 14px; border-bottom: 2px solid #00bcd4; padding-bottom: 5px;'><i class='glyphicon glyphicon-list'></i> Category Distribution</h4>",
+      "<h4 style='margin: 0 0 10px 0; color: #333; font-size: 14px; border-bottom: 2px solid #00bcd4; padding-bottom: 5px;'><i class='fa fa-list'></i> Category Distribution</h4>",
       "<table style='width: 100%; border-collapse: collapse;'>",
       "<thead>",
       "<tr style='background-color: #f5f5f5; border-bottom: 2px solid #ddd;'>",
@@ -879,7 +916,7 @@ featureRolesServer <- function(input, output, session, values) {
 
       # Header section
       "<div style='background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>",
-      "<h3 style='margin: 0; font-size: 18px;'><i class='glyphicon glyphicon-transfer'></i> ",
+      "<h3 style='margin: 0; font-size: 18px;'><i class='fa fa-right-left'></i>",
       input$keynessVarInput,
       "</h3>",
       "<p style='margin: 5px 0 0 0; opacity: 0.9; font-size: 13px;'>Keyness Group Variable Preview</p>",
@@ -902,7 +939,7 @@ featureRolesServer <- function(input, output, session, values) {
 
       # Category distribution
       "<div style='background-color: #fff; border: 2px solid #e0e0e0; padding: 12px; border-radius: 6px; max-height: 400px; overflow-y: auto;'>",
-      "<h4 style='margin: 0 0 10px 0; color: #333; font-size: 14px; border-bottom: 2px solid #ff9800; padding-bottom: 5px;'><i class='glyphicon glyphicon-list'></i> Category Distribution</h4>",
+      "<h4 style='margin: 0 0 10px 0; color: #333; font-size: 14px; border-bottom: 2px solid #ff9800; padding-bottom: 5px;'><i class='fa fa-list'></i> Category Distribution</h4>",
       "<table style='width: 100%; border-collapse: collapse;'>",
       "<thead>",
       "<tr style='background-color: #f5f5f5; border-bottom: 2px solid #ddd;'>",
@@ -953,7 +990,7 @@ featureRolesServer <- function(input, output, session, values) {
         style = "margin-top: 20px; padding: 15px; background-color: #fff8e1; border: 1px solid #ffeb3b; border-radius: 5px;",
 
         h5(
-          icon("info-sign", lib = "glyphicon", style = "color: #f57c00;"),
+          icon("circle-info", style = "color: #f57c00;"),
           strong(" Group Assignment Required"),
           style = "color: #f57c00; margin-top: 0;"
         ),
@@ -1012,6 +1049,10 @@ featureRolesServer <- function(input, output, session, values) {
   # Clear individual selections
   observeEvent(input$clearTimeVar, {
     values$timeVariable <- NULL
+    values$timeAggregation <- NULL
+    if ("time_agg" %in% names(values$dfTag)) {
+      values$dfTag$time_agg <- NULL
+    }
     updateSelectInput(session, "timeVarInput", selected = "")
   })
 
@@ -1040,7 +1081,29 @@ featureRolesServer <- function(input, output, session, values) {
     # Apply Time Variable
     if (!is.null(input$timeVarInput) && input$timeVarInput != "") {
       values$timeVariable <- input$timeVarInput
-      success_message <- paste0(success_message, "Time variable assigned.<br>")
+      col_data <- values$dfTag[[input$timeVarInput]]
+      is_date <- inherits(col_data, c("Date", "POSIXct", "POSIXlt"))
+
+      if (is_date && !is.null(input$timeAggregation)) {
+        values$timeAggregation <- input$timeAggregation
+        values$dfTag$time_agg <- aggregateTimeVar(col_data, input$timeAggregation)
+        agg_label <- switch(
+          input$timeAggregation,
+          "day" = "Day", "week" = "Week", "month" = "Month",
+          "quarter" = "Quarter", "year" = "Year"
+        )
+        success_message <- paste0(
+          success_message,
+          "Time variable assigned (Date aggregated by ", agg_label, ").<br>"
+        )
+      } else {
+        values$timeAggregation <- NULL
+        # Remove previous aggregation column if exists
+        if ("time_agg" %in% names(values$dfTag)) {
+          values$dfTag$time_agg <- NULL
+        }
+        success_message <- paste0(success_message, "Time variable assigned.<br>")
+      }
     }
 
     # Apply Label Variable
@@ -1216,6 +1279,10 @@ featureRolesServer <- function(input, output, session, values) {
   observeEvent(input$confirmResetRoles, {
     if (isTRUE(input$confirmResetRoles)) {
       values$timeVariable <- NULL
+      values$timeAggregation <- NULL
+      if ("time_agg" %in% names(values$dfTag)) {
+        values$dfTag$time_agg <- NULL
+      }
       values$labelVariable <- NULL
       values$keynessVariable <- NULL
       values$keynessGroup1 <- NULL

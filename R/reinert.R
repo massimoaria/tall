@@ -17,7 +17,9 @@ utils::globalVariables(c(
   "indep",
   "p_value",
   ".",
-  "segment"
+  "segment",
+  "seg_doc",
+  "prev_doc"
 ))
 
 
@@ -289,7 +291,6 @@ reinert <- function(
     uce_groups = uce_groups,
     corresp_uce_uc = corresp_uce_uc,
     corresp_uce_uc_full = corresp_uce_uc_full,
-    dtm = dtm,
     dtmOriginal = dtmOriginal
   )
 
@@ -468,14 +469,30 @@ split_segments <- function(doc_id, segment_size) {
 }
 
 merge_small_segments <- function(idTable, min_length = 5) {
-  idTable %>%
+  # Compute segment sizes and first doc_id per segment
+  seg_info <- idTable %>%
     group_by(uce) %>%
-    mutate(segment_size = n()) %>% # Calcola la dimensione di ogni segmento
-    # ungroup() %>%
+    mutate(segment_size = n()) %>%
+    ungroup()
+
+  # Get the doc_id of the first row of each segment
+  seg_doc <- seg_info %>%
+    group_by(uce) %>%
+    summarize(seg_doc = doc_id[1], .groups = "drop")
+
+  # Build lookup for previous segment's doc
+  seg_doc <- seg_doc %>%
+    mutate(prev_doc = dplyr::lag(seg_doc, default = ""))
+
+  seg_info <- seg_info %>%
+    left_join(seg_doc, by = "uce") %>%
     mutate(
-      uc = if_else(segment_size < min_length, uce - 1, uce)
+      # Only merge with previous segment if same document
+      uc = if_else(segment_size < min_length & seg_doc == prev_doc, uce - 1, uce)
     ) %>%
-    select(-segment_size) # Rimuove la colonna temporanea
+    select(-segment_size, -seg_doc, -prev_doc)
+
+  seg_info
 }
 
 #' Extract Terms and Segments for Document Clusters
@@ -548,8 +565,9 @@ term_per_cluster <- function(res, cutree = NULL, k = 1, negative = TRUE) {
   ind <- setdiff(as.character(1:max_ind), label)
 
   if (length(ind) > 0) {
-    m <- matrix(0, length(ind), ncol(dtm))
-    row.names(m) <- ind
+    m <- Matrix::Matrix(0, nrow = length(ind), ncol = ncol(dtm), sparse = TRUE)
+    rownames(m) <- ind
+    colnames(m) <- colnames(dtm)
     dtm <- rbind(dtm, m)
     dtm <- dtm[order(as.numeric(rownames(dtm))), ]
   }

@@ -67,7 +67,7 @@ wordsUI <- function() {
                 class = "config-section",
                 div(
                   class = "config-section-header",
-                  icon("cog", lib = "glyphicon"),
+                  icon("gear"),
                   "Main Configuration"
                 ),
                 selectInput(
@@ -110,12 +110,11 @@ wordsUI <- function() {
                     class = "params-section-header",
                     style = "display: flex; justify-content: space-between; align-items: center;",
                     div(
-                      icon("list", lib = "glyphicon"),
+                      icon("list"),
                       " Parameters"
                     ),
                     icon(
                       "chevron-down",
-                      lib = "glyphicon",
                       style = "font-size: 12px;"
                     )
                   )
@@ -251,7 +250,7 @@ wordsUI <- function() {
                 class = "config-section",
                 div(
                   class = "config-section-header",
-                  icon("cog", lib = "glyphicon"),
+                  icon("gear"),
                   "Main Configuration"
                 ),
                 fluidRow(
@@ -286,12 +285,11 @@ wordsUI <- function() {
                     class = "params-section-header",
                     style = "display: flex; justify-content: space-between; align-items: center;",
                     div(
-                      icon("scissors", lib = "glyphicon"),
+                      icon("scissors"),
                       " Segment Parameters"
                     ),
                     icon(
                       "chevron-down",
-                      lib = "glyphicon",
                       style = "font-size: 12px;"
                     )
                   )
@@ -331,12 +329,11 @@ wordsUI <- function() {
                     class = "advanced-section-header",
                     style = "display: flex; justify-content: space-between; align-items: center;",
                     div(
-                      icon("ok-sign", lib = "glyphicon"),
+                      icon("circle-check"),
                       " Feature Selection Parameters"
                     ),
                     icon(
                       "chevron-down",
-                      lib = "glyphicon",
                       style = "font-size: 12px;"
                     )
                   )
@@ -503,7 +500,7 @@ wordsUI <- function() {
                 class = "config-section",
                 div(
                   class = "config-section-header",
-                  icon("cog", lib = "glyphicon"),
+                  icon("gear"),
                   "Main Configuration"
                 ),
                 selectInput(
@@ -534,12 +531,11 @@ wordsUI <- function() {
                     class = "params-section-header",
                     style = "display: flex; justify-content: space-between; align-items: center;",
                     div(
-                      icon("stats", lib = "glyphicon"),
+                      icon("chart-bar"),
                       " Clustering Parameters"
                     ),
                     icon(
                       "chevron-down",
-                      lib = "glyphicon",
                       style = "font-size: 12px;"
                     )
                   )
@@ -580,12 +576,11 @@ wordsUI <- function() {
                     class = "advanced-section-header",
                     style = "display: flex; justify-content: space-between; align-items: center;",
                     div(
-                      icon("picture", lib = "glyphicon"),
+                      icon("image"),
                       " Graphical Options"
                     ),
                     icon(
                       "chevron-down",
-                      lib = "glyphicon",
                       style = "font-size: 12px;"
                     )
                   )
@@ -711,20 +706,6 @@ wordsUI <- function() {
             )
           ),
           tabPanel(
-            "Info & References",
-            fluidPage(
-              fluidRow(
-                column(1),
-                column(
-                  10,
-                  br(),
-                  HTML(infoTexts$correspondenceanalysis)
-                ),
-                column(1)
-              )
-            )
-          ),
-          tabPanel(
             "TALL AI",
             fluidPage(
               fluidRow(
@@ -740,6 +721,20 @@ wordsUI <- function() {
                 )
               )
             )
+          ),
+          tabPanel(
+            "Info & References",
+            fluidPage(
+              fluidRow(
+                column(1),
+                column(
+                  10,
+                  br(),
+                  HTML(infoTexts$correspondenceanalysis)
+                ),
+                column(1)
+              )
+            )
           )
         )
       )
@@ -748,7 +743,7 @@ wordsUI <- function() {
 
   ### Network ----
 
-  ## Co-word analysis ----
+  ## Word Network Analysis ----
 
   coword <- tabItem(
     tabName = "w_networkCooc",
@@ -756,7 +751,7 @@ wordsUI <- function() {
       fluidRow(
         column(
           8,
-          h3(strong("Co-word analysis"), align = "center")
+          h3(strong("Word Network Analysis"), align = "center")
         ),
         div(
           title = t_run,
@@ -815,19 +810,57 @@ wordsUI <- function() {
                 class = "config-section",
                 div(
                   class = "config-section-header",
-                  icon("cog", lib = "glyphicon"),
+                  icon("gear"),
                   "Main Configuration"
                 ),
                 selectInput(
-                  inputId = "w_groupNet",
-                  label = "Co-occurrences in",
+                  inputId = "w_networkType",
+                  label = "Network Type",
                   choices = c(
-                    "Groups",
-                    "Documents",
-                    "Paragraphs",
-                    "Sentences"
+                    "Co-occurrence" = "cooc",
+                    "Dependency" = "dep"
                   ),
-                  selected = "Sentences"
+                  selected = "cooc"
+                ),
+                conditionalPanel(
+                  'input.w_networkType == "cooc"',
+                  selectInput(
+                    inputId = "w_groupNet",
+                    label = "Co-occurrences in",
+                    choices = c(
+                      "Groups",
+                      "Documents",
+                      "Paragraphs",
+                      "Sentences"
+                    ),
+                    selected = "Sentences"
+                  )
+                ),
+                conditionalPanel(
+                  'input.w_networkType == "dep"',
+                  selectInput(
+                    inputId = "w_depRelFilter",
+                    label = "Dependency Relations",
+                    choices = c(
+                      "All syntactic" = "all",
+                      "Noun modifiers (amod, nmod, compound)" = "noun_mod",
+                      "Subject-Verb-Object" = "svo",
+                      "Custom" = "custom"
+                    ),
+                    selected = "all"
+                  ),
+                  conditionalPanel(
+                    'input.w_depRelFilter == "custom"',
+                    selectInput(
+                      inputId = "w_depRelCustom",
+                      label = "Select relations:",
+                      choices = c("nsubj", "obj", "iobj", "obl", "amod", "nmod",
+                        "compound", "flat", "conj", "appos", "acl", "advcl",
+                        "xcomp", "ccomp", "advmod", "nummod"),
+                      selected = c("nsubj", "obj", "amod", "nmod", "compound"),
+                      multiple = TRUE
+                    )
+                  )
                 ),
                 selectInput(
                   "normalizationCooc",
@@ -850,12 +883,11 @@ wordsUI <- function() {
                     class = "advanced-section-header",
                     style = "display: flex; justify-content: space-between; align-items: center;",
                     div(
-                      icon("link", lib = "glyphicon"),
+                      icon("link"),
                       " Network Options"
                     ),
                     icon(
                       "chevron-down",
-                      lib = "glyphicon",
                       style = "font-size: 12px;"
                     )
                   )
@@ -891,12 +923,11 @@ wordsUI <- function() {
                     class = "params-section-header",
                     style = "display: flex; justify-content: space-between; align-items: center;",
                     div(
-                      icon("eye-open", lib = "glyphicon"),
+                      icon("eye"),
                       " Graphical Parameters"
                     ),
                     icon(
                       "chevron-down",
-                      lib = "glyphicon",
                       style = "font-size: 12px;"
                     )
                   )
@@ -933,6 +964,19 @@ wordsUI <- function() {
                         "opacity",
                         label = "Opacity",
                         value = 0.6,
+                        min = 0,
+                        max = 1,
+                        step = 0.1
+                      )
+                    )
+                  ),
+                  fluidRow(
+                    column(
+                      12,
+                      sliderInput(
+                        "communityRepulsion",
+                        label = "Community Repulsion",
+                        value = 0.5,
                         min = 0,
                         max = 1,
                         step = 0.1
@@ -983,20 +1027,6 @@ wordsUI <- function() {
             )
           ),
           tabPanel(
-            "Info & References",
-            fluidPage(
-              fluidRow(
-                column(1),
-                column(
-                  10,
-                  br(),
-                  HTML(infoTexts$cowordanalysis)
-                ),
-                column(1)
-              )
-            )
-          ),
-          tabPanel(
             "TALL AI",
             fluidPage(
               fluidRow(
@@ -1010,6 +1040,20 @@ wordsUI <- function() {
                     color = "#4F7942"
                   )
                 )
+              )
+            )
+          ),
+          tabPanel(
+            "Info & References",
+            fluidPage(
+              fluidRow(
+                column(1),
+                column(
+                  10,
+                  br(),
+                  HTML(infoTexts$cowordanalysis)
+                ),
+                column(1)
               )
             )
           )
@@ -1085,7 +1129,7 @@ wordsUI <- function() {
                 class = "config-section",
                 div(
                   class = "config-section-header",
-                  icon("cog", lib = "glyphicon"),
+                  icon("gear"),
                   "Main Configuration"
                 ),
                 selectInput(
@@ -1115,12 +1159,11 @@ wordsUI <- function() {
                     class = "params-section-header",
                     style = "display: flex; justify-content: space-between; align-items: center;",
                     div(
-                      icon("eye-open", lib = "glyphicon"),
+                      icon("eye"),
                       " Graphical Parameters"
                     ),
                     icon(
                       "chevron-down",
-                      lib = "glyphicon",
                       style = "font-size: 12px;"
                     )
                   )
@@ -1290,10 +1333,6 @@ wordsUI <- function() {
                 color = getOption("spinner.color", default = "#4F7942")
               )
             ),
-            # ,tabPanel("Links",
-            #          shinycssloaders::withSpinner(DT::DTOutput("w_networkGrakoEdgesTable"),
-            #                                       color = getOption("spinner.color", default = "#4F7942"))
-            # )
             tabPanel(
               "Info & References",
               fluidPage(
@@ -1468,7 +1507,7 @@ wordsUI <- function() {
                 class = "config-section",
                 div(
                   class = "config-section-header",
-                  icon("cog", lib = "glyphicon"),
+                  icon("gear"),
                   "Main Configuration"
                 ),
                 numericInput(
@@ -1583,210 +1622,14 @@ wordsUI <- function() {
     )
   )
 
-  ## GRAKO ----
-
-  grako <- tabItem(
-    tabName = "w_networkGrako",
-    fluidPage(
-      fluidRow(
-        column(
-          8,
-          h3(strong("Grako"), align = "center")
-        ),
-        div(
-          title = t_run,
-          column(
-            1,
-            do.call(
-              "actionButton",
-              c(
-                run_bttn,
-                list(
-                  inputId = "w_networkGrakoApply"
-                )
-              )
-            )
-          )
-        ),
-        div(
-          title = t_export,
-          column(
-            1,
-            do.call(
-              "actionButton",
-              c(
-                export_bttn,
-                list(
-                  inputId = "w_networkGrakoExport"
-                )
-              )
-            )
-          )
-        ),
-        div(
-          title = t_report,
-          column(
-            1,
-            do.call(
-              "actionButton",
-              c(
-                report_bttn,
-                list(
-                  inputId = "w_networkGrakoReport"
-                )
-              )
-            )
-          )
-        ),
-        div(
-          column(
-            1,
-            dropdown(
-              h4(strong("Options: ")),
-              br(),
-
-              # Main Configuration
-              div(
-                class = "config-section",
-                div(
-                  class = "config-section-header",
-                  icon("cog", lib = "glyphicon"),
-                  "Main Configuration"
-                ),
-                selectInput(
-                  "grakoNormalization",
-                  label = "Normalization by:",
-                  choices = c(
-                    "None" = "none",
-                    "Association Index" = "association",
-                    "Cosine Similarity" = "cosine",
-                    "Jaccard Index" = "jaccard"
-                  ),
-                  selected = "association"
-                ),
-                materialSwitch(
-                  inputId = "grakoUnigram",
-                  label = "Include Single words",
-                  value = TRUE,
-                  status = "success"
-                )
-              ),
-
-              # Graphical Parameters Section
-              tags$details(
-                class = "params-section",
-                tags$summary(
-                  div(
-                    class = "params-section-header",
-                    style = "display: flex; justify-content: space-between; align-items: center;",
-                    div(
-                      icon("eye-open", lib = "glyphicon"),
-                      " Graphical Parameters"
-                    ),
-                    icon(
-                      "chevron-down",
-                      lib = "glyphicon",
-                      style = "font-size: 12px;"
-                    )
-                  )
-                ),
-                div(
-                  style = "margin-top: 10px;",
-                  fluidRow(
-                    column(
-                      6,
-                      numericInput(
-                        "grakoNMax",
-                        label = "Links",
-                        value = 30,
-                        min = 2,
-                        step = 1
-                      ),
-                      numericInput(
-                        "grakoMinEdges",
-                        label = "Top Link (%)",
-                        value = 100,
-                        min = 0,
-                        max = 100,
-                        step = 1
-                      )
-                    ),
-                    column(
-                      6,
-                      numericInput(
-                        "grakoLabelSize",
-                        label = "Label Size",
-                        value = 4,
-                        min = 0.0,
-                        step = 0.5
-                      ),
-                      numericInput(
-                        "grakoOpacity",
-                        label = "Opacity",
-                        value = 0.6,
-                        min = 0,
-                        max = 1,
-                        step = 0.1
-                      )
-                    )
-                  )
-                )
-              ),
-
-              style = "gradient",
-              right = TRUE,
-              animate = TRUE,
-              circle = TRUE,
-              tooltip = tooltipOptions(title = "Options"),
-              icon = icon("sliders", lib = "font-awesome"),
-              width = "320px"
-            )
-          ),
-          style = style_opt
-        )
-      ),
-      fluidRow(
-        tabsetPanel(
-          type = "tabs",
-          tabPanel(
-            "Network",
-            shinycssloaders::withSpinner(
-              visNetworkOutput(
-                "w_networkGrakoPlot",
-                width = "auto",
-                height = "75vh"
-              ),
-              color = getOption("spinner.color", default = "#4F7942")
-            )
-          ),
-          tabPanel(
-            "Words",
-            shinycssloaders::withSpinner(
-              DT::DTOutput("w_networkGrakoNodesTable"),
-              color = getOption("spinner.color", default = "#4F7942")
-            )
-          ),
-          tabPanel(
-            "Links",
-            shinycssloaders::withSpinner(
-              DT::DTOutput("w_networkGrakoEdgesTable"),
-              color = getOption("spinner.color", default = "#4F7942")
-            )
-          )
-        )
-      )
-    )
-  )
   return(list(
-    # kwic = kwic,
     clustering = clustering,
     reinert = reinert,
     ca = ca,
     coword = coword,
     tm = tm,
     we_training = we_training,
-    we_similarity = we_similarity,
-    grako = grako
+    we_similarity = we_similarity
   ))
 }
 
@@ -1993,7 +1836,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
     handlerExpr = {
       file <- paste("ReinertDendrogram-", sys.time(), ".png", sep = "")
       file <- destFolder(file, values$wdTall)
-      plot2png(values$ReinertDendrogram, filename = file, type = "vis")
+      plot2png(values$ReinertDendrogram, filename = file, type = "vis", dpi = values$dpi, height = values$h)
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -2027,7 +1870,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
         values$ReinertDendrogram,
         filename = "ReinertDendrogram.png",
         type = "vis",
-        zoom = values$zoom
+        dpi = values$report_dpi, height = values$h
       )
       values$list_file <- rbind(
         values$list_file,
@@ -2106,7 +1949,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
     handlerExpr = {
       file <- paste("Dendrogram-", sys.time(), ".png", sep = "")
       file <- destFolder(file, values$wdTall)
-      plot2png(values$WordDendrogram, filename = file, zoom = values$zoom)
+      plot2png(values$WordDendrogram, filename = file, type = "vis", dpi = values$dpi, height = values$h)
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -2125,7 +1968,8 @@ wordsServer <- function(input, output, session, values, statsValues) {
       values$fileDend <- plot2png(
         values$WordDendrogram,
         filename = "Clustering.png",
-        zoom = values$zoom
+        type = "vis",
+        dpi = values$report_dpi, height = values$h
       )
       values$list_file <- rbind(
         values$list_file,
@@ -2148,24 +1992,18 @@ wordsServer <- function(input, output, session, values, statsValues) {
     },
     valueExpr = {
       ## check to verify if groups exist or not
+      filtered <- LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected)
       if (
         input$groupCA == "Documents" & "ungroupDoc_id" %in% names(values$dfTag)
       ) {
-        values$CA <- wordCA(
-          backToOriginalGroups(LemmaSelection(values$dfTag)) %>%
-            filter(docSelected),
-          n = input$nCA,
-          term = values$generalTerm,
-          group = input$groupCA
-        )
-      } else {
-        values$CA <- wordCA(
-          LemmaSelection(values$dfTag) %>% filter(docSelected),
-          n = input$nCA,
-          term = values$generalTerm,
-          group = input$groupCA
-        )
+        filtered <- backToOriginalGroups(filtered)
       }
+      values$CA <- wordCA(
+        filtered,
+        n = input$nCA,
+        term = values$generalTerm,
+        group = input$groupCA
+      )
       ##
       values$CA <- caClustering(
         values$CA,
@@ -2335,8 +2173,8 @@ wordsServer <- function(input, output, session, values, statsValues) {
       file1 <- destFolder(file1, values$wdTall)
       file2 <- paste("CADendrogram-", sys.time(), ".png", sep = "")
       file2 <- destFolder(file2, values$wdTall)
-      plot2png(values$plotCA, filename = file1, type = "plotly")
-      plot2png(values$CADendrogram, filename = file2, type = "vis")
+      plot2png(values$plotCA, filename = file1, type = "plotly", dpi = values$dpi, height = values$h)
+      plot2png(values$CADendrogram, filename = file2, type = "vis", dpi = values$dpi, height = values$h)
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -2364,13 +2202,13 @@ wordsServer <- function(input, output, session, values, statsValues) {
         values$plotCA,
         filename = "CAMap.png",
         type = "plotly",
-        zoom = values$zoom
+        dpi = values$report_dpi, height = values$h
       )
       values$fileCADendrogram <- plot2png(
         values$CADendrogram,
         filename = "CADendrogram.png",
         type = "vis",
-        zoom = values$zoom
+        dpi = values$report_dpi, height = values$h
       )
       values$list_file <- rbind(
         values$list_file,
@@ -2386,7 +2224,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
 
   ## Network ----
 
-  ## Co-word analysis ----
+  ## Word Network Analysis ----
   netFunction <- eventReactive(
     ignoreNULL = TRUE,
     eventExpr = {
@@ -2410,16 +2248,25 @@ wordsServer <- function(input, output, session, values, statsValues) {
       )
       ## check to verify if groups exist or not
 
-      # community.repulsion <- as.numeric(gsub("%","",input$community.repulsion))/100
-      #community.repulsion <- 0
+      communityRepulsion <- if (!is.null(input$communityRepulsion)) input$communityRepulsion else 0.5
 
+      filtered <- LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected)
       if (
         input$w_groupNet == "Documents" &
           "ungroupDoc_id" %in% names(values$dfTag)
       ) {
+        filtered <- backToOriginalGroups(filtered)
+      }
+
+      # Choose network type
+      net_type <- if (!is.null(input$w_networkType)) input$w_networkType else "cooc"
+
+      if (net_type == "dep") {
+        # Dependency-based network
+        dep_filter <- if (!is.null(input$w_depRelFilter)) input$w_depRelFilter else "all"
+        dep_custom <- if (!is.null(input$w_depRelCustom)) input$w_depRelCustom else NULL
         values$network <- network(
-          backToOriginalGroups(LemmaSelection(values$dfTag)) %>%
-            filter(docSelected),
+          filtered,
           term = values$generalTerm,
           group = group,
           n = input$nMax,
@@ -2429,13 +2276,17 @@ wordsServer <- function(input, output, session, values, statsValues) {
           interLinks = input$interLinks,
           normalization = input$normalizationCooc,
           remove.isolated = input$removeIsolated,
-          community.repulsion = 0.5,
+          community.repulsion = communityRepulsion,
           seed = values$random_seed,
-          cluster = "louvain"
+          cluster = "louvain",
+          cooc_type = "dep",
+          dep_rel_filter = dep_filter,
+          dep_rel_custom = dep_custom
         )
       } else {
+        # Co-occurrence network (existing)
         values$network <- network(
-          LemmaSelection(values$dfTag) %>% filter(docSelected),
+          filtered,
           term = values$generalTerm,
           group = group,
           n = input$nMax,
@@ -2445,7 +2296,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
           interLinks = input$interLinks,
           normalization = input$normalizationCooc,
           remove.isolated = input$removeIsolated,
-          community.repulsion = 0.5,
+          community.repulsion = communityRepulsion,
           seed = values$random_seed,
           cluster = "louvain"
         )
@@ -2554,25 +2405,21 @@ wordsServer <- function(input, output, session, values, statsValues) {
     )
   })
 
-  ## export Network button
-  observeEvent(
-    eventExpr = {
-      input$w_networkCoocExport
-    },
-    handlerExpr = {
-      file <- paste("Network-Docs-", sys.time(), ".png", sep = "")
-      file <- destFolder(file, values$wdTall)
-      plot2png(values$netVis, filename = file, zoom = values$zoom)
-      popUp(title = "Saved in your working folder", type = "saved")
-    }
-  )
+  ## export Network button (JS canvas capture for crisp DPI-aware rendering)
+  observeEvent(input$w_networkCoocExport, {
+    file <- paste0("Network-Docs-", sys.time(), ".png")
+    shinyjs::runjs(sprintf(
+      'captureVisExport("w_networkCoocPlot", "%s", %d);',
+      file, values$dpi
+    ))
+  })
 
   ## Report
 
   observeEvent(input$w_networkCoocReport, {
     if (!is.null(values$network$nodes)) {
       popUp(title = NULL, type = "waiting")
-      sheetname <- "CoWord"
+      sheetname <- "WordNetwork"
       Gem <- values$w_networkGemini %>% string_to_sentence_df()
       list_df <- list(
         Gem,
@@ -2585,14 +2432,15 @@ wordsServer <- function(input, output, session, values, statsValues) {
       on.exit(setwd(owd))
       values$filenetVis <- plot2png(
         values$netVis,
-        filename = "CoWord.png",
-        zoom = values$zoom
+        filename = "WordNetwork.png",
+        type = "vis",
+        dpi = values$report_dpi, height = values$h
       )
       values$list_file <- rbind(
         values$list_file,
         c(sheetname = res$sheetname, values$filenetVis, res$col)
       )
-      popUp(title = "Co-Word Analysis Results", type = "success")
+      popUp(title = "Word Network Analysis Results", type = "success")
       values$myChoices <- sheets(values$wb)
     } else {
       popUp(type = "error")
@@ -2624,7 +2472,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
           label = "Close",
           inputId = "closePlotModalTermNet",
           style = "color: #ffff;",
-          icon = icon("remove", lib = "glyphicon")
+          icon = icon("xmark")
         )
       ),
     )
@@ -2646,18 +2494,6 @@ wordsServer <- function(input, output, session, values, statsValues) {
       }
       switch(
         input$sidebarmenu,
-        "w_networkGrako" = {
-          word_search <- values$grako$nodes$title[values$grako$nodes$id == id]
-
-          selectedEdges <- values$grako$edges %>%
-            filter(term_from %in% word_search | term_to %in% word_search) %>%
-            mutate(grako = paste0(term_from, " ", term_to))
-
-          sentences <- values$grako$multiwords %>%
-            filter(grako %in% selectedEdges$grako) %>%
-            select(doc_id, sentence_hl) %>%
-            distinct()
-        },
         "overview" = {
           word_search <- values$WC2VIS$x$nodes$label[
             values$WC2VIS$x$nodes$id == id
@@ -2666,7 +2502,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
             filter(docSelected) %>%
             filter(.data[[values$generalTerm]] %in% word_search) %>%
             ungroup() %>%
-            select(doc_id, lemma, token, sentence_hl)
+            select(doc_id, lemma, token, any_of(c("sentence_hl", "sentence")))
         },
         {
           word_search <- values$network$nodes$label[
@@ -2676,7 +2512,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
             filter(docSelected) %>%
             filter(lemma %in% word_search) %>%
             ungroup() %>%
-            select(doc_id, lemma, token, sentence_hl)
+            select(doc_id, lemma, token, any_of(c("sentence_hl", "sentence")))
         }
       )
 
@@ -2716,7 +2552,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
           label = "Close",
           inputId = "closeplotModalTermDend",
           style = "color: #ffff;",
-          icon = icon("remove", lib = "glyphicon")
+          icon = icon("xmark")
         )
       ),
     )
@@ -2766,7 +2602,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
         filter(docSelected) %>%
         filter(lemma %in% word_search) %>%
         ungroup() %>%
-        select(doc_id, lemma, token, sentence_hl)
+        select(doc_id, lemma, token, any_of(c("sentence_hl", "sentence")))
 
       # find sentences containing the tokens/lemma
       DTformat(
@@ -2778,28 +2614,6 @@ wordsServer <- function(input, output, session, values, statsValues) {
     },
     escape = FALSE
   )
-
-  # ## Report
-  #
-  # observeEvent(input$w_networkCoocReport,{
-  #   if(!is.null(values$network$nodes)){
-  #     popUp(title=NULL, type="waiting")
-  #     sheetname <- "CoWord"
-  #     list_df <- list(values$network$nodesData
-  #                     ,values$network$edgesData
-  #     )
-  #     res <- addDataScreenWb(list_df, wb=values$wb, sheetname=sheetname)
-  #     #values$wb <- res$wb
-  #     owd <- setwd(tempdir())
-  #     on.exit(setwd(owd))
-  #     values$filenetVis <- plot2png(values$netVis, filename="CoWord.png", zoom = values$zoom)
-  #     values$list_file <- rbind(values$list_file, c(sheetname=res$sheetname,values$filenetVis,res$col))
-  #     popUp(title="Co-Word Analysis Results", type="success")
-  #     values$myChoices <- sheets(values$wb)
-  #   } else {
-  #     popUp(type="error")
-  #   }
-  # })
 
   ## Click on Reinert Dendrogram: WORDS IN CONTEXT ----
   observeEvent(
@@ -2882,7 +2696,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
           label = "Close",
           inputId = "closeplotModalTermRein",
           style = "color: #ffff;",
-          icon = icon("remove", lib = "glyphicon")
+          icon = icon("xmark")
         )
       ),
     )
@@ -2938,33 +2752,23 @@ wordsServer <- function(input, output, session, values, statsValues) {
       )
       ## check to verify if groups exist or not
 
+      filtered <- LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected)
       if (
         input$w_groupTM == "Documents" &
           "ungroupDoc_id" %in% names(values$dfTag)
       ) {
-        values$TM <- tallThematicmap(
-          backToOriginalGroups(LemmaSelection(values$dfTag)) %>%
-            filter(docSelected),
-          term = values$generalTerm,
-          group = group,
-          n = input$nMaxTM,
-          labelsize = input$labelSizeTM,
-          n.labels = input$n.labelsTM,
-          opacity = input$opacityTM,
-          seed = values$random_seed
-        )
-      } else {
-        values$TM <- tallThematicmap(
-          LemmaSelection(values$dfTag) %>% filter(docSelected),
-          term = values$generalTerm,
-          group = group,
-          n = input$nMaxTM,
-          labelsize = input$labelSizeTM,
-          n.labels = input$n.labelsTM,
-          opacity = input$opacityTM,
-          seed = values$random_seed
-        )
+        filtered <- backToOriginalGroups(filtered)
       }
+      values$TM <- tallThematicmap(
+        filtered,
+        term = values$generalTerm,
+        group = group,
+        n = input$nMaxTM,
+        labelsize = input$labelSizeTM,
+        n.labels = input$n.labelsTM,
+        opacity = input$opacityTM,
+        seed = values$random_seed
+      )
 
       values$TMvis <- net2vis(
         nodes = values$TM$net$nodes,
@@ -3057,8 +2861,8 @@ wordsServer <- function(input, output, session, values, statsValues) {
       file1 <- destFolder(file1, values$wdTall)
       file2 <- paste("TANetwork-", sys.time(), ".png", sep = "")
       file2 <- destFolder(file2, values$wdTall)
-      plot2png(values$TMmap, filename = file1, type = "plotly")
-      plot2png(values$TMvis, filename = file2, type = "vis")
+      plot2png(values$TMmap, filename = file1, type = "plotly", dpi = values$dpi, height = values$h)
+      plot2png(values$TMvis, filename = file2, type = "vis", dpi = values$dpi, height = values$h)
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -3083,13 +2887,13 @@ wordsServer <- function(input, output, session, values, statsValues) {
         values$TMmap,
         filename = "TMMap.png",
         type = "plotly",
-        zoom = values$zoom
+        dpi = values$report_dpi, height = values$h
       )
       values$fileTMNetwork <- plot2png(
         values$TMvis,
         filename = "TMNetwork.png",
         type = "vis",
-        zoom = values$zoom
+        dpi = values$report_dpi, height = values$h
       )
       values$list_file <- rbind(
         values$list_file,
@@ -3200,8 +3004,8 @@ wordsServer <- function(input, output, session, values, statsValues) {
       file3 <- paste("WEpca-", sys.time(), ".png", sep = "")
       file3 <- destFolder(file3, values$wdTall)
       write.csv(as.matrix(values$w2v_model), file = file1)
-      plot2png(values$w2vBoxplot, filename = file2, type = "plotly")
-      plot2png(values$w2vPCA, filename = file3, type = "plotly")
+      plot2png(values$w2vBoxplot, filename = file2, type = "plotly", dpi = values$dpi, height = values$h)
+      plot2png(values$w2vPCA, filename = file3, type = "plotly", dpi = values$dpi, height = values$h)
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -3220,13 +3024,13 @@ wordsServer <- function(input, output, session, values, statsValues) {
         values$w2vBoxplot,
         filename = "w2vBoxplot.png",
         type = "plotly",
-        zoom = values$zoom
+        dpi = values$report_dpi, height = values$h
       )
       values$fileplotw2vPCA <- plot2png(
         values$w2vPCA,
         filename = "w2vPCA.png",
         type = "plotly",
-        zoom = values$zoom
+        dpi = values$report_dpi, height = values$h
       )
       values$list_file <- rbind(
         values$list_file,
@@ -3358,8 +3162,8 @@ wordsServer <- function(input, output, session, values, statsValues) {
       file1 <- destFolder(file1, values$wdTall)
       file2 <- paste("WEumap-", sys.time(), ".png", sep = "")
       file2 <- destFolder(file2, values$wdTall)
-      plot2png(values$w2vNetworkPlot, filename = file1, type = "vis")
-      plot2png(values$w2vUMAPplot, filename = file2, type = "plotly")
+      plot2png(values$w2vNetworkPlot, filename = file1, type = "vis", dpi = values$dpi, height = values$h)
+      plot2png(values$w2vUMAPplot, filename = file2, type = "plotly", dpi = values$dpi, height = values$h)
       popUp(title = "Saved in your working folder", type = "saved")
     }
   )
@@ -3383,13 +3187,13 @@ wordsServer <- function(input, output, session, values, statsValues) {
         values$w2vNetworkPlot,
         filename = "w2vNetworkPlot.png",
         type = "vis",
-        zoom = values$zoom
+        dpi = values$report_dpi, height = values$h
       )
       values$fileplotw2vUMAP <- plot2png(
         values$w2vUMAPplot,
         filename = "w2vUMAPPlot.png",
         type = "plotly",
-        zoom = values$zoom
+        dpi = values$report_dpi, height = values$h
       )
       values$list_file <- rbind(
         values$list_file,
@@ -3403,128 +3207,4 @@ wordsServer <- function(input, output, session, values, statsValues) {
     }
   })
 
-  ## GRAKO ----
-  grakoFunction <- eventReactive(
-    ignoreNULL = TRUE,
-    eventExpr = {
-      input$w_networkGrakoApply
-    },
-    valueExpr = {
-      values$grako <- grako(
-        values$dfTag %>% filter(docSelected),
-        n = input$grakoNMax,
-        minEdges = input$grakoMinEdges,
-        labelsize = input$grakoLabelSize,
-        opacity = input$grakoOpacity,
-        normalization = input$grakoNormalization,
-        singleWords = input$grakoUnigram,
-        term = values$generalTerm
-      )
-
-      values$grakoVis <- grako2vis(
-        nodes = values$grako$nodes,
-        edges = values$grako$edges
-      )
-
-      # grako$nodes
-      values$grako$nodesData <- values$grako$nodes %>%
-        select(upos, label, value) %>%
-        mutate(label = gsub("<.*?>", "", label)) %>%
-        rename(
-          "Part of Speech" = upos,
-          Word = label,
-          Frequency = value
-        ) %>%
-        relocate("Part of Speech", .after = last_col())
-
-      # grako$edges
-      values$grako$edgesData <- values$grako$edges %>%
-        select(term_from, term_to, upos_from, upos_to, role, s, sA, sC, sJ) %>%
-        rename(
-          From = term_from,
-          To = term_to,
-          "Co-occurence" = s,
-          "Association Index" = sA,
-          "Cosine Similarity" = sC,
-          "Jaccard Index" = sJ,
-          "PoS From" = upos_from,
-          "PoS To" = upos_to,
-          "Action" = role
-        )
-    }
-  )
-
-  output$w_networkGrakoPlot <- renderVisNetwork({
-    grakoFunction()
-    values$grakoVis
-  })
-
-  output$w_networkGrakoNodesTable <- renderDT(server = FALSE, {
-    grakoFunction()
-    DTformat(
-      values$grako$nodesData,
-      size = "100%",
-      filename = "GrakoWordsTable",
-      pagelength = TRUE,
-      left = NULL,
-      right = NULL,
-      numeric = NULL,
-      dom = TRUE,
-      filter = "top"
-    )
-  })
-
-  output$w_networkGrakoEdgesTable <- renderDT(server = FALSE, {
-    grakoFunction()
-    DTformat(
-      values$grako$edgesData,
-      size = "100%",
-      filename = "GrakoLinksTable",
-      numeric = 7:9,
-      round = 4
-    )
-  })
-
-  ## export Network button
-  observeEvent(
-    eventExpr = {
-      input$w_networkGrakoExport
-    },
-    handlerExpr = {
-      file <- paste("Grako-", sys.time(), ".png", sep = "")
-      file <- destFolder(file, values$wdTall)
-      plot2png(values$grakoVis, filename = file, zoom = values$zoom)
-      popUp(title = "Saved in your working folder", type = "saved")
-    }
-  )
-
-  ## Report
-
-  observeEvent(input$w_networkGrakoReport, {
-    if (!is.null(values$grako$nodes)) {
-      popUp(title = NULL, type = "waiting")
-      sheetname <- "Grako"
-      list_df <- list(
-        values$grako$nodesData,
-        values$grako$edgesData
-      )
-      res <- addDataScreenWb(list_df, wb = values$wb, sheetname = sheetname)
-      # values$wb <- res$wb
-      owd <- setwd(tempdir())
-      on.exit(setwd(owd))
-      values$fileGrako <- plot2png(
-        values$grakoVis,
-        filename = "grako.png",
-        zoom = values$zoom
-      )
-      values$list_file <- rbind(
-        values$list_file,
-        c(sheetname = res$sheetname, values$fileGrako, res$col)
-      )
-      popUp(title = "Grako Results", type = "success")
-      values$myChoices <- sheets(values$wb)
-    } else {
-      popUp(type = "error")
-    }
-  })
 }

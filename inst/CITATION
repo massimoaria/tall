@@ -1,24 +1,25 @@
 citHeader("If you use 'tall' in research, please cite:")
 
 bibentry(
-  bibtype = "Manual",
-  title = "tall: Text Analysis for All",
+  bibtype = "Article",
+  title = "TALL: Text analysis for all -- an interactive R-shiny application for exploring, modeling, and visualizing textual data",
   author = c(
-    person("Massimo", "Aria", email = "aria@unina.it", role = c("aut", "cre")),
-    person("Maria", "Spano", role = "aut"),
-    person("Luca", "D'Aniello", role = "aut"),
-    person("Corrado", "Cuccurullo", role = "aut"),
-    person("Michelangelo", "Misuraca", role = "aut")
+    person("Massimo", "Aria"),
+    person("Maria", "Spano"),
+    person("Luca", "D'Aniello"),
+    person("Corrado", "Cuccurullo"),
+    person("Michelangelo", "Misuraca")
   ),
-  year = "2025",
-  note = "R package",
-  organization = "CRAN",
-  doi = "10.32614/CRAN.package.tall",
-  url = "https://CRAN.R-project.org/package=tall",
+  journal = "SoftwareX",
+  year = "2026",
+  volume = "34",
+  pages = "102590",
+  doi = "10.1016/j.softx.2026.102590",
+  url = "https://www.sciencedirect.com/science/article/pii/S2352711026000841",
   textVersion = paste(
-    "Aria, M., Spano, M., D'Aniello, L., Cuccurullo, C., & Misuraca, M. (2025).",
-    "tall: Text Analysis for All.",
-    "R package. CRAN.",
-    "https://doi.org/10.32614/CRAN.package.tall"
+    "Aria, M., Spano, M., D'Aniello, L., Cuccurullo, C., & Misuraca, M. (2026).",
+    "TALL: Text analysis for all - an interactive R-shiny application for exploring, modeling, and visualizing textual data.",
+    "SoftwareX, 34, 102590.",
+    "https://www.sciencedirect.com/science/article/pii/S2352711026000841"
   )
 )

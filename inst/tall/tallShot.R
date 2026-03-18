@@ -20,7 +20,7 @@ tallShot <- function(
     selector = NULL,
     cliprect = NULL,
     expand = NULL,
-    delay = 0.2,
+    delay = 0.3,
     zoom = 1,
     useragent = NULL,
     max_concurrent = getOption("tallShot.concurrent", default = 6),

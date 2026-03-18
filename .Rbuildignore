@@ -5,6 +5,7 @@
 ^data-raw$
 temp_functions$
 .positai$
+.claude$
 file_test$
 inst/bbc$
 ^images$
