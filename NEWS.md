@@ -1,5 +1,5 @@
 # tall 1.0.0
-⏺ Changelog:                                      
+* Changelog:                                      
                                          
   New Analyses                                                                    
    
