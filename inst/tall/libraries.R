@@ -47,6 +47,8 @@ libraries_analysis <- function() {
   if (requireNamespace("umap", quietly = TRUE)) suppressPackageStartupMessages(library(umap))
   suppressPackageStartupMessages(library(httr2))
   suppressPackageStartupMessages(library(ggwordcloud))
+  suppressPackageStartupMessages(library(future))
+  suppressPackageStartupMessages(library(promises))
   if (requireNamespace("ranger", quietly = TRUE)) suppressPackageStartupMessages(library(ranger))
 }
 

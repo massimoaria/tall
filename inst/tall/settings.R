@@ -486,11 +486,10 @@ settingsServer <- function(input, output, session, values, statsValues) {
         label = "Select the Gemini Model",
         choices = c(
           "Gemini 2.5 Flash" = "2.5-flash",
-          "Gemini 2.5 Flash Lite" = "2.5-flash-lite" #,
-          # "Gemini 2.0 Flash" = "2.0-flash",
-          # "Gemini 2.0 Flash Lite" = "2.0-flash-lite",
-          # "Gemini 1.5 Flash" = "1.5-flash",
-          # "Gemini 1.5 Flash Lite" = "1.5-flash-8b"
+          "Gemini 2.5 Flash Lite" = "2.5-flash-lite",
+          "Gemini 3.0 Flash" = "3-flash-preview",
+          "Gemini 3.1 Pro" = "3.1-pro-preview",
+          "Gemini Pro Latest" = "pro-latest"
         ),
         selected = ifelse(
           is.null(values$gemini_api_model),
@@ -519,51 +518,27 @@ settingsServer <- function(input, output, session, values, statsValues) {
           tags$br(),
           "Latency time: Low"
         ))
-      ) #,
-      # conditionalPanel(
-      #   condition = "input.gemini_api_model == '2.0-flash-lite'",
-      #   helpText(strong("Free Tier Rate Limits:")),
-      #   helpText(em(
-      #     "Request per Minutes: 30",
-      #     tags$br(),
-      #     "Requests per Day: 1500",
-      #     tags$br(),
-      #     "Latency time: Low"
-      #   ))
-      # ),
-      # conditionalPanel(
-      #   condition = "input.gemini_api_model == '2.0-flash'",
-      #   helpText(strong("Free Tier Rate Limits:")),
-      #   helpText(em(
-      #     "Request per Minutes: 15",
-      #     tags$br(),
-      #     "Requests per Day: 1500",
-      #     tags$br(),
-      #     "Latency time: Medium"
-      #   ))
-      # ),
-      # conditionalPanel(
-      #   condition = "input.gemini_api_model == '1.5-flash'",
-      #   helpText(strong("Free Tier Rate Limits:")),
-      #   helpText(em(
-      #     "Request per Minutes: 15",
-      #     tags$br(),
-      #     "Requests per Day: 1500",
-      #     tags$br(),
-      #     "Latency time: Medium"
-      #   ))
-      # ),
-      # conditionalPanel(
-      #   condition = "input.gemini_api_model == '1.5-flash-8b'",
-      #   helpText(strong("Free Tier Rate Limits:")),
-      #   helpText(em(
-      #     "Request per Minutes: 15",
-      #     tags$br(),
-      #     "Requests per Day: 1500",
-      #     tags$br(),
-      #     "Latency time: Low"
-      #   ))
-      # )
+      ),
+      conditionalPanel(
+        condition = "input.gemini_api_model == '3-flash-preview'",
+        helpText(strong("Free Tier Rate Limits:")),
+        helpText(em(
+          "Request per Minutes: 10",
+          tags$br(),
+          "Requests per Day: 500",
+          tags$br(),
+          "Latency time: Medium"
+        ))
+      ),
+      conditionalPanel(
+        condition = "input.gemini_api_model == '3.1-pro-preview' || input.gemini_api_model == 'pro-latest'",
+        helpText(strong(style = "color: #d9534f;", "Paid API Key Required")),
+        helpText(em(
+          "Pro models require a paid (non-free tier) API key.",
+          tags$br(),
+          "Free tier API keys will not work with these models."
+        ))
+      )
     )
   })
 
@@ -575,6 +550,18 @@ settingsServer <- function(input, output, session, values, statsValues) {
       )
       values$gemini_api_model <- input$gemini_api_model
       values$gemini_output_size <- input$gemini_output_size
+
+      # Alert for Pro models requiring paid API key
+      if (input$gemini_api_model %in% c("3.1-pro-preview", "pro-latest")) {
+        showModal(modalDialog(
+          title = "Paid API Key Required",
+          tags$p("The selected Pro model requires a ", tags$strong("paid (non-free tier)"), " Google AI API key."),
+          tags$p("Free tier API keys do not support Pro models. If you are using a free tier key, the API calls will fail."),
+          tags$p("You can upgrade your API key at: ", tags$a(href = "https://aistudio.google.com/apikey", target = "_blank", "Google AI Studio")),
+          easyClose = TRUE,
+          footer = modalButton("OK")
+        ))
+      }
     }
   })
 
@@ -591,29 +578,78 @@ settingsServer <- function(input, output, session, values, statsValues) {
 
   observeEvent(input$set_key, {
     key <- input$api_key
-    last <- setGeminiAPI(key)
 
-    if (!last$valid) {
+    # Quick sync validations
+    if (is.null(key) || !is.character(key) || nchar(key) == 0) {
       output$apiStatus <- renderUI({
-        output$status <- renderText(last$message)
+        output$status <- renderText("\u274c API key must be a non-empty string.")
       })
       values$geminiAPI <- FALSE
-    } else {
-      output$apiStatus <- renderUI({
-        output$status <- renderText(paste0(
-          "✅ API key has been set: ",
-          last$message
-        ))
-      })
-      values$geminiAPI <- TRUE
-      home <- homeFolder()
-      path_gemini_key <- paste0(
-        home,
-        "/tall/.tall_gemini_key.txt",
-        collapse = ""
-      )
-      writeLines(Sys.getenv("GEMINI_API_KEY"), path_gemini_key)
+      return()
     }
+    if (nchar(key) < 10) {
+      output$apiStatus <- renderUI({
+        output$status <- renderText("\u274c API key seems too short. Please verify your key.")
+      })
+      values$geminiAPI <- FALSE
+      return()
+    }
+
+    output$apiStatus <- renderUI({
+      output$status <- renderText("\u231b Validating API key...")
+    })
+
+    # Async: validate key via API call in background
+    promises::future_promise({
+      apiCheck <- gemini_ai(
+        image = NULL, prompt = "Hello", model = "2.5-flash",
+        type = "png", retry_503 = 5, api_key = key
+      )
+      contains_error <- grepl("HTTP\\s*[1-5][0-9]{2}", apiCheck)
+      list(valid = !contains_error, key = key)
+    }, seed = TRUE) %...>%
+      (function(result) {
+        if (!result$valid) {
+          output$apiStatus <- renderUI({
+            output$status <- renderText(
+              "\u274c API key seems be not valid! Please, check it or your connection."
+            )
+          })
+          values$geminiAPI <- FALSE
+        } else {
+          Sys.setenv(GEMINI_API_KEY = result$key)
+          last4 <- substr(
+            result$key,
+            max(1, nchar(result$key) - 3),
+            nchar(result$key)
+          )
+          masked <- paste0(
+            paste0(rep("*", nchar(result$key) - 4), collapse = ""),
+            last4
+          )
+          output$apiStatus <- renderUI({
+            output$status <- renderText(
+              paste0("\u2705 API key has been set: ", masked)
+            )
+          })
+          values$geminiAPI <- TRUE
+          home <- homeFolder()
+          path_gemini_key <- paste0(
+            home, "/tall/.tall_gemini_key.txt", collapse = ""
+          )
+          writeLines(result$key, path_gemini_key)
+        }
+      }) %...!%
+      (function(err) {
+        output$apiStatus <- renderUI({
+          output$status <- renderText(
+            paste("Error validating key:", conditionMessage(err))
+          )
+        })
+        values$geminiAPI <- FALSE
+      })
+
+    NULL
   })
 
   observeEvent(input$remove_key, {

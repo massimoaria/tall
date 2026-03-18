@@ -49,6 +49,7 @@ Imports:
     dplyr (>= 1.1.0),
     DT,
     fontawesome,
+    future,
     ggplot2,
     ggraph,
     ggwordcloud,

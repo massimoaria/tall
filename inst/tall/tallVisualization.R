@@ -1218,11 +1218,11 @@ DTformat <- function(
   }
 
   if (isTRUE(selection)) {
-    extensions <- c("Buttons", "Select", "ColReorder", "FixedHeader")
+    extensions <- c("Buttons", "Select", "ColReorder")
     buttons <- c(buttons, c("selectAll", "selectNone"))
     select <- list(style = "os", items = "row")
   } else {
-    extensions <- c("Buttons", "ColReorder", "FixedHeader")
+    extensions <- c("Buttons", "ColReorder")
     select <- NULL
   }
 
@@ -1236,7 +1236,7 @@ DTformat <- function(
     filter = filter,
     options = list(
       colReorder = TRUE,
-      fixedHeader = TRUE,
+      fixedHeader = FALSE,
       pageLength = nrow,
       autoWidth = FALSE,
       scrollX = TRUE,

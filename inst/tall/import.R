@@ -227,17 +227,45 @@ importServer <- function(input, output, session, values, statsValues) {
     readr::write_lines(txtOutput, file = filename)
   })
 
-  ## observe gemini generate button
+  ## observe gemini generate button (async)
   observeEvent(input$gemini_btn, {
     values$gemini_additional <- input$gemini_additional ## additional info to Gemini prompt
     values <- geminiWaitingMessage(values, input$sidebarmenu)
-    values <- geminiGenerate(
-      values,
-      input$sidebarmenu,
-      values$gemini_additional,
-      values$gemini_model_parameters,
-      input
+
+    # Sync: prepare images and prompt
+    prep <- geminiPrepare(
+      values, input$sidebarmenu, values$gemini_additional,
+      values$gemini_model_parameters, input
     )
+
+    if (!is.null(prep$error)) {
+      values[[prep$field]] <- prep$error
+      return()
+    }
+
+    # Snapshot for the future worker
+    image <- prep$image
+    prompt <- prep$prompt
+    model <- prep$model
+    outputSize <- prep$outputSize
+    api_key <- prep$api_key
+    field <- prep$field
+
+    # Async: only the API call runs in background
+    promises::future_promise({
+      gemini_ai(
+        image = image, prompt = prompt, model = model,
+        outputSize = outputSize, api_key = api_key
+      )
+    }, seed = TRUE) %...>%
+      (function(result) {
+        values[[field]] <- result
+      }) %...!%
+      (function(err) {
+        values[[field]] <- paste("\u26a0\ufe0f Error:", conditionMessage(err))
+      })
+
+    NULL # Don't block the observer
   })
 
   ### IMPORT ----

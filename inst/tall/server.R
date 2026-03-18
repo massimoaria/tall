@@ -51,6 +51,9 @@ server <- function(input, output, session) {
   ## Load analysis packages after UI has rendered
   libraries_analysis()
 
+  ## Setup async execution for AI calls
+  future::plan(future::multisession, workers = 2)
+
   ### Initial values ----
   values <- resetValues()
   statsValues <- updateStats(NULL, "token")

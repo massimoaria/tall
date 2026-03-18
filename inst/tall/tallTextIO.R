@@ -30,9 +30,7 @@ clean_text <- function(
     "---",
     ".#",
     "“",
-    "‘",
     "”",
-    "’",
     "??",
     "???"
   )
@@ -62,9 +60,13 @@ clean_text <- function(
           {
             text_cleaned <- stringr::str_replace_all(
               .data[[text_column]],
+              "[‘’]", "'"
+            ) # Normalize curly single quotes to straight apostrophes
+            text_cleaned <- stringr::str_replace_all(
+              text_cleaned,
               '[\"]',
               ""
-            ) # Remove quotes
+            ) # Remove double quotes
             text_cleaned <- stringr::str_replace_all(
               text_cleaned,
               "([a-z])\\.([A-Z])",
@@ -93,6 +95,10 @@ clean_text <- function(
           {
             text_cleaned <- stringr::str_replace_all(
               .data[[text_column]],
+              "[‘’]", "'"
+            ) # Normalize curly single quotes to straight apostrophes
+            text_cleaned <- stringr::str_replace_all(
+              text_cleaned,
               "([a-z])\\.([A-Z])",
               "\\1. \\2"
             ) # Add space between lowercase.Uppercase

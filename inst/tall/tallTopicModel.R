@@ -616,6 +616,101 @@ stmBuildMeta <- function(x, group, prevalence) {
   as.data.frame(meta)
 }
 
+# Self-contained LDA/CTM tuning for use inside a future worker.
+# Runs sequentially (no parallel clusters) since it already runs in background.
+# Only depends on package functions: topicmodels, slam, utils, stats.
+tmTuningAsync <- function(dtm, k_seq, seed, method) {
+  # Ensure topicmodels is fully loaded so S4 methods (logLik, perplexity) are registered
+  requireNamespace("topicmodels", quietly = TRUE)
+  library(topicmodels, quietly = TRUE)
+
+  models_list <- list()
+  metrics_rows <- list()
+
+  for (i in seq_along(k_seq)) {
+    k <- k_seq[i]
+    if (method == "CTM") {
+      model <- topicmodels::CTM(dtm, k = k, control = list(seed = seed))
+    } else {
+      model <- topicmodels::LDA(dtm, k = k, method = "VEM", control = list(seed = seed))
+    }
+    models_list[[paste0("k_", k)]] <- model
+    metrics_rows[[i]] <- data.frame(
+      k = k,
+      logLik = as.numeric(logLik(model)),
+      Perplexity = perplexity(model, newdata = dtm)
+    )
+  }
+
+  metrics <- do.call(rbind, metrics_rows)
+
+  # CaoJuan2009
+  metrics$CaoJuan2009 <- sapply(models_list, function(model) {
+    m1 <- exp(model@beta)
+    pairs <- utils::combn(nrow(m1), 2)
+    cos_dist <- apply(pairs, 2, function(pair) {
+      x <- m1[pair[1], ]; y <- m1[pair[2], ]
+      as.numeric(crossprod(x, y) / sqrt(crossprod(x) * crossprod(y)))
+    })
+    sum(cos_dist) / (model@k * (model@k - 1) / 2)
+  })
+
+  # Arun2010
+  len <- slam::row_sums(dtm)
+  metrics$Arun2010 <- sapply(models_list, function(model) {
+    m1 <- exp(model@beta)
+    m1_svd <- svd(m1)
+    cm1 <- as.matrix(m1_svd$d)
+    m2 <- model@gamma
+    cm2 <- len %*% m2
+    norm_val <- norm(as.matrix(len), type = "m")
+    cm2 <- as.vector(cm2 / norm_val)
+    sum(cm1 * log(cm1 / cm2)) + sum(cm2 * log(cm2 / cm1))
+  })
+
+  # Deveaud2014
+  metrics$Deveaud2014 <- sapply(models_list, function(model) {
+    m1 <- exp(model@beta)
+    if (any(m1 == 0)) m1 <- m1 + .Machine$double.xmin
+    pairs <- utils::combn(nrow(m1), 2)
+    jsd <- apply(pairs, 2, function(pair) {
+      x <- m1[pair[1], ]; y <- m1[pair[2], ]
+      0.5 * sum(x * log(x / y)) + 0.5 * sum(y * log(y / x))
+    })
+    sum(jsd) / (model@k * (model@k - 1))
+  })
+
+  list(metrics = metrics, models = models_list)
+}
+
+# Self-contained STM tuning for use inside a future worker.
+# Only depends on package functions: stm, tm.
+stmTuningAsync <- function(dtm, minK, maxK, Kby, seed) {
+  dtm_tm <- tm::as.DocumentTermMatrix(dtm, weighting = tm::weightTf)
+  stm_data <- stm::readCorpus(dtm_tm, type = "dtm")
+  k_seq <- seq(from = minK, to = maxK, by = Kby)
+
+  search_result <- stm::searchK(
+    documents = stm_data$documents,
+    vocab = stm_data$vocab,
+    K = k_seq,
+    seed = seed,
+    verbose = FALSE
+  )
+
+  sr <- search_result$results
+  metrics <- data.frame(
+    k = unlist(sr$K),
+    logLik = unlist(sr$lbound),
+    Perplexity = -unlist(sr$lbound),
+    CaoJuan2009 = unlist(sr$exclus),
+    Arun2010 = -unlist(sr$semcoh),
+    Deveaud2014 = unlist(sr$exclus) + unlist(sr$semcoh)
+  )
+
+  list(metrics = metrics, models = NULL)
+}
+
 # STM tuning: uses stm::searchK
 stmTuning <- function(
   x, dtm, group,

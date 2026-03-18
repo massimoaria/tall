@@ -537,20 +537,6 @@ documentsUI <- function() {
           )
         ),
         tabPanel(
-          "Info & References",
-          fluidPage(
-            fluidRow(
-              column(1),
-              column(
-                10,
-                br(),
-                HTML(infoTexts$tmmodelestimation)
-              ),
-              column(1)
-            )
-          )
-        ),
-        tabPanel(
           "TALL AI",
           fluidPage(
             fluidRow(
@@ -564,6 +550,20 @@ documentsUI <- function() {
                   color = "#4F7942"
                 )
               )
+            )
+          )
+        ),
+        tabPanel(
+          "Info & References",
+          fluidPage(
+            fluidRow(
+              column(1),
+              column(
+                10,
+                br(),
+                HTML(infoTexts$tmmodelestimation)
+              ),
+              column(1)
             )
           )
         )
@@ -648,6 +648,23 @@ documentsUI <- function() {
               width = "98.9%"
             ),
             color = getOption("spinner.color", default = "#4F7942")
+          )
+        ),
+        tabPanel(
+          "TALL AI",
+          fluidPage(
+            fluidRow(
+              column(
+                12,
+                br(),
+                shinycssloaders::withSpinner(
+                  htmlOutput("d_syntactic_GeminiUI"),
+                  caption = HTML("<br><strong>Thinking...</strong>"),
+                  image = "ai_small2.gif",
+                  color = "#4F7942"
+                )
+              )
+            )
           )
         ),
         tabPanel(
@@ -787,6 +804,23 @@ documentsUI <- function() {
               width = "98.9%"
             ),
             color = getOption("spinner.color", default = "#4F7942")
+          )
+        ),
+        tabPanel(
+          "TALL AI",
+          fluidPage(
+            fluidRow(
+              column(
+                12,
+                br(),
+                shinycssloaders::withSpinner(
+                  htmlOutput("d_svo_GeminiUI"),
+                  caption = HTML("<br><strong>Thinking...</strong>"),
+                  image = "ai_small2.gif",
+                  color = "#4F7942"
+                )
+              )
+            )
           )
         ),
         tabPanel(
@@ -979,20 +1013,6 @@ documentsUI <- function() {
             )
           ),
           tabPanel(
-            "Info & References",
-            fluidPage(
-              fluidRow(
-                column(1),
-                column(
-                  10,
-                  br(),
-                  HTML(infoTexts$polaritydetection)
-                ),
-                column(1)
-              )
-            )
-          ),
-          tabPanel(
             "TALL AI",
             fluidPage(
               fluidRow(
@@ -1006,6 +1026,20 @@ documentsUI <- function() {
                     color = "#4F7942"
                   )
                 )
+              )
+            )
+          ),
+          tabPanel(
+            "Info & References",
+            fluidPage(
+              fluidRow(
+                column(1),
+                column(
+                  10,
+                  br(),
+                  HTML(infoTexts$polaritydetection)
+                ),
+                column(1)
               )
             )
           )
@@ -1181,20 +1215,6 @@ documentsUI <- function() {
             )
           ),
           tabPanel(
-            "Info & References",
-            fluidPage(
-              fluidRow(
-                column(1),
-                column(
-                  10,
-                  br(),
-                  HTML(infoTexts$emotionanalysis)
-                ),
-                column(1)
-              )
-            )
-          ),
-          tabPanel(
             "TALL AI",
             fluidPage(
               fluidRow(
@@ -1208,6 +1228,20 @@ documentsUI <- function() {
                     color = "#4F7942"
                   )
                 )
+              )
+            )
+          ),
+          tabPanel(
+            "Info & References",
+            fluidPage(
+              fluidRow(
+                column(1),
+                column(
+                  10,
+                  br(),
+                  HTML(infoTexts$emotionanalysis)
+                ),
+                column(1)
               )
             )
           )
@@ -1593,75 +1627,165 @@ documentsServer <- function(input, output, session, values, statsValues) {
   })
 
   ## Topic Modeling ----
-  ## K choice ----
+  ## K choice (async) ----
 
-  netTMKselect <- eventReactive(
-    ignoreNULL = TRUE,
-    eventExpr = {
-      input$d_tm_selectApply
-    },
-    valueExpr = {
+  observeEvent(input$d_tm_selectApply, {
+    # Sync: data preparation (filtering, DTM creation)
+    switch(
+      input$groupTm,
+      Groups = {
+        groupTm <- "doc_id"
+      },
+      {
+        groupTm <- input$groupTm
+      }
+    )
+    ## check to verify if groups exist or not
+    filtered <- LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected)
+    if (
+      input$groupTm == "doc_id" & "ungroupDoc_id" %in% names(values$dfTag)
+    ) {
+      filtered <- backToOriginalGroups(filtered)
+    }
+
+    # Clear previous results and show waiting state
+    values$TMKresult <- NULL
+    values$df <- NULL
+    values$TMKcomputing <- TRUE
+
+    showNotification(
+      ui = tagList(
+        icon("cogs", class = "fa-spin"),
+        " Computing optimal K... The app remains usable while models are being fitted."
+      ),
+      id = "tmk_computing",
+      duration = NULL,
+      type = "message",
+      closeButton = FALSE
+    )
+
+    # Build DTM synchronously (uses sourced functions: unique_identifier, etc.)
+    ClusterRange <- sort(c(input$minK, input$maxK))
+    minK <- max(ClusterRange[1], 1)
+    maxK <- min(ClusterRange[2], length(unique(filtered$doc_id)))
+    filtered$topic_level_id <- unique_identifier(filtered, fields = groupTm)
+    dtf <- document_term_frequencies(
+      filtered, document = "topic_level_id", term = "lemma"
+    )
+    dtm <- document_term_matrix(x = dtf)
+
+    # DTM filtering (depends on method and top_by)
+    method <- input$tmMethodK
+    top_by <- input$top_by
+    n <- input$nTm
+    Kby <- input$Kby
+    seed <- values$random_seed
+    k_seq <- seq(from = minK, to = maxK, by = Kby)
+
+    if (method == "STM") {
       switch(
-        input$groupTm,
-        Groups = {
-          groupTm <- "doc_id"
+        top_by,
+        freq = {
+          dtm <- dtm_remove_lowfreq(dtm, minfreq = 1, maxterms = n)
         },
-        {
-          groupTm <- input$groupTm
+        tfidf = {
+          dtm <- dtm_remove_tfidf(dtm, top = n)
         }
       )
-      ## check to verify if groups exist or not
-      filtered <- LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected)
-      if (
-        input$groupTm == "doc_id" & "ungroupDoc_id" %in% names(values$dfTag)
-      ) {
-        filtered <- backToOriginalGroups(filtered)
-      }
-      values$TMKresult <- tmTuning(
-        filtered,
-        group = groupTm,
-        term = values$generalTerm,
-        metric = input$metric,
-        n = input$nTm,
-        top_by = input$top_by,
-        minK = input$minK,
-        maxK = input$maxK,
-        Kby = input$Kby,
-        method = input$tmMethodK,
-        prevalence = NULL,
-        seed = values$random_seed
+      # Async: STM model fitting in background
+      stmTuningAsync_fn <- stmTuningAsync
+      promises::future_promise({
+        stmTuningAsync_fn(dtm, minK, maxK, Kby, seed)
+      }, globals = list(
+        stmTuningAsync_fn = stmTuningAsync_fn,
+        dtm = dtm, minK = minK, maxK = maxK, Kby = Kby, seed = seed
+      ), packages = c("stm", "tm"), seed = TRUE) %...>%
+        (function(result) {
+          removeNotification("tmk_computing")
+          values$TMKresult <- result
+          values$df <- result$metrics %>%
+            dplyr::arrange(k) %>%
+            dplyr::rename(topics = k) %>%
+            dplyr::mutate(dplyr::across(
+              .cols = -topics,
+              .fns = ~ (. - min(.)) / (max(.) - min(.)),
+              .names = "{.col}_Normalized"
+            ))
+          values$TMKcomputing <- FALSE
+          showNotification("K choice completed!", type = "message", duration = 3)
+        }) %...!%
+        (function(err) {
+          removeNotification("tmk_computing")
+          values$TMKresult <- NULL
+          values$TMKcomputing <- FALSE
+          showNotification(
+            paste("K choice error:", conditionMessage(err)),
+            type = "error", duration = 10
+          )
+        })
+    } else {
+      # LDA/CTM: convert DTM and run in background
+      switch(
+        top_by,
+        freq = {
+          dtm <- dtm_remove_lowfreq(dtm, minfreq = 1, maxterms = n)
+          dtm <- tm::as.DocumentTermMatrix(dtm, weighting = tm::weightTf)
+        },
+        tfidf = {
+          dtm <- dtm_remove_tfidf(dtm, top = n)
+          dtm <- tm::as.DocumentTermMatrix(dtm, weighting = tm::weightTfIdf)
+        }
       )
-
-      values$df <- values$TMKresult$metrics %>%
-        arrange(k) %>%
-        rename(topics = k)
-
-      values$df <- values$df %>%
-        mutate(across(
-          .cols = -topics,
-          .fns = ~ (. - min(.)) / (max(.) - min(.)),
-          .names = "{.col}_Normalized"
-        ))
-      #values$df$Normalized <- (values$df[, 2] - min(values$df[, 2])) / diff(range(values$df[, 2]))
+      # Async: LDA/CTM model fitting in background
+      tmTuningAsync_fn <- tmTuningAsync
+      promises::future_promise({
+        tmTuningAsync_fn(dtm, k_seq, seed, method)
+      }, globals = list(
+        tmTuningAsync_fn = tmTuningAsync_fn,
+        dtm = dtm, k_seq = k_seq, seed = seed, method = method
+      ), packages = c("topicmodels", "slam"), seed = TRUE) %...>%
+        (function(result) {
+          removeNotification("tmk_computing")
+          values$TMKresult <- result
+          values$df <- result$metrics %>%
+            dplyr::arrange(k) %>%
+            dplyr::rename(topics = k) %>%
+            dplyr::mutate(dplyr::across(
+              .cols = -topics,
+              .fns = ~ (. - min(.)) / (max(.) - min(.)),
+              .names = "{.col}_Normalized"
+            ))
+          values$TMKcomputing <- FALSE
+          showNotification("K choice completed!", type = "message", duration = 3)
+        }) %...!%
+        (function(err) {
+          removeNotification("tmk_computing")
+          values$TMKresult <- NULL
+          values$TMKcomputing <- FALSE
+          showNotification(
+            paste("K choice error:", conditionMessage(err)),
+            type = "error", duration = 10
+          )
+        })
     }
-  )
+
+    NULL
+  })
 
   output$d_tm_selectPlot <- renderPlotly({
-    netTMKselect()
+    req(values$TMKresult)
     values$TMKplot <- tmTuningPlot(values$TMKresult, metric = input$metric)
     values$TMKplot
   })
 
   ## Multi-Metric Comparison Plot ----
   output$d_tm_multiMetricPlot <- renderPlotly({
-    netTMKselect()
     req(values$TMKresult)
     tmMultiMetricPlot(values$TMKresult, method = input$tmMethodK)
   })
 
   ## K Recommendation Panel ----
   output$d_tm_kRecommendationUI <- renderUI({
-    netTMKselect()
     req(values$TMKresult)
 
     metrics_df <- values$TMKresult$metrics
@@ -1772,7 +1896,7 @@ documentsServer <- function(input, output, session, values, statsValues) {
   })
 
   output$d_tm_selectTable <- renderDataTable({
-    netTMKselect()
+    req(values$df)
     DTformat(
       values$df,
       numeric = c(2, 3),
@@ -2582,6 +2706,16 @@ documentsServer <- function(input, output, session, values, statsValues) {
     }
   })
 
+  ## Syntactic Complexity TALL AI
+  output$d_syntactic_GeminiUI <- renderUI({
+    values$gemini_model_parameters <- geminiParameterPrompt(
+      values,
+      input$sidebarmenu,
+      input
+    )
+    geminiOutput(title = "Gemini AI", content = values$d_syntactic_Gemini, values)
+  })
+
   ## SVO Triplet Extraction ----
 
   svoFunction <- eventReactive(
@@ -2766,6 +2900,16 @@ documentsServer <- function(input, output, session, values, statsValues) {
     } else {
       popUp(type = "error")
     }
+  })
+
+  ## SVO TALL AI
+  output$d_svo_GeminiUI <- renderUI({
+    values$gemini_model_parameters <- geminiParameterPrompt(
+      values,
+      input$sidebarmenu,
+      input
+    )
+    geminiOutput(title = "Gemini AI", content = values$d_svo_Gemini, values)
   })
 
   ## Polarity detection ----
@@ -3289,27 +3433,81 @@ documentsServer <- function(input, output, session, values, statsValues) {
 
   observeEvent(input$d_abstractiveApply, {
     values$abstractivePrompt <- input$abstractivePrompt
+    values$abstractiveSumm <- "\u231b Thinking..."
+
+    # Snapshot inputs for the future worker
+    dfTag <- values$dfTag
+    abstractivePrompt <- input$abstractivePrompt
+    doc_id <- input$Abst_document_selection
+    nL <- input$summaryLength
+    model <- values$gemini_api_model
+    api_key <- Sys.getenv("GEMINI_API_KEY", unset = NA)
+
+    # Sync: prepare the prompt (same logic as abstractive_summary, without gemini_ai)
+    doc_data <- dfTag %>%
+      dplyr::filter(doc_id == !!doc_id) %>%
+      rebuild_documents()
+
+    if (nrow(doc_data) == 0) {
+      values$abstractiveSumm <- paste("Document", doc_id, "not found")
+      return()
+    }
+
+    doc <- doc_data %>% dplyr::pull(text)
+    if (length(doc) > 1) doc <- doc[1]
+
+    if (is.na(doc) || nchar(trimws(doc)) == 0) {
+      values$abstractiveSumm <- paste("Document", doc_id, "contains no text content")
+      return()
+    }
+
+    n_tokens <- estimate_gemini_tokens(doc)
+    if (n_tokens > 16384) {
+      values$abstractiveSumm <- paste(
+        "Document", doc_id, "too long (", n_tokens, "tokens > 16384 limit)"
+      )
+      return()
+    }
+
+    if (is.na(api_key)) {
+      values$abstractiveSumm <- "\u26a0\ufe0f API key not set. Please configure it in Settings."
+      return()
+    }
+
+    prompt <- paste0(
+      "Create a comprehensive abstractive summary of the following text. ",
+      "Requirements:\n",
+      "- Capture all main points and key details\n",
+      "- Maintain clarity and readability\n",
+      "- Preserve important context and nuances\n",
+      "- Target length: approximately ", nL, " words\n",
+      "- Use clear, concise language\n",
+      "- Maintain the original tone when appropriate\n\n",
+      "Text to summarize:\n\n", doc
+    )
+    if (!is.null(abstractivePrompt) && nchar(trimws(abstractivePrompt)) > 0) {
+      prompt <- paste(abstractivePrompt, prompt, sep = "\n\n")
+    }
+
+    # Async: only the API call runs in background
+    promises::future_promise({
+      gemini_ai(
+        image = NULL, prompt = prompt, model = model,
+        type = "text", api_key = api_key, outputSize = "medium"
+      )
+    }, seed = TRUE) %...>%
+      (function(result) {
+        values$abstractiveSumm <- result
+      }) %...!%
+      (function(err) {
+        values$abstractiveSumm <- paste("\u26a0\ufe0f Error:", conditionMessage(err))
+      })
+
+    NULL
   })
 
-  abstractiveSummarization <- eventReactive(
-    ignoreNULL = TRUE,
-    eventExpr = {
-      input$d_abstractiveApply
-    },
-    valueExpr = {
-      values$abstractiveSumm <- abstractive_summary(
-        values,
-        input = input,
-        id = input$Abst_document_selection,
-        nL = input$summaryLength,
-        api_key = NULL,
-        model = values$gemini_api_model
-      )
-    }
-  )
-
   output$summaryData <- renderUI({
-    abstractiveSummarization()
+    req(values$abstractiveSumm)
     HTML(
       create_abstract_box(
         gemini_to_html(values$abstractiveSumm, type = "summary")
@@ -3318,7 +3516,7 @@ documentsServer <- function(input, output, session, values, statsValues) {
   })
 
   output$documentData2 <- renderUI({
-    abstractiveSummarization()
+    req(input$d_abstractiveApply)
     ## collapse sentences into paragraphs
     df_paragraphs <- values$dfTag %>%
       filter(doc_id == !!input$Abst_document_selection) %>%

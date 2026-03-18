@@ -706,20 +706,6 @@ wordsUI <- function() {
             )
           ),
           tabPanel(
-            "Info & References",
-            fluidPage(
-              fluidRow(
-                column(1),
-                column(
-                  10,
-                  br(),
-                  HTML(infoTexts$correspondenceanalysis)
-                ),
-                column(1)
-              )
-            )
-          ),
-          tabPanel(
             "TALL AI",
             fluidPage(
               fluidRow(
@@ -733,6 +719,20 @@ wordsUI <- function() {
                     color = "#4F7942"
                   )
                 )
+              )
+            )
+          ),
+          tabPanel(
+            "Info & References",
+            fluidPage(
+              fluidRow(
+                column(1),
+                column(
+                  10,
+                  br(),
+                  HTML(infoTexts$correspondenceanalysis)
+                ),
+                column(1)
               )
             )
           )
@@ -969,6 +969,19 @@ wordsUI <- function() {
                         step = 0.1
                       )
                     )
+                  ),
+                  fluidRow(
+                    column(
+                      12,
+                      sliderInput(
+                        "communityRepulsion",
+                        label = "Community Repulsion",
+                        value = 0.5,
+                        min = 0,
+                        max = 1,
+                        step = 0.1
+                      )
+                    )
                   )
                 )
               ),
@@ -1014,20 +1027,6 @@ wordsUI <- function() {
             )
           ),
           tabPanel(
-            "Info & References",
-            fluidPage(
-              fluidRow(
-                column(1),
-                column(
-                  10,
-                  br(),
-                  HTML(infoTexts$cowordanalysis)
-                ),
-                column(1)
-              )
-            )
-          ),
-          tabPanel(
             "TALL AI",
             fluidPage(
               fluidRow(
@@ -1041,6 +1040,20 @@ wordsUI <- function() {
                     color = "#4F7942"
                   )
                 )
+              )
+            )
+          ),
+          tabPanel(
+            "Info & References",
+            fluidPage(
+              fluidRow(
+                column(1),
+                column(
+                  10,
+                  br(),
+                  HTML(infoTexts$cowordanalysis)
+                ),
+                column(1)
               )
             )
           )
@@ -2235,8 +2248,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
       )
       ## check to verify if groups exist or not
 
-      # community.repulsion <- as.numeric(gsub("%","",input$community.repulsion))/100
-      #community.repulsion <- 0
+      communityRepulsion <- if (!is.null(input$communityRepulsion)) input$communityRepulsion else 0.5
 
       filtered <- LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected)
       if (
@@ -2264,7 +2276,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
           interLinks = input$interLinks,
           normalization = input$normalizationCooc,
           remove.isolated = input$removeIsolated,
-          community.repulsion = 0.5,
+          community.repulsion = communityRepulsion,
           seed = values$random_seed,
           cluster = "louvain",
           cooc_type = "dep",
@@ -2284,7 +2296,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
           interLinks = input$interLinks,
           normalization = input$normalizationCooc,
           remove.isolated = input$removeIsolated,
-          community.repulsion = 0.5,
+          community.repulsion = communityRepulsion,
           seed = values$random_seed,
           cluster = "louvain"
         )

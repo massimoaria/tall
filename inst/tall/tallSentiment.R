@@ -469,14 +469,14 @@ sentimentBoxPlot <- function(sent_overall) {
 
 emotion_colors <- function() {
   c(
-    anger = "#E74C3C",
-    anticipation = "#F39C12",
-    disgust = "#8E44AD",
-    fear = "#2C3E50",
-    joy = "#F1C40F",
-    sadness = "#3498DB",
-    surprise = "#E67E22",
-    trust = "#27AE60"
+    anger = "#D32F2F",
+    anticipation = "#FF9800",
+    disgust = "#6D4C41",
+    fear = "#7B1FA2",
+    joy = "#FFD600",
+    sadness = "#5C6BC0",
+    surprise = "#FF6F00",
+    trust = "#388E3C"
   )
 }
 

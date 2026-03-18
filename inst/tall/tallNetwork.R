@@ -1303,8 +1303,6 @@ adaptive_repulsion_strength <- function(
 }
 
 net2vis <- function(nodes, edges, click = TRUE, noOverlap = FALSE) {
-  layout <- "layout_nicely"
-
   if ((is.na(nodes))[1]) {
     VIS <- visNetwork::visNetwork(
       nodes = data.frame(
@@ -1350,7 +1348,11 @@ net2vis <- function(nodes, edges, click = TRUE, noOverlap = FALSE) {
         vadjust = nodes$font.vadjust
       )
     ) %>%
-    visNetwork::visIgraphLayout(layout = layout, type = "full")
+    visNetwork::visIgraphLayout(
+      layout = "layout_with_fr",
+      weights = edges$value,
+      type = "full"
+    )
 
   # avoid overlaps among node labels
   ## avoid label overlaps

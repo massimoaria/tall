@@ -75,7 +75,7 @@ helpContent <- function() {
   ## split ----
   split <- "<body>
 
-    <h3><strong>Splitting the Corpus in TALL</strong></strong></h3>
+    <h3><strong>Splitting the Corpus in TALL</strong></h3>
 
     <p>TALL allows users to split textual data into smaller segments based on a specified sequence of characters. This feature is particularly useful when dealing with large documents containing multiple sections or structured content that needs to be analyzed separately.</p>
     <hr>
@@ -95,23 +95,29 @@ helpContent <- function() {
 
     <p>By offering a flexible splitting mechanism, TALL ensures that text segmentation aligns with the user's analytical needs, preserving the original structure for meaningful interpretation.</p>
 
+    <hr>
+    <div class='references'>
+      <h4><strong>References</strong></h4>
+      <p><strong>Aria, M., Cuccurullo, C., D'Aniello, L., Misuraca, M., &amp; Spano, M.</strong> (2024) <i>Breaking Barriers with TALL: A Text Analysis Shiny app for ALL.</i> In A. Dister, D. Longr&eacute;e (eds.), <i>Mots competes textes d&eacute;chiffr&eacute;s (JADT24)</i>, Presses Universitaires De Louvain, Vol.1, pp.39-48.</p>
+    </div>
+
 </body>"
 
   # random sample ----
   random <- "<body>
 
-    <h3><strong>Random Text Selection in TALL</strong></strong></h3>
+    <h3><strong>Random Text Selection in TALL</strong></h3>
 
     <p>TALL allows users to extract a random subset of imported texts for focused analysis. This feature is particularly useful when working with large corpora, enabling users to explore representative samples without processing the entire dataset.</p>
     <hr>
-    <h4><strong>How It Works</strong></strong></h4>
+    <h4><strong>How It Works</strong></h4>
     <ul>
     <li>The total number of imported texts is displayed, providing an overview of the dataset size.</li>
     <li>Users can define the <strong>sample size</strong> as a percentage (%) of the total corpus.</li>
     <li>The selection process is <strong>random</strong>, ensuring an unbiased representation of the dataset.</li>
     </ul>
     <hr>
-    <h4><strong>Example Use Cases</strong></strong></h4>
+    <h4><strong>Example Use Cases</strong></h4>
     <ul>
     <li><strong>Analyzing Social Media Data:</strong> Selecting 10% of tweets from a large dataset to perform sentiment analysis.</li>
     <li><strong>Survey Research:</strong> Extracting a random subset of open-ended responses for qualitative coding.</li>
@@ -119,43 +125,56 @@ helpContent <- function() {
     </ul>
 
     <p>By enabling controlled sampling, TALL helps users balance efficiency and analytical depth, making text exploration more manageable and meaningful.</p>
+
+    <hr>
+    <div class='references'>
+      <h4><strong>References</strong></h4>
+      <p><strong>Aria, M., Cuccurullo, C., D'Aniello, L., Misuraca, M., &amp; Spano, M.</strong> (2024) <i>Breaking Barriers with TALL: A Text Analysis Shiny app for ALL.</i> In A. Dister, D. Longr&eacute;e (eds.), <i>Mots competes textes d&eacute;chiffr&eacute;s (JADT24)</i>, Presses Universitaires De Louvain, Vol.1, pp.39-48.</p>
+    </div>
+
     </body>"
 
   ## external info ----
   externalinfo <- "<body>
 
-    <h3><strong>Importing External Information in TALL</strong></strong></h3>
+    <h3><strong>Importing External Information in TALL</strong></h3>
 
     <p>TALL allows users to integrate additional information into their analysis by importing external datasets. This feature is particularly useful for enriching text data with metadata, annotations, or categorical variables, enabling a more comprehensive exploration of textual patterns.</p>
     <hr>
-    <h4><strong>How to Import External Data</strong></strong></h4>
+    <h4><strong>How to Import External Data</strong></h4>
     <ul>
     <li>The external file must be in <strong>Excel format</strong> (<code>.xlsx</code>).</li>
     <li>The dataset must include a column labeled <strong>'doc_id'</strong>, which is used to match external information with the previously imported text data.</li>
     <li>The <strong>'doc_id'</strong> values must correspond exactly to the document identifiers assigned during text import to ensure proper alignment.</li>
     </ul>
     <hr>
-    <h4><strong>Using External Information</strong></strong></h4>
+    <h4><strong>Using External Information</strong></h4>
     <ul>
     <li>Imported external data can be used to <strong>filter</strong> or <strong>group documents</strong> based on specific attributes (e.g., author, category, sentiment).</li>
     <li>This allows users to segment text collections efficiently, focusing on subsets relevant to their research questions.</li>
     </ul>
     <hr>
-    <h4><strong>Download Document Identifiers</strong></strong></h4>
+    <h4><strong>Download Document Identifiers</strong></h4>
     <p>To facilitate the integration process, users can download a list of <strong>'doc_id'</strong> values associated with the imported text files below. This ensures that external data is formatted correctly before uploading.</p>
 
     <p>By supporting the import of structured external data, TALL enhances text analysis capabilities, allowing users to incorporate contextual information for richer insights.</p>
+
+    <hr>
+    <div class='references'>
+      <h4><strong>References</strong></h4>
+      <p><strong>Aria, M., Cuccurullo, C., D'Aniello, L., Misuraca, M., &amp; Spano, M.</strong> (2024) <i>Breaking Barriers with TALL: A Text Analysis Shiny app for ALL.</i> In A. Dister, D. Longr&eacute;e (eds.), <i>Mots competes textes d&eacute;chiffr&eacute;s (JADT24)</i>, Presses Universitaires De Louvain, Vol.1, pp.39-48.</p>
+    </div>
 
     </body>"
 
   ## tokenization ----
   tokenization <- "<body>
 
-    <h3><strong>Tokenization, Lemmatization, and PoS Tagging in TALL</strong></strong></h3>
+    <h3><strong>Tokenization, Lemmatization, and PoS Tagging in TALL</strong></h3>
 
     <p>TALL provides robust Natural Language Processing (NLP) capabilities for preprocessing textual data, including <strong>tokenization, lemmatization, and Part-of-Speech (PoS) tagging</strong>. These steps are essential for transforming raw text into a structured format suitable for further analysis.</p>
     <hr>
-    <h4><strong>Powered by UDPipe for NLP Preprocessing</strong></strong></h4>
+    <h4><strong>Powered by UDPipe for NLP Preprocessing</strong></h4>
     <p>TALL leverages the <strong>UDPipe</strong> library to perform tokenization, tagging, lemmatization, and dependency parsing. The <a href='https://cran.r-project.org/web/packages/udpipe/index.html' target='_blank'>udpipe R package</a> offers seamless access to pre-trained annotation models, supporting multiple languages.</p>
 
       <ul>
@@ -165,12 +184,12 @@ helpContent <- function() {
       <li><strong>Dependency Parsing:</strong> Identifies syntactic relationships between words in a sentence.</li>
       </ul>
       <hr>
-      <h4><strong>Updated Pre-trained Language Models</strong></strong></h4>
+      <h4><strong>Updated Pre-trained Language Models</strong></h4>
       <p>By default, UDPipe includes models based on <a href='https://universaldependencies.org/' target='_blank'>Universal Dependencies (UD)</a> version 2.5, but these had not been updated in some time. To enhance accuracy and ensure better linguistic processing, TALL now integrates updated <strong>pre-trained NLP language models</strong> from <strong>Universal Dependencies (UD) version 2.15</strong>.</p>
 
         <p>These models were trained using <strong>gold standard annotated corpora</strong> from the UD project, significantly improving the quality of text analysis in TALL. The updated pre-trained models used in TALL can be accessed through our <a href='https://github.com/massimoaria/tall.language.models' target='_blank'>GitHub repository</a>.</p>
       <hr>
-          <h4><strong>Applications in NLP and Text Analysis</strong></strong></h4>
+          <h4><strong>Applications in NLP and Text Analysis</strong></h4>
           <ul>
           <li><strong>Sentiment Analysis:</strong> Better understanding of word usage and context.</li>
           <li><strong>Topic Modeling:</strong> Improved preprocessing for cleaner topic extraction.</li>
@@ -180,7 +199,7 @@ helpContent <- function() {
           <p>By integrating updated NLP models and leveraging powerful preprocessing techniques, TALL ensures high-quality text analysis, making it a valuable tool for researchers and practitioners in computational linguistics.</p>
          <hr>
           <div class='references'>
-            <h4><strong>References</strong></strong></h4>
+            <h4><strong>References</strong></h4>
             <p><strong>TALL Pre-trained Models Repository:</strong> <a href='https://github.com/massimoaria/tall.language.models' target='_blank'>GitHub repository for pre-trained models</a></p>
               <p><strong>UDPipe R Package:</strong> <a href='https://cran.r-project.org/web/packages/udpipe/index.html' target='_blank'>CRAN link to UDPipe</a></p>
                 <p><strong>Universal Dependencies Repository:</strong> <a href='https://universaldependencies.org/' target='_blank'>Universal Dependencies project</a></p>
@@ -191,12 +210,12 @@ helpContent <- function() {
   ## special entities ----
   specialentities <- "<body>
 
-    <h3><strong>Tagging Special Entities in TALL</strong></strong></h3>
+    <h3><strong>Tagging Special Entities in TALL</strong></h3>
 
     <p>TALL automatically detects and tags <strong>special entities</strong> within texts, ensuring that key non-linguistic elements are properly identified and can be leveraged in further analysis.
     <br>Recognizing these entities helps improve text preprocessing, pattern recognition, and contextual analysis.</p>
     <hr>
-    <h4><strong>Detected Special Entities</strong></strong></h4>
+    <h4><strong>Detected Special Entities</strong></h4>
     <p>When processing textual data, TALL assigns specific tags to the following entities:</p>
     <ul>
     <li><strong>Email Addresses:</strong> Recognizes and tags email formats (e.g., <code>example@domain.com</code>).</li>
@@ -207,7 +226,7 @@ helpContent <- function() {
     <li><strong>Mentions:</strong> Identifies references to usernames, particularly in social media or chat applications (e.g., <code>@username</code>).</li>
     </ul>
     <hr>
-    <h4><strong>Why Special Entity Tagging Matters?</strong></strong></h4>
+    <h4><strong>Why Special Entity Tagging Matters?</strong></h4>
     <ul>
     <li><strong>Enhanced Text Cleaning:</strong> Filtering out or isolating elements that may not contribute to linguistic analysis.</li>
     <li><strong>Social Media and Web Analysis:</strong> Extracting meaningful patterns from hashtags, mentions, and URLs.</li>
@@ -216,6 +235,13 @@ helpContent <- function() {
     </ul>
 
     <p>By integrating special entity recognition, TALL enhances the preprocessing phase, ensuring that these elements are structured for more effective text analysis.</p>
+
+    <hr>
+    <div class='references'>
+      <h4><strong>References</strong></h4>
+      <p><strong>Jurafsky, D., &amp; Martin, J.H.</strong> (2024) <i>Speech and Language Processing.</i> 3rd edition (draft). Chapter 8: Sequence Labeling for Parts of Speech and Named Entities.</p>
+      <p><strong>Nadeau, D., &amp; Sekine, S.</strong> (2007) <i>A survey of named entity recognition and classification.</i> <strong>Lingvisticae Investigationes</strong>, 30(1), 3-26.</p>
+    </div>
 
     </body>"
 
@@ -313,11 +339,11 @@ helpContent <- function() {
   ## multiword list ----
   multiwordlist <- "<body>
 
-    <h3><strong>Multi-Word Creation by a List in TALL</strong></strong></h3>
+    <h3><strong>Multi-Word Creation by a List in TALL</strong></h3>
 
     <p>TALL allows users to define <strong>multi-word expressions (MWEs)</strong> by importing a predefined list of multi-word terms. This feature is particularly useful for ensuring that specific phrases or domain-specific expressions are treated as single units during text processing, improving linguistic analysis.</p>
     <hr>
-    <h4><strong>How to Import a Multi-Word List</strong></strong></h4>
+    <h4><strong>How to Import a Multi-Word List</strong></h4>
     <p>To integrate multi-word expressions into the analysis, users must provide a properly formatted list:</p>
     <ul>
     <li>The list must be in <strong>Excel (<code>.xlsx</code>) or CSV (<code>.csv</code>) format</strong>.</li>
@@ -325,7 +351,7 @@ helpContent <- function() {
     <li><strong>Each term within a multi-word expression must be separated by a single whitespace<br></strong> (e.g., <code>machine learning</code>, <code>natural language processing</code>).</li>
     </ul>
     <hr>
-    <h4><strong>Why Use Multi-Word Expressions?</strong></strong></h4>
+    <h4><strong>Why Use Multi-Word Expressions?</strong></h4>
     <ul>
     <li><strong>Preserving Meaningful Phrases:</strong> Ensuring that key terms (e.g., <code>artificial intelligence</code>) are not split into separate words.</li>
     <li><strong>Improving Text Preprocessing:</strong> Enhancing tokenization and lemmatization by treating phrases as cohesive units.</li>
@@ -334,16 +360,22 @@ helpContent <- function() {
 
     <p>By supporting multi-word recognition, TALL provides users with greater flexibility in structuring their text analysis and ensures that critical expressions are accurately identified and processed.</p>
 
+    <hr>
+    <div class='references'>
+      <h4><strong>References</strong></h4>
+      <p><strong>Sag, I.A., Baldwin, T., Bond, F., Copestake, A., &amp; Flickinger, D.</strong> (2002) <i>Multiword expressions: A pain in the neck for NLP.</i> In <strong>Proceedings of the Third International Conference on Intelligent Text Processing and Computational Linguistics (CICLing)</strong>, 1-15.</p>
+    </div>
+
     </body>"
 
   ## custom pos ----
   customterm <- "<body>
 
-    <h3><strong>Custom PoS List in TALL</strong></strong></h3>
+    <h3><strong>Custom PoS List in TALL</strong></h3>
 
     <p>TALL allows users to define a <strong>Custom PoS List</strong>, enabling more precise control over text processing and linguistic analysis. This feature allows users to manually assign custom PoS tags to specific terms, overriding their default categorization by the language model.</p>
     <hr>
-    <h4><strong>Why Use a Custom PoS List?</strong></strong></h4>
+    <h4><strong>Why Use a Custom PoS List?</strong></h4>
     <ul>
     <li><strong>Highlighting Specific Concepts:</strong> Identifying key terms related to methodologies, specialized vocabulary, or domain-specific jargon.</li>
     <li><strong>Filtering Stop Words:</strong> Removing terms that are irrelevant to the analysis, ensuring a cleaner dataset.</li>
@@ -351,7 +383,7 @@ helpContent <- function() {
     <li><strong>Overriding Default PoS Assignments:</strong> Ensuring consistency in tagging across texts by defining a fixed categorization for certain terms.</li>
     </ul>
     <hr>
-    <h4><strong>How to Import a Custom PoS List</strong></strong></h4>
+    <h4><strong>How to Import a Custom PoS List</strong></h4>
     <p>To integrate a custom list of terms, users must provide a properly formatted file:</p>
     <ul>
     <li>The list must be in <strong>Excel format (<code>.xlsx</code>)</strong>.</li>
@@ -394,114 +426,105 @@ helpContent <- function() {
 <br>
     <p>By allowing users to define and control term tagging, TALL provides enhanced flexibility for text analysis, making it a powerful tool for domain-specific research and refined linguistic processing.</p>
 
+    <hr>
+    <div class='references'>
+      <h4><strong>References</strong></h4>
+      <p><strong>Petrov, S., Das, D., &amp; McDonald, R.</strong> (2012) <i>A universal part-of-speech tagset.</i> In <strong>Proceedings of the Eighth International Conference on Language Resources and Evaluation (LREC)</strong>, Istanbul, Turkey.</p>
+      <p><strong>de Marneffe, M.-C., Manning, C.D., Nivre, J., &amp; Zeman, D.</strong> (2021) <i>Universal Dependencies.</i> <strong>Computational Linguistics</strong>, 47(2), 255-308.</p>
+    </div>
+
     </body>"
 
   ## synonyms ----
-  synonyms <- "
-                        <div style=\'padding: 20px; background-color: #f8f9fa; border-radius: 8px;\'>
-                          <h4 style=\'color: #4F7942; margin-bottom: 15px;\'><strong>Synonyms Merging Instructions</strong></h4>
+  synonyms <- "<body>
 
-                          <h5 style=\'color: #333; margin-top: 20px;\'>📋 File Format Requirements</h5>
-                          <p>Your synonyms file must be in <strong>CSV</strong> or <strong>XLSX</strong> format with the following structure:</p>
-                          <ul>
-                            <li><strong>Column 1 (target_term):</strong> The standardized term that will replace all synonyms</li>
-                            <li><strong>Column 2 (upos):</strong> The Part-of-Speech tag to assign to the target term (e.g., NOUN, VERB, ADJ)</li>
-                            <li><strong>Columns 3+ (synonym1, synonym2, ...):</strong> Alternative terms to be replaced</li>
-                          </ul>
+    <h3><strong>Synonyms Merging in TALL</strong></h3>
 
-                          <h5 style=\'color: #333; margin-top: 20px;\'>📝 Example File Structure</h5>
-                          <table style=\'border-collapse: collapse; width: 100%; margin: 10px 0;\'>
-                            <thead>
-                              <tr style=\'background-color: #4F7942; color: white;\'>
-                                <th style=\'border: 1px solid #ddd; padding: 8px;\'>target_term</th>
-                                <th style=\'border: 1px solid #ddd; padding: 8px;\'>upos</th>
-                                <th style=\'border: 1px solid #ddd; padding: 8px;\'>synonym1</th>
-                                <th style=\'border: 1px solid #ddd; padding: 8px;\'>synonym2</th>
-                                <th style=\'border: 1px solid #ddd; padding: 8px;\'>synonym3</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr>
-                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>machine_learning</td>
-                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>NOUN</td>
-                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>ml</td>
-                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>ML</td>
-                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>machine learning</td>
-                              </tr>
-                              <tr style=\'background-color: #f8f9fa;\'>
-                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>artificial_intelligence</td>
-                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>NOUN</td>
-                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>ai</td>
-                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>AI</td>
-                                <td style=\'border: 1px solid #ddd; padding: 8px;\'>A.I.</td>
-                              </tr>
-                            </tbody>
-                          </table>
+    <p>TALL allows users to merge <strong>synonyms and variant forms</strong> into standardized target terms. This feature is essential for reducing vocabulary noise, consolidating spelling variants, abbreviations, and domain-specific synonyms into a single canonical form, thereby improving the quality of downstream analyses such as topic modeling, co-occurrence networks, and frequency distributions.</p>
+    <hr>
+    <h4><strong>File Format Requirements</strong></h4>
+    <p>The synonyms file must be in <strong>CSV</strong> or <strong>XLSX</strong> format with the following structure:</p>
+    <ul>
+      <li><strong>Column 1 (target_term):</strong> The standardized term that will replace all synonyms.</li>
+      <li><strong>Column 2 (upos):</strong> The Part-of-Speech tag to assign to the target term (e.g., NOUN, VERB, ADJ).</li>
+      <li><strong>Columns 3+ (synonym1, synonym2, ...):</strong> Alternative terms to be replaced.</li>
+    </ul>
+    <hr>
+    <h4><strong>Example File Structure</strong></h4>
 
-                          <h5 style=\'color: #333; margin-top: 20px;\'>⚙️ How It Works</h5>
-                          <ol>
-                            <li><strong>Upload your synonyms file</strong> (CSV or Excel format)</li>
-                            <li><strong>Select the type:</strong> Choose whether to replace <em>tokens</em> or <em>lemmas</em></li>
-                            <li><strong>Preview:</strong> Check your synonyms list in the \'Synonyms List Preview\' tab</li>
-                            <li><strong>Apply:</strong> Click <strong>Run</strong> to replace all synonyms with target terms</li>
-                            <li><strong>Review:</strong> See processed data in \'Processed Data with Synonyms\' tab</li>
-                          </ol>
+    <table style='width:100%; border-collapse:collapse; margin-bottom:15px;'>
+      <thead>
+        <tr style='background-color:#f0f0f0; border-bottom:2px solid #ccc;'>
+          <th style='padding:8px; text-align:left;'>target_term</th>
+          <th style='padding:8px; text-align:left;'>upos</th>
+          <th style='padding:8px; text-align:left;'>synonym1</th>
+          <th style='padding:8px; text-align:left;'>synonym2</th>
+          <th style='padding:8px; text-align:left;'>synonym3</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style='padding:6px;'>machine_learning</td><td>NOUN</td><td>ml</td><td>ML</td><td>machine learning</td></tr>
+        <tr style='background-color:#f8f8f8;'><td style='padding:6px;'>artificial_intelligence</td><td>NOUN</td><td>ai</td><td>AI</td><td>A.I.</td></tr>
+      </tbody>
+    </table>
 
-                          <h5 style=\'color: #333; margin-top: 20px;\'>🎯 Processing Logic</h5>
-                          <ul>
-                            <li><strong>Token-based:</strong> Searches and replaces synonym tokens, updates their <code>upos</code> value</li>
-                            <li><strong>Lemma-based:</strong> Searches and replaces synonym lemmas, updates their <code>upos</code> value</li>
-                            <li><strong>Case-insensitive:</strong> Matching ignores case differences</li>
-                            <li><strong>PoS Update:</strong> When a synonym is replaced, its Part-of-Speech tag is also updated to the specified <code>upos</code></li>
-                          </ul>
+    <hr>
+    <h4><strong>How It Works</strong></h4>
+    <ol>
+      <li><strong>Upload</strong> your synonyms file (CSV or Excel format).</li>
+      <li><strong>Select the replacement type:</strong> Choose whether to match against <em>tokens</em> or <em>lemmas</em>.</li>
+      <li><strong>Preview</strong> your synonyms list in the preview tab before applying.</li>
+      <li><strong>Apply:</strong> Click Run to replace all synonyms with their target terms.</li>
+      <li><strong>Review</strong> the processed data in the results tab.</li>
+    </ol>
+    <hr>
+    <h4><strong>Processing Details</strong></h4>
+    <ul>
+      <li><strong>Token-based replacement:</strong> Searches and replaces synonym tokens, updating their <code>upos</code> tag.</li>
+      <li><strong>Lemma-based replacement:</strong> Searches and replaces synonym lemmas, updating their <code>upos</code> tag.</li>
+      <li><strong>Case-insensitive matching:</strong> Matching ignores case differences.</li>
+      <li><strong>PoS tag update:</strong> When a synonym is replaced, its Part-of-Speech tag is also updated to the specified value.</li>
+    </ul>
+    <hr>
+    <h4><strong>Important Notes</strong></h4>
+    <ul>
+      <li>The merging process is <strong>irreversible</strong> after saving. Always verify your synonyms list in the preview tab before applying.</li>
+      <li>Ensure <code>upos</code> values correspond to valid Universal PoS tags (NOUN, VERB, ADJ, ADV, PROPN, PRON, DET, ADP, NUM, CONJ, INTJ).</li>
+      <li>Empty cells in synonym columns are ignored.</li>
+    </ul>
 
-                          <h5 style=\'color: #333; margin-top: 20px;\'>📚 Valid PoS Tags</h5>
-                          <p>Common Universal Part-of-Speech tags you can use:</p>
-                          <ul>
-                            <li><strong>NOUN:</strong> Noun (e.g., machine_learning, data)</li>
-                            <li><strong>VERB:</strong> Verb (e.g., analyze, compute)</li>
-                            <li><strong>ADJ:</strong> Adjective (e.g., statistical, significant)</li>
-                            <li><strong>ADV:</strong> Adverb (e.g., significantly, approximately)</li>
-                            <li><strong>PROPN:</strong> Proper noun (e.g., Python, R)</li>
-                            <li>Other tags: PRON, DET, ADP, NUM, CONJ, INTJ, etc.</li>
-                          </ul>
+    <hr>
+    <div class='references'>
+      <h4><strong>References</strong></h4>
+      <p><strong>Jurafsky, D., &amp; Martin, J.H.</strong> (2024) <i>Speech and Language Processing.</i> 3rd edition (draft). Chapter 6: Vector Semantics and Embeddings.</p>
+      <p><strong>Manning, C.D., Raghavan, P., &amp; Sch&uuml;tze, H.</strong> (2008) <i>Introduction to Information Retrieval.</i> Cambridge University Press. Chapter 2: The term vocabulary and postings lists.</p>
+    </div>
 
-                          <div style=\'background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; margin-top: 20px;\'>
-                            <strong>⚠️ Important Notes:</strong>
-                            <ul style=\'margin: 5px 0;\'>
-                              <li>The process is <strong>irreversible</strong> after saving</li>
-                              <li>Always verify your synonyms list in the preview tab</li>
-                              <li>Ensure <code>upos</code> values are valid PoS tags</li>
-                              <li>Empty cells in synonym columns are ignored</li>
-                              <li>The <code>upos</code> column in <code>dfTag</code> will be updated for matched terms</li>
-                            </ul>
-                          </div>
-                        </div>
-                      "
+    </body>"
 
   ## pos selection ----
   posselection <- "<body>
 
-    <h3><strong>PoS Tagging Selection in TALL</strong></strong></h3>
+    <h3><strong>PoS Tagging Selection in TALL</strong></h3>
 
     <p>TALL provides users with the flexibility to <strong>select specific Part-of-Speech (PoS) tags</strong> to be used in subsequent analyses.
     This feature allows for greater control over the linguistic elements included in text processing,
     ensuring that only relevant grammatical categories are considered.</p>
     <hr>
-    <h4><strong>Why Select PoS Tags?</strong></strong></h4>
+    <h4><strong>Why Select PoS Tags?</strong></h4>
     <ul>
     <li><strong>Filtering Out Unnecessary Elements:</strong> Excluding determiners, conjunctions, or punctuation that may not contribute to the analysis.</li>
     <li><strong>Focusing on Key Linguistic Features:</strong> Selecting only nouns and verbs for topic modeling, or adjectives and adverbs for sentiment analysis.</li>
     <li><strong>Improving Computational Efficiency:</strong> Reducing data size and processing time by analyzing only the most relevant word categories.</li>
     </ul>
     <hr>
-    <h4><strong>How It Works in TALL</strong></strong></h4>
+    <h4><strong>How It Works in TALL</strong></h4>
     <ul>
     <li>Users can manually <strong>select or deselect</strong> PoS categories from a predefined list.</li>
     <li>The available PoS tags follow the <strong>Universal Dependencies (UD) annotation scheme</strong>, ensuring consistency across different languages.</li>
     </ul>
     <hr>
-    <h4><strong>Default Selected PoS Tags</strong></strong></h4>
+    <h4><strong>Default Selected PoS Tags</strong></h4>
     <p>By default, TALL selects the following PoS categories:</p>
     <ul>
     <li><strong>ADJ:</strong> Adjective – Descriptive words (e.g., 'beautiful', 'quick').</li>
@@ -511,7 +534,7 @@ helpContent <- function() {
     <li><strong>HAPAX:</strong> Words appearing only once in the text, useful for lexical richness analysis.</li>
     </ul>
     <hr>
-    <h4><strong>Available PoS Categories in TALL</strong></strong></h4>
+    <h4><strong>Available PoS Categories in TALL</strong></h4>
     <table border='1' cellspacing='0' cellpadding='5'>
     <tr>
     <th>PoS Tag</th>
@@ -538,11 +561,11 @@ helpContent <- function() {
     <tr><td>Single Character</td><td>Individual symbols or characters</td></tr>
     </table>
     <hr>
-    <h4><strong>Custom Categories</strong></strong></h4>
+    <h4><strong>Custom Categories</strong></h4>
     <p>In addition to predefined PoS categories, users may have also <strong>generated custom categories</strong> through the <strong>Custom List</strong> and <strong>Multi-Word</strong> menus.
     <br>These user-defined tags allow for specialized analysis by grouping specific terms under a unique classification system.</p>
     <hr>
-    <h4><strong>Enhancing Analysis with PoS Selection</strong></strong></h4>
+    <h4><strong>Enhancing Analysis with PoS Selection</strong></h4>
     <p>By allowing users to choose specific PoS categories, TALL ensures that the analysis is tailored to the user's research goals.
     <br>Whether performing <strong>keyword extraction, syntactic analysis, topic modeling, or sentiment analysis</strong>,
     the ability to refine PoS selection enhances the precision and interpretability of results.</p>
@@ -651,7 +674,7 @@ helpContent <- function() {
     <h3><strong>Corpus Metrics in TALL</strong></h3>
     <p>These metrics provide a summary of the key textual characteristics of the analyzed corpus.</p>
 
-    <h4><strong>📂 Corpus Size & Structure</strong></h4>
+    <h4><strong>Corpus Size &amp; Structure</strong></h4>
     <ul>
     <li><strong>Documents →</strong> The total number of documents in the corpus.</li>
     <li><strong>Sentences →</strong> The total number of sentences in the corpus.</li>
@@ -660,7 +683,7 @@ helpContent <- function() {
     <li><strong>Lemma →</strong> The number of unique lemmas, considering the base form of words.</li>
     </ul>
 
-    <h4><strong>📏 Average Length Metrics</strong></h4>
+    <h4><strong>Average Length Metrics</strong></h4>
     <ul>
     <li><strong>Doc Avg Length in Chars →</strong> The average number of characters per document.<br>
     <math xmlns='http://www.w3.org/1998/Math/MathML' style='font-size: 1.5em; display: block; text-align: center; margin-top: 4px; margin-bottom: 12px;'>
@@ -704,7 +727,7 @@ helpContent <- function() {
             </li>
             </ul>
 
-            <h4><strong>📊 Lexical Metrics</strong></h4>
+            <h4><strong>Lexical Metrics</strong></h4>
             <ul>
             <li><strong>Type-Token Ratio (TTR) →</strong> Ratio of unique words (types) to total words (tokens). Higher values indicate greater lexical diversity.<br>
             <math xmlns='http://www.w3.org/1998/Math/MathML' style='font-size: 1.5em; display: block; text-align: center; margin-top: 4px; margin-bottom: 12px;'>
@@ -747,7 +770,7 @@ helpContent <- function() {
                         </li>
                         </ul>
 
-                        <h4><strong>📊 Additional Lexical Measures</strong></h4>
+                        <h4><strong>Additional Lexical Measures</strong></h4>
                         <ul>
                         <li><strong>Lexical Density →</strong> Proportion of content words over total tokens.<br>
                         <math xmlns='http://www.w3.org/1998/Math/MathML' style='font-size: 1.5em; display: block; text-align: center; margin-top: 4px; margin-bottom: 12px;'>
@@ -916,7 +939,7 @@ helpContent <- function() {
     </ul>
 
     <div class='example'>
-      📌 <strong>Example:</strong><br>
+      <strong>Example:</strong><br>
       If analyzing the term <strong>'sustainable'</strong> in a corpus of news articles, KWIC might show:<br>
       - 'sustainable <strong>development</strong> is a key focus of international policies'<br>
       - 'the company promotes <strong>sustainable</strong> and ethical supply chains'<br>
@@ -931,7 +954,7 @@ helpContent <- function() {
       </ul>
 
       <div class='example'>
-        📌 <strong>Example:</strong><br>
+        <strong>Example:</strong><br>
         When studying <strong>'risk'</strong> in financial reports, adjusting the window size allows users to see if it is used in association with:<br>
         - <strong>'risk management,' 'high-risk investments'</strong> (short window)<br>
         - <strong>'the recent economic downturn has increased financial risk for small businesses'</strong> (larger window)<br>
@@ -944,7 +967,7 @@ helpContent <- function() {
         </ul>
 
         <div class='example'>
-          📌 <strong>Example:</strong><br>
+          <strong>Example:</strong><br>
           In a dataset of <strong>customer reviews</strong>, the word <strong>'expensive'</strong> might frequently co-occur with:<br>
           - <strong>'but worth it'</strong> in <strong>positive reviews</strong><br>
           - <strong>'not justified for the quality'</strong> in <strong>negative reviews</strong><br>
@@ -1232,7 +1255,7 @@ helpContent <- function() {
   ## correspondece analysis ----
   correspondenceanalysis <- "<body>
 
-    <h3><strong>Correspondence Analysis in TALL</strong></strong></h3>
+    <h3><strong>Correspondence Analysis in TALL</strong></h3>
 
     <p>Correspondence Analysis (<strong>CA</strong>) is a fundamental technique for exploring <strong>semantic relationships</strong> among words within a text collection (<strong>Benzécri, 1982; Lebart et al., 1997</strong>). By applying <strong>dimensionality reduction</strong>, CA represents the most relevant information in a low-rank vector space, uncovering <strong>latent structures</strong> within the data. These structures are then <strong>visualized on factorial maps</strong>, allowing users to detect associations between terms and documents effectively.</p>
     <hr>
@@ -1264,7 +1287,7 @@ helpContent <- function() {
     <p>By integrating <strong>Correspondence Analysis</strong> with <strong>clustering methods</strong>, TALL enhances the <strong>interpretability and usability</strong> of text mining workflows, offering a <strong>powerful framework</strong> for <strong>unsupervised exploration</strong> of large document collections.</p>
     <hr>
     <div class='references'>
-      <h4><strong>References</strong></strong></h4>
+      <h4><strong>References</strong></h4>
       <p><strong>Benzécri, J. P.</strong> (1982). <i>Histoire et préhistoire de l’analyse des données.</i> Paris: Dunod.</p>
       <p><strong>Lebart, L., Salem, A., & Berry, L.</strong> (1997). <i>Exploring textual data.</i> Volume 4. Springer Science & Business Media.</p>
       <p><strong>Misuraca, M., & Spano, M.</strong> (2020). <i>Unsupervised Analytic Strategies to Explore Large Document Collections.</i> Heidelberg: Springer, 06, 17-28.</p>
@@ -1883,7 +1906,7 @@ helpContent <- function() {
 
   polaritydetection <- "<body>
 
-    <h3><strong>Polarity Detection in TALL</strong></strong></h3>
+    <h3><strong>Polarity Detection in TALL</strong></h3>
 
     <p>Polarity detection is a fundamental <strong>sentiment analysis technique</strong> used to determine whether a document expresses a <strong>positive, negative, or neutral</strong> sentiment. This process is essential in analyzing <strong>consumer feedback, financial reports, product reviews, and social media discussions</strong>, where understanding sentiment trends can provide valuable insights into public opinion and decision-making processes.</p>
     <hr>
