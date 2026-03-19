@@ -310,24 +310,6 @@ settingsServer <- function(input, output, session, values, statsValues) {
       values$dfTag <- values$dfTag %>%
         mutate(docSelected = ifelse(doc_id == input$button_id_del, FALSE, docSelected))
     }
-    output$dataImported <- DT::renderDT({
-      # DATAloading()
-      if (values$menu %in% c(0, 2)) {
-        col_names <- c("doc_selected", "text_original")
-        DTformat(
-          values$txt %>%
-            filter(doc_selected) %>%
-            mutate(across(any_of("text"), ~ paste0(substr(., 1, 500), "..."))) %>%
-            select(doc_id, any_of("text"), everything()) %>%
-            select(!any_of(col_names)),
-          left = 2,
-          nrow = 5,
-          filter = "none",
-          button = TRUE,
-          delete = TRUE
-        )
-      }
-    })
   })
 
   ### SETTINGS ----
