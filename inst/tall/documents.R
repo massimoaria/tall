@@ -1037,7 +1037,7 @@ documentsUI <- function() {
     )
   )
 
-  ### Emotion Analysis ----
+  ### Emotion Detection ----
 
   emotion <- tabItem(
     tabName = "d_emo",
@@ -1045,7 +1045,7 @@ documentsUI <- function() {
       fluidRow(
         column(
           8,
-          h3(strong("Emotion Analysis"), align = "center")
+          h3(strong("Emotion Detection"), align = "center")
         ),
         div(
           title = t_run,
@@ -1109,7 +1109,7 @@ documentsUI <- function() {
                 ),
                 selectInput(
                   inputId = "groupEmotion",
-                  label = "Emotion Analysis of",
+                  label = "Emotion Detection of",
                   choices = c(
                     "Groups" = "Groups",
                     "Docs" = "doc_id"
@@ -3204,7 +3204,7 @@ documentsServer <- function(input, output, session, values, statsValues) {
     }
   })
 
-  ## Emotion Analysis ----
+  ## Emotion Detection ----
 
   docEmotionEstim <- eventReactive(
     ignoreNULL = TRUE,
@@ -3405,7 +3405,7 @@ documentsServer <- function(input, output, session, values, statsValues) {
         c(sheetname = res$sheetname, values$fileEmotionRadar, res$col),
         c(sheetname = res$sheetname, values$fileEmotionHeatmap, res$col)
       )
-      popUp(title = "Emotion Analysis Results", type = "success")
+      popUp(title = "Emotion Detection Results", type = "success")
       values$myChoices <- sheets(values$wb)
     } else {
       popUp(type = "error")

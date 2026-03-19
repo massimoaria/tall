@@ -846,6 +846,9 @@ collocationServer <- function(input, output, session, values, statsValues) {
       req(collocResults$collocate_data)
 
       data <- collocResults$collocate_data
+      if ("LogLik" %in% names(data)) {
+        data <- data %>% arrange(desc(LogLik))
+      }
 
       # Create DT table with custom formatting
       dt <- DT::datatable(

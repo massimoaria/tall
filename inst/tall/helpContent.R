@@ -1985,13 +1985,13 @@ helpContent <- function() {
   ## emotion analysis ----
   emotionanalysis <- "<body>
 
-    <h3><strong>Emotion Analysis</strong></h3>
+    <h3><strong>Emotion Detection</strong></h3>
 
     <p>Emotion analysis goes beyond simple positive/negative polarity by identifying <strong>specific emotions</strong> expressed in text.
     TALL uses the <strong>NRC Word-Emotion Association Lexicon (EmoLex)</strong> to detect eight primary emotions:
     <strong>Anger, Anticipation, Disgust, Fear, Joy, Sadness, Surprise, and Trust</strong>.</p>
     <hr>
-    <h4><strong>How Emotion Analysis Works</strong></h4>
+    <h4><strong>How Emotion Detection Works</strong></h4>
 
     <h4>1. Lexicon-Based Emotion Detection</h4>
     <ul>
