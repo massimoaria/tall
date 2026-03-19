@@ -35,7 +35,8 @@ collocationUI <- function() {
             # TAB 1: PLOT - Word Distribution
             # ==========================================
             tabPanel(
-              "In-Document Plot",
+              title = "In-Document Plot",
+              icon = icon("chart-area"),
               fluidPage(
                 br(),
                 fluidRow(
@@ -126,7 +127,8 @@ collocationUI <- function() {
             # TAB 2: COLLOCATE
             # ==========================================
             tabPanel(
-              "Collocation",
+              title = "Collocation",
+              icon = icon("table"),
               fluidPage(
                 br(),
                 fluidRow(
@@ -247,7 +249,8 @@ collocationUI <- function() {
             # TAB 3: KWIC Network
             # ==========================================
             tabPanel(
-              "Network",
+              title = "Network",
+              icon = icon("diagram-project"),
               fluidPage(
                 br(),
                 fluidRow(
@@ -362,7 +365,8 @@ collocationUI <- function() {
                   tabsetPanel(
                     type = "tabs",
                     tabPanel(
-                      "Words in Context",
+                      title = "Words in Context",
+                      icon = icon("table"),
                       fluidRow(
                         column(
                           12,
@@ -404,7 +408,8 @@ collocationUI <- function() {
                       )
                     ),
                     tabPanel(
-                      "Network Plot",
+                      title = "Network Plot",
+                      icon = icon("diagram-project"),
                       fluidRow(
                         column(10),
                         div(
@@ -453,7 +458,8 @@ collocationUI <- function() {
                       )
                     ),
                     tabPanel(
-                      "TALL AI",
+                      title = "TALL AI",
+                      icon = icon("robot"),
                       fluidPage(
                         fluidRow(
                           column(
@@ -480,7 +486,8 @@ collocationUI <- function() {
             # TAB 4: INFO & REFERENCES
             # ==========================================
             tabPanel(
-              "Info & References",
+              title = "Info & References",
+              icon = icon("circle-info"),
               fluidPage(
                 fluidRow(
                   column(1),

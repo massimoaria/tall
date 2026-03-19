@@ -9,7 +9,7 @@ overviewUI <- function() {
           id = "maininfo",
           # OVERVIEW TAB - NEW LAYOUT
           tabPanel(
-            "Overview",
+            title = "Overview", icon = icon("chart-column"),
             fluidRow(
               column(
                 11,
@@ -200,7 +200,7 @@ overviewUI <- function() {
             )
           ),
           tabPanel(
-            "Table",
+            title = "Table", icon = icon("table"),
             div(
               shinycssloaders::withSpinner(
                 DT::DTOutput(outputId = "overviewData", width = 700),
@@ -210,7 +210,7 @@ overviewUI <- function() {
             )
           ),
           tabPanel(
-            "Vocabulary",
+            title = "Vocabulary", icon = icon("book"),
             column(
               12,
               div(
@@ -224,7 +224,7 @@ overviewUI <- function() {
             # ,column(1)
           ),
           tabPanel(
-            "TF-IDF",
+            title = "TF-IDF", icon = icon("table"),
             column(
               12,
               div(
@@ -237,7 +237,7 @@ overviewUI <- function() {
             )
           ),
           tabPanel(
-            "WordCloud",
+            title = "WordCloud", icon = icon("cloud"),
             fluidPage(
               fluidRow(
                 column(
@@ -347,7 +347,7 @@ overviewUI <- function() {
             )
           ),
           tabPanel(
-            "Frequency",
+            title = "Frequency", icon = icon("chart-bar"),
             fluidPage(
               fluidRow(
                 column(
@@ -421,7 +421,8 @@ overviewUI <- function() {
                           min = 1,
                           step = 1
                         ),
-                        uiOutput("posSelectionFreq")
+                        uiOutput("posSelectionFreq"),
+                        helpText("Select a PoS category (upos) from the options before running the analysis.")
                       ),
                       style = "gradient",
                       right = TRUE,
@@ -460,7 +461,7 @@ overviewUI <- function() {
             )
           ),
           tabPanel(
-            "Morphological Features",
+            title = "Morphological Features", icon = icon("language"),
             fluidPage(
               fluidRow(
                 column(
@@ -527,7 +528,7 @@ overviewUI <- function() {
             )
           ),
           tabPanel(
-            "Dependency Tree",
+            title = "Dependency Tree", icon = icon("sitemap"),
             fluidPage(
               fluidRow(
                 column(
@@ -624,7 +625,7 @@ overviewUI <- function() {
             )
           ),
           tabPanel(
-            "TALL AI",
+            title = "TALL AI", icon = icon("robot"),
             fluidPage(
               fluidRow(
                 column(
@@ -641,7 +642,7 @@ overviewUI <- function() {
             )
           ),
           tabPanel(
-            "Info & References",
+            title = "Info & References", icon = icon("circle-info"),
             fluidPage(
               fluidRow(
                 column(1),
@@ -936,6 +937,26 @@ overviewServer <- function(input, output, session, values, statsValues) {
       values$myChoices <- sheets(values$wb)
     } else {
       popUp(type = "error")
+    }
+
+    if (!is.null(values$dfTag) && "feats" %in% names(values$dfTag)) {
+      morphFeatures <- c("Tense", "Mood", "Number", "Person", "VerbForm",
+                          "Degree", "Gender", "Case", "Voice", "Definite", "PronType")
+      morphData <- lapply(morphFeatures, function(feat) {
+        vals <- parseMorphFeatures(values$dfTag$feats, feat)
+        vals <- vals[!is.na(vals) & vals != ""]
+        if (length(vals) > 0) {
+          tab <- sort(table(vals), decreasing = TRUE)
+          data.frame(Feature = feat, Value = names(tab), Count = as.integer(tab), stringsAsFactors = FALSE)
+        }
+      })
+      morphData <- do.call(rbind, morphData)
+      if (!is.null(morphData) && nrow(morphData) > 0) {
+        list_df <- list(morphData)
+        res <- addDataScreenWb(list_df, wb = values$wb, sheetname = "Morphological Features")
+        values$wb <- res$wb
+        values$myChoices <- sheets(values$wb)
+      }
     }
   })
 

@@ -17,7 +17,8 @@ editUI <- function() {
     tabsetPanel(
       type = "tabs",
       tabPanel(
-        "Split Results",
+        title = "Split Results",
+        icon = icon("table"),
         fluidPage(
           fluidRow(
             column(
@@ -110,7 +111,8 @@ editUI <- function() {
         )
       ),
       tabPanel(
-        "Info & References",
+        title = "Info & References",
+        icon = icon("circle-info"),
         fluidPage(
           fluidRow(
             column(1),
@@ -142,7 +144,8 @@ editUI <- function() {
     tabsetPanel(
       type = "tabs",
       tabPanel(
-        "Random Selection",
+        title = "Random Selection",
+        icon = icon("table"),
         fluidPage(
           fluidRow(
             column(
@@ -230,7 +233,8 @@ editUI <- function() {
         )
       ),
       tabPanel(
-        "Info & References",
+        title = "Info & References",
+        icon = icon("circle-info"),
         fluidPage(
           fluidRow(
             column(1),
@@ -262,7 +266,8 @@ editUI <- function() {
     tabsetPanel(
       type = "tabs",
       tabPanel(
-        "Corpus with External Information",
+        title = "Corpus with External Information",
+        icon = icon("table"),
         fluidPage(
           fluidRow(
             column(
@@ -381,7 +386,8 @@ editUI <- function() {
         )
       ),
       tabPanel(
-        "Info & References",
+        title = "Info & References",
+        icon = icon("circle-info"),
         fluidPage(
           fluidRow(
             column(1),

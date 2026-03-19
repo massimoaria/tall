@@ -31,6 +31,7 @@ reportUI <- function() {
                          border-width:2px;
                                          }"
             )),
+            br(),
             uiOutput("reportSheetsUI"),
             tags$style("#reportSheets {font-size:18px;}")
           )

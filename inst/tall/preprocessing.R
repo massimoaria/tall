@@ -3,14 +3,21 @@ preprocessingUI <- function() {
 
   tokpos <- tabItem(
     tabName = "tokPos",
+    fluidPage(
+      fluidRow(
+        column(
+          12,
+          h3(strong("Tokenization & PoS Tagging"), align = "center")
+        )
+      )
+    ),
     tabsetPanel(
       type = "tabs",
       tabPanel(
-        "Annotated Text Table",
+        title = "Annotated Text Table", icon = icon("table"),
         fluidRow(
           column(
             8,
-            h3(strong("Tokenization & PoS Tagging"), align = "center"),
             br(),
             shinycssloaders::withSpinner(
               DT::DTOutput("tokPosTagData"),
@@ -163,7 +170,7 @@ preprocessingUI <- function() {
         )
       ),
       tabPanel(
-        "Info & References",
+        title = "Info & References", icon = icon("circle-info"),
         fluidPage(
           fluidRow(
             column(1),
@@ -198,7 +205,7 @@ preprocessingUI <- function() {
           type = "tabs",
           # Main tab with HTML-based entity cards
           tabPanel(
-            "Special Entities Overview",
+            title = "Special Entities Overview", icon = icon("table"),
             div(
               style = "padding: 20px;",
               # Custom HTML output for special entities cards
@@ -210,7 +217,7 @@ preprocessingUI <- function() {
           ),
           # Annotated text table tab (unchanged)
           tabPanel(
-            "Annotated Text Table",
+            title = "Annotated Text Table", icon = icon("table"),
             shinycssloaders::withSpinner(
               DT::DTOutput("posSpecialData"),
               color = getOption("spinner.color", default = "#4F7942")
@@ -218,7 +225,7 @@ preprocessingUI <- function() {
           ),
           # Info tab (unchanged)
           tabPanel(
-            "Info & References",
+            title = "Info & References", icon = icon("circle-info"),
             fluidPage(
               fluidRow(
                 column(1),
@@ -346,14 +353,14 @@ preprocessingUI <- function() {
           tabsetPanel(
             type = "tabs",
             tabPanel(
-              "Pos Tagging with Custom List",
+              title = "Pos Tagging with Custom List", icon = icon("table"),
               shinycssloaders::withSpinner(
                 DT::DTOutput("customPosTagData"),
                 color = getOption("spinner.color", default = "#4F7942")
               )
             ),
             tabPanel(
-              "Info & References",
+              title = "Info & References", icon = icon("circle-info"),
               fluidPage(
                 fluidRow(
                   column(1),
@@ -386,7 +393,7 @@ preprocessingUI <- function() {
               helpText(h5(
                 "Please ensure that the Custom PoS List is formatted as an Excel file with two columns.
                                        In the first column include the list of terms.
-                                       In the second column provide the corresponding list of PoS associated with each term."
+                                       In the second column provide any custom PoS tag (e.g., METHOD, TO_REMOVE, APPLICATION, SETTING, etc.) or standard PoS tags (NOUN, VERB, ADJ, etc.)."
               )),
               fileInput(
                 "custom_lists",
@@ -396,6 +403,26 @@ preprocessingUI <- function() {
                   ".csv",
                   ".xls",
                   ".xlsx"
+                )
+              ),
+              hr(),
+              # Download buttons section
+              fluidRow(
+                column(
+                  6,
+                  downloadButton(
+                    "downloadCustomTermTemplate",
+                    "Template",
+                    style = "width: 100%; margin-bottom: 10px; background-color: #6CC283; border-color: #4F7942;color: #ffffff;"
+                  )
+                ),
+                column(
+                  6,
+                  downloadButton(
+                    "downloadCustomTermVocabulary",
+                    "Vocabulary",
+                    style = "width: 100%; margin-bottom: 10px; background-color: #6CC283; border-color: #4F7942;color: #ffffff;"
+                  )
                 )
               ),
               hr(),
@@ -488,21 +515,21 @@ preprocessingUI <- function() {
           tabsetPanel(
             type = "tabs",
             tabPanel(
-              "Processed Data with Synonyms",
+              title = "Processed Data with Synonyms", icon = icon("table"),
               shinycssloaders::withSpinner(
                 DT::DTOutput("synonymsProcessedData"),
                 color = getOption("spinner.color", default = "#4F7942")
               )
             ),
             tabPanel(
-              "Synonyms List Preview",
+              title = "Synonyms List Preview", icon = icon("list"),
               shinycssloaders::withSpinner(
                 DT::DTOutput("synonymsListPreview"),
                 color = getOption("spinner.color", default = "#4F7942")
               )
             ),
             tabPanel(
-              "Info & Instructions",
+              title = "Info & Instructions", icon = icon("circle-info"),
               fluidPage(
                 fluidRow(
                   column(1),
@@ -654,21 +681,21 @@ preprocessingUI <- function() {
           tabsetPanel(
             type = "tabs",
             tabPanel(
-              "Multi-Word List",
+              title = "Multi-Word List", icon = icon("list"),
               shinycssloaders::withSpinner(
                 DT::DTOutput("multiwordList"),
                 color = getOption("spinner.color", default = "#4F7942")
               )
             ),
             tabPanel(
-              "Annotated Text including Multi-Word",
+              title = "Annotated Text including Multi-Word", icon = icon("table"),
               shinycssloaders::withSpinner(
                 DT::DTOutput("multiwordData"),
                 color = getOption("spinner.color", default = "#4F7942")
               )
             ),
             tabPanel(
-              "Info & References",
+              title = "Info & References", icon = icon("circle-info"),
               fluidPage(
                 fluidRow(
                   column(1),
@@ -885,21 +912,21 @@ preprocessingUI <- function() {
           tabsetPanel(
             type = "tabs",
             tabPanel(
-              "Multi-Word List",
+              title = "Multi-Word List", icon = icon("list"),
               shinycssloaders::withSpinner(
                 DT::DTOutput("multiwordList2"),
                 color = getOption("spinner.color", default = "#4F7942")
               )
             ),
             tabPanel(
-              "Annotated Text including Multi-Word",
+              title = "Annotated Text including Multi-Word", icon = icon("table"),
               shinycssloaders::withSpinner(
                 DT::DTOutput("multiwordData2"),
                 color = getOption("spinner.color", default = "#4F7942")
               )
             ),
             tabPanel(
-              "Info & References",
+              title = "Info & References", icon = icon("circle-info"),
               fluidPage(
                 fluidRow(
                   column(1),
@@ -942,6 +969,26 @@ preprocessingUI <- function() {
                   )
                 )
               )),
+              hr(),
+              # Download buttons section
+              fluidRow(
+                column(
+                  6,
+                  downloadButton(
+                    "downloadMultiwordTemplate",
+                    "Template",
+                    style = "width: 100%; margin-bottom: 10px; background-color: #6CC283; border-color: #4F7942;color: #ffffff;"
+                  )
+                ),
+                column(
+                  6,
+                  downloadButton(
+                    "downloadMultiwordVocabulary",
+                    "Vocabulary",
+                    style = "width: 100%; margin-bottom: 10px; background-color: #6CC283; border-color: #4F7942;color: #ffffff;"
+                  )
+                )
+              ),
               hr(),
               div(
                 fluidRow(
@@ -1022,14 +1069,14 @@ preprocessingUI <- function() {
           tabsetPanel(
             type = "tabs",
             tabPanel(
-              "Annotated Text",
+              title = "Annotated Text", icon = icon("table"),
               shinycssloaders::withSpinner(
                 DT::DTOutput("posTagSelectData"),
                 color = getOption("spinner.color", default = "#4F7942")
               )
             ),
             tabPanel(
-              "Info & References",
+              title = "Info & References", icon = icon("circle-info"),
               fluidPage(
                 fluidRow(
                   column(1),
@@ -2442,6 +2489,134 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
           Vocabulary = vocabulary,
           Summary = summary_df
         ),
+        path = file
+      )
+    }
+  )
+
+  ## Download Custom Term Template -----
+  output$downloadCustomTermTemplate <- downloadHandler(
+    filename = function() {
+      paste0("custom_term_template_", Sys.Date(), ".xlsx")
+    },
+    content = function(file) {
+      template_df <- data.frame(
+        term = c("artificial intelligence", "deep learning", "preprocess", "dataset", "remove", ""),
+        upos = c("METHOD", "METHOD", "DATA_HANDLING", "DATA_HANDLING", "TO_REMOVE", ""),
+        stringsAsFactors = FALSE
+      )
+
+      instructions_df <- data.frame(
+        Instructions = c(
+          "HOW TO USE THIS TEMPLATE:",
+          "",
+          "1. Column 'term': Enter the term to tag",
+          "2. Column 'upos': Enter any custom PoS tag you need for your analysis",
+          "",
+          "You can use ANY custom tag, for example:",
+          "- Standard PoS tags: NOUN, VERB, ADJ, ADV, PROPN, etc.",
+          "- Custom category tags: METHOD, APPLICATION, SETTING, DATA_HANDLING, etc.",
+          "- Filtering tags: TO_REMOVE, IGNORE, STOPWORD, etc.",
+          "",
+          "IMPORTANT:",
+          "- Matching is case-insensitive",
+          "- Empty cells are ignored",
+          "- Custom tags will appear in the PoS selection menus throughout the app"
+        )
+      )
+
+      openxlsx::write.xlsx(
+        list(
+          Template = template_df,
+          Instructions = instructions_df
+        ),
+        file = file
+      )
+    }
+  )
+
+  ## Download Custom Term Vocabulary -----
+  output$downloadCustomTermVocabulary <- downloadHandler(
+    filename = function() {
+      paste0("vocabulary_custom_term_", values$generalTerm, "_", Sys.Date(), ".xlsx")
+    },
+    content = function(file) {
+      req(values$dfTag)
+
+      term_col <- values$generalTerm
+
+      vocabulary <- values$dfTag %>%
+        group_by(!!sym(term_col), upos) %>%
+        summarise(frequency = n(), .groups = "drop") %>%
+        arrange(desc(frequency)) %>%
+        rename(
+          term = !!sym(term_col),
+          pos_tag = upos
+        )
+
+      writexl::write_xlsx(
+        list(Vocabulary = vocabulary),
+        path = file
+      )
+    }
+  )
+
+  ## Download Multi-Word Template -----
+  output$downloadMultiwordTemplate <- downloadHandler(
+    filename = function() {
+      paste0("multiword_template_", Sys.Date(), ".xlsx")
+    },
+    content = function(file) {
+      template_df <- data.frame(
+        multiword = c("machine learning", "artificial intelligence", ""),
+        stringsAsFactors = FALSE
+      )
+
+      instructions_df <- data.frame(
+        Instructions = c(
+          "HOW TO USE THIS TEMPLATE:",
+          "",
+          "1. Column 'multiword': Enter one multi-word per row",
+          "2. Each term in the multi-word must be separated by a single whitespace",
+          "",
+          "EXAMPLE:",
+          "machine learning",
+          "artificial intelligence",
+          "deep learning"
+        )
+      )
+
+      openxlsx::write.xlsx(
+        list(
+          Template = template_df,
+          Instructions = instructions_df
+        ),
+        file = file
+      )
+    }
+  )
+
+  ## Download Multi-Word Vocabulary -----
+  output$downloadMultiwordVocabulary <- downloadHandler(
+    filename = function() {
+      paste0("vocabulary_multiword_", values$generalTerm, "_", Sys.Date(), ".xlsx")
+    },
+    content = function(file) {
+      req(values$dfTag)
+
+      term_col <- values$generalTerm
+
+      vocabulary <- values$dfTag %>%
+        group_by(!!sym(term_col), upos) %>%
+        summarise(frequency = n(), .groups = "drop") %>%
+        arrange(desc(frequency)) %>%
+        rename(
+          term = !!sym(term_col),
+          pos_tag = upos
+        )
+
+      writexl::write_xlsx(
+        list(Vocabulary = vocabulary),
         path = file
       )
     }

@@ -10,18 +10,8 @@ docClassificationUI <- function() {
       # Page Header
       fluidRow(
         column(
-          12,
-          div(
-            h2(
-              icon("rectangle-list"),
-              strong("Supervised Document Classification"),
-              style = "color: #4F7942; text-align: center; margin-bottom: 20px;"
-            ),
-            p(
-              "Train a Random Forest classifier to predict document categories using the Label Variable defined in Feature Roles.",
-              style = "text-align: center; font-size: 16px; color: #666; margin-bottom: 30px;"
-            )
-          )
+          8,
+          h3(strong("Supervised Document Classification"), align = "center")
         )
       ),
 
