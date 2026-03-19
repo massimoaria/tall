@@ -242,19 +242,6 @@ dend2vis <- function(hc, labelsize, nclusters = 1, community = TRUE) {
         VIS$x$nodes$title[VIS$x$nodes$title == i] <- new_groups[i]
       }
     }
-    VIS <- VIS %>%
-      visEvents(
-        click = "function(nodes){
-                  Shiny.onInputChange('click_rein', nodes.nodes[0]);
-                  ;}"
-      )
-  } else {
-    VIS <- VIS %>%
-      visEvents(
-        click = "function(nodes){
-                  Shiny.onInputChange('click_dend', nodes.nodes[0]);
-                  ;}"
-      )
   }
 
   return(VIS)
