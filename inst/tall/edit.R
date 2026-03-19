@@ -9,7 +9,7 @@ editUI <- function() {
       fluidRow(
         column(
           12,
-          h3(strong("Split Corpus"), align = "center"),
+          h2(icon("scissors"), strong("Split Corpus"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;"),
           br(),
         )
       )
@@ -136,7 +136,7 @@ editUI <- function() {
       fluidRow(
         column(
           12,
-          h3(strong("Random Selection"), align = "center"),
+          h2(icon("shuffle"), strong("Random Selection"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;"),
           br(),
         )
       )
@@ -258,7 +258,7 @@ editUI <- function() {
       fluidRow(
         column(
           12,
-          h3(strong("External Information"), align = "center"),
+          h2(icon("table-columns"), strong("External Information"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;"),
           br(),
         )
       )

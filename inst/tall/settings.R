@@ -7,7 +7,7 @@ settingsUI <- function() {
       fluidRow(
         column(
           12,
-          h3(icon("cog"), strong("Settings"), align = "center"),
+          h2(icon("cog"), strong("Settings"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;"),
           h5(
             "Configure global settings for plots, analysis reproducibility, and AI features.",
             align = "center",

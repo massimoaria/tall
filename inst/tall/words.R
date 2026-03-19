@@ -8,7 +8,7 @@ wordsUI <- function() {
       fluidRow(
         column(
           8,
-          h3(strong("Clustering"), align = "center")
+          h2(icon("sitemap"), strong("Clustering"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         ),
         div(
           title = t_run,
@@ -191,7 +191,7 @@ wordsUI <- function() {
       fluidRow(
         column(
           8,
-          h3(strong("Reinert Clustering"), align = "center")
+          h2(icon("project-diagram"), strong("Reinert Clustering"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         ),
         div(
           title = t_run,
@@ -441,7 +441,7 @@ wordsUI <- function() {
       fluidRow(
         column(
           8,
-          h3(strong("Correspondence Analysis"), align = "center")
+          h2(icon("chart-scatter"), strong("Correspondence Analysis"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         ),
         div(
           title = t_run,
@@ -751,7 +751,7 @@ wordsUI <- function() {
       fluidRow(
         column(
           8,
-          h3(strong("Word Network Analysis"), align = "center")
+          h2(icon("circle-nodes"), strong("Word Network Analysis"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         ),
         div(
           title = t_run,
@@ -1070,7 +1070,7 @@ wordsUI <- function() {
       fluidRow(
         column(
           8,
-          h3(strong("Thematic Map"), align = "center")
+          h2(icon("map"), strong("Thematic Map"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         ),
         div(
           title = t_run,
@@ -1304,6 +1304,12 @@ wordsUI <- function() {
     fluidPage(
       fluidRow(
         column(
+          12,
+          h2(icon("graduation-cap"), strong("Embedding Training"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
+        )
+      ),
+      fluidRow(
+        column(
           9,
           tabsetPanel(
             type = "tabs",
@@ -1449,7 +1455,7 @@ wordsUI <- function() {
       fluidRow(
         column(
           8,
-          h3(strong("Embedding Similarity"), align = "center")
+          h2(icon("vector-square"), strong("Embedding Similarity"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         ),
         div(
           title = t_run,

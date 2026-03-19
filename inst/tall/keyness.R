@@ -7,7 +7,7 @@ keynessUI <- function() {
       fluidRow(
         column(
           8,
-          h3(strong("Keyness Analysis"), align = "center")
+          h2(icon("key"), strong("Keyness Analysis"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         ),
         div(
           title = t_run,

@@ -7,7 +7,7 @@ preprocessingUI <- function() {
       fluidRow(
         column(
           12,
-          h3(strong("Tokenization & PoS Tagging"), align = "center")
+          h2(icon("spell-check"), strong("Tokenization & PoS Tagging"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         )
       )
     ),
@@ -193,7 +193,7 @@ preprocessingUI <- function() {
       fluidRow(
         column(
           12,
-          h3(strong("Tagging Special Entities"), align = "center")
+          h2(icon("at"), strong("Tagging Special Entities"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         )
       )
     ),
@@ -342,7 +342,7 @@ preprocessingUI <- function() {
       fluidRow(
         column(
           12,
-          h3(strong("Custom PoS List Loading and Merging"), align = "center")
+          h2(icon("list-check"), strong("Custom PoS List Loading and Merging"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         )
       ),
       br(),
@@ -504,7 +504,7 @@ preprocessingUI <- function() {
       fluidRow(
         column(
           12,
-          h3(strong("Synonyms Merging"), align = "center")
+          h2(icon("right-left"), strong("Synonyms Merging"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         )
       ),
       br(),
@@ -670,7 +670,7 @@ preprocessingUI <- function() {
       fluidRow(
         column(
           12,
-          h3(strong("Multi-Word Creation"), align = "center")
+          h2(icon("link"), strong("Multi-Word Creation"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         )
       ),
       br(),
@@ -901,7 +901,7 @@ preprocessingUI <- function() {
       fluidRow(
         column(
           12,
-          h3(strong("Multi-Word Creation by a List"), align = "center")
+          h2(icon("list-ul"), strong("Multi-Word Creation by a List"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         )
       ),
       br(),
@@ -1063,7 +1063,7 @@ preprocessingUI <- function() {
       fluidRow(
         column(
           8,
-          h3(strong("PoS Tag Selection"), align = "center"),
+          h2(icon("filter"), strong("PoS Tag Selection"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;"),
           br(),
           br(),
           tabsetPanel(

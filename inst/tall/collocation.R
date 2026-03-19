@@ -13,20 +13,18 @@ collocationUI <- function() {
   tabItem(
     tabName = "kwic",
     fluidRow(
-      # Usa fluidRow direttamente
+      column(
+        12,
+        h2(icon("magnifying-glass"), strong("KWIC Analysis"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
+      )
+    ),
+    fluidRow(
       column(
         12,
         box(
-          title = tagList(
-            icon("project-diagram"),
-            tags$span(
-              "KWIC Analysis",
-              style = "margin-left: 10px; vertical-align: middle;"
-            )
-          ),
           width = 12,
           status = "success",
-          solidHeader = TRUE,
+          solidHeader = FALSE,
           collapsible = FALSE,
           tabsetPanel(
             id = "collocationTabs",

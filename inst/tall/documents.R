@@ -10,10 +10,7 @@ documentsUI <- function() {
       fluidRow(
         column(
           9,
-          h3(
-            strong("Topic Modeling: Optimal selection of topic number"),
-            align = "center"
-          )
+          h2(icon("chart-line"), strong("Topic Modeling: Optimal selection of topic number"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         ),
         div(
           title = t_run,
@@ -231,7 +228,7 @@ documentsUI <- function() {
       fluidRow(
         column(
           8,
-          h3(strong("Topic Modeling: Model estimation"), align = "center")
+          h2(icon("diagram-project"), strong("Topic Modeling: Model estimation"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         ),
         div(
           title = t_run,
@@ -568,7 +565,7 @@ documentsUI <- function() {
       fluidRow(
         column(
           9,
-          h3(strong("Syntactic Complexity"), align = "center")
+          h2(icon("code-branch"), strong("Syntactic Complexity"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         ),
         div(
           title = t_run,
@@ -682,7 +679,7 @@ documentsUI <- function() {
       fluidRow(
         column(
           8,
-          h3(strong("SVO Triplet Extraction"), align = "center")
+          h2(icon("language"), strong("SVO Triplet Extraction"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         ),
         div(
           title = t_run,
@@ -838,7 +835,7 @@ documentsUI <- function() {
       fluidRow(
         column(
           8,
-          h3(strong("Polarity Detection"), align = "center")
+          h2(icon("face-smile"), strong("Polarity Detection"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         ),
         div(
           title = t_run,
@@ -1045,7 +1042,7 @@ documentsUI <- function() {
       fluidRow(
         column(
           8,
-          h3(strong("Emotion Detection"), align = "center")
+          h2(icon("heart-pulse"), strong("Emotion Detection"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         ),
         div(
           title = t_run,
@@ -1246,27 +1243,10 @@ documentsUI <- function() {
     fluidPage(
       fluidRow(
         column(
-          11,
-          h3(strong("Abstractive Summarization"), align = "center")
-        ),
-        div(
-          title = t_report,
-          column(
-            1,
-            do.call(
-              "actionButton",
-              c(
-                report_bttn,
-                list(
-                  inputId = "d_astractiveReport"
-                )
-              )
-            )
-          )
+          12,
+          h2(icon("wand-magic-sparkles"), strong("Abstractive Summarization"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         )
       ),
-      br(),
-      br(),
       fluidRow(
         column(
           9,
@@ -1309,10 +1289,6 @@ documentsUI <- function() {
           div(
             box(
               width = 12,
-              div(
-                h3(strong(em("Abstractive Summarization"))),
-                style = "margin-top:-57px"
-              ),
               h5(
                 ("TALL generates a coherent and concise summary by interpreting and paraphrasing the main ideas from the original text"),
                 style = "text-align: left; text-color: #989898"
@@ -1386,27 +1362,10 @@ documentsUI <- function() {
     fluidPage(
       fluidRow(
         column(
-          11,
-          h3(strong("Extractive Summarization"), align = "center")
-        ),
-        div(
-          title = t_report,
-          column(
-            1,
-            do.call(
-              "actionButton",
-              c(
-                report_bttn,
-                list(
-                  inputId = "d_summarizationReport"
-                )
-              )
-            )
-          )
+          12,
+          h2(icon("scissors"), strong("Extractive Summarization"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         )
       ),
-      br(),
-      br(),
       fluidRow(
         column(
           9,
@@ -1468,10 +1427,6 @@ documentsUI <- function() {
           div(
             box(
               width = 12,
-              div(
-                h3(strong(em("Extractive Summarization"))),
-                style = "margin-top:-57px"
-              ),
               h5(
                 ("TALL selects and reorders the most relevant sentences from the original text to generate a coherent and concise summary"),
                 style = "text-align: left; text-color: #989898"

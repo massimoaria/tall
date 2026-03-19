@@ -10,7 +10,7 @@ importUI <- function() {
             h2(
               icon("file-lines"),
               strong("Import Texts"),
-              style = "color: #4F7942; text-align: center; margin-bottom: 30px;"
+              style = "color: #4F7942; text-align: center; margin-bottom: 20px;"
             )
           )
         )

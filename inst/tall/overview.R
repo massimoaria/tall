@@ -13,7 +13,7 @@ overviewUI <- function() {
             fluidRow(
               column(
                 11,
-                h3(strong("Overview"), align = "center")
+                h2(icon("chart-pie"), strong("Overview"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
               ),
               div(
                 title = t_report,
@@ -242,7 +242,7 @@ overviewUI <- function() {
               fluidRow(
                 column(
                   8,
-                  h3(strong("WordCloud"), align = "center")
+                  h2(icon("cloud"), strong("WordCloud"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
                 ),
                 div(
                   title = t_run,
@@ -352,7 +352,7 @@ overviewUI <- function() {
               fluidRow(
                 column(
                   8,
-                  h3(strong("Word Frequency by PoS"), align = "center")
+                  h2(icon("chart-bar"), strong("Word Frequency by PoS"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
                 ),
                 div(
                   title = t_run,
@@ -466,7 +466,7 @@ overviewUI <- function() {
               fluidRow(
                 column(
                   12,
-                  h3(strong("Morphological Features"), align = "center"),
+                  h2(icon("puzzle-piece"), strong("Morphological Features"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;"),
                   p(
                     "Distribution of morphological features extracted from the Universal Dependencies annotation.",
                     style = "text-align: center; color: #666; margin-bottom: 20px;"
@@ -533,7 +533,7 @@ overviewUI <- function() {
               fluidRow(
                 column(
                   9,
-                  h3(strong("Dependency Tree Viewer"), align = "center")
+                  h2(icon("diagram-project"), strong("Dependency Tree Viewer"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
                 ),
                 div(
                   title = t_export,
