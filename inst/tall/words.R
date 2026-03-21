@@ -163,6 +163,7 @@ wordsUI <- function() {
           type = "tabs",
           tabPanel(
             title = "Dendrogram", icon = icon("sitemap"),
+            br(),
             shinycssloaders::withSpinner(
               visNetworkOutput(
                 "w_clusteringPlot",
@@ -174,6 +175,7 @@ wordsUI <- function() {
           ),
           tabPanel(
             title = "Table", icon = icon("table"),
+            br(),
             shinycssloaders::withSpinner(
               DT::DTOutput("w_clusteringTable"),
               color = getOption("spinner.color", default = "#4F7942")
@@ -396,6 +398,7 @@ wordsUI <- function() {
           ),
           tabPanel(
             title = "Summary", icon = icon("list"),
+            br(),
             shinycssloaders::withSpinner(
               DT::DTOutput("w_ReinSummaryTable"),
               color = getOption("spinner.color", default = "#4F7942")
@@ -403,6 +406,7 @@ wordsUI <- function() {
           ),
           tabPanel(
             title = "Terms by Cluster", icon = icon("table"),
+            br(),
             shinycssloaders::withSpinner(
               DT::DTOutput("w_ReinClusteringTableTerms"),
               color = getOption("spinner.color", default = "#4F7942")
@@ -410,6 +414,7 @@ wordsUI <- function() {
           ),
           tabPanel(
             title = "Segments by Cluster", icon = icon("table"),
+            br(),
             shinycssloaders::withSpinner(
               DT::DTOutput("w_ReinClusteringTableSegments"),
               color = getOption("spinner.color", default = "#4F7942")
@@ -417,6 +422,7 @@ wordsUI <- function() {
           ),
           tabPanel(
             title = "Info & References", icon = icon("circle-info"),
+            br(),
             fluidPage(
               fluidRow(
                 column(1),
@@ -657,6 +663,7 @@ wordsUI <- function() {
           type = "tabs",
           tabPanel(
             title = "Factorial Plane", icon = icon("chart-column"),
+            br(),
             shinycssloaders::withSpinner(
               plotlyOutput(
                 outputId = "caPlot",
@@ -668,6 +675,7 @@ wordsUI <- function() {
           ),
           tabPanel(
             title = "Dendrogram", icon = icon("sitemap"),
+            br(),
             shinycssloaders::withSpinner(
               visNetworkOutput(
                 "caDendrogram",
@@ -679,6 +687,7 @@ wordsUI <- function() {
           ),
           tabPanel(
             title = "Singular Values", icon = icon("chart-line"),
+            br(),
             shinycssloaders::withSpinner(
               DT::DTOutput("caSingularValueTable"),
               color = getOption("spinner.color", default = "#4F7942")
@@ -686,6 +695,7 @@ wordsUI <- function() {
           ),
           tabPanel(
             title = "Coordinates", icon = icon("table"),
+            br(),
             shinycssloaders::withSpinner(
               DT::DTOutput("caCoordTable"),
               color = getOption("spinner.color", default = "#4F7942")
@@ -693,6 +703,7 @@ wordsUI <- function() {
           ),
           tabPanel(
             title = "Contributions", icon = icon("table"),
+            br(),
             shinycssloaders::withSpinner(
               DT::DTOutput("caContribTable"),
               color = getOption("spinner.color", default = "#4F7942")
@@ -700,6 +711,7 @@ wordsUI <- function() {
           ),
           tabPanel(
             title = "Cosines Squared", icon = icon("table"),
+            br(),
             shinycssloaders::withSpinner(
               DT::DTOutput("caCosineTable"),
               color = getOption("spinner.color", default = "#4F7942")
@@ -707,6 +719,7 @@ wordsUI <- function() {
           ),
           tabPanel(
             title = "TALL AI", icon = icon("robot"),
+            br(),
             fluidPage(
               fluidRow(
                 column(
@@ -724,6 +737,7 @@ wordsUI <- function() {
           ),
           tabPanel(
             title = "Info & References", icon = icon("circle-info"),
+            br(),
             fluidPage(
               fluidRow(
                 column(1),
@@ -1003,6 +1017,7 @@ wordsUI <- function() {
           type = "tabs",
           tabPanel(
             title = "Network", icon = icon("diagram-project"),
+            br(),
             shinycssloaders::withSpinner(
               visNetworkOutput(
                 "w_networkCoocPlot",
@@ -1014,6 +1029,7 @@ wordsUI <- function() {
           ),
           tabPanel(
             title = "Words", icon = icon("table"),
+            br(),
             shinycssloaders::withSpinner(
               DT::DTOutput("w_networkCoocNodesTable"),
               color = getOption("spinner.color", default = "#4F7942")
@@ -1021,6 +1037,7 @@ wordsUI <- function() {
           ),
           tabPanel(
             title = "Links", icon = icon("table"),
+            br(),
             shinycssloaders::withSpinner(
               DT::DTOutput("w_networkCoocEdgesTable"),
               color = getOption("spinner.color", default = "#4F7942")
@@ -1028,6 +1045,7 @@ wordsUI <- function() {
           ),
           tabPanel(
             title = "TALL AI", icon = icon("robot"),
+            br(),
             fluidPage(
               fluidRow(
                 column(
@@ -1045,6 +1063,7 @@ wordsUI <- function() {
           ),
           tabPanel(
             title = "Info & References", icon = icon("circle-info"),
+            br(),
             fluidPage(
               fluidRow(
                 column(1),
@@ -1227,6 +1246,7 @@ wordsUI <- function() {
           type = "tabs",
           tabPanel(
             title = "Thematic Map", icon = icon("map"),
+            br(),
             shinycssloaders::withSpinner(
               plotlyOutput(
                 "w_networkTMMapPlot",
@@ -1238,6 +1258,7 @@ wordsUI <- function() {
           ),
           tabPanel(
             title = "Network", icon = icon("diagram-project"),
+            br(),
             shinycssloaders::withSpinner(
               visNetworkOutput(
                 "w_networkTMNetPlot",
@@ -1249,6 +1270,7 @@ wordsUI <- function() {
           ),
           tabPanel(
             title = "Clusters", icon = icon("object-group"),
+            br(),
             shinycssloaders::withSpinner(
               DT::DTOutput("w_networkTMClusterTable"),
               color = getOption("spinner.color", default = "#4F7942")
@@ -1256,6 +1278,7 @@ wordsUI <- function() {
           ),
           tabPanel(
             title = "Words", icon = icon("table"),
+            br(),
             shinycssloaders::withSpinner(
               DT::DTOutput("w_networkTMWordTable"),
               color = getOption("spinner.color", default = "#4F7942")
@@ -1263,6 +1286,7 @@ wordsUI <- function() {
           ),
           tabPanel(
             title = "TALL AI", icon = icon("robot"),
+            br(),
             fluidPage(
               fluidRow(
                 column(
@@ -1280,6 +1304,7 @@ wordsUI <- function() {
           ),
           tabPanel(
             title = "Info & References", icon = icon("circle-info"),
+            br(),
             fluidPage(
               fluidRow(
                 column(1),
@@ -1327,6 +1352,7 @@ wordsUI <- function() {
             ),
             tabPanel(
               title = "Embedding Dimensions", icon = icon("chart-line"),
+              br(),
               shinycssloaders::withSpinner(
                 DT::DTOutput("w_word2vecTable"),
                 color = getOption("spinner.color", default = "#4F7942")
@@ -1342,6 +1368,7 @@ wordsUI <- function() {
             ),
             tabPanel(
               title = "Info & References", icon = icon("circle-info"),
+              br(),
               fluidPage(
                 fluidRow(
                   column(1),
@@ -1563,6 +1590,7 @@ wordsUI <- function() {
         type = "tabs",
         tabPanel(
           title = "Similarity Network", icon = icon("diagram-project"),
+          br(),
           fluidRow(
             column(11, align = "right", uiOutput("w_w2v_Selected")),
             column(
@@ -1590,6 +1618,7 @@ wordsUI <- function() {
         ),
         tabPanel(
           title = "UMAP", icon = icon("chart-area"),
+          br(),
           shinycssloaders::withSpinner(
             plotlyOutput("w_w2vUMAPplot", width = "auto", height = "75vh"),
             color = getOption("spinner.color", default = "#4F7942")
@@ -1597,6 +1626,7 @@ wordsUI <- function() {
         ),
         tabPanel(
           title = "TALL AI", icon = icon("robot"),
+          br(),
           fluidPage(
             fluidRow(
               column(
@@ -1614,6 +1644,7 @@ wordsUI <- function() {
         ),
         tabPanel(
           title = "Info & References", icon = icon("circle-info"),
+          br(),
           fluidPage(
             fluidRow(
               column(1),
@@ -2679,6 +2710,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
         type = "tabs",
         tabPanel(
           title = "Terms by Cluster", icon = icon("table"),
+          br(),
           h3(strong(
             (paste0(
               "Terms associated to Cluster(s): ",
@@ -2690,6 +2722,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
         ),
         tabPanel(
           title = "Segments by Cluster", icon = icon("table"),
+          br(),
           h3(strong(
             (paste0(
               "Segments associated to Cluster(s): ",

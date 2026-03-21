@@ -10,6 +10,7 @@ overviewUI <- function() {
           # OVERVIEW TAB - NEW LAYOUT
           tabPanel(
             title = "Overview", icon = icon("chart-column"),
+            br(),
             fluidRow(
               column(
                 11,
@@ -201,6 +202,7 @@ overviewUI <- function() {
           ),
           tabPanel(
             title = "Table", icon = icon("table"),
+            br(),
             div(
               shinycssloaders::withSpinner(
                 DT::DTOutput(outputId = "overviewData", width = 700),
@@ -211,6 +213,7 @@ overviewUI <- function() {
           ),
           tabPanel(
             title = "Vocabulary", icon = icon("book"),
+            br(),
             column(
               12,
               div(
@@ -225,6 +228,7 @@ overviewUI <- function() {
           ),
           tabPanel(
             title = "TF-IDF", icon = icon("table"),
+            br(),
             column(
               12,
               div(
@@ -238,6 +242,7 @@ overviewUI <- function() {
           ),
           tabPanel(
             title = "WordCloud", icon = icon("cloud"),
+            br(),
             fluidPage(
               fluidRow(
                 column(
@@ -348,6 +353,7 @@ overviewUI <- function() {
           ),
           tabPanel(
             title = "Frequency", icon = icon("chart-bar"),
+            br(),
             fluidPage(
               fluidRow(
                 column(
@@ -462,6 +468,7 @@ overviewUI <- function() {
           ),
           tabPanel(
             title = "Morphological Features", icon = icon("language"),
+            br(),
             fluidPage(
               fluidRow(
                 column(
@@ -529,6 +536,7 @@ overviewUI <- function() {
           ),
           tabPanel(
             title = "Dependency Tree", icon = icon("sitemap"),
+            br(),
             fluidPage(
               fluidRow(
                 column(
@@ -626,6 +634,7 @@ overviewUI <- function() {
           ),
           tabPanel(
             title = "TALL AI", icon = icon("robot"),
+            br(),
             fluidPage(
               fluidRow(
                 column(
@@ -643,6 +652,7 @@ overviewUI <- function() {
           ),
           tabPanel(
             title = "Info & References", icon = icon("circle-info"),
+            br(),
             fluidPage(
               fluidRow(
                 column(1),

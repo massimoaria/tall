@@ -15,6 +15,7 @@ preprocessingUI <- function() {
       type = "tabs",
       tabPanel(
         title = "Annotated Text Table", icon = icon("table"),
+        br(),
         fluidRow(
           column(
             8,
@@ -171,6 +172,7 @@ preprocessingUI <- function() {
       ),
       tabPanel(
         title = "Info & References", icon = icon("circle-info"),
+        br(),
         fluidPage(
           fluidRow(
             column(1),
@@ -206,6 +208,7 @@ preprocessingUI <- function() {
           # Main tab with HTML-based entity cards
           tabPanel(
             title = "Special Entities Overview", icon = icon("table"),
+            br(),
             div(
               style = "padding: 20px;",
               # Custom HTML output for special entities cards
@@ -218,6 +221,7 @@ preprocessingUI <- function() {
           # Annotated text table tab (unchanged)
           tabPanel(
             title = "Annotated Text Table", icon = icon("table"),
+            br(),
             shinycssloaders::withSpinner(
               DT::DTOutput("posSpecialData"),
               color = getOption("spinner.color", default = "#4F7942")
@@ -226,6 +230,7 @@ preprocessingUI <- function() {
           # Info tab (unchanged)
           tabPanel(
             title = "Info & References", icon = icon("circle-info"),
+            br(),
             fluidPage(
               fluidRow(
                 column(1),
@@ -354,6 +359,7 @@ preprocessingUI <- function() {
             type = "tabs",
             tabPanel(
               title = "Pos Tagging with Custom List", icon = icon("table"),
+              br(),
               shinycssloaders::withSpinner(
                 DT::DTOutput("customPosTagData"),
                 color = getOption("spinner.color", default = "#4F7942")
@@ -361,6 +367,7 @@ preprocessingUI <- function() {
             ),
             tabPanel(
               title = "Info & References", icon = icon("circle-info"),
+              br(),
               fluidPage(
                 fluidRow(
                   column(1),
@@ -516,6 +523,7 @@ preprocessingUI <- function() {
             type = "tabs",
             tabPanel(
               title = "Processed Data with Synonyms", icon = icon("table"),
+              br(),
               shinycssloaders::withSpinner(
                 DT::DTOutput("synonymsProcessedData"),
                 color = getOption("spinner.color", default = "#4F7942")
@@ -523,6 +531,7 @@ preprocessingUI <- function() {
             ),
             tabPanel(
               title = "Synonyms List Preview", icon = icon("list"),
+              br(),
               shinycssloaders::withSpinner(
                 DT::DTOutput("synonymsListPreview"),
                 color = getOption("spinner.color", default = "#4F7942")
@@ -530,6 +539,7 @@ preprocessingUI <- function() {
             ),
             tabPanel(
               title = "Info & Instructions", icon = icon("circle-info"),
+              br(),
               fluidPage(
                 fluidRow(
                   column(1),
@@ -682,6 +692,7 @@ preprocessingUI <- function() {
             type = "tabs",
             tabPanel(
               title = "Multi-Word List", icon = icon("list"),
+              br(),
               shinycssloaders::withSpinner(
                 DT::DTOutput("multiwordList"),
                 color = getOption("spinner.color", default = "#4F7942")
@@ -689,6 +700,7 @@ preprocessingUI <- function() {
             ),
             tabPanel(
               title = "Annotated Text including Multi-Word", icon = icon("table"),
+              br(),
               shinycssloaders::withSpinner(
                 DT::DTOutput("multiwordData"),
                 color = getOption("spinner.color", default = "#4F7942")
@@ -696,6 +708,7 @@ preprocessingUI <- function() {
             ),
             tabPanel(
               title = "Info & References", icon = icon("circle-info"),
+              br(),
               fluidPage(
                 fluidRow(
                   column(1),
@@ -913,6 +926,7 @@ preprocessingUI <- function() {
             type = "tabs",
             tabPanel(
               title = "Multi-Word List", icon = icon("list"),
+              br(),
               shinycssloaders::withSpinner(
                 DT::DTOutput("multiwordList2"),
                 color = getOption("spinner.color", default = "#4F7942")
@@ -920,6 +934,7 @@ preprocessingUI <- function() {
             ),
             tabPanel(
               title = "Annotated Text including Multi-Word", icon = icon("table"),
+              br(),
               shinycssloaders::withSpinner(
                 DT::DTOutput("multiwordData2"),
                 color = getOption("spinner.color", default = "#4F7942")
@@ -927,6 +942,7 @@ preprocessingUI <- function() {
             ),
             tabPanel(
               title = "Info & References", icon = icon("circle-info"),
+              br(),
               fluidPage(
                 fluidRow(
                   column(1),
@@ -1070,6 +1086,7 @@ preprocessingUI <- function() {
             type = "tabs",
             tabPanel(
               title = "Annotated Text", icon = icon("table"),
+              br(),
               shinycssloaders::withSpinner(
                 DT::DTOutput("posTagSelectData"),
                 color = getOption("spinner.color", default = "#4F7942")
@@ -1077,6 +1094,7 @@ preprocessingUI <- function() {
             ),
             tabPanel(
               title = "Info & References", icon = icon("circle-info"),
+              br(),
               fluidPage(
                 fluidRow(
                   column(1),

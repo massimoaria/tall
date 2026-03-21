@@ -65,6 +65,7 @@ documentsUI <- function() {
             type = "tabs",
             tabPanel(
               title = "Tuning Plot", icon = icon("chart-line"),
+              br(),
               shinycssloaders::withSpinner(
                 plotlyOutput(
                   outputId = "d_tm_selectPlot",
@@ -76,6 +77,7 @@ documentsUI <- function() {
             ),
             tabPanel(
               title = "Multi-Metric Comparison", icon = icon("chart-column"),
+              br(),
               shinycssloaders::withSpinner(
                 plotlyOutput(
                   outputId = "d_tm_multiMetricPlot",
@@ -95,6 +97,7 @@ documentsUI <- function() {
             ),
             tabPanel(
               title = "Table", icon = icon("table"),
+              br(),
               shinycssloaders::withSpinner(
                 DT::DTOutput("d_tm_selectTable"),
                 color = getOption("spinner.color", default = "#4F7942")
@@ -102,6 +105,7 @@ documentsUI <- function() {
             ),
             tabPanel(
               title = "Info & References", icon = icon("circle-info"),
+              br(),
               fluidPage(
                 fluidRow(
                   column(1),
@@ -404,6 +408,7 @@ documentsUI <- function() {
         type = "tabs",
         tabPanel(
           title = "Topic by Words Plot", icon = icon("chart-column"),
+          br(),
           fluidRow(
             column(
               4,
@@ -443,6 +448,7 @@ documentsUI <- function() {
         ),
         tabPanel(
           title = "Topic by Docs Plot", icon = icon("chart-column"),
+          br(),
           fluidRow(
             column(
               4,
@@ -482,6 +488,7 @@ documentsUI <- function() {
         ),
         tabPanel(
           title = "Beta Probability", icon = icon("table"),
+          br(),
           shinycssloaders::withSpinner(
             DT::DTOutput("d_tm_estimBpTable"),
             color = getOption("spinner.color", default = "#4F7942")
@@ -489,6 +496,7 @@ documentsUI <- function() {
         ),
         tabPanel(
           title = "Theta Probability", icon = icon("table"),
+          br(),
           shinycssloaders::withSpinner(
             DT::DTOutput("d_tm_estimTpTable"),
             color = getOption("spinner.color", default = "#4F7942")
@@ -496,6 +504,7 @@ documentsUI <- function() {
         ),
         tabPanel(
           title = "Topic Correlation", icon = icon("diagram-project"),
+          br(),
           shinycssloaders::withSpinner(
             plotlyOutput(
               outputId = "d_tm_networkPlot",
@@ -524,6 +533,7 @@ documentsUI <- function() {
         ),
         tabPanel(
           title = "TALL AI", icon = icon("robot"),
+          br(),
           fluidPage(
             fluidRow(
               column(
@@ -541,6 +551,7 @@ documentsUI <- function() {
         ),
         tabPanel(
           title = "Info & References", icon = icon("circle-info"),
+          br(),
           fluidPage(
             fluidRow(
               column(1),
@@ -627,6 +638,7 @@ documentsUI <- function() {
         ),
         tabPanel(
           title = "Distributions", icon = icon("chart-area"),
+          br(),
           shinycssloaders::withSpinner(
             plotlyOutput(
               outputId = "d_syntacticDistPlot",
@@ -638,6 +650,7 @@ documentsUI <- function() {
         ),
         tabPanel(
           title = "TALL AI", icon = icon("robot"),
+          br(),
           fluidPage(
             fluidRow(
               column(
@@ -655,6 +668,7 @@ documentsUI <- function() {
         ),
         tabPanel(
           title = "Info & References", icon = icon("circle-info"),
+          br(),
           fluidPage(
             fluidRow(
               column(1),
@@ -772,6 +786,7 @@ documentsUI <- function() {
         ),
         tabPanel(
           title = "SVO Network", icon = icon("diagram-project"),
+          br(),
           shinycssloaders::withSpinner(
             plotlyOutput(
               outputId = "d_svoNetwork",
@@ -783,6 +798,7 @@ documentsUI <- function() {
         ),
         tabPanel(
           title = "Verb Frequency", icon = icon("chart-bar"),
+          br(),
           shinycssloaders::withSpinner(
             plotlyOutput(
               outputId = "d_svoVerbPlot",
@@ -794,6 +810,7 @@ documentsUI <- function() {
         ),
         tabPanel(
           title = "TALL AI", icon = icon("robot"),
+          br(),
           fluidPage(
             fluidRow(
               column(
@@ -811,6 +828,7 @@ documentsUI <- function() {
         ),
         tabPanel(
           title = "Info & References", icon = icon("circle-info"),
+          br(),
           fluidPage(
             fluidRow(
               column(1),
@@ -927,6 +945,7 @@ documentsUI <- function() {
           type = "tabs",
           tabPanel(
             title = "Document Polarity Distribution", icon = icon("chart-area"),
+            br(),
             fluidRow(
               column(
                 6,
@@ -962,6 +981,7 @@ documentsUI <- function() {
           ),
           tabPanel(
             title = "Top Words", icon = icon("chart-bar"),
+            br(),
             fluidRow(
               column(
                 6,
@@ -993,6 +1013,7 @@ documentsUI <- function() {
           ),
           tabPanel(
             title = "Table", icon = icon("table"),
+            br(),
             shinycssloaders::withSpinner(
               DT::DTOutput("d_polDetTable"),
               color = getOption("spinner.color", default = "#4F7942")
@@ -1000,6 +1021,7 @@ documentsUI <- function() {
           ),
           tabPanel(
             title = "TALL AI", icon = icon("robot"),
+            br(),
             fluidPage(
               fluidRow(
                 column(
@@ -1017,6 +1039,7 @@ documentsUI <- function() {
           ),
           tabPanel(
             title = "Info & References", icon = icon("circle-info"),
+            br(),
             fluidPage(
               fluidRow(
                 column(1),
@@ -1132,6 +1155,7 @@ documentsUI <- function() {
           type = "tabs",
           tabPanel(
             title = "Emotion Distribution", icon = icon("chart-area"),
+            br(),
             fluidRow(
               column(
                 6,
@@ -1159,6 +1183,7 @@ documentsUI <- function() {
           ),
           tabPanel(
             title = "Top Words by Emotion", icon = icon("chart-bar"),
+            br(),
             fluidRow(
               column(
                 4,
@@ -1184,6 +1209,7 @@ documentsUI <- function() {
           ),
           tabPanel(
             title = "Document Heatmap", icon = icon("th"),
+            br(),
             shinycssloaders::withSpinner(
               plotlyOutput(
                 outputId = "d_emoHeatmap",
@@ -1195,6 +1221,7 @@ documentsUI <- function() {
           ),
           tabPanel(
             title = "Table", icon = icon("table"),
+            br(),
             shinycssloaders::withSpinner(
               DT::DTOutput("d_emoTable"),
               color = getOption("spinner.color", default = "#4F7942")
@@ -1202,6 +1229,7 @@ documentsUI <- function() {
           ),
           tabPanel(
             title = "TALL AI", icon = icon("robot"),
+            br(),
             fluidPage(
               fluidRow(
                 column(
@@ -1219,6 +1247,7 @@ documentsUI <- function() {
           ),
           tabPanel(
             title = "Info & References", icon = icon("circle-info"),
+            br(),
             fluidPage(
               fluidRow(
                 column(1),
@@ -1270,6 +1299,7 @@ documentsUI <- function() {
             ),
             tabPanel(
               title = "Info & References", icon = icon("circle-info"),
+              br(),
               fluidPage(
                 fluidRow(
                   column(1),
@@ -1401,6 +1431,7 @@ documentsUI <- function() {
             ),
             tabPanel(
               title = "Sentence Ranking", icon = icon("list-ol"),
+              br(),
               shinycssloaders::withSpinner(
                 DT::DTOutput("RelSentData"),
                 color = getOption("spinner.color", default = "#4F7942")
@@ -1408,6 +1439,7 @@ documentsUI <- function() {
             ),
             tabPanel(
               title = "Info & References", icon = icon("circle-info"),
+              br(),
               fluidPage(
                 fluidRow(
                   column(1),

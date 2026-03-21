@@ -290,6 +290,7 @@ keynessUI <- function() {
           tabPanel(
             title = "Table",
             icon = icon("table"),
+            br(),
             shinycssloaders::withSpinner(
               DT::DTOutput("keyness_table"),
               color = getOption("spinner.color", default = "#4F7942")
@@ -299,6 +300,7 @@ keynessUI <- function() {
           tabPanel(
             title = "Info & References",
             icon = icon("circle-info"),
+            br(),
             fluidPage(
               fluidRow(
                 column(1),

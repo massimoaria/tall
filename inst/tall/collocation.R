@@ -365,6 +365,7 @@ collocationUI <- function() {
                     tabPanel(
                       title = "Words in Context",
                       icon = icon("table"),
+                      br(),
                       fluidRow(
                         column(
                           12,
@@ -408,6 +409,7 @@ collocationUI <- function() {
                     tabPanel(
                       title = "Network Plot",
                       icon = icon("diagram-project"),
+                      br(),
                       fluidRow(
                         column(10),
                         div(
@@ -459,6 +461,7 @@ collocationUI <- function() {
                       title = "TALL AI",
                       icon = icon("robot"),
                       fluidPage(
+                        br(),
                         fluidRow(
                           column(
                             12,
@@ -487,6 +490,7 @@ collocationUI <- function() {
               title = "Info & References",
               icon = icon("circle-info"),
               fluidPage(
+                br(),
                 fluidRow(
                   column(1),
                   column(

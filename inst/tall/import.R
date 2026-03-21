@@ -22,6 +22,7 @@ importUI <- function() {
           tabPanel(
             title = "Corpus",
             icon = icon("database"),
+            br(),
             fluidRow(
               # Main Content Area - Data Table
               column(
@@ -136,6 +137,7 @@ importUI <- function() {
           tabPanel(
             title = "Info & References",
             icon = icon("circle-info"),
+            br(),
             fluidPage(
               fluidRow(
                 column(
