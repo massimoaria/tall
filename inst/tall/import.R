@@ -10,7 +10,7 @@ importUI <- function() {
             h2(
               icon("file-lines"),
               strong("Import Texts"),
-              style = "color: #4F7942; text-align: center; margin-bottom: 30px;"
+              style = "color: #4F7942; text-align: center; margin-bottom: 20px;"
             )
           )
         )
@@ -20,7 +20,9 @@ importUI <- function() {
         tabsetPanel(
           type = "tabs",
           tabPanel(
-            "Corpus",
+            title = "Corpus",
+            icon = icon("database"),
+            br(),
             fluidRow(
               # Main Content Area - Data Table
               column(
@@ -133,7 +135,9 @@ importUI <- function() {
             )
           ),
           tabPanel(
-            "Info & References",
+            title = "Info & References",
+            icon = icon("circle-info"),
+            br(),
             fluidPage(
               fluidRow(
                 column(
@@ -1273,6 +1277,26 @@ importServer <- function(input, output, session, values, statsValues) {
   observeEvent(input$importTextBack, {
     values$txt <- values$txt %>%
       mutate(doc_selected = TRUE)
+
+    output$dataImported <- DT::renderDT({
+      req(values$txt)
+      if (nrow(values$txt) > 0) {
+        col_names <- c("doc_selected", "text_original")
+        DTformat(
+          values$txt %>%
+            dplyr::filter(doc_selected) %>%
+            mutate(across(any_of("text"), ~ paste0(substr(., 1, 500), "..."))) %>%
+            select(doc_id, any_of("text"), everything()) %>%
+            select(!any_of(col_names)),
+          left = 3,
+          nrow = 5,
+          filter = "none",
+          button = TRUE,
+          delete = TRUE,
+          escape = FALSE
+        )
+      }
+    })
   })
 
   output$infoGroups <- renderUI({

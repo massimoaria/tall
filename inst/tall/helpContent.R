@@ -3,7 +3,7 @@ helpContent <- function() {
   importmenu <- "
   <body>
 
-  <h3><strong>Importing Data in TALL</strong></h3>
+  <h3><strong>Importing Data</strong></h3>
 
   <p>TALL provides a versatile and user-friendly interface for importing textual data from various sources, ensuring flexibility in data handling for diverse analytical needs. The platform supports multiple file formats and structures, allowing users to seamlessly prepare their datasets for analysis.</p>
   <hr>
@@ -75,7 +75,7 @@ helpContent <- function() {
   ## split ----
   split <- "<body>
 
-    <h3><strong>Splitting the Corpus in TALL</strong></h3>
+    <h3><strong>Splitting the Corpus</strong></h3>
 
     <p>TALL allows users to split textual data into smaller segments based on a specified sequence of characters. This feature is particularly useful when dealing with large documents containing multiple sections or structured content that needs to be analyzed separately.</p>
     <hr>
@@ -106,7 +106,7 @@ helpContent <- function() {
   # random sample ----
   random <- "<body>
 
-    <h3><strong>Random Text Selection in TALL</strong></h3>
+    <h3><strong>Random Text Selection</strong></h3>
 
     <p>TALL allows users to extract a random subset of imported texts for focused analysis. This feature is particularly useful when working with large corpora, enabling users to explore representative samples without processing the entire dataset.</p>
     <hr>
@@ -137,7 +137,7 @@ helpContent <- function() {
   ## external info ----
   externalinfo <- "<body>
 
-    <h3><strong>Importing External Information in TALL</strong></h3>
+    <h3><strong>Importing External Information</strong></h3>
 
     <p>TALL allows users to integrate additional information into their analysis by importing external datasets. This feature is particularly useful for enriching text data with metadata, annotations, or categorical variables, enabling a more comprehensive exploration of textual patterns.</p>
     <hr>
@@ -170,7 +170,7 @@ helpContent <- function() {
   ## tokenization ----
   tokenization <- "<body>
 
-    <h3><strong>Tokenization, Lemmatization, and PoS Tagging in TALL</strong></h3>
+    <h3><strong>Tokenization, Lemmatization, and PoS Tagging</strong></h3>
 
     <p>TALL provides robust Natural Language Processing (NLP) capabilities for preprocessing textual data, including <strong>tokenization, lemmatization, and Part-of-Speech (PoS) tagging</strong>. These steps are essential for transforming raw text into a structured format suitable for further analysis.</p>
     <hr>
@@ -210,7 +210,7 @@ helpContent <- function() {
   ## special entities ----
   specialentities <- "<body>
 
-    <h3><strong>Tagging Special Entities in TALL</strong></h3>
+    <h3><strong>Tagging Special Entities</strong></h3>
 
     <p>TALL automatically detects and tags <strong>special entities</strong> within texts, ensuring that key non-linguistic elements are properly identified and can be leveraged in further analysis.
     <br>Recognizing these entities helps improve text preprocessing, pattern recognition, and contextual analysis.</p>
@@ -339,7 +339,7 @@ helpContent <- function() {
   ## multiword list ----
   multiwordlist <- "<body>
 
-    <h3><strong>Multi-Word Creation by a List in TALL</strong></h3>
+    <h3><strong>Multi-Word Creation by a List</strong></h3>
 
     <p>TALL allows users to define <strong>multi-word expressions (MWEs)</strong> by importing a predefined list of multi-word terms. This feature is particularly useful for ensuring that specific phrases or domain-specific expressions are treated as single units during text processing, improving linguistic analysis.</p>
     <hr>
@@ -371,7 +371,7 @@ helpContent <- function() {
   ## custom pos ----
   customterm <- "<body>
 
-    <h3><strong>Custom PoS List in TALL</strong></h3>
+    <h3><strong>Custom PoS List</strong></h3>
 
     <p>TALL allows users to define a <strong>Custom PoS List</strong>, enabling more precise control over text processing and linguistic analysis. This feature allows users to manually assign custom PoS tags to specific terms, overriding their default categorization by the language model.</p>
     <hr>
@@ -392,8 +392,9 @@ helpContent <- function() {
     <li><strong>First column:</strong> The list of terms to be tagged.</li>
     <li><strong>Second column:</strong> The corresponding Part-of-Speech (PoS) or user-defined category assigned to each term.</li>
     </ul>
-    <li>The specified tags should align with standard linguistic categories (e.g., noun, verb, adjective) or custom categories for specific analysis needs.</li>
+    <li>The tags can be <strong>any custom category</strong> you define for your analysis needs (e.g., METHOD, APPLICATION, SETTING, TO_REMOVE, etc.), or standard PoS tags (NOUN, VERB, ADJ, etc.).</li>
     </ul>
+    <p><strong>Note:</strong> Custom tags will appear in the PoS selection menus throughout the app, allowing you to filter, group, or exclude terms based on your custom categories.</p>
     <hr>
   <h4><strong>Example of Custom PoS List Format</strong></h4>
 
@@ -404,27 +405,35 @@ helpContent <- function() {
   </tr>
   <tr>
   <td>artificial intelligence</td>
-  <td>methodology</td>
+  <td>METHOD</td>
   </tr>
   <tr>
   <td>deep learning</td>
-  <td>methodology</td>
+  <td>METHOD</td>
   </tr>
   <tr>
   <td>preprocess</td>
-  <td>data_handling</td>
+  <td>DATA_HANDLING</td>
   </tr>
   <tr>
   <td>dataset</td>
-  <td>data_handling</td>
+  <td>DATA_HANDLING</td>
   </tr>
   <tr>
   <td>remove</td>
-  <td>Ignore</td>
+  <td>TO_REMOVE</td>
+  </tr>
+  <tr>
+  <td>neural network</td>
+  <td>APPLICATION</td>
+  </tr>
+  <tr>
+  <td>batch size</td>
+  <td>SETTING</td>
   </tr>
   </table>
 <br>
-    <p>By allowing users to define and control term tagging, TALL provides enhanced flexibility for text analysis, making it a powerful tool for domain-specific research and refined linguistic processing.</p>
+    <p>By allowing users to define and control term tagging with fully custom categories, TALL provides enhanced flexibility for text analysis, making it a powerful tool for domain-specific research and refined linguistic processing.</p>
 
     <hr>
     <div class='references'>
@@ -438,7 +447,7 @@ helpContent <- function() {
   ## synonyms ----
   synonyms <- "<body>
 
-    <h3><strong>Synonyms Merging in TALL</strong></h3>
+    <h3><strong>Synonyms Merging</strong></h3>
 
     <p>TALL allows users to merge <strong>synonyms and variant forms</strong> into standardized target terms. This feature is essential for reducing vocabulary noise, consolidating spelling variants, abbreviations, and domain-specific synonyms into a single canonical form, thereby improving the quality of downstream analyses such as topic modeling, co-occurrence networks, and frequency distributions.</p>
     <hr>
@@ -505,7 +514,7 @@ helpContent <- function() {
   ## pos selection ----
   posselection <- "<body>
 
-    <h3><strong>PoS Tagging Selection in TALL</strong></h3>
+    <h3><strong>PoS Tagging Selection</strong></h3>
 
     <p>TALL provides users with the flexibility to <strong>select specific Part-of-Speech (PoS) tags</strong> to be used in subsequent analyses.
     This feature allows for greater control over the linguistic elements included in text processing,
@@ -518,7 +527,7 @@ helpContent <- function() {
     <li><strong>Improving Computational Efficiency:</strong> Reducing data size and processing time by analyzing only the most relevant word categories.</li>
     </ul>
     <hr>
-    <h4><strong>How It Works in TALL</strong></h4>
+    <h4><strong>How It Works</strong></h4>
     <ul>
     <li>Users can manually <strong>select or deselect</strong> PoS categories from a predefined list.</li>
     <li>The available PoS tags follow the <strong>Universal Dependencies (UD) annotation scheme</strong>, ensuring consistency across different languages.</li>
@@ -534,7 +543,7 @@ helpContent <- function() {
     <li><strong>HAPAX:</strong> Words appearing only once in the text, useful for lexical richness analysis.</li>
     </ul>
     <hr>
-    <h4><strong>Available PoS Categories in TALL</strong></h4>
+    <h4><strong>Available PoS Categories</strong></h4>
     <table border='1' cellspacing='0' cellpadding='5'>
     <tr>
     <th>PoS Tag</th>
@@ -575,7 +584,7 @@ helpContent <- function() {
   ## features ----
   featureroles <- "<body>
 
-  <h3><strong>Feature Roles in TALL</strong></h3>
+  <h3><strong>Feature Roles</strong></h3>
 
   <p>The Feature Roles section allows users to assign specific roles to variables in their dataset. These role assignments enable sophisticated text analysis workflows across various TALL features, ensuring that the appropriate variables are used for different analytical purposes.</p>
 
@@ -671,7 +680,7 @@ helpContent <- function() {
   ## overview ----
   overview <- "<body>
   <div class='container'>
-    <h3><strong>Corpus Metrics in TALL</strong></h3>
+    <h3><strong>Corpus Metrics</strong></h3>
     <p>These metrics provide a summary of the key textual characteristics of the analyzed corpus.</p>
 
     <h4><strong>Corpus Size &amp; Structure</strong></h4>
@@ -925,13 +934,13 @@ helpContent <- function() {
   ## word in context ----
   wordincontext <- "<body>
 
-    <h3><strong>Words in Context in TALL</strong></h3>
+    <h3 style='color: #4F7942;'><strong>Words in Context</strong></h3>
 
     <p>The <strong>Words in Context</strong> feature in TALL allows users to analyze how specific words appear in textual data, offering valuable insights into <strong>semantic usage, contextual meaning, and discourse structure</strong>. This tool is particularly useful for <strong>qualitative text analysis, linguistic research, and content exploration</strong> in diverse domains, such as <strong>social sciences, digital humanities, marketing, and legal studies</strong>.</p>
     <hr>
-    <h4><strong>How Words in Context Works in TALL</strong></h4>
+    <h4 style='color: #4F7942;'><strong>How Words in Context Works</strong></h4>
 
-    <h4><strong>1. Concordance Analysis (Keyword in Context - KWIC)</strong></h4>
+    <h4 style='color: #4F7942;'><strong>1. Concordance Analysis (Keyword in Context - KWIC)</strong></h4>
     <ul>
     <li>Displays a <strong>side-by-side view of words and their surrounding textual context</strong> (left and right neighbors).</li>
     <li>Helps in identifying <strong>common phrases, recurring structures, and usage variations</strong>.</li>
@@ -947,7 +956,7 @@ helpContent <- function() {
       This helps in understanding <strong>how 'sustainable' is used in different thematic contexts</strong>.
     </div>
 
-      <h4><strong>2. Context Window Customization</strong></h4>
+      <h4 style='color: #4F7942;'><strong>2. Context Window Customization</strong></h4>
       <ul>
       <li>Users can define the <strong>window size</strong> (number of words before and after the target term) to adjust the level of contextual information displayed.</li>
       <li>Shorter windows highlight <strong>immediate linguistic relationships</strong>, while larger windows help analyze <strong>broader semantic dependencies</strong>.</li>
@@ -960,7 +969,7 @@ helpContent <- function() {
         - <strong>'the recent economic downturn has increased financial risk for small businesses'</strong> (larger window)<br>
         </div>
 
-        <h4><strong>3. Frequency and Distribution Insights</strong></h4>
+        <h4 style='color: #4F7942;'><strong>3. Frequency and Distribution Insights</strong></h4>
         <ul>
         <li>Words appearing in <strong>multiple contexts</strong> can be analyzed for <strong>frequency trends</strong>, helping users identify <strong>dominant themes</strong> associated with a term.</li>
         <li>Examines whether a word is <strong>evenly distributed</strong> across the corpus or <strong>clustered</strong> in specific sections/documents.</li>
@@ -982,7 +991,7 @@ helpContent <- function() {
   ## keyness ----
   keyness <- "<body>
 
-    <h3><strong>Keyness Analysis in TALL</strong></h3>
+    <h3><strong>Keyness Analysis</strong></h3>
 
     <p>Keyness analysis is a statistical technique used to identify words that are <strong>significantly more or less frequent</strong> in a target corpus compared to a reference corpus. This method enables researchers to <strong>detect distinctive vocabulary</strong> and <strong>linguistic features</strong> that characterize specific texts, genres, or discourse communities (<strong>Scott, 1997; Gabrielatos, 2018</strong>).</p>
 
@@ -1107,7 +1116,7 @@ helpContent <- function() {
     </ul>
     <hr>
 
-    <h4><strong>Advantages of Keyness Analysis in TALL</strong></h4>
+    <h4><strong>Advantages of Keyness Analysis</strong></h4>
 
     <ul>
       <li><strong>Multilingual Support:</strong> Provides reference frequency lists for 69 languages, enabling cross-lingual keyness studies.</li>
@@ -1156,13 +1165,13 @@ helpContent <- function() {
   ## reinert ----
   reinert <- "<body>
 
-    <h3><strong>Reinert Clustering in TALL</strong></h3>
+    <h3><strong>Reinert Clustering</strong></h3>
 
     <p>Reinert clustering is a <strong>hierarchical descending classification method</strong> used for <strong>textual data clustering</strong>. It identifies <strong>lexically homogeneous word clusters</strong> based on the <strong>co-occurrence of terms within textual contexts</strong>. Originally developed by <strong>Max Reinert (1983, 1990)</strong>, this approach has become a core method in <strong>corpus linguistics, sociolinguistics, and content analysis</strong>.</p>
 
     <p>Reinert’s method is particularly effective in <strong>structuring large textual datasets</strong>, making it a powerful tool for <strong>thematic segmentation, discourse analysis, and socio-linguistic research</strong>.</p>
     <hr>
-    <h4><strong>How Reinert Clustering Works in TALL</strong></h4>
+    <h4><strong>How Reinert Clustering Works</strong></h4>
 
     <h4>1. Text Segmentation into Context Units</h4>
     <ul>
@@ -1223,7 +1232,7 @@ helpContent <- function() {
       </tr>
       </table>
     <hr>
-      <h4><strong>Implementation of Reinert Clustering in TALL</strong></h4>
+      <h4><strong>Implementation of Reinert Clustering</strong></h4>
 
       <p>The implementation of <strong>Reinert clustering in TALL</strong> was <strong>inspired by the 'rainette' package</strong> (<strong>Barnier & Privé, 2023</strong>). The original routines have been <strong>adapted to work with the TALL data structure</strong>, which includes <strong>tokenized, lemmatized, and PoS-tagged corpora</strong>.</p>
 
@@ -1255,7 +1264,7 @@ helpContent <- function() {
   ## correspondece analysis ----
   correspondenceanalysis <- "<body>
 
-    <h3><strong>Correspondence Analysis in TALL</strong></h3>
+    <h3><strong>Correspondence Analysis</strong></h3>
 
     <p>Correspondence Analysis (<strong>CA</strong>) is a fundamental technique for exploring <strong>semantic relationships</strong> among words within a text collection (<strong>Benzécri, 1982; Lebart et al., 1997</strong>). By applying <strong>dimensionality reduction</strong>, CA represents the most relevant information in a low-rank vector space, uncovering <strong>latent structures</strong> within the data. These structures are then <strong>visualized on factorial maps</strong>, allowing users to detect associations between terms and documents effectively.</p>
     <hr>
@@ -1298,7 +1307,7 @@ helpContent <- function() {
   ## co-word analysis ----
   cowordanalysis <- "<body>
 
-    <h3><strong>Word Network Analysis in TALL</strong></h3>
+    <h3><strong>Word Network Analysis</strong></h3>
 
     <p>TALL provides two complementary approaches for building word networks: <strong>Co-occurrence networks</strong> based on statistical proximity, and <strong>Dependency networks</strong> based on syntactic structure. Both approaches produce interactive network visualizations with community detection for thematic clustering.</p>
 
@@ -1327,6 +1336,7 @@ helpContent <- function() {
       <li><strong>Subject-Verb-Object</strong> &mdash; focuses on core argument structure (nsubj, obj, iobj). Shows &quot;who does what to whom&quot;.</li>
       <li><strong>Custom</strong> &mdash; lets users select specific dependency relations.</li>
     </ul>
+    <p>For a complete list and description of all syntactic dependency relations, see the <strong>Dependency</strong> tab in the <strong>Overview</strong> menu.</p>
 
     <hr>
     <h4><strong>Co-occurrence vs Dependency: When to Use Which</strong></h4>
@@ -1449,7 +1459,7 @@ helpContent <- function() {
 
   <hr>
 
-  <h4><strong>Features in TALL</strong></h4>
+  <h4><strong>Features</strong></h4>
 
   <ul>
     <li>Users can generate thematic maps from any textual dataset preprocessed and tokenized in TALL.</li>
@@ -1479,7 +1489,7 @@ helpContent <- function() {
   embeddingtrain <- "
 
     <body>
-    <h3><strong>Training Word Embeddings in TALL</strong></h3>
+    <h3><strong>Training Word Embeddings</strong></h3>
     <p>
     The <strong>Training</strong> module in TALL enables users to generate <strong>custom word embeddings</strong> from their own corpus using the <strong>word2vec algorithm</strong>,
   which includes both the <strong>Continuous Bag-of-Words (CBOW)</strong> and <strong>Skip-gram</strong> architectures.
@@ -1537,7 +1547,7 @@ helpContent <- function() {
 
   ## embedding similarity ----
   embeddingsimilarity <- "<body>
-    <h3><strong>Word Similarity Network in TALL</strong></h3>
+    <h3><strong>Word Similarity Network</strong></h3>
     <p>
     The <strong>Similarity</strong> module in TALL allows users to explore semantic relationships between words through an interactive <strong>similarity network</strong> generated from word embeddings trained in the <strong>Training</strong> tab. These embeddings are built using the <strong>word2vec</strong> algorithm (either CBOW or Skip-gram).
   </p>
@@ -1601,7 +1611,7 @@ helpContent <- function() {
   ## tm chioice ----
   tmkchoice <- "<body>
 
-  <h3><strong>Topic Modeling in TALL: K Selection</strong></h3>
+  <h3><strong>Topic Modeling: K Selection</strong></h3>
 
   <p>Determining the <strong>optimal number of topics (K)</strong> is one of the most critical steps in topic modeling. TALL provides a comprehensive K selection framework that supports three model types: <strong>LDA</strong>, <strong>CTM</strong>, and <strong>STM</strong>.</p>
 
@@ -1700,7 +1710,7 @@ helpContent <- function() {
   ## topic model estimation ----
   tmmodelestimation <- "<body>
 
-    <h3><strong>Topic Modeling in TALL: Model Estimation</strong></h3>
+    <h3><strong>Topic Modeling: Model Estimation</strong></h3>
 
     <p>TALL implements three topic modeling approaches, each suited to different analytical needs. All three produce <strong>beta</strong> (term-topic) and <strong>theta</strong> (document-topic) probability matrices that can be explored through interactive visualizations.</p>
 
@@ -1793,7 +1803,7 @@ helpContent <- function() {
   ## syntactic complexity ----
   syntacticcomplexity <- "<body>
 
-    <h3><strong>Syntactic Complexity Analysis in TALL</strong></h3>
+    <h3><strong>Syntactic Complexity Analysis</strong></h3>
 
     <p>Syntactic complexity analysis quantifies the structural properties of sentences in a corpus using <strong>dependency parsing</strong>. For each document, TALL computes a set of metrics that characterize writing style, readability, and linguistic sophistication.</p>
 
@@ -1856,7 +1866,7 @@ helpContent <- function() {
   ## SVO triplets ----
   svo <- "<body>
 
-    <h3><strong>SVO Triplet Extraction in TALL</strong></h3>
+    <h3><strong>SVO Triplet Extraction</strong></h3>
 
     <p>SVO (Subject-Verb-Object) triplet extraction uses <strong>dependency parsing</strong> to identify structured semantic relationships in text. For each verb in the corpus, the algorithm extracts its syntactic subject and object, producing triplets that answer the question: <strong>who does what to whom?</strong></p>
 
@@ -1906,11 +1916,11 @@ helpContent <- function() {
 
   polaritydetection <- "<body>
 
-    <h3><strong>Polarity Detection in TALL</strong></h3>
+    <h3><strong>Polarity Detection</strong></h3>
 
     <p>Polarity detection is a fundamental <strong>sentiment analysis technique</strong> used to determine whether a document expresses a <strong>positive, negative, or neutral</strong> sentiment. This process is essential in analyzing <strong>consumer feedback, financial reports, product reviews, and social media discussions</strong>, where understanding sentiment trends can provide valuable insights into public opinion and decision-making processes.</p>
     <hr>
-    <h4><strong>How Polarity Detection Works in TALL</strong></h4>
+    <h4><strong>How Polarity Detection Works</strong></h4>
     <p>TALL calculates <strong>document polarity</strong> using a <strong>lexicon-based approach</strong>, incorporating <strong>contextual adjustments</strong> to refine sentiment scoring. The methodology follows three key steps:</p>
 
     <h4>1. Lexicon-Based Sentiment Scoring</h4>
@@ -1934,7 +1944,7 @@ helpContent <- function() {
     <li>Documents with scores near <strong>0</strong> are classified as <strong>neutral</strong>, indicating a balanced mix of sentiment or the absence of strong emotions.</li>
     </ul>
     <hr>
-    <h4><strong>Sentiment Lexicons Used in TALL</strong></h4>
+    <h4><strong>Sentiment Lexicons Used</strong></h4>
 
     <h4>1. Hu and Liu (2004) - Opinion Lexicon</h4>
     <ul>
@@ -1975,13 +1985,13 @@ helpContent <- function() {
   ## emotion analysis ----
   emotionanalysis <- "<body>
 
-    <h3><strong>Emotion Analysis in TALL</strong></h3>
+    <h3><strong>Emotion Detection</strong></h3>
 
     <p>Emotion analysis goes beyond simple positive/negative polarity by identifying <strong>specific emotions</strong> expressed in text.
     TALL uses the <strong>NRC Word-Emotion Association Lexicon (EmoLex)</strong> to detect eight primary emotions:
     <strong>Anger, Anticipation, Disgust, Fear, Joy, Sadness, Surprise, and Trust</strong>.</p>
     <hr>
-    <h4><strong>How Emotion Analysis Works in TALL</strong></h4>
+    <h4><strong>How Emotion Detection Works</strong></h4>
 
     <h4>1. Lexicon-Based Emotion Detection</h4>
     <ul>
@@ -2032,7 +2042,7 @@ helpContent <- function() {
   ## summarzation ----
   summarization <- "<body>
 
-    <h3><strong>Summarization in TALL</strong></h3>
+    <h3><strong>Summarization</strong></h3>
 
     <p>Summarization is a <strong>key technique in text analysis</strong> that allows users to extract the <strong>most relevant information</strong> from a document
     while maintaining its core meaning.
@@ -2042,7 +2052,7 @@ helpContent <- function() {
     <p>Unlike <strong>abstractive summarization</strong>, which rephrases content using deep learning models, <strong>extractive summarization</strong> ensures that
     the summary remains <strong>factually consistent</strong> with the input document, making it a <strong>reliable method for automated text compression</strong>.</p>
     <hr>
-    <h4><strong>How Summarization Works in TALL</strong></h4>
+    <h4><strong>How Summarization Works</strong></h4>
 
     <h4>1. Sentence Tokenization and Preprocessing</h4>
     <ul>
@@ -2072,7 +2082,7 @@ helpContent <- function() {
     <li>A <strong>reordering step</strong> ensures that sentences are presented in a <strong>logical and coherent structure</strong>, preserving the original document’s flow.</li>
     </ul>
     <hr>
-    <h4><strong>Advantages of Summarization in TALL</strong></h4>
+    <h4><strong>Advantages of Summarization</strong></h4>
     <ul>
     <li><strong>Extractive and Factually Consistent</strong> – Ensures that summaries are directly sourced from the original text,
     <br>reducing the risk of hallucinations or misinterpretations.</li>
@@ -2086,7 +2096,7 @@ helpContent <- function() {
     <br><strong>level of detail</strong> in the summary.</li>
     </ul>
     <hr>
-    <h4><strong>Implementation of Summarization in TALL</strong></h4>
+    <h4><strong>Implementation of Summarization</strong></h4>
 
     <p>TALL’s <strong>summarization routines</strong> are built upon the <strong>TextRank algorithm</strong>, with optimizations for handling
     <strong>preprocessed and structured corpora</strong>:</p>

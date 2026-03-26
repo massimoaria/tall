@@ -7,7 +7,7 @@ keynessUI <- function() {
       fluidRow(
         column(
           8,
-          h3(strong("Keyness Analysis"), align = "center")
+          h2(icon("key"), strong("Keyness Analysis"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         ),
         div(
           title = t_run,
@@ -237,7 +237,7 @@ keynessUI <- function() {
           tabPanel(
             br(),
             title = "WordCloud",
-            icon = icon("chart-column"),
+            icon = icon("cloud"),
             # Use renderUI to dynamically create wordcloud containers
             fluidRow(
               conditionalPanel(
@@ -261,7 +261,7 @@ keynessUI <- function() {
           tabPanel(
             br(),
             title = "Frequency Context Plot",
-            icon = icon("chart-column"),
+            icon = icon("chart-line"),
             conditionalPanel(
               condition = "input.keyness_approach == 'reference_corpus'",
               shinycssloaders::withSpinner(
@@ -290,6 +290,7 @@ keynessUI <- function() {
           tabPanel(
             title = "Table",
             icon = icon("table"),
+            br(),
             shinycssloaders::withSpinner(
               DT::DTOutput("keyness_table"),
               color = getOption("spinner.color", default = "#4F7942")
@@ -297,7 +298,9 @@ keynessUI <- function() {
             align = "center"
           ),
           tabPanel(
-            "Info & References",
+            title = "Info & References",
+            icon = icon("circle-info"),
+            br(),
             fluidPage(
               fluidRow(
                 column(1),

@@ -7,7 +7,7 @@ settingsUI <- function() {
       fluidRow(
         column(
           12,
-          h3(icon("cog"), strong("Settings"), align = "center"),
+          h2(icon("cog"), strong("Settings"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;"),
           h5(
             "Configure global settings for plots, analysis reproducibility, and AI features.",
             align = "center",
@@ -306,23 +306,10 @@ settingsServer <- function(input, output, session, values, statsValues) {
           )
         )
     }
-    output$dataImported <- DT::renderDT({
-      # DATAloading()
-      if (values$menu == 0) {
-        DTformat(
-          values$txt %>%
-            filter(doc_selected) %>%
-            mutate(text = paste0(substr(text, 1, 500), "...")) %>%
-            select(doc_id, text, everything()) %>%
-            select(-doc_selected, -text_original),
-          left = 2,
-          nrow = 5,
-          filter = "none",
-          button = TRUE,
-          delete = TRUE
-        )
-      }
-    })
+    if (!is.null(values$dfTag)) {
+      values$dfTag <- values$dfTag %>%
+        mutate(docSelected = ifelse(doc_id == input$button_id_del, FALSE, docSelected))
+    }
   })
 
   ### SETTINGS ----

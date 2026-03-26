@@ -234,7 +234,13 @@ body <- dashboardBody(
     ### Embedding Similarity ----
     words_ui$we_similarity,
 
+    ### SVO Triplets ----
+    documents_ui$svo_analysis,
+
     ## DOCUMENTS ----
+
+    ### Syntactic Complexity ----
+    documents_ui$syntactic_complexity,
 
     ### Topic Modeling ----
     #### TM K Choices ----
@@ -246,16 +252,10 @@ body <- dashboardBody(
     #### Doc Classification ----
     docClassificationUI(),
 
-    ### Syntactic Complexity ----
-    documents_ui$syntactic_complexity,
-
-    ### SVO Triplets ----
-    documents_ui$svo_analysis,
-
     ### Polarity Detection ----
     documents_ui$polarity,
 
-    ### Emotion Analysis ----
+    ### Emotion Detection ----
     documents_ui$emotion,
 
     ### Abstractive Summarization ----

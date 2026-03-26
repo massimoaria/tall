@@ -861,6 +861,11 @@ menuList <- function(menu) {
         icon = icon("chevron-right")
       )
     ),
+    menuSubItem(
+      "SVO Triplets",
+      tabName = "d_svo",
+      icon = icon("chevron-right")
+    ),
     menuItem(
       "Word Embeddings",
       tabName = "w_embeddings",
@@ -883,6 +888,11 @@ menuList <- function(menu) {
     "Documents",
     tabName = "documents",
     icon = icon("clone"),
+    menuSubItem(
+      "Syntactic Complexity",
+      tabName = "d_syntactic",
+      icon = icon("chevron-right")
+    ),
     menuItem(
       "Topic Modeling",
       tabName = "d_topicMod",
@@ -903,16 +913,6 @@ menuList <- function(menu) {
       tabName = "doc_classification",
       icon = icon("chevron-right")
     ),
-    menuSubItem(
-      "Syntactic Complexity",
-      tabName = "d_syntactic",
-      icon = icon("chevron-right")
-    ),
-    menuSubItem(
-      "SVO Triplets",
-      tabName = "d_svo",
-      icon = icon("chevron-right")
-    ),
     menuItem(
       "Sentiment Analysis",
       tabName = "d_sentiment",
@@ -923,7 +923,7 @@ menuList <- function(menu) {
         icon = icon("chevron-right")
       ),
       menuSubItem(
-        "Emotion Analysis",
+        "Emotion Detection",
         tabName = "d_emo",
         icon = icon("chevron-right")
       )

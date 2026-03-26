@@ -6,10 +6,7 @@ filters_groupsUI <- function() {
       fluidRow(
         column(
           12,
-          h3(
-            strong("Filter docs by available external information"),
-            align = "center"
-          )
+          h2(icon("filter"), strong("Filter docs by available external information"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         )
       ),
       fluidRow(
@@ -84,10 +81,7 @@ filters_groupsUI <- function() {
       fluidRow(
         column(
           12,
-          h3(
-            strong("Define groups by available external information"),
-            align = "center"
-          )
+          h2(icon("object-group"), strong("Define groups by available external information"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         )
       ),
       fluidRow(

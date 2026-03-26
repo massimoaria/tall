@@ -13,20 +13,18 @@ collocationUI <- function() {
   tabItem(
     tabName = "kwic",
     fluidRow(
-      # Usa fluidRow direttamente
+      column(
+        12,
+        h2(icon("magnifying-glass"), strong("KWIC Analysis"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
+      )
+    ),
+    fluidRow(
       column(
         12,
         box(
-          title = tagList(
-            icon("project-diagram"),
-            tags$span(
-              "KWIC Analysis",
-              style = "margin-left: 10px; vertical-align: middle;"
-            )
-          ),
           width = 12,
           status = "success",
-          solidHeader = TRUE,
+          solidHeader = FALSE,
           collapsible = FALSE,
           tabsetPanel(
             id = "collocationTabs",
@@ -35,7 +33,8 @@ collocationUI <- function() {
             # TAB 1: PLOT - Word Distribution
             # ==========================================
             tabPanel(
-              "In-Document Plot",
+              title = "In-Document Plot",
+              icon = icon("chart-area"),
               fluidPage(
                 br(),
                 fluidRow(
@@ -126,7 +125,8 @@ collocationUI <- function() {
             # TAB 2: COLLOCATE
             # ==========================================
             tabPanel(
-              "Collocation",
+              title = "Collocation",
+              icon = icon("table"),
               fluidPage(
                 br(),
                 fluidRow(
@@ -247,7 +247,8 @@ collocationUI <- function() {
             # TAB 3: KWIC Network
             # ==========================================
             tabPanel(
-              "Network",
+              title = "Network",
+              icon = icon("diagram-project"),
               fluidPage(
                 br(),
                 fluidRow(
@@ -362,7 +363,9 @@ collocationUI <- function() {
                   tabsetPanel(
                     type = "tabs",
                     tabPanel(
-                      "Words in Context",
+                      title = "Words in Context",
+                      icon = icon("table"),
+                      br(),
                       fluidRow(
                         column(
                           12,
@@ -404,7 +407,9 @@ collocationUI <- function() {
                       )
                     ),
                     tabPanel(
-                      "Network Plot",
+                      title = "Network Plot",
+                      icon = icon("diagram-project"),
+                      br(),
                       fluidRow(
                         column(10),
                         div(
@@ -453,8 +458,10 @@ collocationUI <- function() {
                       )
                     ),
                     tabPanel(
-                      "TALL AI",
+                      title = "TALL AI",
+                      icon = icon("robot"),
                       fluidPage(
+                        br(),
                         fluidRow(
                           column(
                             12,
@@ -480,8 +487,10 @@ collocationUI <- function() {
             # TAB 4: INFO & REFERENCES
             # ==========================================
             tabPanel(
-              "Info & References",
+              title = "Info & References",
+              icon = icon("circle-info"),
               fluidPage(
+                br(),
                 fluidRow(
                   column(1),
                   column(
@@ -839,6 +848,9 @@ collocationServer <- function(input, output, session, values, statsValues) {
       req(collocResults$collocate_data)
 
       data <- collocResults$collocate_data
+      if ("LogLik" %in% names(data)) {
+        data <- data %>% arrange(desc(LogLik))
+      }
 
       # Create DT table with custom formatting
       dt <- DT::datatable(

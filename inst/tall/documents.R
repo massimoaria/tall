@@ -10,10 +10,7 @@ documentsUI <- function() {
       fluidRow(
         column(
           9,
-          h3(
-            strong("Topic Modeling: Optimal selection of topic number"),
-            align = "center"
-          )
+          h2(icon("chart-line"), strong("Topic Modeling: Optimal selection of topic number"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         ),
         div(
           title = t_run,
@@ -67,7 +64,8 @@ documentsUI <- function() {
           tabsetPanel(
             type = "tabs",
             tabPanel(
-              "Tuning Plot",
+              title = "Tuning Plot", icon = icon("chart-line"),
+              br(),
               shinycssloaders::withSpinner(
                 plotlyOutput(
                   outputId = "d_tm_selectPlot",
@@ -78,7 +76,8 @@ documentsUI <- function() {
               )
             ),
             tabPanel(
-              "Multi-Metric Comparison",
+              title = "Multi-Metric Comparison", icon = icon("chart-column"),
+              br(),
               shinycssloaders::withSpinner(
                 plotlyOutput(
                   outputId = "d_tm_multiMetricPlot",
@@ -89,7 +88,7 @@ documentsUI <- function() {
               )
             ),
             tabPanel(
-              "K Recommendation",
+              title = "K Recommendation", icon = icon("lightbulb"),
               br(),
               shinycssloaders::withSpinner(
                 uiOutput("d_tm_kRecommendationUI"),
@@ -97,14 +96,16 @@ documentsUI <- function() {
               )
             ),
             tabPanel(
-              "Table",
+              title = "Table", icon = icon("table"),
+              br(),
               shinycssloaders::withSpinner(
                 DT::DTOutput("d_tm_selectTable"),
                 color = getOption("spinner.color", default = "#4F7942")
               )
             ),
             tabPanel(
-              "Info & References",
+              title = "Info & References", icon = icon("circle-info"),
+              br(),
               fluidPage(
                 fluidRow(
                   column(1),
@@ -231,7 +232,7 @@ documentsUI <- function() {
       fluidRow(
         column(
           8,
-          h3(strong("Topic Modeling: Model estimation"), align = "center")
+          h2(icon("diagram-project"), strong("Topic Modeling: Model estimation"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         ),
         div(
           title = t_run,
@@ -406,7 +407,8 @@ documentsUI <- function() {
       tabsetPanel(
         type = "tabs",
         tabPanel(
-          "Topic by Words Plot",
+          title = "Topic by Words Plot", icon = icon("chart-column"),
+          br(),
           fluidRow(
             column(
               4,
@@ -442,17 +444,11 @@ documentsUI <- function() {
               )
             )
           ),
-          fluidRow(
-            actionButton("TMplotLeft", icon("chevron-left")),
-            actionButton(
-              "TMplotRight",
-              icon("chevron-right")
-            ),
-            align = "center"
-          )
+          uiOutput("TMplotArrowsUI")
         ),
         tabPanel(
-          "Topic by Docs Plot",
+          title = "Topic by Docs Plot", icon = icon("chart-column"),
+          br(),
           fluidRow(
             column(
               4,
@@ -488,28 +484,27 @@ documentsUI <- function() {
               )
             )
           ),
-          fluidRow(
-            actionButton("TMdocLeft", icon("chevron-left")),
-            actionButton("TMdocRight", icon("chevron-right")),
-            align = "center"
-          )
+          uiOutput("TMdocArrowsUI")
         ),
         tabPanel(
-          "Beta Probability",
+          title = "Beta Probability", icon = icon("table"),
+          br(),
           shinycssloaders::withSpinner(
             DT::DTOutput("d_tm_estimBpTable"),
             color = getOption("spinner.color", default = "#4F7942")
           )
         ),
         tabPanel(
-          "Theta Probability",
+          title = "Theta Probability", icon = icon("table"),
+          br(),
           shinycssloaders::withSpinner(
             DT::DTOutput("d_tm_estimTpTable"),
             color = getOption("spinner.color", default = "#4F7942")
           )
         ),
         tabPanel(
-          "Topic Correlation",
+          title = "Topic Correlation", icon = icon("diagram-project"),
+          br(),
           shinycssloaders::withSpinner(
             plotlyOutput(
               outputId = "d_tm_networkPlot",
@@ -521,7 +516,7 @@ documentsUI <- function() {
           )
         ),
         tabPanel(
-          "Model Diagnostics",
+          title = "Model Diagnostics", icon = icon("stethoscope"),
           br(),
           shinycssloaders::withSpinner(
             uiOutput("d_tm_diagnosticsUI"),
@@ -529,7 +524,7 @@ documentsUI <- function() {
           )
         ),
         tabPanel(
-          "Covariate Effects",
+          title = "Covariate Effects", icon = icon("chart-line"),
           br(),
           shinycssloaders::withSpinner(
             uiOutput("d_tm_covariateUI"),
@@ -537,7 +532,8 @@ documentsUI <- function() {
           )
         ),
         tabPanel(
-          "TALL AI",
+          title = "TALL AI", icon = icon("robot"),
+          br(),
           fluidPage(
             fluidRow(
               column(
@@ -554,7 +550,8 @@ documentsUI <- function() {
           )
         ),
         tabPanel(
-          "Info & References",
+          title = "Info & References", icon = icon("circle-info"),
+          br(),
           fluidPage(
             fluidRow(
               column(1),
@@ -579,7 +576,7 @@ documentsUI <- function() {
       fluidRow(
         column(
           9,
-          h3(strong("Syntactic Complexity"), align = "center")
+          h2(icon("code-branch"), strong("Syntactic Complexity"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         ),
         div(
           title = t_run,
@@ -624,7 +621,7 @@ documentsUI <- function() {
       tabsetPanel(
         type = "tabs",
         tabPanel(
-          "Document Metrics",
+          title = "Document Metrics", icon = icon("table"),
           br(),
           shinycssloaders::withSpinner(
             DT::DTOutput("d_syntacticTable"),
@@ -632,7 +629,7 @@ documentsUI <- function() {
           )
         ),
         tabPanel(
-          "Corpus Summary",
+          title = "Corpus Summary", icon = icon("list"),
           br(),
           shinycssloaders::withSpinner(
             uiOutput("d_syntacticSummaryUI"),
@@ -640,7 +637,8 @@ documentsUI <- function() {
           )
         ),
         tabPanel(
-          "Distributions",
+          title = "Distributions", icon = icon("chart-area"),
+          br(),
           shinycssloaders::withSpinner(
             plotlyOutput(
               outputId = "d_syntacticDistPlot",
@@ -651,7 +649,8 @@ documentsUI <- function() {
           )
         ),
         tabPanel(
-          "TALL AI",
+          title = "TALL AI", icon = icon("robot"),
+          br(),
           fluidPage(
             fluidRow(
               column(
@@ -668,7 +667,8 @@ documentsUI <- function() {
           )
         ),
         tabPanel(
-          "Info & References",
+          title = "Info & References", icon = icon("circle-info"),
+          br(),
           fluidPage(
             fluidRow(
               column(1),
@@ -693,7 +693,7 @@ documentsUI <- function() {
       fluidRow(
         column(
           8,
-          h3(strong("SVO Triplet Extraction"), align = "center")
+          h2(icon("language"), strong("SVO Triplet Extraction"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         ),
         div(
           title = t_run,
@@ -777,7 +777,7 @@ documentsUI <- function() {
       tabsetPanel(
         type = "tabs",
         tabPanel(
-          "SVO Table",
+          title = "SVO Table", icon = icon("table"),
           br(),
           shinycssloaders::withSpinner(
             DT::DTOutput("d_svoTable"),
@@ -785,7 +785,8 @@ documentsUI <- function() {
           )
         ),
         tabPanel(
-          "SVO Network",
+          title = "SVO Network", icon = icon("diagram-project"),
+          br(),
           shinycssloaders::withSpinner(
             plotlyOutput(
               outputId = "d_svoNetwork",
@@ -796,7 +797,8 @@ documentsUI <- function() {
           )
         ),
         tabPanel(
-          "Verb Frequency",
+          title = "Verb Frequency", icon = icon("chart-bar"),
+          br(),
           shinycssloaders::withSpinner(
             plotlyOutput(
               outputId = "d_svoVerbPlot",
@@ -807,7 +809,8 @@ documentsUI <- function() {
           )
         ),
         tabPanel(
-          "TALL AI",
+          title = "TALL AI", icon = icon("robot"),
+          br(),
           fluidPage(
             fluidRow(
               column(
@@ -824,7 +827,8 @@ documentsUI <- function() {
           )
         ),
         tabPanel(
-          "Info & References",
+          title = "Info & References", icon = icon("circle-info"),
+          br(),
           fluidPage(
             fluidRow(
               column(1),
@@ -849,7 +853,7 @@ documentsUI <- function() {
       fluidRow(
         column(
           8,
-          h3(strong("Polarity Detection"), align = "center")
+          h2(icon("face-smile"), strong("Polarity Detection"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         ),
         div(
           title = t_run,
@@ -940,7 +944,8 @@ documentsUI <- function() {
         tabsetPanel(
           type = "tabs",
           tabPanel(
-            "Document Polarity Distribution",
+            title = "Document Polarity Distribution", icon = icon("chart-area"),
+            br(),
             fluidRow(
               column(
                 6,
@@ -975,7 +980,8 @@ documentsUI <- function() {
             )
           ),
           tabPanel(
-            "Top Words",
+            title = "Top Words", icon = icon("chart-bar"),
+            br(),
             fluidRow(
               column(
                 6,
@@ -1006,14 +1012,16 @@ documentsUI <- function() {
             )
           ),
           tabPanel(
-            "Table",
+            title = "Table", icon = icon("table"),
+            br(),
             shinycssloaders::withSpinner(
               DT::DTOutput("d_polDetTable"),
               color = getOption("spinner.color", default = "#4F7942")
             )
           ),
           tabPanel(
-            "TALL AI",
+            title = "TALL AI", icon = icon("robot"),
+            br(),
             fluidPage(
               fluidRow(
                 column(
@@ -1030,7 +1038,8 @@ documentsUI <- function() {
             )
           ),
           tabPanel(
-            "Info & References",
+            title = "Info & References", icon = icon("circle-info"),
+            br(),
             fluidPage(
               fluidRow(
                 column(1),
@@ -1048,7 +1057,7 @@ documentsUI <- function() {
     )
   )
 
-  ### Emotion Analysis ----
+  ### Emotion Detection ----
 
   emotion <- tabItem(
     tabName = "d_emo",
@@ -1056,7 +1065,7 @@ documentsUI <- function() {
       fluidRow(
         column(
           8,
-          h3(strong("Emotion Analysis"), align = "center")
+          h2(icon("heart-pulse"), strong("Emotion Detection"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         ),
         div(
           title = t_run,
@@ -1120,7 +1129,7 @@ documentsUI <- function() {
                 ),
                 selectInput(
                   inputId = "groupEmotion",
-                  label = "Emotion Analysis of",
+                  label = "Emotion Detection of",
                   choices = c(
                     "Groups" = "Groups",
                     "Docs" = "doc_id"
@@ -1145,7 +1154,8 @@ documentsUI <- function() {
         tabsetPanel(
           type = "tabs",
           tabPanel(
-            "Emotion Distribution",
+            title = "Emotion Distribution", icon = icon("chart-area"),
+            br(),
             fluidRow(
               column(
                 6,
@@ -1172,7 +1182,8 @@ documentsUI <- function() {
             )
           ),
           tabPanel(
-            "Top Words by Emotion",
+            title = "Top Words by Emotion", icon = icon("chart-bar"),
+            br(),
             fluidRow(
               column(
                 4,
@@ -1197,7 +1208,8 @@ documentsUI <- function() {
             )
           ),
           tabPanel(
-            "Document Heatmap",
+            title = "Document Heatmap", icon = icon("th"),
+            br(),
             shinycssloaders::withSpinner(
               plotlyOutput(
                 outputId = "d_emoHeatmap",
@@ -1208,14 +1220,16 @@ documentsUI <- function() {
             )
           ),
           tabPanel(
-            "Table",
+            title = "Table", icon = icon("table"),
+            br(),
             shinycssloaders::withSpinner(
               DT::DTOutput("d_emoTable"),
               color = getOption("spinner.color", default = "#4F7942")
             )
           ),
           tabPanel(
-            "TALL AI",
+            title = "TALL AI", icon = icon("robot"),
+            br(),
             fluidPage(
               fluidRow(
                 column(
@@ -1232,7 +1246,8 @@ documentsUI <- function() {
             )
           ),
           tabPanel(
-            "Info & References",
+            title = "Info & References", icon = icon("circle-info"),
+            br(),
             fluidPage(
               fluidRow(
                 column(1),
@@ -1257,34 +1272,17 @@ documentsUI <- function() {
     fluidPage(
       fluidRow(
         column(
-          11,
-          h3(strong("Abstractive Summarization"), align = "center")
-        ),
-        div(
-          title = t_report,
-          column(
-            1,
-            do.call(
-              "actionButton",
-              c(
-                report_bttn,
-                list(
-                  inputId = "d_astractiveReport"
-                )
-              )
-            )
-          )
+          12,
+          h2(icon("wand-magic-sparkles"), strong("Abstractive Summarization"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         )
       ),
-      br(),
-      br(),
       fluidRow(
         column(
           9,
           tabsetPanel(
             type = "tabs",
             tabPanel(
-              "Abstract",
+              title = "Abstract", icon = icon("file-lines"),
               br(),
               shinycssloaders::withSpinner(
                 uiOutput("summaryData"),
@@ -1292,7 +1290,7 @@ documentsUI <- function() {
               )
             ),
             tabPanel(
-              "Full Document",
+              title = "Full Document", icon = icon("file-alt"),
               br(),
               shinycssloaders::withSpinner(
                 uiOutput("documentData2"),
@@ -1300,7 +1298,8 @@ documentsUI <- function() {
               )
             ),
             tabPanel(
-              "Info & References",
+              title = "Info & References", icon = icon("circle-info"),
+              br(),
               fluidPage(
                 fluidRow(
                   column(1),
@@ -1320,10 +1319,6 @@ documentsUI <- function() {
           div(
             box(
               width = 12,
-              div(
-                h3(strong(em("Abstractive Summarization"))),
-                style = "margin-top:-57px"
-              ),
               h5(
                 ("TALL generates a coherent and concise summary by interpreting and paraphrasing the main ideas from the original text"),
                 style = "text-align: left; text-color: #989898"
@@ -1397,34 +1392,17 @@ documentsUI <- function() {
     fluidPage(
       fluidRow(
         column(
-          11,
-          h3(strong("Extractive Summarization"), align = "center")
-        ),
-        div(
-          title = t_report,
-          column(
-            1,
-            do.call(
-              "actionButton",
-              c(
-                report_bttn,
-                list(
-                  inputId = "d_summarizationReport"
-                )
-              )
-            )
-          )
+          12,
+          h2(icon("scissors"), strong("Extractive Summarization"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         )
       ),
-      br(),
-      br(),
       fluidRow(
         column(
           9,
           tabsetPanel(
             type = "tabs",
             tabPanel(
-              "Abstract",
+              title = "Abstract", icon = icon("file-lines"),
               br(),
               fluidRow(
                 #style = "height:65vh",
@@ -1443,7 +1421,7 @@ documentsUI <- function() {
               )
             ),
             tabPanel(
-              "Full Document",
+              title = "Full Document", icon = icon("file-alt"),
               br(),
               shinycssloaders::withSpinner(
                 # DT::DTOutput("documentData"),
@@ -1452,14 +1430,16 @@ documentsUI <- function() {
               )
             ),
             tabPanel(
-              "Sentence Ranking",
+              title = "Sentence Ranking", icon = icon("list-ol"),
+              br(),
               shinycssloaders::withSpinner(
                 DT::DTOutput("RelSentData"),
                 color = getOption("spinner.color", default = "#4F7942")
               )
             ),
             tabPanel(
-              "Info & References",
+              title = "Info & References", icon = icon("circle-info"),
+              br(),
               fluidPage(
                 fluidRow(
                   column(1),
@@ -1479,10 +1459,6 @@ documentsUI <- function() {
           div(
             box(
               width = 12,
-              div(
-                h3(strong(em("Extractive Summarization"))),
-                style = "margin-top:-57px"
-              ),
               h5(
                 ("TALL selects and reorders the most relevant sentences from the original text to generate a coherent and concise summary"),
                 style = "text-align: left; text-color: #989898"
@@ -1954,6 +1930,7 @@ documentsServer <- function(input, output, session, values, statsValues) {
       input$d_tm_estimApply
     },
     valueExpr = {
+      req(input$groupTmEstim, input$KEstim, input$tmMethod)
       values$TMplotIndex <- 1
       values$TMdocIndex <- 1
 
@@ -2316,6 +2293,15 @@ documentsServer <- function(input, output, session, values, statsValues) {
     )
   })
 
+  output$TMplotArrowsUI <- renderUI({
+    req(values$TMestim_result)
+    fluidRow(
+      actionButton("TMplotLeft", icon("chevron-left")),
+      actionButton("TMplotRight", icon("chevron-right")),
+      align = "center"
+    )
+  })
+
   observeEvent(input$TMplotRight, {
     if (values$TMplotIndex < ceiling(req(values$tmK) / 3)) {
       values$TMplotIndex <- values$TMplotIndex + 1
@@ -2376,6 +2362,15 @@ documentsServer <- function(input, output, session, values, statsValues) {
       nrow = 10,
       size = "85%",
       filename = "TopicModel_BetaTable"
+    )
+  })
+
+  output$TMdocArrowsUI <- renderUI({
+    req(values$TMestim_result)
+    fluidRow(
+      actionButton("TMdocLeft", icon("chevron-left")),
+      actionButton("TMdocRight", icon("chevron-right")),
+      align = "center"
     )
   })
 
@@ -3196,7 +3191,7 @@ documentsServer <- function(input, output, session, values, statsValues) {
     }
   })
 
-  ## Emotion Analysis ----
+  ## Emotion Detection ----
 
   docEmotionEstim <- eventReactive(
     ignoreNULL = TRUE,
@@ -3397,7 +3392,7 @@ documentsServer <- function(input, output, session, values, statsValues) {
         c(sheetname = res$sheetname, values$fileEmotionRadar, res$col),
         c(sheetname = res$sheetname, values$fileEmotionHeatmap, res$col)
       )
-      popUp(title = "Emotion Analysis Results", type = "success")
+      popUp(title = "Emotion Detection Results", type = "success")
       values$myChoices <- sheets(values$wb)
     } else {
       popUp(type = "error")

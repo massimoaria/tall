@@ -426,6 +426,11 @@ details[open] summary {
   margin-bottom: 10px;
 }
 
+/* === Page Title and Tab Icon Fix === */
+/* Ensure page title and tab header icons inherit text color instead of button-specific overrides */
+h2 i.fas, h2 i.far, h2 i.fab,
+.nav-tabs i.fas, .nav-tabs i.far, .nav-tabs i.fab { color: inherit; }
+
 /* === Icon and Button Styling === */
 .fa-arrows-rotate { color: #ffffff; font-size: 15px; text-align: center; }
 .fa-magnifying-glass { color: #ffffff; font-size: 15px; text-align: center; }

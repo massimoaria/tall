@@ -9,11 +9,12 @@ overviewUI <- function() {
           id = "maininfo",
           # OVERVIEW TAB - NEW LAYOUT
           tabPanel(
-            "Overview",
+            title = "Overview", icon = icon("chart-column"),
+            br(),
             fluidRow(
               column(
                 11,
-                h3(strong("Overview"), align = "center")
+                h2(icon("chart-pie"), strong("Overview"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
               ),
               div(
                 title = t_report,
@@ -200,7 +201,8 @@ overviewUI <- function() {
             )
           ),
           tabPanel(
-            "Table",
+            title = "Table", icon = icon("table"),
+            br(),
             div(
               shinycssloaders::withSpinner(
                 DT::DTOutput(outputId = "overviewData", width = 700),
@@ -210,7 +212,8 @@ overviewUI <- function() {
             )
           ),
           tabPanel(
-            "Vocabulary",
+            title = "Vocabulary", icon = icon("book"),
+            br(),
             column(
               12,
               div(
@@ -224,7 +227,8 @@ overviewUI <- function() {
             # ,column(1)
           ),
           tabPanel(
-            "TF-IDF",
+            title = "TF-IDF", icon = icon("table"),
+            br(),
             column(
               12,
               div(
@@ -237,12 +241,13 @@ overviewUI <- function() {
             )
           ),
           tabPanel(
-            "WordCloud",
+            title = "WordCloud", icon = icon("cloud"),
+            br(),
             fluidPage(
               fluidRow(
                 column(
                   8,
-                  h3(strong("WordCloud"), align = "center")
+                  h2(icon("cloud"), strong("WordCloud"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
                 ),
                 div(
                   title = t_run,
@@ -347,12 +352,13 @@ overviewUI <- function() {
             )
           ),
           tabPanel(
-            "Frequency",
+            title = "Frequency", icon = icon("chart-bar"),
+            br(),
             fluidPage(
               fluidRow(
                 column(
                   8,
-                  h3(strong("Word Frequency by PoS"), align = "center")
+                  h2(icon("chart-bar"), strong("Word Frequency by PoS"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
                 ),
                 div(
                   title = t_run,
@@ -421,7 +427,8 @@ overviewUI <- function() {
                           min = 1,
                           step = 1
                         ),
-                        uiOutput("posSelectionFreq")
+                        uiOutput("posSelectionFreq"),
+                        helpText("Select a PoS category (upos) from the options before running the analysis.")
                       ),
                       style = "gradient",
                       right = TRUE,
@@ -460,12 +467,13 @@ overviewUI <- function() {
             )
           ),
           tabPanel(
-            "Morphological Features",
+            title = "Morphological Features", icon = icon("language"),
+            br(),
             fluidPage(
               fluidRow(
                 column(
                   12,
-                  h3(strong("Morphological Features"), align = "center"),
+                  h2(icon("puzzle-piece"), strong("Morphological Features"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;"),
                   p(
                     "Distribution of morphological features extracted from the Universal Dependencies annotation.",
                     style = "text-align: center; color: #666; margin-bottom: 20px;"
@@ -527,12 +535,13 @@ overviewUI <- function() {
             )
           ),
           tabPanel(
-            "Dependency Tree",
+            title = "Dependency Tree", icon = icon("sitemap"),
+            br(),
             fluidPage(
               fluidRow(
                 column(
                   9,
-                  h3(strong("Dependency Tree Viewer"), align = "center")
+                  h2(icon("diagram-project"), strong("Dependency Tree Viewer"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
                 ),
                 div(
                   title = t_export,
@@ -624,7 +633,8 @@ overviewUI <- function() {
             )
           ),
           tabPanel(
-            "TALL AI",
+            title = "TALL AI", icon = icon("robot"),
+            br(),
             fluidPage(
               fluidRow(
                 column(
@@ -641,7 +651,8 @@ overviewUI <- function() {
             )
           ),
           tabPanel(
-            "Info & References",
+            title = "Info & References", icon = icon("circle-info"),
+            br(),
             fluidPage(
               fluidRow(
                 column(1),
@@ -936,6 +947,26 @@ overviewServer <- function(input, output, session, values, statsValues) {
       values$myChoices <- sheets(values$wb)
     } else {
       popUp(type = "error")
+    }
+
+    if (!is.null(values$dfTag) && "feats" %in% names(values$dfTag)) {
+      morphFeatures <- c("Tense", "Mood", "Number", "Person", "VerbForm",
+                          "Degree", "Gender", "Case", "Voice", "Definite", "PronType")
+      morphData <- lapply(morphFeatures, function(feat) {
+        vals <- parseMorphFeatures(values$dfTag$feats, feat)
+        vals <- vals[!is.na(vals) & vals != ""]
+        if (length(vals) > 0) {
+          tab <- sort(table(vals), decreasing = TRUE)
+          data.frame(Feature = feat, Value = names(tab), Count = as.integer(tab), stringsAsFactors = FALSE)
+        }
+      })
+      morphData <- do.call(rbind, morphData)
+      if (!is.null(morphData) && nrow(morphData) > 0) {
+        list_df <- list(morphData)
+        res <- addDataScreenWb(list_df, wb = values$wb, sheetname = "Morphological Features")
+        values$wb <- res$wb
+        values$myChoices <- sheets(values$wb)
+      }
     }
   })
 

@@ -3,7 +3,7 @@ reportUI <- function() {
     tabName = "report",
     fluidPage(
       fluidRow(
-        h3(strong("Report"), align = "center"),
+        h2(icon("file-pdf"), strong("Report"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;"),
         br(),
       ),
       fluidRow(
@@ -31,6 +31,7 @@ reportUI <- function() {
                          border-width:2px;
                                          }"
             )),
+            br(),
             uiOutput("reportSheetsUI"),
             tags$style("#reportSheets {font-size:18px;}")
           )

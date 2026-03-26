@@ -63,7 +63,21 @@
                                                                                   
   ---                                                                             
   Settings & UI                                             
-
+                                                                                                                  
+  - Added icons to all tab panels across the app                                                                  
+  - Added colored boxes next to hex color codes in Thematic Map tables                                            
+  - Fixed Reinert/CA dendrogram "Words in Context" error (uninitialized variable)                                 
+  - Fixed Import tab: table disappearing after Remove, "Back to original text", dfTag sync                        
+  - Fixed Topic Modeling estimation error without options and conditional arrow buttons                           
+  - Fixed report items overlapping with box title                                                                 
+  - Fixed Similarity page margins and Embedding distribution spacing                                              
+  - Fixed Supervised Classification header formatting                                                             
+  - Moved Info & References to last tab in Thematic Map and Similarity                                            
+  - Removed "in TALL" from all Info & References section titles                                                   
+  - Updated KWIC Info styling and added Dependency reference in Word Network info                                 
+  - Added morphological features stats to Overview report export                                                  
+  - Added PoS selection guidance in Overview Frequency options                                                    
+  - Updated Custom PoS List template and docs to clarify any custom tag is allowed  
   - Improved working folder selector with visual feedback
   - Reorganized settings layout (2x2 grid)
   - Time variable aggregation for Date types (day/week/month/quarter/year)        

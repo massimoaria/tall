@@ -30,7 +30,9 @@ featureRolesUI <- function() {
 
           # Main Panel - Feature Role Assignment
           tabPanel(
-            "Role Assignment",
+            title = "Role Assignment",
+            icon = icon("sliders"),
+            br(),
             fluidRow(
               # Main Content Area
               column(
@@ -371,7 +373,9 @@ featureRolesUI <- function() {
 
           # Info & References Panel
           tabPanel(
-            "Info & References",
+            title = "Info & References",
+            icon = icon("circle-info"),
+            br(),
             fluidPage(
               fluidRow(
                 column(

@@ -9,7 +9,7 @@ editUI <- function() {
       fluidRow(
         column(
           12,
-          h3(strong("Split Corpus"), align = "center"),
+          h2(icon("scissors"), strong("Split Corpus"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;"),
           br(),
         )
       )
@@ -17,7 +17,9 @@ editUI <- function() {
     tabsetPanel(
       type = "tabs",
       tabPanel(
-        "Split Results",
+        title = "Split Results",
+        icon = icon("table"),
+        br(),
         fluidPage(
           fluidRow(
             column(
@@ -110,7 +112,9 @@ editUI <- function() {
         )
       ),
       tabPanel(
-        "Info & References",
+        title = "Info & References",
+        icon = icon("circle-info"),
+        br(),
         fluidPage(
           fluidRow(
             column(1),
@@ -134,7 +138,7 @@ editUI <- function() {
       fluidRow(
         column(
           12,
-          h3(strong("Random Selection"), align = "center"),
+          h2(icon("shuffle"), strong("Random Selection"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;"),
           br(),
         )
       )
@@ -142,7 +146,9 @@ editUI <- function() {
     tabsetPanel(
       type = "tabs",
       tabPanel(
-        "Random Selection",
+        title = "Random Selection",
+        icon = icon("table"),
+        br(),
         fluidPage(
           fluidRow(
             column(
@@ -230,7 +236,9 @@ editUI <- function() {
         )
       ),
       tabPanel(
-        "Info & References",
+        title = "Info & References",
+        icon = icon("circle-info"),
+        br(),
         fluidPage(
           fluidRow(
             column(1),
@@ -254,7 +262,7 @@ editUI <- function() {
       fluidRow(
         column(
           12,
-          h3(strong("External Information"), align = "center"),
+          h2(icon("table-columns"), strong("External Information"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;"),
           br(),
         )
       )
@@ -262,7 +270,9 @@ editUI <- function() {
     tabsetPanel(
       type = "tabs",
       tabPanel(
-        "Corpus with External Information",
+        title = "Corpus with External Information",
+        icon = icon("table"),
+        br(),
         fluidPage(
           fluidRow(
             column(
@@ -381,7 +391,9 @@ editUI <- function() {
         )
       ),
       tabPanel(
-        "Info & References",
+        title = "Info & References",
+        icon = icon("circle-info"),
+        br(),
         fluidPage(
           fluidRow(
             column(1),
