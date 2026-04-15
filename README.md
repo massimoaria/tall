@@ -35,8 +35,8 @@ workflow.
 > *SoftwareX*, 34, 102590.
 
 **[Read the full paper (Open
-Access)](https://www.sciencedirect.com/science/article/pii/S2352711026000841)**
-\| **[Supplementary
+Access)](https://doi.org/10.1016/j.softx.2026.102590)** \|
+**[Supplementary
 material](https://ars.els-cdn.com/content/image/1-s2.0-S2352711026000841-mmc1.pdf)**
 
 > ⚠️ **Citation policy.** TALL is open source and distributed under the
