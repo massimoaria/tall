@@ -39,7 +39,11 @@ Access)](https://www.sciencedirect.com/science/article/pii/S2352711026000841)**
 \| **[Supplementary
 material](https://ars.els-cdn.com/content/image/1-s2.0-S2352711026000841-mmc1.pdf)**
 
-When using TALL in a publication, please cite the reference above.
+> ⚠️ **Citation policy.** TALL is open source and distributed under the
+> MIT license. However, **whenever results obtained with TALL are used
+> in a publication, proper citation of the reference paper above is
+> mandatory**. Failure to properly cite the software is considered a
+> violation of the license.
 
 ------------------------------------------------------------------------
 
@@ -52,7 +56,7 @@ Before installing TALL, ensure you have:
 1.  **R version 4.2.0 or higher** — Download from
     [CRAN](https://cran.r-project.org/)
 2.  **RStudio** (recommended) — Available at
-    [Posit](https://posit.co/download/rstudio/)
+    [Posit](https://posit.co/products/open-source/rstudio)
 3.  **Active internet connection** for downloads and dependencies
 4.  **Additional tools for the development version:**
     - Windows: [Rtools](https://cran.r-project.org/bin/windows/Rtools/)
@@ -91,7 +95,7 @@ For detailed installation instructions, visit: **[Download &
 Install](https://massimoaria.github.io/tall-app/download.html)**
 
 An interactive tutorial is also available: **[View
-tutorial](https://www.tall-app.com/TALL_tutorial.html)**
+tutorial](https://www.k-synth.com/tall/TALL_tutorial.html)**
 
 ------------------------------------------------------------------------
 
