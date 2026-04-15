@@ -25,6 +25,7 @@
 #' @importFrom shinyWidgets alert updatePrettyCheckboxGroup prettyCheckboxGroup
 #' @importFrom DT datatable formatStyle formatRound renderDT DTOutput
 #' @importFrom jsonlite fromJSON
+#' @importFrom future plan
 #' @importFrom later later
 #' @importFrom promises promise_all
 #' @importFrom rlang sym

@@ -20,7 +20,7 @@ CaoJuan2009 <- function(models) {
 
 Arun2010 <- function(models, dtm) {
   # length of documents (count of words)
-  len <- slam::row_sums(dtm)
+  len <- Matrix::rowSums(dtm)
   # evaluate metrics
   metrics <- sapply(models, FUN = function(model) {
     # matrix M1 topic-word
@@ -656,7 +656,7 @@ tmTuningAsync <- function(dtm, k_seq, seed, method) {
   })
 
   # Arun2010
-  len <- slam::row_sums(dtm)
+  len <- Matrix::rowSums(dtm)
   metrics$Arun2010 <- sapply(models_list, function(model) {
     m1 <- exp(model@beta)
     m1_svd <- svd(m1)

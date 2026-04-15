@@ -2502,12 +2502,12 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
       )
 
       # Write to Excel file with two sheets
-      writexl::write_xlsx(
+      openxlsx::write.xlsx(
         list(
           Vocabulary = vocabulary,
           Summary = summary_df
         ),
-        path = file
+        file = file
       )
     }
   )
@@ -2572,9 +2572,9 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
           pos_tag = upos
         )
 
-      writexl::write_xlsx(
+      openxlsx::write.xlsx(
         list(Vocabulary = vocabulary),
-        path = file
+        file = file
       )
     }
   )
@@ -2633,9 +2633,9 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
           pos_tag = upos
         )
 
-      writexl::write_xlsx(
+      openxlsx::write.xlsx(
         list(Vocabulary = vocabulary),
-        path = file
+        file = file
       )
     }
   )
