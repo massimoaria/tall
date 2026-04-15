@@ -44,6 +44,7 @@ Depends:
 Imports:
     base64enc,
     ca,
+    chromote,
     curl (>= 6.3.0),
     doParallel,
     dplyr (>= 1.1.0),
@@ -89,7 +90,6 @@ Imports:
     visNetwork,
     word2vec
 Suggests:
-    chromote,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 LazyData: true
