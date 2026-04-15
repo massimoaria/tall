@@ -1406,6 +1406,8 @@ plot2png <- function(p, filename, type = "vis", dpi = 300, height = 7) {
   # Clean up temporary HTML and associated files
   unlink(html_name)
   unlink(paste0(filename_html, "_files"), recursive = TRUE)
+
+  invisible(normalizePath(filename, mustWork = FALSE))
 }
 
 ## freqGgplot ----

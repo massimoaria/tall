@@ -43,13 +43,13 @@ libraries_analysis <- function() {
   suppressPackageStartupMessages(library(strucchange))
   suppressPackageStartupMessages(library(sparkline))
   if (requireNamespace("chromote", quietly = TRUE)) suppressPackageStartupMessages(library(chromote))
-  if (requireNamespace("word2vec", quietly = TRUE)) suppressPackageStartupMessages(library(word2vec))
-  if (requireNamespace("umap", quietly = TRUE)) suppressPackageStartupMessages(library(umap))
+  suppressPackageStartupMessages(library(word2vec))
+  suppressPackageStartupMessages(library(umap))
   suppressPackageStartupMessages(library(httr2))
   suppressPackageStartupMessages(library(ggwordcloud))
   suppressPackageStartupMessages(library(future))
   suppressPackageStartupMessages(library(promises))
-  if (requireNamespace("ranger", quietly = TRUE)) suppressPackageStartupMessages(library(ranger))
+  suppressPackageStartupMessages(library(ranger))
 }
 
 messageItem2 <- function(

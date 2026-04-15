@@ -2053,17 +2053,46 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
     handlerExpr = {
       file <- input$custom_lists
       req(file$datapath[1])
-      custom_lists <- lapply(file$datapath, function(x) {
-        x <- read_excel(x) %>% select(c(1, 2))
-        names(x) <- c(values$generalTerm, "upos")
-        return(x)
-      })
-      custom_lists <- do.call(rbind, custom_lists)
+      custom_lists <- tryCatch(
+        {
+          parts <- lapply(file$datapath, function(x) {
+            df <- read_excel(x)
+            if (ncol(df) < 2) {
+              stop("needs_two_cols")
+            }
+            df <- df %>% select(c(1, 2))
+            names(df) <- c(values$generalTerm, "upos")
+            df
+          })
+          do.call(rbind, parts)
+        },
+        error = function(e) e
+      )
+      if (inherits(custom_lists, "error")) {
+        shinyWidgets::sendSweetAlert(
+          session = session,
+          title = "Invalid file",
+          text = "The uploaded file must have at least two columns: term and POS tag. Please download and use the Custom POS List template (not the Multi-Word template).",
+          type = "error"
+        )
+        return()
+      }
       values$custom_lists <- custom_lists
+
+      term_label <- if (identical(values$generalTerm, "lemma")) "Lemma" else "Token"
+      preview_df <- custom_lists
+      names(preview_df) <- c(term_label, "Part of Speech")
+      preview_html <- HTML(paste0(
+        "<div style='max-height:400px; overflow:auto;'>",
+        paste(capture.output(print(
+          knitr::kable(preview_df, format = "html", table.attr = "class='table table-striped table-sm' style='width:100%'")
+        )), collapse = "\n"),
+        "</div>"
+      ))
 
       show_alert(
         title = "Custom List",
-        text = DTOutput("customListData"),
+        text = preview_html,
         type = NULL,
         width = "80%",
         closeOnEsc = TRUE,
@@ -2125,41 +2154,15 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
   })
 
   output$customListData <- DT::renderDT(server = FALSE, {
-    # customListMerging()
-
-    switch(
-      values$generalTerm,
-      lemma = {
-        if (is.null(values$custom_lists)) {
-          DTdf <- DTformat(data.frame(Lemma = NULL, POSTag = NULL))
-        } else {
-          DTdf <- DTformat(
-            values$custom_lists %>%
-              rename(
-                Lemma = lemma,
-                "Part of Speech" = upos
-              ),
-            col_to_remove = values$generalTerm
-          )
-        }
-      },
-      token = {
-        if (is.null(values$custom_lists)) {
-          DTdf <- DTformat(data.frame(Token = NULL, POSTag = NULL))
-        } else {
-          DTdf <- DTformat(
-            values$custom_lists %>%
-              rename(
-                Token = token,
-                "Part of Speech" = upos
-              ),
-            col_to_remove = values$generalTerm
-          )
-        }
-      }
-    )
-    DTdf
+    term_label <- if (identical(values$generalTerm, "lemma")) "Lemma" else "Token"
+    if (is.null(values$custom_lists) || !is.data.frame(values$custom_lists) || ncol(values$custom_lists) < 2) {
+      return(DTformat(setNames(data.frame(a = character(), b = character()), c(term_label, "Part of Speech"))))
+    }
+    df_preview <- values$custom_lists[, 1:2, drop = FALSE]
+    names(df_preview) <- c(term_label, "Part of Speech")
+    DTformat(df_preview, col_to_remove = values$generalTerm)
   })
+  outputOptions(output, "customListData", suspendWhenHidden = FALSE)
 
   observeEvent(
     eventExpr = {

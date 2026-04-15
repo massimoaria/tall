@@ -176,19 +176,24 @@ homeUI <- function() {
             ),
             div(
               class = "citation-text",
-              strong("Aria, M., Spano, M., D'Aniello, L., Cuccurullo, C., & Misuraca, M."),
+              strong(
+                "Aria, M., Spano, M., D'Aniello, L., Cuccurullo, C., & Misuraca, M."
+              ),
               " (2026). TALL: Text analysis for all - an interactive R-shiny application for exploring, modeling, and visualizing textual data. ",
               em("SoftwareX"),
               ", 34, 102590.",
-              br(), br(),
+              br(),
+              br(),
               tags$a(
-                icon("file-alt"), " Full Paper (Open Access)",
-                href = "https://www.sciencedirect.com/science/article/pii/S2352711026000841",
+                icon("file-alt"),
+                " Full Paper (Open Access)",
+                href = "https://doi.org/10.1016/j.softx.2026.102590",
                 target = "_blank",
                 style = "color: #1a1a2e; font-weight: 600; text-decoration: none; margin-right: 20px;"
               ),
               tags$a(
-                icon("paperclip"), " Supplementary Material",
+                icon("paperclip"),
+                " Supplementary Material",
                 href = "https://ars.els-cdn.com/content/image/1-s2.0-S2352711026000841-mmc1.pdf",
                 target = "_blank",
                 style = "color: #1a1a2e; font-weight: 600; text-decoration: none;"

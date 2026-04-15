@@ -15,11 +15,11 @@ bibentry(
   volume = "34",
   pages = "102590",
   doi = "10.1016/j.softx.2026.102590",
-  url = "https://www.sciencedirect.com/science/article/pii/S2352711026000841",
+  url = "https://doi.org/10.1016/j.softx.2026.102590",
   textVersion = paste(
     "Aria, M., Spano, M., D'Aniello, L., Cuccurullo, C., & Misuraca, M. (2026).",
     "TALL: Text analysis for all - an interactive R-shiny application for exploring, modeling, and visualizing textual data.",
     "SoftwareX, 34, 102590.",
-    "https://www.sciencedirect.com/science/article/pii/S2352711026000841"
+    "https://doi.org/10.1016/j.softx.2026.102590"
   )
 )

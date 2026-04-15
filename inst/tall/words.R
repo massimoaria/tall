@@ -447,7 +447,7 @@ wordsUI <- function() {
       fluidRow(
         column(
           8,
-          h2(icon("chart-scatter"), strong("Correspondence Analysis"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
+          h2(icon("braille"), strong("Correspondence Analysis"), style = "color: #4F7942; text-align: center; margin-bottom: 20px;")
         ),
         div(
           title = t_run,

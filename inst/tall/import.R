@@ -224,12 +224,16 @@ importServer <- function(input, output, session, values, statsValues) {
     copy_to_clipboard(content)
   })
 
-  # ## observe Gemini Save button
-  observeEvent(input$save_btn, {
-    filename <- paste0(values$wdTall, "/TallAI_", input$sidebarmenu, ".txt")
-    txtOutput <- geminiSave(values, input$sidebarmenu)
-    readr::write_lines(txtOutput, file = filename)
-  })
+  ## TALL AI Save button (browser download)
+  output$save_btn <- downloadHandler(
+    filename = function() {
+      paste0("TallAI_", input$sidebarmenu, "_", format(Sys.time(), "%Y-%m-%d_%H-%M-%S"), ".txt")
+    },
+    content = function(file) {
+      txtOutput <- geminiSave(values, input$sidebarmenu)
+      readr::write_lines(txtOutput, file = file)
+    }
+  )
 
   ## observe gemini generate button (async)
   observeEvent(input$gemini_btn, {

@@ -88,7 +88,14 @@ tallShot <- function(
 
   args_all <- long_to_wide(args_all)
 
-  cm <- default_chromote_object()
+  if (!requireNamespace("chromote", quietly = TRUE)) {
+    stop(
+      "Package 'chromote' is required to export plots as PNG. ",
+      "Please install it with: install.packages('chromote')",
+      call. = FALSE
+    )
+  }
+  cm <- chromote::default_chromote_object()
 
   # A list of promises for the screenshots
   res <- lapply(

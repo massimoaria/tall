@@ -34,6 +34,10 @@
 #' @importFrom plotly config event_data event_register layout
 #' @importFrom plotly plot_ly plotlyOutput renderPlotly
 #' @importFrom Matrix Matrix
+#' @importFrom chromote default_chromote_object
+#' @importFrom ranger ranger
+#' @importFrom umap umap
+#' @importFrom word2vec word2vec
 #'
 #' @import openxlsx
 #' @import stm
