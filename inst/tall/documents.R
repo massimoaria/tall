@@ -1642,8 +1642,17 @@ documentsServer <- function(input, output, session, values, statsValues) {
 
     # Build DTM synchronously (uses sourced functions: unique_identifier, etc.)
     ClusterRange <- sort(c(input$minK, input$maxK))
-    minK <- max(ClusterRange[1], 1)
+    minK <- max(ClusterRange[1], 2)
     maxK <- min(ClusterRange[2], length(unique(filtered$doc_id)))
+    if (maxK < minK) {
+      removeNotification("tmk_computing")
+      values$TMKcomputing <- FALSE
+      showNotification(
+        paste0("K choice error: not enough documents (need at least ", minK, " unique docs)"),
+        type = "error", duration = 10
+      )
+      return(NULL)
+    }
     filtered$topic_level_id <- unique_identifier(filtered, fields = groupTm)
     dtf <- document_term_frequencies(
       filtered, document = "topic_level_id", term = "lemma"
