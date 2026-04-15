@@ -36,7 +36,7 @@
   - C++ backend (extract_np.cpp)                                                  
   - Exported R function: extract_noun_phrases()             
                                                                                   
-  ---                                                       
+  ***
   Topic Modeling (major enhancement)                                              
                                                             
   - CTM (Correlated Topic Model) and STM (Structural Topic Model) added as new
@@ -46,7 +46,7 @@
   - Multi-metric comparison plot and consensus K recommendation
   - Estimated K automatically transferred to the model estimation panel           
                                                                                   
-  ---
+  ***
   Image Export System (complete rewrite)                                          
                                                                                   
   - Rewrite of plot2png() with DPI-aware rendering (biblioshiny approach)
@@ -54,14 +54,14 @@
   - Persistent settings, temporary file cleanup                                   
   - JavaScript canvas capture for visNetwork                                      
                                                                                   
-  ---                                                       
+  ***
   Homepage & References
                        
   - Complete homepage redesign in biblioshiny style
   - Updated citation to the SoftwareX paper (Aria et al., 2026)                   
   - Added open-access paper and supplementary material links                      
                                                                                   
-  ---                                                                             
+  ***
   Settings & UI                                             
                                                                                                                   
   - Added icons to all tab panels across the app                                                                  
@@ -82,13 +82,13 @@
   - Reorganized settings layout (2x2 grid)
   - Time variable aggregation for Date types (day/week/month/quarter/year)        
   
-  ---                                                                             
+  ***
   Dependency Parsing Features                               
                              
   - Dependency-based word network as an alternative to co-occurrence
   - Configurable dependency relation filters (all/noun_mod/SVO/custom)            
                                                                                   
-  ---                                                                             
+  ***
   Architectural Refactoring                                                       
                                                             
   - Split tallFunctions.R into 10 thematic modules:
@@ -103,7 +103,7 @@
   test-reinert.R, test-txt_recode_fast.R                                          
   - Added stm dependency to DESCRIPTION
                                                                                   
-  ---                                                       
+  ***
   Code Quality
               
   - Propagated random seed to all analyses (topic models, networks, wordclouds,
@@ -114,7 +114,7 @@
   - Updated all Info & References sections                                        
   - Removed legacy code from tallEmbeddings.R and words.R (~1,160 lines removed)  
                                                                                   
-  ---                                                                             
+  ***
   Bug Fixes                                                                       
                                                                                   
   - Fixed KWIC on filtered collections                      
