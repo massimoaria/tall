@@ -724,6 +724,9 @@ stmTuning <- function(
 ) {
   # Convert DTM to DocumentTermMatrix (slam-based) then to stm format
   dtm_tm <- tm::as.DocumentTermMatrix(dtm, weighting = tm::weightTf)
+  row_tot <- slam::row_sums(dtm_tm)
+  keep_docs <- rownames(dtm_tm)[row_tot > 0]
+  dtm_tm <- dtm_tm[row_tot > 0, ]
   stm_data <- stm::readCorpus(dtm_tm, type = "dtm")
 
   # Build prevalence formula and metadata
@@ -731,6 +734,8 @@ stmTuning <- function(
   meta <- NULL
   if (!is.null(prevalence) && length(prevalence) > 0) {
     meta <- stmBuildMeta(x, "topic_level_id", prevalence)
+    meta <- meta[as.character(meta$topic_level_id) %in% keep_docs, , drop = FALSE]
+    meta <- meta[match(keep_docs, as.character(meta$topic_level_id)), , drop = FALSE]
     prev_formula <- as.formula(paste("~", paste(paste0("`", prevalence, "`"), collapse = " + ")))
   }
 
@@ -770,6 +775,10 @@ stmTuning <- function(
 stmEstimate <- function(x, dtm, K, group, prevalence = NULL, seed = 1234) {
   # Convert DTM to DocumentTermMatrix (slam-based) then to stm format
   dtm_tm <- tm::as.DocumentTermMatrix(dtm, weighting = tm::weightTf)
+  # Drop empty documents so meta and docs stay aligned with stm
+  row_tot <- slam::row_sums(dtm_tm)
+  keep_docs <- rownames(dtm_tm)[row_tot > 0]
+  dtm_tm <- dtm_tm[row_tot > 0, ]
   stm_data <- stm::readCorpus(dtm_tm, type = "dtm")
 
   # Build prevalence formula and metadata
@@ -777,6 +786,8 @@ stmEstimate <- function(x, dtm, K, group, prevalence = NULL, seed = 1234) {
   meta <- NULL
   if (!is.null(prevalence) && length(prevalence) > 0) {
     meta <- stmBuildMeta(x, "topic_level_id", prevalence)
+    meta <- meta[as.character(meta$topic_level_id) %in% keep_docs, , drop = FALSE]
+    meta <- meta[match(keep_docs, as.character(meta$topic_level_id)), , drop = FALSE]
     prev_formula <- as.formula(paste("~", paste(paste0("`", prevalence, "`"), collapse = " + ")))
   }
 
