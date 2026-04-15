@@ -340,12 +340,12 @@ This AI-powered feature leverages Google Gemini to help you understand patterns 
       column(
         4,
         align = "center",
-        actionButton(
+        downloadButton(
           "save_btn",
           "Save",
-          style = "color: white;",
           icon = icon("download"),
-          width = "80%"
+          class = "btn-default",
+          style = "color: white; width: 80%;"
         )
       )
     )

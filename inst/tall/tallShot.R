@@ -88,7 +88,7 @@ tallShot <- function(
 
   args_all <- long_to_wide(args_all)
 
-  cm <- default_chromote_object()
+  cm <- chromote::default_chromote_object()
 
   # A list of promises for the screenshots
   res <- lapply(
