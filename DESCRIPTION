@@ -64,6 +64,7 @@ Imports:
     plotly,
     promises,
     purrr,
+    ranger,
     Rcpp (>= 1.0.3),
     readr,
     readtext,
@@ -84,13 +85,12 @@ Imports:
     stm,
     topicmodels,
     udpipe,
-    visNetwork
+    umap,
+    visNetwork,
+    word2vec
 Suggests:
     chromote,
-    ranger,
-    testthat (>= 3.0.0),
-    umap,
-    word2vec
+    testthat (>= 3.0.0)
 Config/testthat/edition: 3
 LazyData: true
 LinkingTo: Rcpp

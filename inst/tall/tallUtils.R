@@ -316,7 +316,9 @@ is_online <- function() {
 short2long <- function(df, myC) {
   z <- unlist(lapply(myC, function(x) {
     y <- gsub(r"{\s*\([^\)]+\)}", "", x)
-    gsub(y, df$long[df$short == y], x)
+    repl <- df$long[df$short == y]
+    if (length(repl) == 0) return(x)
+    gsub(y, repl, x)
   }))
   names(myC) <- z
   return(myC)
