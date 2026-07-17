@@ -1667,13 +1667,17 @@ overviewServer <- function(input, output, session, values, statsValues) {
     # Parse feats column (format: "Number=Plur|Tense=Past|Mood=Ind")
     # Extract values for the requested feature
     pattern <- paste0("(?:^|\\|)", feature_name, "=([^|]+)")
-    matches <- regmatches(feats_col, regexpr(pattern, feats_col, perl = TRUE))
+    # NB: regmatches() returns a COMPACTED vector (matching elements only), so a
+    # mask derived from it is all-TRUE and shorter than feats_col; indexing the
+    # full-length result with it made R recycle the mask and spray the matched
+    # values cyclically over every row. Build the mask from regexpr() on the FULL
+    # vector instead, so non-matching rows stay NA.
+    m <- regexpr(pattern, feats_col, perl = TRUE)
+    matches <- regmatches(feats_col, m)
     values <- sub(paste0(".*", feature_name, "="), "", matches)
-    values[matches == ""] <- NA
     # Handle non-matching rows
     result <- rep(NA_character_, length(feats_col))
-    has_match <- nchar(matches) > 0
-    result[has_match] <- values[has_match]
+    result[m > 0] <- values
     return(result)
   }
 

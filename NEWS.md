@@ -1,5 +1,35 @@
 # tall (development version)
 
+* Bug fix (KWIC > In-Document Plot > View): clicking the "View" button of a
+  document whose annotation contains an unresolved lemma (`NA`) aborted the
+  document modal with "missing value where TRUE/FALSE needed". Comparing an NA
+  term with the query yields NA rather than FALSE, and `buildDocumentHTML()`
+  branches on that value once per token. The match flag now treats an
+  unresolvable term as a non-match, and the token branch uses `isTRUE()` so the
+  helper stays total for any caller. Documents without NA terms render exactly
+  as before, byte for byte. Note the table lists every selected document,
+  including those whose frequency is NA, so the button was reachable on any
+  corpus with an unresolved lemma (e.g. a single `upos = "X"` token).
+
+* Bug fix (Overview > Morphological Features): `parseMorphFeatures()` built its
+  match mask from the vector returned by `regmatches()`, which is *compacted* to
+  the matching elements only. Being all-TRUE and shorter than the input, the mask
+  was recycled when used to index the full-length result, so the extracted values
+  were sprayed cyclically across every token instead of landing on the tokens
+  that actually carry the feature. As a consequence no row was dropped as NA:
+  the feature distribution bar chart reported counts inflated to the whole
+  corpus token count (percentages were approximately right, absolute counts were
+  not) and the feature x part-of-speech cross-tabulation was meaningless. The
+  mask is now derived from `regexpr()` over the full column, so non-matching
+  tokens correctly stay NA.
+
+* Bug fix (Reinert clustering): in the greedy reallocation step (`switch_docs`),
+  the document to move was looked up in the original CA ordering instead of the
+  current group order. After the first switch this could move the wrong segment
+  and made the clustering depend on the arbitrary sign of the SVD first axis
+  (i.e., results could differ across platforms/LAPACK builds on the same data).
+  Partitions computed with previous versions may change slightly.
+
 # tall 1.0.0
 * Changelog:                                      
                                          

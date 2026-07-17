@@ -15,3 +15,5 @@ inst/bbc$
 ^cran-comments\.md$
 ^CRAN-SUBMISSION$
 ^AGENTS.md
+^\.positai$
+^\.claude$
