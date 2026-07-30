@@ -1084,7 +1084,13 @@ noGroupLabels <- function(label) {
       "lemma_original",
       "upos_specialentities",
       "upos_original_custom",
-      "keyness_group"
+      "keyness_group",
+      ## derived by the Time role like keyness_group is by the Keyness one:
+      ## without it, applying a Date time variable makes tall's own
+      ## aggregation key show up as a user feature in Filters, Groups
+      ## (where groupByMetadata would re-key the documents by it), the STM
+      ## covariate list and Feature Roles itself
+      "time_agg"
     )
   )
 }

@@ -1,5 +1,43 @@
 # tall (development version)
 
+* Bug fix (Features > Feature Roles): applying a keyness role to a **binary
+  variable that contains missing values** aborted with "the condition has length
+  > 1", after `keyness_group` had already been written to the corpus — so the
+  roles were applied but the confirmation never appeared. The per-group document
+  count did not drop the `NA` group, so `doc_groups$n[doc_groups$keyness_group ==
+  1]` returned two elements, the success message became a length-2 vector and the
+  final `if (success_message == "")` threw. The count now filters the missing
+  group and guards an empty one, as the multi-category branch already did.
+
+* Bug fix (Features > Feature Roles): the time and label roles were assigned
+  **before** the keyness groups were validated, and the validation aborts with
+  `return()`. Rejecting an Apply for missing or overlapping group assignments
+  therefore left a half-applied state (time and label silently assigned, keyness
+  not). The group checks now run first, so a rejected Apply changes nothing.
+
+* Bug fix (Features > Feature Roles): the category list of the keyness variable
+  was read from the raw token-level column, while the Group 1 / Group 2 pickers
+  offer the categories of the *selected* documents. With a filter active the two
+  could disagree — a variable reduced to two categories by the filter still took
+  the "more than 2 categories" branch and demanded an assignment the pickers
+  could not offer. Both now use the same document-level, filtered set.
+
+* Bug fix (Features > Feature Roles > Preview): the "Documents per period" table
+  of a date variable was ordered by ascending document count (`sort()` on a
+  `table()` sorts the counts), not chronologically.
+
+* Bug fix (Features > Feature Roles): aggregating a date-time variable by **Day**
+  did not aggregate at all — `as.character()` on a `POSIXct` keeps the clock
+  time, so every distinct second became its own period. It now formats to the
+  calendar day.
+
+* Bug fix (Features): `noGroupLabels()` did not reserve `time_agg`, the column
+  the time role derives, although it reserves `keyness_group`. After assigning a
+  date time role, tall's own aggregation key appeared as a user feature in
+  Filters, Groups (where grouping by it would re-key the documents), the topic
+  model covariates and Feature Roles itself, and its presence alone could unlock
+  the FEATURES menu.
+
 * Bug fix (Pre-processing > Multi-Word Creation / Multi-Word by a List): the
   words absorbed into a multi-word were left in the corpus as separate tokens.
   Merging "natural philosophy" produced the multi-word AND kept `philosophy` as
