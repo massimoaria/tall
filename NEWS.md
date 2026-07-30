@@ -1,5 +1,42 @@
 # tall (development version)
 
+* Bug fix (Words > Word Embeddings > Similarity): the community-detection step
+  built its lookup table with `data.frame(as.list(membership(cluster)))`, which
+  runs `make.names()` over the vertex names. Every term that is not a syntactic
+  R name therefore lost the join that follows and was **silently dropped from
+  the network** — no warning, no gap, just a smaller plot. This is not an exotic
+  case: it covers hyphens and apostrophes (`e-mail`), a leading digit (`3d`,
+  `30`), everything TALL's own entity tagging produces (hashtags, mentions,
+  emoji, URLs) and R's reserved words, so ordinary English terms such as `next`,
+  `break`, `in` and `for` disappeared too. On the US-airlines corpus 6,789 of
+  the 16,537 selected lemmas were affected, including 2 of the 100 words the
+  view is asked to plot. The table is now built directly from the membership
+  names and every node reaches the canvas.
+
+* Bug fix (Words > Word Embeddings > Similarity): when no pair of words reached
+  the hard-coded 0.5 similarity cutoff the empty edge list reached
+  `graph_from_data_frame()`, and the view died with `Can't rename columns that
+  don't exist. Column 'V1' doesn't exist.` — a `dplyr` message with nothing to
+  connect it to the cutoff. The network now renders a single label saying that
+  no pair reaches the threshold.
+
+* Bug fix (Words > Word Embeddings > Similarity > UMAP): with a single word to
+  place, the label de-overlap routine ran `1:(nrow(df) - 1)`, which counts
+  **down** to 0, so it compared row 0 with row 1 and stopped on `missing value
+  where TRUE/FALSE needed`. Nothing can overlap with itself, and the loop is now
+  skipped in that case.
+
+* Bug fix (Words > Word Embeddings): `word2vec` keeps a `</s>` sentence-boundary
+  sentinel in its model matrix. It is not a word of the corpus and its vector is
+  essentially untrained, but every consumer read the matrix with `as.matrix()`
+  and included it: on Frankenstein its norm is 4.47 against a mean absolute
+  component of 0.81 for real terms, which made it the Min or the Max in 10 of
+  the 20 dimensions of the Training tab, shifted Kurtosis by up to 183 and
+  dropped the variance explained by PC1 from 0.591 to 0.501 — in the very chart
+  that tab exists to show. It could also surface as a neighbour in the
+  similarity network and as a row of the exported matrix. A new `w2vMatrix()`
+  accessor drops it, and all consumers go through it.
+
 * Bug fix (Documents > Supervised Classification > Download Results): the
   export read `test_data$target`, but the model frame names that column
   `.target_class`, and "target" is not a prefix of it, so `$` could not reach it

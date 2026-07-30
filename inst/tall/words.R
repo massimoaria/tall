@@ -2970,13 +2970,14 @@ wordsServer <- function(input, output, session, values, statsValues) {
       dim = input$w2vDim,
       iter = input$w2vIter
     )
+    ## w2vMatrix() drops word2vec's "</s>" sentinel row, whose untrained vector
+    ## dominated the per-dimension statistics and the PCA of this very tab
+    w2v_emb <- w2vMatrix(values$w2v_model)
     values$w2v_stats <- list()
-    values$w2v_stats$stats <- summary_stats_embeddings(as.matrix(
-      values$w2v_model
-    ))
-    # values$w2v_stats$distances <- distance_similarity_stats(as.matrix(values$w2v_model))
-    values$w2v_stats$pca <- pca_analysis_embeddings(as.matrix(values$w2v_model))
-    values$df_EmbeddingDims <- as.matrix(values$w2v_model) %>%
+    values$w2v_stats$stats <- summary_stats_embeddings(w2v_emb)
+    # values$w2v_stats$distances <- distance_similarity_stats(w2v_emb)
+    values$w2v_stats$pca <- pca_analysis_embeddings(w2v_emb)
+    values$df_EmbeddingDims <- w2v_emb %>%
       as.data.frame() %>%
       tibble::rownames_to_column(var = "Word") %>%
       tidyr::pivot_longer(
@@ -3057,7 +3058,7 @@ wordsServer <- function(input, output, session, values, statsValues) {
       file2 <- destFolder(file2, values$wdTall)
       file3 <- paste("WEpca-", sys.time(), ".png", sep = "")
       file3 <- destFolder(file3, values$wdTall)
-      write.csv(as.matrix(values$w2v_model), file = file1)
+      write.csv(w2vMatrix(values$w2v_model), file = file1)
       plot2png(values$w2vBoxplot, filename = file2, type = "plotly", dpi = values$dpi, height = values$h)
       plot2png(values$w2vPCA, filename = file3, type = "plotly", dpi = values$dpi, height = values$h)
       popUp(title = "Saved in your working folder", type = "saved")

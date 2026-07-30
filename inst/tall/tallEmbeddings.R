@@ -23,6 +23,18 @@ w2vTraining <- function(x, term = "lemma", dim = 100, iter = 20) {
   return(w2v_model)
 }
 
+## word2vec always carries a "</s>" sentence-boundary sentinel in the model
+## matrix. It is not a word of the corpus and its vector is essentially
+## untrained: on Frankenstein its norm is 4.47 against a mean absolute
+## component of 0.81 for real terms, which made it the Min or the Max in 10 of
+## the 20 dimensions of the Training tab, moved Kurtosis by up to 183 and
+## dropped the variance explained by PC1 from 0.591 to 0.501. Every consumer of
+## the model matrix goes through this helper instead of as.matrix().
+w2vMatrix <- function(w2v_model) {
+  m <- as.matrix(w2v_model)
+  m[rownames(m) != "</s>", , drop = FALSE]
+}
+
 summary_stats_embeddings <- function(embedding_matrix, as_tibble = TRUE) {
   # Skewness personalizzata (corretta per bias)
   skewness_custom <- function(x) {
@@ -115,7 +127,7 @@ pca_analysis_embeddings <- function(embedding_matrix) {
 
 ## WORD EMBEDDING SIMILARITY ----
 w2vNetwork <- function(w2v_model, dfTag, term, n = 100) {
-  w2v_matrix <- as.matrix(w2v_model)
+  w2v_matrix <- w2vMatrix(w2v_model)
 
   ## similarity
   top_words <- dfTag %>%
@@ -129,12 +141,14 @@ w2vNetwork <- function(w2v_model, dfTag, term, n = 100) {
     tolower()
 
   # remove top_words felt in the stop_word list
-  top_words <- intersect(top_words, row.names(as.matrix(w2v_model)))
+  top_words <- intersect(top_words, row.names(w2v_matrix))
 
   similarity <- predict(w2v_model, newdata = top_words)
   df_similarity <- bind_rows(similarity) %>%
     select(-rank) %>%
-    rename(from = term1, to = term2)
+    rename(from = term1, to = term2) %>%
+    ## predict() searches the whole model, sentinel included
+    filter(to != "</s>")
 
   # Nodi unici
   nodes <- data.frame(
@@ -154,12 +168,30 @@ w2vNetwork <- function(w2v_model, dfTag, term, n = 100) {
     mutate(width = similarity * 10)
 
   ### COMMUNITY DETECTION
+  ## No pair of words reaching the threshold used to reach
+  ## graph_from_data_frame() with an empty edge list, and the rename() below
+  ## then failed with "Column `V1` doesn't exist".
+  if (nrow(edges) == 0) {
+    return(list(nodes = nodes[0, , drop = FALSE], edges = edges,
+                top_words = top_words))
+  }
+
   graph <- igraph::graph_from_data_frame(edges, directed = FALSE)
   cluster <- igraph::cluster_louvain(graph)
-  cluster_df <- data.frame(as.list(igraph::membership(cluster)))
-  cluster_df <- as.data.frame(t(cluster_df)) %>%
-    rownames_to_column(var = "id") %>%
-    rename(group = "V1")
+  membership <- igraph::membership(cluster)
+
+  ## This table used to be built as data.frame(as.list(membership)), which runs
+  ## make.names() over the vertex names: every term that is not a syntactic R
+  ## name lost the join below and was silently dropped from the plot. That is
+  ## not an exotic case — it covers hyphens and apostrophes ("e-mail"), a
+  ## leading digit ("3d", "30"), everything TALL's own entity tagging produces
+  ## (hashtags, mentions, emoji, URLs) and the reserved words, so ordinary
+  ## English terms such as "next", "break", "in" and "for" vanished too.
+  cluster_df <- data.frame(
+    id = names(membership),
+    group = as.integer(membership),
+    stringsAsFactors = FALSE
+  )
 
   # Create group column
   nodes <- left_join(nodes, cluster_df, by = "id") %>%
@@ -239,6 +271,19 @@ w2v2Vis <- function(
   labelsize = 35,
   overlap = "none"
 ) {
+  ## w2vNetwork() returns no node when no word pair reaches the threshold; say
+  ## so on the canvas instead of failing on max(nodes$group) of an empty vector
+  if (nrow(nodes) == 0) {
+    nodes <- data.frame(
+      id = "none",
+      label = "No pair of words reaches the similarity threshold",
+      shape = "text", size = 20, font.size = 35, group = 1L,
+      stringsAsFactors = FALSE
+    )
+    edges <- data.frame(from = character(0), to = character(0),
+                        stringsAsFactors = FALSE)
+  }
+
   nodes$font.size <- labelsize * 2.5
   nodes$size <- round(labelsize / 1.2, 0)
   nodes$font.vadjust = -20
@@ -283,7 +328,7 @@ w2v2Vis <- function(
 }
 
 w2vUMAP <- function(w2v_model, top_words) {
-  cbow_embedding <- as.matrix(w2v_model)
+  cbow_embedding <- w2vMatrix(w2v_model)
   visualization <- umap(cbow_embedding, n_neighbors = 15, n_threads = 2)
 
   df <- data.frame(
@@ -320,9 +365,13 @@ adjust_labels_iterative_with_opacity <- function(
 ) {
   df$opacity_val <- rep(0.9, nrow(df)) # inizialmente opacità massima
 
-  for (iter in seq_len(max_iter)) {
+  ## with a single label `1:(nrow(df) - 1)` counts DOWN to 0, so the loop below
+  ## indexed row 0 and the comparison failed with "missing value where
+  ## TRUE/FALSE needed". Nothing can overlap with itself: skip straight to the
+  ## colour assignment.
+  for (iter in seq_len(if (nrow(df) < 2) 0L else max_iter)) {
     overlap_found <- FALSE
-    for (i in 1:(nrow(df) - 1)) {
+    for (i in seq_len(nrow(df) - 1)) {
       for (j in (i + 1):nrow(df)) {
         dx <- df$x[i] - df$x[j]
         dy <- df$y[i] - df$y[j]
