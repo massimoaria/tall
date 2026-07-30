@@ -152,7 +152,10 @@ NULL
 #' @param stats Data frame with multiword statistics (keyword, ngram columns)
 #' @param term Type of term to process: "lemma" or "token"
 #'
-#' @return Data frame with columns: doc_id, term_id, multiword, upos_multiword, ngram
+#' @return Data frame with columns: doc_id, term_id, multiword, upos_multiword,
+#'   ngram, mw_owner (the keyword that absorbed a NGRAM_MERGED position, NA
+#'   elsewhere — \code{applyRake()} needs it to keep the constituents of the
+#'   selected keywords only)
 #'
 #' @details
 #' This function replaces the original switch block with an optimized version
@@ -187,11 +190,28 @@ process_multiwords_fast <- function(x2, stats, term = c("lemma", "token")) {
     sep = " "
   )
 
-  # Operazioni vettorizzate (molto più veloci di mutate multiple)
+  # Posizioni assorbite da un multiword (il kernel le mette a NA). Un termine
+  # gia' NA in partenza non e' un costituente: la condizione guarda term_col.
+  merged_away <- is.na(multiword) & !is.na(term_col)
+
+  # keyword che ha assorbito ciascun costituente (ultima testa a monte)
+  owner <- multiword
+  owner[merged_away] <- NA_character_
+  last_head <- cummax(ifelse(is.na(owner), 0L, seq_along(owner)))
+  mw_owner <- ifelse(
+    merged_away & last_head > 0L,
+    owner[pmax(last_head, 1L)],
+    NA_character_
+  )
+
+  # Operazioni vettorizzate (più veloci di mutate multiple). L'ordine dei due
+  # ifelse è vincolante: con il test `term_col == multiword` all'esterno il
+  # ramo NGRAM_MERGED è irraggiungibile, perché su una posizione assorbita
+  # multiword è NA e ifelse(NA, ...) restituisce NA.
   upos_multiword <- ifelse(
-    term_col == multiword,
-    x2$upos,
-    ifelse(is.na(multiword), "NGRAM_MERGED", "MULTIWORD")
+    merged_away,
+    "NGRAM_MERGED",
+    ifelse(term_col == multiword, x2$upos, "MULTIWORD")
   )
 
   # Lookup diretto invece di join
@@ -204,6 +224,7 @@ process_multiwords_fast <- function(x2, stats, term = c("lemma", "token")) {
     multiword = multiword,
     upos_multiword = upos_multiword,
     ngram = unname(ngram_values),
+    mw_owner = mw_owner,
     stringsAsFactors = FALSE
   )
 }

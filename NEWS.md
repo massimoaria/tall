@@ -1,5 +1,25 @@
 # tall (development version)
 
+* Bug fix (Pre-processing > Multi-Word Creation / Multi-Word by a List): the
+  words absorbed into a multi-word were left in the corpus as separate tokens.
+  Merging "natural philosophy" produced the multi-word AND kept `philosophy` as
+  its own selected NOUN, so every downstream count (vocabulary, keyness,
+  networks, topic models) saw the constituents twice. Two chained causes, both
+  fixed: (1) the vectorised rewrite of the tagging step nested what used to be
+  two sequential `ifelse()` calls, and on an absorbed position `multiword` is
+  `NA`, so the outer test evaluated to `NA` and the `NGRAM_MERGED` branch became
+  unreachable — the tags now come from an explicit "was absorbed" flag, which
+  also leaves a genuinely `NA` term alone; (2) `applyRake()` kept a
+  `NGRAM_MERGED` row only when its own `multiword` was among the selected
+  keywords, but that value is `NA` on those rows by construction, so they were
+  always dropped and the join restored the original tags. The tagging step now
+  reports which keyword absorbed each position (`mw_owner`) and `applyRake()`
+  matches the constituents through it, so a partial selection keeps exactly the
+  constituents of the keywords you ticked. Constituents are now tagged
+  `NGRAM_MERGED` with `POSSelected = FALSE` — their text stays in the sentence,
+  they are only excluded from the analyses — and `rakeReset()` ("Back") restores
+  the previous selection from `POSSelected_original_nomultiwords`.
+
 * Bug fix (KWIC > In-Document Plot > View): clicking the "View" button of a
   document whose annotation contains an unresolved lemma (`NA`) aborted the
   document modal with "missing value where TRUE/FALSE needed". Comparing an NA
