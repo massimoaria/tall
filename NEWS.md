@@ -1,5 +1,46 @@
 # tall (development version)
 
+* Bug fix (Documents > Supervised Classification > Download Results): the
+  export read `test_data$target`, but the model frame names that column
+  `.target_class`, and "target" is not a prefix of it, so `$` could not reach it
+  either. Two outcomes, both reproduced on a real corpus: normally `$target`
+  returned `NULL` and `tibble()` raised a recycling error **inside the download
+  handler**, so the whole .xlsx failed and none of its five sheets was written;
+  and on a corpus that happens to contain a term whose sanitised column name is
+  exactly `target` — the US-airlines tweets do — `$` resolved to that TF-IDF
+  column instead, and the file was written with numbers in the `Actual` column
+  and `Correct` false on every row. The lookup is now `[[".target_class"]]`,
+  which also cannot fall back to partial matching.
+
+* Bug fix (Documents > Supervised Classification): `ranger`'s
+  `prediction.error` was displayed as "OOB Prediction Error (%)" in the training
+  summary, the success dialog and the exported workbook. For a `probability =
+  TRUE` forest that field is the out-of-bag **Brier score**, not a
+  misclassification rate — 0.21 on the reference run, which invited reading it
+  as "21% of documents misclassified". It is now labelled and formatted as a
+  Brier score.
+
+* Bug fix (Documents > Supervised Classification): the training-set accuracy was
+  computed from **in-sample** predictions, so it is optimistically biased by
+  construction (0.92 against 0.75 on the held-out set in the reference run) and
+  read like a second, reassuring validation score. It is now labelled
+  "Train Set Accuracy (in-sample)".
+
+* Bug fix (Documents > Supervised Classification): training word embeddings from
+  this menu overwrote the shared `values$w2v_model` used by Words > Embeddings
+  with a differently parameterised, stopword-free model, while leaving
+  `values$w2v_stats` and `values$df_EmbeddingDims` describing the previous one —
+  so the embedding views silently changed under the user. The model trained here
+  is now kept inside the classification menu and the shared one is only read.
+
+* Bug fix (Documents > Supervised Classification): a failed training run left
+  the results panel showing the previous model, because the error handler did
+  not clear the `trained` flag.
+
+* Bug fix (Documents > Supervised Classification): the prerequisite check
+  aborted with "missing value where TRUE/FALSE needed" when `docSelected`
+  contained any `NA`, since `sum()` then returns `NA` and `if (NA)` is an error.
+
 * Bug fix (Features > Feature Roles): applying a keyness role to a **binary
   variable that contains missing values** aborted with "the condition has length
   > 1", after `keyness_group` had already been written to the corpus — so the

@@ -457,6 +457,9 @@ docClassificationServer <- function(input, output, session, values) {
     term_mapping = NULL, # Mapping between original terms and sanitized names
     eval_train = NULL,
     eval_test = NULL,
+    ## embeddings trained by THIS menu when the user has none: kept here so the
+    ## shared values$w2v_model of Words > Embeddings is never overwritten
+    w2v_model = NULL,
     trained = FALSE
   )
 
@@ -603,26 +606,34 @@ docClassificationServer <- function(input, output, session, values) {
           )
         } else {
           # Word2Vec approach
-          # Check if model exists, if not train it
-          if (is.null(values$w2v_model)) {
-            showNotification(
-              "Word2Vec model not found. Training with default parameters...",
-              type = "warning",
-              duration = 5
-            )
-
-            values$w2v_model <- trainWord2Vec(
-              dfTag = values$dfTag,
-              term = values$generalTerm,
-              dim = 100,
-              iter = 20
-            )
+          # Use the embeddings trained in Words > Embeddings when they exist;
+          # otherwise train one FOR THIS MENU ONLY. Writing into
+          # values$w2v_model would replace the shared model with a
+          # differently parameterised, stopword-free one and leave
+          # values$w2v_stats / values$df_EmbeddingDims describing the old one,
+          # so every embeddings view would silently change under the user.
+          w2v_model <- values$w2v_model
+          if (is.null(w2v_model)) {
+            if (is.null(rf_results$w2v_model)) {
+              showNotification(
+                "Word2Vec model not found. Training with default parameters (for this menu only)...",
+                type = "warning",
+                duration = 5
+              )
+              rf_results$w2v_model <- trainWord2Vec(
+                dfTag = values$dfTag,
+                term = values$generalTerm,
+                dim = 100,
+                iter = 20
+              )
+            }
+            w2v_model <- rf_results$w2v_model
           }
 
           # Aggregate word vectors to document vectors
           feature_matrix <- aggregateW2V_forRF(
             dfTag = values$dfTag,
-            w2v_model = values$w2v_model,
+            w2v_model = w2v_model,
             method = input$rf_w2v_aggregation,
             term = values$generalTerm
           )
@@ -787,14 +798,19 @@ docClassificationServer <- function(input, output, session, values) {
             "Test Set Accuracy: ",
             sprintf("%.2f%%", eval_test$accuracy * 100),
             "\n",
-            "OOB Error: ",
-            sprintf("%.2f%%", rf_model$model$prediction.error * 100)
+            ## a probability forest reports the Brier score here, not a
+            ## misclassification rate — label it for what it is
+            "OOB Brier score: ",
+            sprintf("%.4f", rf_model$model$prediction.error)
           ),
           type = "success"
         )
       },
       error = function(e) {
         removeNotification(id = "rf_training_notification")
+        ## without this the results panel keeps showing the PREVIOUS model,
+        ## as if the failed run had produced it
+        rf_results$trained <- FALSE
         sendSweetAlert(
           session = session,
           title = "Error Training Model",
@@ -869,12 +885,17 @@ docClassificationServer <- function(input, output, session, values) {
     cat(sprintf("Number of Features: %d\n", ncol(rf_results$train_data) - 1))
     cat(sprintf("Training Set Size: %d\n", nrow(rf_results$train_data)))
     cat(sprintf("Test Set Size: %d\n", nrow(rf_results$test_data)))
+    ## `prediction.error` of a probability forest is the OOB BRIER SCORE, not
+    ## a misclassification rate: printing it as "OOB Prediction Error (%)"
+    ## invited reading 0.21 as 21% of documents misclassified
     cat(sprintf(
-      "\nOOB Prediction Error: %.2f%%\n",
-      rf_results$model$prediction.error * 100
+      "\nOOB Brier Score: %.4f\n",
+      rf_results$model$prediction.error
     ))
+    ## and this one is computed on IN-SAMPLE predictions, so it is optimistic
+    ## by construction — say so rather than let it read as a held-out score
     cat(sprintf(
-      "Train Set Accuracy: %.2f%%\n",
+      "Train Set Accuracy (in-sample): %.2f%%\n",
       rf_results$eval_train$accuracy * 100
     ))
     cat(sprintf(
@@ -953,9 +974,12 @@ checkClassificationPrereqs <- function(values) {
   }
 
   # Check for selected documents
+  ## na.rm: an NA anywhere in docSelected makes sum() return NA, and `if (NA)`
+  ## aborts the whole prerequisite check with "missing value where TRUE/FALSE
+  ## needed" instead of reporting anything
   if (
     !"docSelected" %in% names(values$dfTag) ||
-      sum(values$dfTag$docSelected) == 0
+      sum(values$dfTag$docSelected, na.rm = TRUE) == 0
   ) {
     errors <- c(
       errors,
@@ -1578,7 +1602,7 @@ exportClassificationResults <- function(rf_results, filename, label_var) {
       "Number of Features",
       "Training Set Size",
       "Test Set Size",
-      "OOB Error (%)",
+      "OOB Brier Score",
       "Train Accuracy (%)",
       "Test Accuracy (%)"
     ),
@@ -1588,7 +1612,7 @@ exportClassificationResults <- function(rf_results, filename, label_var) {
       ncol(rf_results$train_data) - 1,
       nrow(rf_results$train_data),
       nrow(rf_results$test_data),
-      round(rf_results$model$prediction.error * 100, 2),
+      round(rf_results$model$prediction.error, 4),
       round(rf_results$eval_train$accuracy * 100, 2),
       round(rf_results$eval_test$accuracy * 100, 2)
     )
@@ -1643,8 +1667,13 @@ exportClassificationResults <- function(rf_results, filename, label_var) {
     apply(rf_results$test_pred$predictions, 1, which.max)
   ]
 
+  ## `.target_class` is the name the model frame uses (see trainRangerRF).
+  ## Reading `$target` matched nothing — or, on a corpus containing a term whose
+  ## sanitised column name is exactly "target", matched that TF-IDF column and
+  ## exported its numbers as if they were the true labels. `[[` also avoids the
+  ## partial matching that made the second case possible.
   predictions_data <- tibble(
-    Actual = as.character(rf_results$test_data$target),
+    Actual = as.character(rf_results$test_data[[".target_class"]]),
     Predicted = test_pred_classes,
     Correct = Actual == Predicted
   )
