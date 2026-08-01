@@ -1,5 +1,17 @@
 # tall (development version)
 
+* Bug fix (Settings > Tall AI): the chosen Gemini model and output size were
+  never remembered. They were written to `~/.tall_gemini_model.txt` and read
+  back from `~/tall/.tall_gemini_model.txt` — a different file — so every
+  session started on `2.5-flash` / `medium` whatever the user had picked. Two
+  further defects in the same path: the model observer saved
+  `input$gemini_output_model`, an input that does not exist (the control is
+  `gemini_output_size`), so choosing a model also dropped the output size; and
+  `loadGeminiModel()` tested `length(model == 1)` — the length of a *logical*
+  vector, hence always at least 1 — so it appended a third element to an
+  already complete pair. There is now a single `geminiModelFile()` used by both
+  the writer and the reader.
+
 * Bug fix (Settings > Working Folder): "Clean Model Cache" removed the whole
   `~/tall` folder, not the model cache. It took the Gemini API key
   (`.tall_gemini_key.txt`), the graph-export settings

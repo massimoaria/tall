@@ -265,6 +265,14 @@ load_api_key <- function(path = path_gemini_key) {
   return(FALSE)
 }
 
+## the ONE place that knows where the model choice lives. It used to be written
+## to ~/.tall_gemini_model.txt (settings.R) and read from
+## ~/tall/.tall_gemini_model.txt (resetValues), so the choice was lost at every
+## restart and TALL always came back on 2.5-flash / medium.
+geminiModelFile = function() {
+  file.path(homeFolder(), "tall", ".tall_gemini_model.txt")
+}
+
 loadGeminiModel = function(file) {
   # load info about model type and output size
   if (file.exists(file)) {
@@ -272,7 +280,9 @@ loadGeminiModel = function(file) {
   } else {
     model <- c("2.5-flash", "medium")
   }
-  if (length(model == 1)) {
+  ## was `length(model == 1)`: length() of a LOGICAL vector, so always >= 1 and
+  ## the branch always ran, appending a third element to a complete pair
+  if (length(model) == 1) {
     model <- c(model, "medium")
   }
   return(model)

@@ -620,12 +620,9 @@ To ensure the functionality of Biblioshiny,
   values$corpus_description <- NULL
   values$gemini_additional <- NULL
 
-  path_gemini_model <- path_gemini_key <- paste0(
-    file.path(home, "tall"),
-    "/.tall_gemini_model.txt",
-    collapse = ""
-  )
-  gemini_api_model <- loadGeminiModel(path_gemini_model)
+  ## one helper, so the writer and the reader cannot drift apart again
+  ## (this also used to clobber `path_gemini_key`, which had just been used)
+  gemini_api_model <- loadGeminiModel(geminiModelFile())
   values$gemini_api_model <- gemini_api_model[1]
   values$gemini_output_size <- gemini_api_model[2]
 

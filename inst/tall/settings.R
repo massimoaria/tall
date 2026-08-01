@@ -532,8 +532,12 @@ settingsServer <- function(input, output, session, values, statsValues) {
   observeEvent(input$gemini_api_model, {
     if (!is.null(input$gemini_api_model)) {
       saveGeminiModel(
-        model = c(input$gemini_api_model, input$gemini_output_model),
-        file = paste0(homeFolder(), "/.tall_gemini_model.txt", collapse = "")
+        ## `input$gemini_output_model` does not exist (the control is
+        ## `gemini_output_size`), so this used to write a one-line file and
+        ## drop the output size. And the file went to ~/ while resetValues()
+        ## reads ~/tall/ — so nothing chosen here ever survived a restart.
+        model = c(input$gemini_api_model, input$gemini_output_size),
+        file = geminiModelFile()
       )
       values$gemini_api_model <- input$gemini_api_model
       values$gemini_output_size <- input$gemini_output_size
@@ -556,7 +560,7 @@ settingsServer <- function(input, output, session, values, statsValues) {
     if (!is.null(input$gemini_output_size)) {
       saveGeminiModel(
         model = c(input$gemini_api_model, input$gemini_output_size),
-        file = paste0(homeFolder(), "/.tall_gemini_model.txt", collapse = "")
+        file = geminiModelFile()
       )
       values$gemini_api_model <- input$gemini_api_model
       values$gemini_output_size <- input$gemini_output_size
