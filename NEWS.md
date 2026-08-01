@@ -1,5 +1,20 @@
 # tall (development version)
 
+* Bug fix (Settings > Working Folder): "Clean Model Cache" removed the whole
+  `~/tall` folder, not the model cache. It took the Gemini API key
+  (`.tall_gemini_key.txt`), the graph-export settings
+  (`.tall_graph_settings.txt`), the working-folder pointer (`tallWD.tall`) and
+  any `.tall` project the user had saved in that folder — none of which can be
+  downloaded again — under a button that names only the models. It now removes
+  `~/tall/language_models` and says so, and the alert states what has been kept.
+
+* Bug fix (start-up): an empty or blank `~/tall/tallWD.tall` aborted the session
+  with `argument is of length zero`. `readLines()` of an empty file returns
+  `character(0)`, and `file.exists(character(0))` returns `logical(0)`, which
+  `if` cannot evaluate — and `wdFolder()` is called from `resetValues()` before
+  there is any UI to report the error in. A blank pointer file is now treated as
+  no working folder, and removed.
+
 * Bug fix (Words > Word Embeddings > Similarity): the community-detection step
   built its lookup table with `data.frame(as.list(membership(cluster)))`, which
   runs `make.names()` over the vertex names. Every term that is not a syntactic
