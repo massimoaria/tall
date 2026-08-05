@@ -710,7 +710,14 @@ wikiSearch <- function(term, n = 10) {
     "&prop=extracts&exintro&explaintext&exlimit=max&format=json&gsrsearch="
   )
 
-  term <- gsub("–", " ", gsub("\\s", "_", term))
+  ## The phrase goes into a URL, so it has to be percent-encoded: an "&" would
+  ## otherwise open a new API parameter (the search would silently run on the
+  ## part before it) and the space this very line can produce out of an en dash
+  ## makes the URL illegal, which aborts the import with a connection error.
+  term <- URLencode(
+    gsub("–", " ", gsub("\\s", "_", term)),
+    reserved = TRUE
+  )
 
   result <- jsonlite::fromJSON(paste0(
     search_url,
@@ -757,8 +764,11 @@ wikiExtract <- function(df) {
   items <- gsub("\\s", "_", df$title)
   for (i in 1:length(items)) {
     if (df$selected[i]) {
-      title <- items[i]
-      # print(title)
+      ## Same reason as in wikiSearch(): a title is not URL-safe. Any page whose
+      ## name carries a non-ASCII character (Zürich, Café, Pokémon…) made the
+      ## API answer 400 Bad Request, and since one bad page stops the loop the
+      ## whole import came back empty.
+      title <- URLencode(items[i], reserved = TRUE)
       result <- jsonlite::fromJSON(paste0(
         "https://en.wikipedia.org/w/api.php?action=query&titles=",
         title,

@@ -1,5 +1,18 @@
 # tall (development version)
 
+* Bug fix (Import > Wikipedia pages): nothing on this path was URL-encoded, and
+  each of the three consequences was reachable from the ordinary use of the
+  menu. A page whose title contains a non-ASCII character — `Zürich`, `Café`,
+  `Pokémon` — made the API answer *400 Bad Request*, and because one failing
+  page stops the extraction loop, a single such hit among the results left the
+  import with nothing. A search phrase containing `&` had everything after it
+  read as a new API parameter, so the query silently ran on the truncated
+  phrase. And a phrase containing an en dash was turned into one containing a
+  literal space by `wikiSearch()`'s own `gsub("–", " ", …)`, which makes the URL
+  illegal and aborts the import with a connection error rather than the
+  "No results found!" message. Both the search phrase and the page title are now
+  passed through `URLencode(reserved = TRUE)`.
+
 * Bug fix (Documents > Summarization > Extractive): `textrankDocument()` joined
   the ranked sentences back to the corpus by the TEXT of the sentence
   (`by = c("sentence")`), not by its id. Any document that repeats a sentence
