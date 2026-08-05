@@ -1,5 +1,26 @@
 # tall (development version)
 
+* Bug fix (Documents > Summarization > Extractive): `textrankDocument()` joined
+  the ranked sentences back to the corpus by the TEXT of the sentence
+  (`by = c("sentence")`), not by its id. Any document that repeats a sentence
+  therefore produced a many-to-many join: a text said k times contributed k^2
+  rows instead of k, and every copy inherited every paragraph that carries that
+  text. Because `nrow(s)` is what `abstractingDocument()` takes its slider
+  percentages of, the summary length moved with the duplication as well. On the
+  `usairlines` collection a four-sentence tweet whose text repeats three times
+  was rendered as ten sentences; `mobydick_ita` repeats 819 of its 12,356. The
+  join now uses the sentence id, as the neighbouring `highlightSentences()`
+  already did.
+
+* Bug fix (Documents > Summarization > Extractive): the view failed on a grouped
+  corpus, on its own default setting. "Summarize: Documents" lists original
+  document ids (`ids()` un-groups before listing), while the summary ran on
+  `values$dfTag`, still keyed by group — so the selected id was absent from the
+  data and the view stopped inside `textrank_sentences()` with
+  `nrow(data) > 1 is not TRUE`. Grouping under FEATURES and pressing Run was
+  enough to reach it. The frame is now un-grouped whenever the unit is not
+  "Groups".
+
 * Bug fix (Settings > Tall AI): the chosen Gemini model and output size were
   never remembered. They were written to `~/.tall_gemini_model.txt` and read
   back from `~/tall/.tall_gemini_model.txt` — a different file — so every

@@ -3603,8 +3603,19 @@ documentsServer <- function(input, output, session, values, statsValues) {
       input$d_summarizationApply
     },
     valueExpr = {
+      ## The picker lists ORIGINAL document ids when the unit is "Documents"
+      ## (ids() calls backToOriginalGroups first), so the frame handed to
+      ## textrankDocument has to be un-grouped too. On a grouped corpus the
+      ## DEFAULT option otherwise selects an id that is not in values$dfTag and
+      ## the view dies inside textrank_sentences with
+      ## `nrow(data) > 1 is not TRUE`.
+      dfSummarize <- if (identical(input$unit_selection, "Groups")) {
+        values$dfTag
+      } else {
+        backToOriginalGroups(values$dfTag)
+      }
       values$docExtracted <- textrankDocument(
-        values$dfTag,
+        dfSummarize,
         id = input$document_selection
       )
       values$docExtraction <- abstractingDocument(

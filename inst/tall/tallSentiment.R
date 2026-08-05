@@ -814,11 +814,18 @@ textrankDocument <- function(dfTag, id) {
   s <- tr$sentences %>%
     arrange(desc(textrank))
 
+  ## Join on the sentence ID, not on its text (as highlightSentences() above
+  ## already does). Joining by `sentence` is a many-to-many join for any
+  ## document that repeats a sentence: the row count inflates by k^2 - k per
+  ## text repeated k times, every copy inherits every paragraph carrying that
+  ## text, and nrow(s) is the denominator abstractingDocument() takes its
+  ## percentages of. A 4-sentence tweet was rendered as 10 sentences.
   s <- s %>%
     left_join(
-      df %>% select(paragraph_id, sentence_id, sentence) %>% distinct(),
-      by = c("sentence")
-    )
+      df %>% select(paragraph_id, sentence_id) %>% distinct(),
+      by = c("textrank_id" = "sentence_id")
+    ) %>%
+    mutate(sentence_id = textrank_id)
   results <- list(
     s = s,
     id = id,
