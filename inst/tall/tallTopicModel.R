@@ -582,7 +582,20 @@ tmEstimate <- function(
     select(word, all_of(variables))
 
   # for every document we have a probability distribution of its contained topics
-  row_label <- unique(x$doc_id)[as.numeric(row.names(tmResult$topics))]
+  # The row names of `topics` are topic_level_id values -- the ANALYSIS UNIT,
+  # which is a sentence whenever `group` includes sentence_id -- not positions
+  # in unique(doc_id). Indexing the document list with a unit id returned NA for
+  # every unit past the number of documents: on a 6-document corpus split into
+  # 593 sentences, 6 labels resolved and 587 became NA, so Topic by Docs Plot
+  # showed a column of NA. Map each unit back to its own document instead, which
+  # is what stmEstimate() already does a few hundred lines below.
+  unit_map <- x %>%
+    dplyr::distinct(topic_level_id, doc_id) %>%
+    dplyr::arrange(topic_level_id)
+  row_label <- unit_map$doc_id[match(
+    as.numeric(row.names(tmResult$topics)),
+    unit_map$topic_level_id
+  )]
   theta <- tmResult$topics %>%
     as.data.frame() %>%
     mutate(doc = row_label) %>%
