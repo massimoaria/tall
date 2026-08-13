@@ -1,5 +1,26 @@
 # tall (development version)
 
+* Bug fix (Documents > Topic Modeling > Model Estimation): the document labels
+  of `theta` were wrong under every estimation method, and the two branches were
+  wrong in two different ways. `tmEstimate()` (LDA and CTM) labelled each row
+  with `unique(x$doc_id)[as.numeric(row.names(tmResult$topics))]`, but those row
+  names are `topic_level_id` values — the ANALYSIS UNIT, a sentence whenever
+  `group` includes `sentence_id` — not positions in the list of documents, so
+  indexing the document vector with a unit id returned `NA` for every unit past
+  the number of documents and misattributed the few that did resolve. Measured
+  on `mobydick` at sentence units (836 units, 10 documents): 826 of 836 labels
+  were `NA`, and of the 10 that were not, only ONE was right. `stmEstimate()`
+  took the first `nrow(theta)` entries of the unit list instead, which slides the
+  labels as soon as the unit ids are not the leading ones — they are neither
+  contiguous (`LemmaSelection()` drops units, so the ids skip: 3, 4, 5, 7, …) nor
+  guaranteed to start at 1 (empty units are dropped before the fit). Measured on
+  `frankenstein` at sentence units, 153 of 593 rows were attributed to the wrong
+  document — silently, since no label came back `NA`. The visible symptom of both
+  is "Topic by Docs Plot", whose y axis became a column of `NA` under LDA/CTM and
+  a plausible but wrong set of documents under STM. It went unnoticed because the
+  "Topics" selector defaults to Docs, where unit ids and document positions
+  coincide. Each row is now matched back to its own unit.
+
 * Bug fix (Import > Wikipedia pages): nothing on this path was URL-encoded, and
   each of the three consequences was reachable from the ordinary use of the
   menu. A page whose title contains a non-ASCII character — `Zürich`, `Café`,

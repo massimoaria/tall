@@ -837,11 +837,17 @@ stmEstimate <- function(x, dtm, K, group, prevalence = NULL, seed = 1234) {
 
   # Extract theta (document-topic probabilities)
   theta_raw <- topicModel$theta
-  # Get document labels
+  # Get document labels. The rows of theta are the units in `keep_docs` order,
+  # and `keep_docs` carries topic_level_id VALUES, which are neither contiguous
+  # (LemmaSelection drops units, so the ids skip: 3, 4, 5, 7, ...) nor
+  # necessarily the first ones (empty units are dropped above). Taking the first
+  # nrow() rows of the unit list therefore slid the labels: measured on
+  # frankenstein at sentence units, 153 of 593 rows were attributed to the wrong
+  # document. Match each row to its own unit, as tmEstimate() does.
   doc_ids <- x %>%
     distinct(topic_level_id, doc_id) %>%
     arrange(topic_level_id)
-  row_label <- doc_ids$doc_id[seq_len(nrow(theta_raw))]
+  row_label <- doc_ids$doc_id[match(as.numeric(keep_docs), doc_ids$topic_level_id)]
 
   theta <- as.data.frame(theta_raw)
   colnames(theta) <- variables
