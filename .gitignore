@@ -18,3 +18,5 @@ src/tall.so
 CRAN-SUBMISSION
 AGENTS.md
 /.quarto/
+/openalex_*
+/tasks/

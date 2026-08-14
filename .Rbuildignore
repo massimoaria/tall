@@ -17,3 +17,5 @@ inst/bbc$
 ^AGENTS.md
 ^\.positai$
 ^\.claude$
+^openalex_
+^tasks(/|$)
