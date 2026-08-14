@@ -1,5 +1,35 @@
 # tall (development version)
 
+* Bug fix (Documents > Topic Modeling > Find optimal K): **the page tuned LDA
+  with a different algorithm from the one that then estimates the model.**
+  `tmTuningAsync()` fitted `LDA(dtm, k, method = "VEM")` while `tmEstimate()`
+  fits `LDA(dtm, K, method = "Gibbs", control = list(iter = 500, seed = seed))`,
+  so the number of topics a user was shown had been chosen for a model class
+  they never fitted — two different inference algorithms, one picking K for the
+  other. CTM was never affected (the same `CTM()` runs on both pages) and STM
+  tunes through `stm::searchK`, which fits stm models. The tuning now uses
+  `method = "Gibbs"` with `tmEstimate()`'s own control list, iterations
+  included, so the model that is scored and the model that is estimated are the
+  same fit. ⚠ **The recommended K will change on existing corpora** — that is
+  the point of the fix, not a side effect. `evaluate_single_k()` is kept in
+  step for the same reason, although nothing calls it.
+
+* Performance (Documents > Topic Modeling > Find optimal K): the grid is fitted
+  **across cores** instead of one model after another, and each worker now also
+  computes its own model's `logLik` and `perplexity` — which were half the wall
+  clock when they were left to the calling process — returning only the numbers
+  the metrics need (`exp(beta)` and `len %*% gamma`, a vector of length K)
+  rather than the fitted model. Measured on a 22,053-unit corpus over the
+  default grid K = 2..20: **36.7s to 5.8s, 6.4x**. The metrics come back
+  bit-identical, which is what makes the change safe to describe as
+  performance: every fit is independent and carries the same seed, so the
+  result cannot depend on the order the workers finish in. If a cluster cannot
+  be created the grid is fitted serially rather than the page failing, and on a
+  grid small enough to finish instantly the cluster's own start-up dominates
+  (0.2s to 0.4s on a 593-unit corpus over K = 2..6). `tmTuningAsync()` no
+  longer returns the fitted `models`: nothing read them, and carrying them back
+  through the socket was the single largest cost.
+
 * Bug fix (Documents > Topic Modeling > Find optimal K): on the "Multi-Metric
   Comparison" chart, two of the four curves were drawn upside down against the
   chart's own y axis, which reads "Normalized Score (0 = worst, 1 = best)".

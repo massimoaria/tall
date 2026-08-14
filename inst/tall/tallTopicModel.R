@@ -65,11 +65,19 @@ Deveaud2014 <- function(models) {
 }
 
 # Funzione per valutare un singolo modello
+#
+# NOTE: this and evaluate_tm_parallel()/tmTuning() below have no callers — the
+# Shiny app tunes through tmTuningAsync(). The estimator is kept in step with it
+# anyway so that reviving this path cannot quietly reintroduce VEM tuning of a
+# model that is estimated with Gibbs. Its own defects are NOT repaired here:
+# tmTuning()'s `top_by` default is a length-2 vector that switch() refuses, and
+# Arun2010() calls Matrix::rowSums() on the simple_triplet_matrix that tmTuning()
+# builds. Both are reachable the moment anyone calls it.
 evaluate_single_k <- function(k, dtm, seed = 1234, method = "LDA") {
   if (method == "CTM") {
     model <- CTM(dtm, k = k, control = list(seed = seed))
   } else {
-    model <- LDA(dtm, k = k, method = "VEM", control = list(seed = seed))
+    model <- LDA(dtm, k = k, method = "Gibbs", control = list(iter = 500, seed = seed))
   }
   log_lik <- logLik(model)
   perp <- perplexity(model, newdata = dtm)
@@ -643,74 +651,146 @@ stmBuildMeta <- function(x, group, prevalence) {
 }
 
 # Self-contained LDA/CTM tuning for use inside a future worker.
-# Runs sequentially (no parallel clusters) since it already runs in background.
-# Only depends on package functions: topicmodels, slam, utils, stats.
+# Fits the grid across a PSOCK cluster, falling back to a serial loop if one
+# cannot be created — it already runs in a future worker, where a cluster is
+# possible but not guaranteed.
+# Only depends on package functions: topicmodels, slam, parallel, utils, stats.
 tmTuningAsync <- function(dtm, k_seq, seed, method) {
   # Ensure topicmodels is fully loaded so S4 methods (logLik, perplexity) are registered
   requireNamespace("topicmodels", quietly = TRUE)
   library(topicmodels, quietly = TRUE)
 
-  models_list <- list()
-  metrics_rows <- list()
-
-  for (i in seq_along(k_seq)) {
-    k <- k_seq[i]
-    if (method == "CTM") {
-      model <- topicmodels::CTM(dtm, k = k, control = list(seed = seed))
-    } else {
-      model <- topicmodels::LDA(dtm, k = k, method = "VEM", control = list(seed = seed))
-    }
-    models_list[[paste0("k_", k)]] <- model
-    metrics_rows[[i]] <- data.frame(
-      k = k,
-      logLik = as.numeric(logLik(model)),
-      Perplexity = perplexity(model, newdata = dtm)
-    )
-  }
-
-  metrics <- do.call(rbind, metrics_rows)
-
-  # CaoJuan2009
-  metrics$CaoJuan2009 <- sapply(models_list, function(model) {
-    m1 <- exp(model@beta)
-    pairs <- utils::combn(nrow(m1), 2)
-    cos_dist <- apply(pairs, 2, function(pair) {
-      x <- m1[pair[1], ]; y <- m1[pair[2], ]
-      as.numeric(crossprod(x, y) / sqrt(crossprod(x) * crossprod(y)))
-    })
-    sum(cos_dist) / (model@k * (model@k - 1) / 2)
-  })
-
-  # Arun2010
+  ## Document lengths, needed by Arun2010 and by the workers' own scoring.
+  ## The guard matters: tmTuning() builds a `simple_triplet_matrix`, which
+  ## Matrix::rowSums() cannot take (see the note on evaluate_single_k).
   len <- if (inherits(dtm, "simple_triplet_matrix")) {
     slam::row_sums(dtm)
   } else {
     Matrix::rowSums(dtm)
   }
-  metrics$Arun2010 <- sapply(models_list, function(model) {
-    m1 <- exp(model@beta)
-    m1_svd <- svd(m1)
-    cm1 <- as.matrix(m1_svd$d)
-    m2 <- model@gamma
-    cm2 <- len %*% m2
-    norm_val <- norm(as.matrix(len), type = "m")
-    cm2 <- as.vector(cm2 / norm_val)
+  norm_val <- norm(as.matrix(len), type = "m")
+
+  ## One model per K, fitted AND scored where the model lives.
+  ##
+  ## LDA is fitted with **Gibbs**, as tmEstimate() fits it (`:562`). It used to
+  ## be method = "VEM" here, which meant the K this page recommended came from a
+  ## different model class than the model the user then estimated: two different
+  ## inference algorithms, one choosing the number of topics for the other. CTM
+  ## was never affected — the same CTM() is used on both pages — and STM tunes
+  ## through stm::searchK, which fits stm models. The control list is
+  ## tmEstimate's, iterations included, so the tuned model and the estimated one
+  ## are the same fit.
+  ##
+  ## What comes back is deliberately SMALL: logLik and perplexity are the
+  ## expensive part after the fit itself — they were half the wall clock when
+  ## computed here — and the two pairwise metrics need only `exp(beta)`, while
+  ## Arun2010 needs `len %*% gamma`, a vector of length K. Returning the fitted
+  ## models instead would ship tens of MB per grid back through the socket for
+  ## nothing: `models` was in the return value and NOTHING read it.
+  score_one <- function(k) {
+    model <- if (method == "CTM") {
+      topicmodels::CTM(dtm, k = k, control = list(seed = seed))
+    } else {
+      topicmodels::LDA(dtm, k = k, method = "Gibbs",
+                       control = list(iter = 500, seed = seed))
+    }
+    list(
+      k          = k,
+      logLik     = as.numeric(logLik(model)),
+      Perplexity = perplexity(model, newdata = dtm),
+      beta       = exp(model@beta),
+      cm2        = as.vector(len %*% model@gamma)
+    )
+  }
+
+  ## Fitted across cores. Every fit is independent and carries the SAME seed, so
+  ## the result does not depend on the order they finish in — parallel and
+  ## serial return identical metrics, which is checked rather than assumed.
+  ##
+  ## `parallel::detectCores()` rather than TALL's `coresCPU()`: this function is
+  ## called inside a `promises::future_promise()` worker and is deliberately
+  ## self-contained, and `coresCPU()` both lives in another file and, on
+  ## Windows, creates and registers a cluster as a side effect — one leaked per
+  ## call from here.
+  ##
+  ## Anything that goes wrong with the cluster falls back to scoring serially
+  ## rather than failing the page: a K choice that is slower is still a K
+  ## choice, and this runs inside a future where a cluster is not guaranteed.
+  n_workers <- max(1L, min(length(k_seq),
+                           as.integer(parallel::detectCores(logical = FALSE)) - 1L))
+  scored <- NULL
+  if (length(k_seq) > 1L && n_workers > 1L) {
+    cl <- try(parallel::makeCluster(n_workers), silent = TRUE)
+    if (!inherits(cl, "try-error")) {
+      on.exit(try(parallel::stopCluster(cl), silent = TRUE), add = TRUE)
+      out <- try({
+        parallel::clusterEvalQ(cl, {
+          library(topicmodels)
+          library(slam)
+        })
+        parallel::clusterExport(cl, c("dtm", "seed", "method", "len"),
+                                envir = environment())
+        ## Longest first: the cost of a fit grows with K, and parLapply chunks
+        ## statically, so submitting 2,3,…,20 leaves one worker holding the
+        ## most expensive model while the rest have finished.
+        ord <- order(k_seq, decreasing = TRUE)
+        res <- parallel::parLapply(cl, k_seq[ord], function(k) {
+          model <- if (method == "CTM") {
+            topicmodels::CTM(dtm, k = k, control = list(seed = seed))
+          } else {
+            topicmodels::LDA(dtm, k = k, method = "Gibbs",
+                             control = list(iter = 500, seed = seed))
+          }
+          list(k = k,
+               logLik = as.numeric(logLik(model)),
+               Perplexity = perplexity(model, newdata = dtm),
+               beta = exp(model@beta),
+               cm2 = as.vector(len %*% model@gamma))
+        })
+        res[order(ord)]
+      }, silent = TRUE)
+      if (!inherits(out, "try-error")) scored <- out
+    }
+  }
+  if (is.null(scored)) scored <- lapply(k_seq, score_one)
+
+  metrics <- do.call(rbind, lapply(scored, function(r) {
+    data.frame(k = r$k, logLik = r$logLik, Perplexity = r$Perplexity)
+  }))
+
+  # CaoJuan2009
+  metrics$CaoJuan2009 <- vapply(scored, function(r) {
+    m1 <- r$beta
+    pairs <- utils::combn(nrow(m1), 2)
+    cos_dist <- apply(pairs, 2, function(pair) {
+      x <- m1[pair[1], ]; y <- m1[pair[2], ]
+      as.numeric(crossprod(x, y) / sqrt(crossprod(x) * crossprod(y)))
+    })
+    sum(cos_dist) / (nrow(m1) * (nrow(m1) - 1) / 2)
+  }, numeric(1))
+
+  # Arun2010
+  metrics$Arun2010 <- vapply(scored, function(r) {
+    cm1 <- as.matrix(svd(r$beta)$d)
+    cm2 <- r$cm2 / norm_val
     sum(cm1 * log(cm1 / cm2)) + sum(cm2 * log(cm2 / cm1))
-  })
+  }, numeric(1))
 
   # Deveaud2014
-  metrics$Deveaud2014 <- sapply(models_list, function(model) {
-    m1 <- exp(model@beta)
+  metrics$Deveaud2014 <- vapply(scored, function(r) {
+    m1 <- r$beta
     if (any(m1 == 0)) m1 <- m1 + .Machine$double.xmin
     pairs <- utils::combn(nrow(m1), 2)
     jsd <- apply(pairs, 2, function(pair) {
       x <- m1[pair[1], ]; y <- m1[pair[2], ]
       0.5 * sum(x * log(x / y)) + 0.5 * sum(y * log(y / x))
     })
-    sum(jsd) / (model@k * (model@k - 1))
-  })
+    sum(jsd) / (nrow(m1) * (nrow(m1) - 1))
+  }, numeric(1))
 
-  list(metrics = metrics, models = models_list)
+  ## `models` is gone from the return value: nothing read it, and carrying the
+  ## fitted objects back from the workers was the single largest cost here.
+  list(metrics = metrics)
 }
 
 # Self-contained STM tuning for use inside a future worker.
