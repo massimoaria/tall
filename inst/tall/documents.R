@@ -1795,7 +1795,7 @@ documentsServer <- function(input, output, session, values, statsValues) {
         list(name = "Arun 2010", col = "Arun2010", decreasing = FALSE,
              desc = "KL divergence between word-topic and doc-topic distributions. Lower = better fit."),
         list(name = "Deveaud 2014", col = "Deveaud2014", decreasing = TRUE,
-             desc = "Jensen-Shannon divergence between topic pairs. Lower = more separated topics."),
+             desc = "Jensen-Shannon divergence between topic pairs. Higher = more separated topics."),
         list(name = "Perplexity", col = "Perplexity", decreasing = TRUE,
              desc = "Predictive performance on held-out data. Lower = better generalization.")
       )

@@ -1,5 +1,34 @@
 # tall (development version)
 
+* Bug fix (Documents > Topic Modeling > Find optimal K): on the "Multi-Metric
+  Comparison" chart, two of the four curves were drawn upside down against the
+  chart's own y axis, which reads "Normalized Score (0 = worst, 1 = best)".
+  `tmMultiMetricPlot()` carried a per-metric flag named `decreasing` and its
+  normalisation branch treated that flag as "higher is better", while the flags
+  themselves had been assigned as though it meant "lower is better". Under LDA
+  and CTM this put the best K of **CaoJuan2009** and of **Perplexity** — both
+  minimised — at the BOTTOM of a chart that says the bottom is worst; under STM
+  it did the same to **Semantic Coherence** and to the **Lower Bound**, both of
+  which are maximised. A reader comparing curves was therefore reading two of
+  them backwards. The flag is now `higher_better`, set from what each metric
+  actually wants, and 1 is the good end for every curve on both branches
+  (verified by execution: all eight metrics now plot their optimum at y = 1).
+
+  The recommended K values do not change, and could not have: `find_elbow()`
+  ignores its `decreasing` argument. Negating the metric reflects the whole
+  configuration about the x axis, and the distance from a point to a line is
+  invariant under reflection, so `which.max(distances)` returns the same index
+  either way — confirmed on 2000 random metric shapes, identical 2000/2000, and
+  on the patch itself, where every K came back unchanged. The argument is kept,
+  because it documents which way a metric runs, but it is now labelled as
+  having no effect so that nobody "fixes" the flags expecting a different K.
+
+* Documentation fix (Documents > Topic Modeling > Find optimal K): the
+  "K Recommendation" tab described Deveaud 2014 as "Jensen-Shannon divergence
+  between topic pairs. Lower = more separated topics." A divergence is larger
+  when distributions are further apart, which is why Deveaud 2014 is maximised;
+  the sentence said the opposite of both the statistic and the code beside it.
+
 * Bug fix (Documents > Topic Modeling > Model Estimation): the document labels
   of `theta` were wrong under every estimation method, and the two branches were
   wrong in two different ways. `tmEstimate()` (LDA and CTM) labelled each row

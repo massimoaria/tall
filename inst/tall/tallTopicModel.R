@@ -119,6 +119,14 @@ evaluate_tm_parallel <- function(
   return(list(metrics = metrics, models = models))
 }
 
+## NOTE: `decreasing` does not change the result, and is kept only so that
+## callers can state which way a metric runs. Negating the metric reflects the
+## whole configuration about the x axis, and the distance from a point to a
+## line is invariant under reflection — so `distances`, and therefore
+## `which.max(distances)`, are identical either way. Verified by execution on
+## 2000 random metric shapes: the same k came back 2000/2000 times. The knee of
+## a curve is the knee whichever end of it is the good end; do not "fix" the
+## flags expecting the recommendation to move.
 find_elbow <- function(k, metric, decreasing = TRUE, plot = TRUE) {
   # Normalizza i dati
   x <- as.numeric(scale(k))
@@ -413,19 +421,24 @@ tmConsensusK <- function(metrics_df, method = "LDA") {
 tmMultiMetricPlot <- function(result, method = "LDA") {
   df <- result$metrics %>% rename(topics = k)
 
+  # `higher_better` says which end of a metric is the good end. It used to be
+  # called `decreasing` and was set as though it meant "lower is better", while
+  # the branch below treats it as "higher is better" — so two curves in each
+  # method were drawn upside down against this plot's own y axis, which reads
+  # "0 = worst, 1 = best". It does NOT affect the recommended K: see find_elbow.
   if (method == "STM") {
     metric_info <- list(
-      list(col = "CaoJuan2009", label = "Exclusivity", color = "#e74c3c", decreasing = TRUE),
-      list(col = "Arun2010", label = "Semantic Coherence", color = "#3498db", decreasing = FALSE),
-      list(col = "Deveaud2014", label = "Excl. + Coherence", color = "#2ecc71", decreasing = TRUE),
-      list(col = "logLik", label = "Lower Bound", color = "#9b59b6", decreasing = FALSE)
+      list(col = "CaoJuan2009", label = "Exclusivity", color = "#e74c3c", higher_better = TRUE),
+      list(col = "Arun2010", label = "Semantic Coherence", color = "#3498db", higher_better = TRUE),
+      list(col = "Deveaud2014", label = "Excl. + Coherence", color = "#2ecc71", higher_better = TRUE),
+      list(col = "logLik", label = "Lower Bound", color = "#9b59b6", higher_better = TRUE)
     )
   } else {
     metric_info <- list(
-      list(col = "CaoJuan2009", label = "CaoJuan 2009", color = "#e74c3c", decreasing = TRUE),
-      list(col = "Arun2010", label = "Arun 2010", color = "#3498db", decreasing = FALSE),
-      list(col = "Deveaud2014", label = "Deveaud 2014", color = "#2ecc71", decreasing = TRUE),
-      list(col = "Perplexity", label = "Perplexity", color = "#9b59b6", decreasing = TRUE)
+      list(col = "CaoJuan2009", label = "CaoJuan 2009", color = "#e74c3c", higher_better = FALSE),
+      list(col = "Arun2010", label = "Arun 2010", color = "#3498db", higher_better = FALSE),
+      list(col = "Deveaud2014", label = "Deveaud 2014", color = "#2ecc71", higher_better = TRUE),
+      list(col = "Perplexity", label = "Perplexity", color = "#9b59b6", higher_better = FALSE)
     )
   }
 
@@ -434,15 +447,15 @@ tmMultiMetricPlot <- function(result, method = "LDA") {
   for (m in metric_info) {
     if (!m$col %in% names(df)) next
     vals <- df[[m$col]]
-    # Min-max normalize to [0, 1]; invert if lower = better
-    if (m$decreasing) {
+    # Min-max normalize to [0, 1], so that 1 is always the good end
+    if (m$higher_better) {
       norm_vals <- (vals - min(vals)) / (max(vals) - min(vals) + .Machine$double.eps)
     } else {
       norm_vals <- 1 - (vals - min(vals)) / (max(vals) - min(vals) + .Machine$double.eps)
     }
 
     # Find elbow for this metric
-    k_opt <- find_elbow(df$topics, vals, decreasing = m$decreasing, plot = FALSE)
+    k_opt <- find_elbow(df$topics, vals, decreasing = !m$higher_better, plot = FALSE)
     opt_idx <- which(df$topics == k_opt)
 
     fig <- fig %>%
