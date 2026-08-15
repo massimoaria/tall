@@ -1024,6 +1024,12 @@ create_document_box <- function(
 
 ### ABSTRACTIVE TEXT SUMMARIZATION: ----
 
+## ⚠ SUPERSEDED AND UNREACHABLE. The live abstractive summary is the inline
+## block at documents.R:3437+, which correctly uses values$gemini_api_model;
+## this function has no callers anywhere in the package. Its `model` default
+## was "2.0-flash" — a family Google retired even before 2.5 — so anyone
+## re-wiring it would have got a 404. Left in place with a live default rather
+## than deleted, but it is a duplicate and should probably go (2026-08-15).
 abstractive_summary <- function(
   values,
   input,
@@ -1031,7 +1037,7 @@ abstractive_summary <- function(
   nL = 250,
   maxTokens = 16384,
   api_key = NULL,
-  model = "2.0-flash",
+  model = "3.5-flash-lite",
   retry_attempts = 5
 ) {
   # Input validation

@@ -1,5 +1,46 @@
 # tall (development version)
 
+* Bug fix (Settings > Tall AI): **a valid Gemini API key was reported as
+  refused, and a new user could not run TALL AI at all.** Key validation sent a
+  real `generateContent` request to a hard-coded `gemini-2.5-flash`
+  (`settings.R`), and Google has stopped serving the 2.5 family to newly created
+  API keys — so the probe returned `404 ... no longer available to new users`
+  and the app said "API key seems be not valid", whatever model was selected.
+  The first-run default was `2.5-flash` too (`loadGeminiModel()`), so even a key
+  that got through had nothing it could call. Same defect as bibliometrix #637,
+  found by carrying that fix across.
+  - **Validation is now model-agnostic**: the new `.geminiAvailableModels()`
+    asks for the model CATALOGUE (`GET /v1beta/models`) instead of invoking a
+    model, so no future retirement can break it. `geminiValidateKey()` returns
+    the key's verdict and the chosen model's availability as two separate
+    answers.
+  - **The selected model is checked**: if it is not in the catalogue for that
+    key, Settings says so — instead of letting the user discover it as an HTTP
+    404 at the first analysis.
+  - **Errors are told apart.** `grepl("HTTP\\s*[1-5][0-9]{2}")` collapsed every
+    status from 100 to 599 into one "invalid key" message; 400/401 now mention
+    the key, 403 a permission, 404 the model, and a transport failure says it is
+    a connection problem. `req_error()` also lets Google's own message through:
+    `resp_body_string()` was being handed a hand-built list, so the real reason
+    was never shown.
+  - **A connection failure no longer crashes the check.** The connection-level
+    branch in `gemini_ai()` was commented out, leaving `status_code = NA`, so
+    `if (resp$status_code == 400)` evaluated `if (NA)` and the user saw
+    *"missing value where TRUE/FALSE needed"* instead of "there is no network".
+  - **Defaults moved off the retired family** to `gemini-3.5-flash-lite`
+    (transport default, first-run default and model selector). A stored
+    `2.5-flash` — which was the old default rather than anyone's choice — is
+    carried forward; a deliberately chosen `2.5-flash-lite` is kept. The 2.5
+    pair stays selectable under a **Legacy** group, since keys created before
+    the cut-off still reach it.
+  - **Preview ids removed from the selector** (`3-flash-preview`,
+    `3.1-pro-preview`): they carry their own expiry date. `gemini-flash-latest`
+    added.
+  - `setGeminiAPI()` removed: unreachable (no callers anywhere in the package)
+    and a duplicate of the same faulty probe. `abstractive_summary()`, also
+    unreachable and superseded by the inline block in `documents.R`, had its own
+    stale `2.0-flash` default corrected and is now marked as superseded.
+
 * Bug fix (Documents > Topic Modeling > Find optimal K): **the page tuned LDA
   with a different algorithm from the one that then estimates the model.**
   `tmTuningAsync()` fitted `LDA(dtm, k, method = "VEM")` while `tmEstimate()`

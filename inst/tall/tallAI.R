@@ -1,8 +1,16 @@
 #### Google GEMINI API ####
+## Model ids are stored WITHOUT the "gemini-" prefix: the URL is built with
+## paste0("gemini-", model, ...) below.
+##
+## ⚠ A THIRD-PARTY MODEL ID IS A VALUE THAT EXPIRES. This default was
+## "2.5-flash-lite" until 2026-08-15, when Google stopped serving the whole 2.5
+## family to newly created API keys ("404 ... no longer available to new
+## users"). Nothing here should depend on a particular model still existing —
+## see .geminiAvailableModels(), which validates a key against the CATALOGUE.
 gemini_ai <- function(
   image = NULL,
   prompt = "Explain these images",
-  model = "2.5-flash-lite",
+  model = "3.5-flash-lite",
   type = "png",
   retry_503 = 5,
   api_key = NULL,
@@ -105,25 +113,33 @@ gemini_ai <- function(
       req_headers("Content-Type" = "application/json") |>
       req_body_json(request_body)
 
+    ## req_error(): tell httr2 NOT to throw on 4xx/5xx, so `resp` is a real
+    ## response and resp_body_string() below can read Google's own message.
+    ## Without it every error arrived as a hand-built list, resp_body_string()
+    ## failed on it, and the fallback text was shown instead of the real reason
+    ## — which is how a retired-model 404 came out as "check your API key".
     resp <- tryCatch(
-      req_perform(req),
+      req |> req_error(is_error = function(resp) FALSE) |> req_perform(),
       error = function(e) {
-        return(list(
-          status_code = stringr::str_extract(e$message, "(?<=HTTP )\\d+") |>
-            as.numeric(),
-          error = TRUE,
-          message = paste("❌ Request failed with error:", e$message)
-        ))
+        list(transport_error = TRUE, message = conditionMessage(e))
       }
     )
 
-    # # Handle connection-level error
-    # if (is.list(resp) && isTRUE(resp$error)) {
-    #   return(resp$message)
-    # }
+    ## A genuine transport failure (DNS, proxy, TLS, timeout): there is no HTTP
+    ## status at all. This branch used to be COMMENTED OUT, which left
+    ## status_code = NA, made `if (resp$status_code == 400)` below evaluate
+    ## `if (NA)`, and showed the user the R error "missing value where
+    ## TRUE/FALSE needed" instead of "there is no connection".
+    if (!inherits(resp, "httr2_response")) {
+      return(paste0(
+        "❌ Connection failed: ", resp$message,
+        "\nThis is a connection problem, not your API key."
+      ))
+    }
+    status <- httr2::resp_status(resp)
 
     # Retry on HTTP 503 or 429
-    if (resp$status_code %in% c(429, 503)) {
+    if (status %in% c(429, 503)) {
       if (attempt < retry_503) {
         message(paste0(
           "⚠️ HTTP 503 (Service Unavailable) - retrying in 2 seconds (attempt ",
@@ -147,33 +163,32 @@ gemini_ai <- function(
       }
     }
 
-    # HTTP errors
-    # 400 api key not valid
-    if (resp$status_code == 400) {
+    ## Google's own message, which now actually arrives (see req_error above)
+    if (status != 200) {
       msg <- tryCatch(
         {
           parsed <- jsonlite::fromJSON(httr2::resp_body_string(resp))
           parsed$error$message
         },
-        error = function(e) {
-          "Please check your API key. It seems to be not valid!"
-        }
+        error = function(e) "no further detail was returned"
       )
-      return(paste0("❌ HTTP ", resp$status_code, ": ", msg))
-    }
-    # Other HTTP errors
-    if (resp$status_code != 200) {
-      msg <- tryCatch(
-        {
-          parsed <- jsonlite::fromJSON(httr2::resp_body_string(resp))
-          parsed$error$message
-        },
-        error = function(e) {
-          "Service unavailable or unexpected error. Please check your API key and usage limit."
-        }
-      )
-
-      return(paste0("❌ HTTP ", resp$status_code, ": ", msg))
+      ## Only the statuses that really mean "this key" mention the key. A 404
+      ## is a model that does not exist for this key, a 403 a permission, a 429
+      ## a quota — telling the user to check their key in those cases sends
+      ## them to fix something that is not broken.
+      hint <- if (status %in% c(400, 401)) {
+        "\nPlease check your API key. It seems to be not valid!"
+      } else if (status == 403) {
+        "\nThis API key is not allowed to use this resource."
+      } else if (status == 404) {
+        paste0(
+          "\nThe model \"gemini-", model, "\" is not available for this API key.",
+          "\nPick another model in Settings > Tall AI."
+        )
+      } else {
+        ""
+      }
+      return(paste0("❌ HTTP ", status, ": ", msg, hint))
     }
 
     # Successful response
@@ -183,59 +198,123 @@ gemini_ai <- function(
   }
 }
 
-setGeminiAPI <- function(api_key) {
-  # 1. Controllo validità dell'API key
-  apiCheck <- gemini_ai(
-    image = NULL,
-    prompt = "Hello",
-    model = "2.5-flash",
-    type = "png",
-    retry_503 = 5,
-    api_key = api_key
-  )
+## ---------------------------------------------------------------------------
+## Key validation — model-agnostic
+## ---------------------------------------------------------------------------
+## `setGeminiAPI()` used to live here. It validated a key by sending a real
+## generateContent "Hello" to a HARD-CODED "2.5-flash", and it had no callers
+## anywhere in the package: a dead copy of the logic that was inlined into
+## settings.R. Both carried the same defect, so both are gone — a duplicate
+## nobody reaches is a bug waiting for someone to re-wire it.
+##
+## THE DEFECT (bibliometrix PR #637, carried across 2026-08-15). Probing a named
+## model conflates two different questions — "is this key good?" and "does that
+## model still exist for this key?" — and answers the first wrongly as soon as
+## the second changes. Google stopped serving the 2.5 family to newly created
+## API keys, so the probe returned 404 and EVERY new user was told their key had
+## been refused, whatever model they had chosen in Settings.
+##
+## The catalogue endpoint (ListModels) has no such expiry: it answers about the
+## KEY. Which models exist is then a separate question, answered from the same
+## reply, and reported rather than treated as a refusal.
 
-  contains_http_error <- grepl("HTTP\\s*[1-5][0-9]{2}", apiCheck)
+.geminiAvailableModels <- function(api_key = NULL, timeout = 60,
+                                   endpoint = getOption(
+                                     "tall.gemini_endpoint",
+                                     "https://generativelanguage.googleapis.com/v1beta/models"
+                                   )) {
+  if (is.null(api_key)) api_key <- Sys.getenv("GEMINI_API_KEY")
 
-  if (contains_http_error) {
-    return(list(
-      valid = FALSE,
-      message = "❌ API key seems be not valid! Please, check it or your connection."
-    ))
-  }
+  models <- character(0)
+  page <- NULL
 
-  if (is.null(api_key) || !is.character(api_key) || nchar(api_key) == 0) {
-    return(list(
-      valid = FALSE,
-      message = "❌ API key must be a non-empty string."
-    ))
-  }
+  for (i in seq_len(10)) {                       # a page cap, not a real limit
+    ## `endpoint` is an option so this can be pointed at a local stub and
+    ## checked without a key of any value and without spending a quota
+    req <- request(endpoint) |>
+      req_url_query(key = api_key, pageSize = 200) |>
+      req_timeout(timeout) |>
+      req_error(is_error = function(resp) FALSE)
+    if (!is.null(page)) req <- req |> req_url_query(pageToken = page)
 
-  if (nchar(api_key) < 10) {
-    return(list(
-      valid = FALSE,
-      message = "❌ API key seems too short. Please verify your key."
-    ))
-  }
-
-  # 2. Mostra solo gli ultimi 4 caratteri per feedback
-  last_chars <- 4
-  last <- substr(
-    api_key,
-    max(1, nchar(api_key) - last_chars + 1),
-    nchar(api_key)
-  )
-
-  # 3. Imposta la variabile d'ambiente
-  Sys.setenv(GEMINI_API_KEY = api_key)
-
-  return(list(
-    valid = TRUE,
-    message = paste0(
-      paste0(rep("*", nchar(api_key) - 4), collapse = ""),
-      last,
-      collapse = ""
+    resp <- tryCatch(
+      req_perform(req),
+      error = function(e) {
+        list(transport_error = TRUE, message = conditionMessage(e))
+      }
     )
-  ))
+
+    if (!inherits(resp, "httr2_response")) {
+      return(list(
+        valid = FALSE, connection = TRUE, models = character(0),
+        message = paste0(
+          "\u274c Connection failed: ", resp$message,
+          "\nThis is a connection problem, not your API key."
+        )
+      ))
+    }
+
+    status <- httr2::resp_status(resp)
+    if (status != 200) {
+      msg <- tryCatch(
+        jsonlite::fromJSON(httr2::resp_body_string(resp))$error$message,
+        error = function(e) "no further detail was returned"
+      )
+      return(list(
+        valid = FALSE, connection = FALSE, models = character(0),
+        message = paste0(
+          "\u274c HTTP ", status, ": ", msg,
+          if (status %in% c(400, 401, 403)) {
+            "\nGoogle refused this API key."
+          } else {
+            ""
+          }
+        )
+      ))
+    }
+
+    body <- httr2::resp_body_json(resp)
+    for (m in body$models) {
+      methods <- unlist(m$supportedGenerationMethods)
+      ## when the field is absent, take the model at its word
+      if (is.null(methods) || "generateContent" %in% methods) {
+        models <- c(models, sub("^models/", "", m$name))
+      }
+    }
+    page <- body$nextPageToken
+    if (is.null(page)) break
+  }
+
+  list(valid = TRUE, connection = FALSE, models = models, message = "")
+}
+
+## Is this key good, and does it carry the model the user has chosen?
+## Two answers, kept apart: a model missing from the catalogue is REPORTED,
+## never a refusal — the key works, it is the choice that is wrong, and the
+## user hears it in Settings instead of as a 404 at the first analysis.
+geminiValidateKey <- function(api_key, model = NULL) {
+  if (is.null(api_key) || !is.character(api_key) || nchar(api_key) == 0) {
+    return(list(valid = FALSE, model_available = NA,
+                message = "\u274c API key must be a non-empty string."))
+  }
+  if (nchar(api_key) < 10) {
+    return(list(valid = FALSE, model_available = NA,
+                message = "\u274c API key seems too short. Please verify your key."))
+  }
+
+  res <- .geminiAvailableModels(api_key)
+  if (!isTRUE(res$valid)) {
+    return(list(valid = FALSE, model_available = NA, message = res$message))
+  }
+
+  ## ids are stored without the "gemini-" prefix; the catalogue carries it
+  available <- NA
+  if (!is.null(model) && nzchar(model)) {
+    available <- paste0("gemini-", model) %in% res$models
+  }
+
+  list(valid = TRUE, models = res$models, model_available = available,
+       message = "")
 }
 
 showGeminiAPI <- function() {
@@ -278,12 +357,22 @@ loadGeminiModel = function(file) {
   if (file.exists(file)) {
     model <- readLines(file, warn = FALSE)
   } else {
-    model <- c("2.5-flash", "medium")
+    ## every FIRST-RUN user lands here. It said "2.5-flash" until 2026-08-15,
+    ## which is a family Google no longer serves to new API keys — so a new
+    ## user's very first request 404'd, and the app blamed their key
+    model <- c("3.5-flash-lite", "medium")
   }
   ## was `length(model == 1)`: length() of a LOGICAL vector, so always >= 1 and
   ## the branch always ran, appending a third element to a complete pair
   if (length(model) == 1) {
     model <- c(model, "medium")
+  }
+  ## a stored "2.5-flash" is almost never a deliberate choice — it was the old
+  ## DEFAULT, written out the first time the user touched Settings. Carrying it
+  ## forward is kinder than leaving them on a model that 404s; anyone who
+  ## actually wants 2.5 can pick it again from the Legacy group.
+  if (identical(model[1], "2.5-flash")) {
+    model[1] <- "3.5-flash-lite"
   }
   return(model)
 }
