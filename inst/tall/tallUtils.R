@@ -493,8 +493,12 @@ wdFolder <- function() {
   wdTall <- NULL
 
   if (file.exists(wdFile)) {
-    wdTall <- readLines(wdFile)
-    if (!file.exists(wdTall)) {
+    wdTall <- readLines(wdFile, warn = FALSE)
+    ## an empty (or blank) file gives character(0) / "", and file.exists() on it
+    ## returns logical(0) — the `if` below then aborts with "argument is of
+    ## length zero", at start-up, before there is a UI to report it in.
+    wdTall <- wdTall[nzchar(trimws(wdTall))][1]
+    if (is.na(wdTall) || !file.exists(wdTall)) {
       file.remove(wdFile)
       wdTall <- NULL
     }
@@ -616,12 +620,9 @@ To ensure the functionality of Biblioshiny,
   values$corpus_description <- NULL
   values$gemini_additional <- NULL
 
-  path_gemini_model <- path_gemini_key <- paste0(
-    file.path(home, "tall"),
-    "/.tall_gemini_model.txt",
-    collapse = ""
-  )
-  gemini_api_model <- loadGeminiModel(path_gemini_model)
+  ## one helper, so the writer and the reader cannot drift apart again
+  ## (this also used to clobber `path_gemini_key`, which had just been used)
+  gemini_api_model <- loadGeminiModel(geminiModelFile())
   values$gemini_api_model <- gemini_api_model[1]
   values$gemini_output_size <- gemini_api_model[2]
 
@@ -727,16 +728,22 @@ saveTall <- function(
 deleteCache <- function() {
   home <- homeFolder()
 
-  # setting up the main directory
-  path_tall <- file.path(home, "tall")
+  ## The button is "Clean Model Cache", so clean the model cache.
+  ## It used to unlink(file.path(home, "tall")) — the whole tree, which also
+  ## holds .tall_gemini_key.txt, .tall_graph_settings.txt, tallWD.tall and any
+  ## .tall project the user saved in it. Only the downloaded models are
+  ## re-obtainable, and only they are removed now.
+  path_tall <- file.path(home, "tall", "language_models")
   result <- unlink(path_tall, recursive = TRUE)
+  dir.create(path_tall, showWarnings = FALSE, recursive = TRUE)
   btn_labels <- "OK"
 
   if (result == 0) {
     subtitle <- paste0(
-      "The folder '",
+      "The downloaded language models in '",
       path_tall,
-      "' \nand files contained in it have been correctly deleted"
+      "' \nhave been correctly deleted.",
+      "\nYour settings, working folder and API key have been kept."
     )
     title <- ""
     btn_colors <- "#1d8fe1"

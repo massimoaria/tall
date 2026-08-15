@@ -367,6 +367,12 @@ rakeReset <- function(x) {
       rename(upos = upos_original)
   }
 
+  if ("POSSelected_original_nomultiwords" %in% names(x)) {
+    x <- x %>%
+      select(-"POSSelected") %>%
+      rename(POSSelected = POSSelected_original_nomultiwords)
+  }
+
   if ("lemma_original_nomultiwords" %in% names(x)) {
     x <- x %>%
       select(-"lemma") %>%
@@ -667,11 +673,32 @@ rake <- function(
     sep = " "
   )
 
-  # Operazioni vettorizzate (molto più veloci di mutate multiple)
+  # Il kernel azzera (NA) le posizioni assorbite da un multiword: sono i
+  # costituenti da marcare NGRAM_MERGED. Un termine gia' NA in partenza NON e'
+  # un costituente e va lasciato stare, quindi la condizione guarda term_col.
+  merged_away <- is.na(multiword) & !is.na(term_col)
+
+  # Quale keyword ha assorbito ogni costituente: e' l'ultimo multiword non-NA
+  # a monte (la testa precede sempre immediatamente la sua coda). Serve a
+  # applyRake() per riconoscere le code delle SOLE keyword selezionate.
+  owner <- multiword
+  owner[merged_away] <- NA_character_
+  last_head <- cummax(ifelse(is.na(owner), 0L, seq_along(owner)))
+  mw_owner <- ifelse(
+    merged_away & last_head > 0L,
+    owner[pmax(last_head, 1L)],
+    NA_character_
+  )
+
+  # Operazioni vettorizzate (molto più veloci di mutate multiple).
+  # ATTENZIONE: i due ifelse devono restare in QUESTO ordine. Annidarli
+  # all'inverso (test esterno term_col == multiword) rende irraggiungibile il
+  # ramo NGRAM_MERGED, perché su una posizione assorbita multiword è NA e
+  # ifelse(NA, ...) restituisce NA senza valutare i rami.
   upos_multiword <- ifelse(
-    term_col == multiword,
-    x2$upos,
-    ifelse(is.na(multiword), "NGRAM_MERGED", "MULTIWORD")
+    merged_away,
+    "NGRAM_MERGED",
+    ifelse(term_col == multiword, x2$upos, "MULTIWORD")
   )
 
   # Lookup diretto invece di join (più veloce)
@@ -684,6 +711,7 @@ rake <- function(
     multiword = multiword,
     upos_multiword = upos_multiword,
     ngram = unname(ngram_values),
+    mw_owner = mw_owner,
     stringsAsFactors = FALSE
   )
 
@@ -856,17 +884,32 @@ applyRake <- function(x, rakeResults, row_sel = NULL, term = "lemma") {
     x <- x %>% select(-"ngram")
   }
 
+  # I costituenti assorbiti vengono deselezionati (POSSelected = FALSE), quindi
+  # il "Back" deve poterli riselezionare: la selezione pre-multiword viene
+  # messa da parte una volta sola, come upos_original / *_nomultiwords.
+  if (!"POSSelected_original_nomultiwords" %in% names(x)) {
+    x$POSSelected_original_nomultiwords <- x$POSSelected
+  }
+
   # Filter stats based on selected rows
   rakeResults$stats <- rakeResults$stats[row_sel, ]
   selected_keywords <- rakeResults$stats$keyword
 
   # Filter dfMW - optimized logic
+  # Le righe NGRAM_MERGED hanno multiword NA (il kernel le azzera): vanno
+  # riconosciute tramite mw_owner, la keyword che le ha assorbite. Con il
+  # vecchio test su `multiword` cadevano sempre fuori e i costituenti
+  # tornavano nel corpus accanto al multiword.
+  if (!"mw_owner" %in% names(rakeResults$dfMW)) {
+    rakeResults$dfMW$mw_owner <- NA_character_
+  }
   rakeResults$dfMW <- rakeResults$dfMW %>%
     filter(
       (upos_multiword == "MULTIWORD" & multiword %in% selected_keywords) |
-        (upos_multiword == "NGRAM_MERGED" & multiword %in% selected_keywords) |
+        (upos_multiword == "NGRAM_MERGED" & mw_owner %in% selected_keywords) |
         (!upos_multiword %in% c("MULTIWORD", "NGRAM_MERGED"))
-    )
+    ) %>%
+    select(-"mw_owner")
 
   # Select term column once (avoid switch duplication)
   term_col <- if (term == "lemma") "lemma" else "token"
@@ -1041,7 +1084,13 @@ noGroupLabels <- function(label) {
       "lemma_original",
       "upos_specialentities",
       "upos_original_custom",
-      "keyness_group"
+      "keyness_group",
+      ## derived by the Time role like keyness_group is by the Keyness one:
+      ## without it, applying a Date time variable makes tall's own
+      ## aggregation key show up as a user feature in Filters, Groups
+      ## (where groupByMetadata would re-key the documents by it), the STM
+      ## covariate list and Feature Roles itself
+      "time_agg"
     )
   )
 }

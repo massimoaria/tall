@@ -742,9 +742,12 @@ collocationServer <- function(input, output, session, values, statsValues) {
     }
 
     # Mark matches
+    # !is.na() first: comparing an NA term with the query yields NA, not FALSE,
+    # and buildDocumentHTML() branches on this value per token. A token whose
+    # lemma the annotator could not resolve is simply not a match.
     doc_df <- doc_df %>%
       mutate(
-        is_match = search_col == query_lower
+        is_match = !is.na(search_col) & search_col == query_lower
       )
 
     # Build HTML with highlighted terms
@@ -1217,7 +1220,10 @@ buildDocumentHTML <- function(doc_df, term_col) {
           token <- tokens[j]
           is_match <- matches[j]
 
-          if (is_match) {
+          # isTRUE(): `if (NA)` is an error, so an NA here would abort the whole
+          # modal. The caller already resolves NA terms to FALSE; this keeps the
+          # function total for any other caller.
+          if (isTRUE(is_match)) {
             # Highlight matched token
             paste0(
               '<span style="background-color: #ffeb3b; font-weight: bold; padding: 2px 4px; border-radius: 3px;">',

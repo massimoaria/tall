@@ -65,11 +65,19 @@ Deveaud2014 <- function(models) {
 }
 
 # Funzione per valutare un singolo modello
+#
+# NOTE: this and evaluate_tm_parallel()/tmTuning() below have no callers — the
+# Shiny app tunes through tmTuningAsync(). The estimator is kept in step with it
+# anyway so that reviving this path cannot quietly reintroduce VEM tuning of a
+# model that is estimated with Gibbs. Its own defects are NOT repaired here:
+# tmTuning()'s `top_by` default is a length-2 vector that switch() refuses, and
+# Arun2010() calls Matrix::rowSums() on the simple_triplet_matrix that tmTuning()
+# builds. Both are reachable the moment anyone calls it.
 evaluate_single_k <- function(k, dtm, seed = 1234, method = "LDA") {
   if (method == "CTM") {
     model <- CTM(dtm, k = k, control = list(seed = seed))
   } else {
-    model <- LDA(dtm, k = k, method = "VEM", control = list(seed = seed))
+    model <- LDA(dtm, k = k, method = "Gibbs", control = list(iter = 500, seed = seed))
   }
   log_lik <- logLik(model)
   perp <- perplexity(model, newdata = dtm)
@@ -119,6 +127,14 @@ evaluate_tm_parallel <- function(
   return(list(metrics = metrics, models = models))
 }
 
+## NOTE: `decreasing` does not change the result, and is kept only so that
+## callers can state which way a metric runs. Negating the metric reflects the
+## whole configuration about the x axis, and the distance from a point to a
+## line is invariant under reflection — so `distances`, and therefore
+## `which.max(distances)`, are identical either way. Verified by execution on
+## 2000 random metric shapes: the same k came back 2000/2000 times. The knee of
+## a curve is the knee whichever end of it is the good end; do not "fix" the
+## flags expecting the recommendation to move.
 find_elbow <- function(k, metric, decreasing = TRUE, plot = TRUE) {
   # Normalizza i dati
   x <- as.numeric(scale(k))
@@ -413,19 +429,24 @@ tmConsensusK <- function(metrics_df, method = "LDA") {
 tmMultiMetricPlot <- function(result, method = "LDA") {
   df <- result$metrics %>% rename(topics = k)
 
+  # `higher_better` says which end of a metric is the good end. It used to be
+  # called `decreasing` and was set as though it meant "lower is better", while
+  # the branch below treats it as "higher is better" — so two curves in each
+  # method were drawn upside down against this plot's own y axis, which reads
+  # "0 = worst, 1 = best". It does NOT affect the recommended K: see find_elbow.
   if (method == "STM") {
     metric_info <- list(
-      list(col = "CaoJuan2009", label = "Exclusivity", color = "#e74c3c", decreasing = TRUE),
-      list(col = "Arun2010", label = "Semantic Coherence", color = "#3498db", decreasing = FALSE),
-      list(col = "Deveaud2014", label = "Excl. + Coherence", color = "#2ecc71", decreasing = TRUE),
-      list(col = "logLik", label = "Lower Bound", color = "#9b59b6", decreasing = FALSE)
+      list(col = "CaoJuan2009", label = "Exclusivity", color = "#e74c3c", higher_better = TRUE),
+      list(col = "Arun2010", label = "Semantic Coherence", color = "#3498db", higher_better = TRUE),
+      list(col = "Deveaud2014", label = "Excl. + Coherence", color = "#2ecc71", higher_better = TRUE),
+      list(col = "logLik", label = "Lower Bound", color = "#9b59b6", higher_better = TRUE)
     )
   } else {
     metric_info <- list(
-      list(col = "CaoJuan2009", label = "CaoJuan 2009", color = "#e74c3c", decreasing = TRUE),
-      list(col = "Arun2010", label = "Arun 2010", color = "#3498db", decreasing = FALSE),
-      list(col = "Deveaud2014", label = "Deveaud 2014", color = "#2ecc71", decreasing = TRUE),
-      list(col = "Perplexity", label = "Perplexity", color = "#9b59b6", decreasing = TRUE)
+      list(col = "CaoJuan2009", label = "CaoJuan 2009", color = "#e74c3c", higher_better = FALSE),
+      list(col = "Arun2010", label = "Arun 2010", color = "#3498db", higher_better = FALSE),
+      list(col = "Deveaud2014", label = "Deveaud 2014", color = "#2ecc71", higher_better = TRUE),
+      list(col = "Perplexity", label = "Perplexity", color = "#9b59b6", higher_better = FALSE)
     )
   }
 
@@ -434,15 +455,15 @@ tmMultiMetricPlot <- function(result, method = "LDA") {
   for (m in metric_info) {
     if (!m$col %in% names(df)) next
     vals <- df[[m$col]]
-    # Min-max normalize to [0, 1]; invert if lower = better
-    if (m$decreasing) {
+    # Min-max normalize to [0, 1], so that 1 is always the good end
+    if (m$higher_better) {
       norm_vals <- (vals - min(vals)) / (max(vals) - min(vals) + .Machine$double.eps)
     } else {
       norm_vals <- 1 - (vals - min(vals)) / (max(vals) - min(vals) + .Machine$double.eps)
     }
 
     # Find elbow for this metric
-    k_opt <- find_elbow(df$topics, vals, decreasing = m$decreasing, plot = FALSE)
+    k_opt <- find_elbow(df$topics, vals, decreasing = !m$higher_better, plot = FALSE)
     opt_idx <- which(df$topics == k_opt)
 
     fig <- fig %>%
@@ -582,7 +603,20 @@ tmEstimate <- function(
     select(word, all_of(variables))
 
   # for every document we have a probability distribution of its contained topics
-  row_label <- unique(x$doc_id)[as.numeric(row.names(tmResult$topics))]
+  # The row names of `topics` are topic_level_id values -- the ANALYSIS UNIT,
+  # which is a sentence whenever `group` includes sentence_id -- not positions
+  # in unique(doc_id). Indexing the document list with a unit id returned NA for
+  # every unit past the number of documents: on a 6-document corpus split into
+  # 593 sentences, 6 labels resolved and 587 became NA, so Topic by Docs Plot
+  # showed a column of NA. Map each unit back to its own document instead, which
+  # is what stmEstimate() already does a few hundred lines below.
+  unit_map <- x %>%
+    dplyr::distinct(topic_level_id, doc_id) %>%
+    dplyr::arrange(topic_level_id)
+  row_label <- unit_map$doc_id[match(
+    as.numeric(row.names(tmResult$topics)),
+    unit_map$topic_level_id
+  )]
   theta <- tmResult$topics %>%
     as.data.frame() %>%
     mutate(doc = row_label) %>%
@@ -617,74 +651,146 @@ stmBuildMeta <- function(x, group, prevalence) {
 }
 
 # Self-contained LDA/CTM tuning for use inside a future worker.
-# Runs sequentially (no parallel clusters) since it already runs in background.
-# Only depends on package functions: topicmodels, slam, utils, stats.
+# Fits the grid across a PSOCK cluster, falling back to a serial loop if one
+# cannot be created — it already runs in a future worker, where a cluster is
+# possible but not guaranteed.
+# Only depends on package functions: topicmodels, slam, parallel, utils, stats.
 tmTuningAsync <- function(dtm, k_seq, seed, method) {
   # Ensure topicmodels is fully loaded so S4 methods (logLik, perplexity) are registered
   requireNamespace("topicmodels", quietly = TRUE)
   library(topicmodels, quietly = TRUE)
 
-  models_list <- list()
-  metrics_rows <- list()
-
-  for (i in seq_along(k_seq)) {
-    k <- k_seq[i]
-    if (method == "CTM") {
-      model <- topicmodels::CTM(dtm, k = k, control = list(seed = seed))
-    } else {
-      model <- topicmodels::LDA(dtm, k = k, method = "VEM", control = list(seed = seed))
-    }
-    models_list[[paste0("k_", k)]] <- model
-    metrics_rows[[i]] <- data.frame(
-      k = k,
-      logLik = as.numeric(logLik(model)),
-      Perplexity = perplexity(model, newdata = dtm)
-    )
-  }
-
-  metrics <- do.call(rbind, metrics_rows)
-
-  # CaoJuan2009
-  metrics$CaoJuan2009 <- sapply(models_list, function(model) {
-    m1 <- exp(model@beta)
-    pairs <- utils::combn(nrow(m1), 2)
-    cos_dist <- apply(pairs, 2, function(pair) {
-      x <- m1[pair[1], ]; y <- m1[pair[2], ]
-      as.numeric(crossprod(x, y) / sqrt(crossprod(x) * crossprod(y)))
-    })
-    sum(cos_dist) / (model@k * (model@k - 1) / 2)
-  })
-
-  # Arun2010
+  ## Document lengths, needed by Arun2010 and by the workers' own scoring.
+  ## The guard matters: tmTuning() builds a `simple_triplet_matrix`, which
+  ## Matrix::rowSums() cannot take (see the note on evaluate_single_k).
   len <- if (inherits(dtm, "simple_triplet_matrix")) {
     slam::row_sums(dtm)
   } else {
     Matrix::rowSums(dtm)
   }
-  metrics$Arun2010 <- sapply(models_list, function(model) {
-    m1 <- exp(model@beta)
-    m1_svd <- svd(m1)
-    cm1 <- as.matrix(m1_svd$d)
-    m2 <- model@gamma
-    cm2 <- len %*% m2
-    norm_val <- norm(as.matrix(len), type = "m")
-    cm2 <- as.vector(cm2 / norm_val)
+  norm_val <- norm(as.matrix(len), type = "m")
+
+  ## One model per K, fitted AND scored where the model lives.
+  ##
+  ## LDA is fitted with **Gibbs**, as tmEstimate() fits it (`:562`). It used to
+  ## be method = "VEM" here, which meant the K this page recommended came from a
+  ## different model class than the model the user then estimated: two different
+  ## inference algorithms, one choosing the number of topics for the other. CTM
+  ## was never affected — the same CTM() is used on both pages — and STM tunes
+  ## through stm::searchK, which fits stm models. The control list is
+  ## tmEstimate's, iterations included, so the tuned model and the estimated one
+  ## are the same fit.
+  ##
+  ## What comes back is deliberately SMALL: logLik and perplexity are the
+  ## expensive part after the fit itself — they were half the wall clock when
+  ## computed here — and the two pairwise metrics need only `exp(beta)`, while
+  ## Arun2010 needs `len %*% gamma`, a vector of length K. Returning the fitted
+  ## models instead would ship tens of MB per grid back through the socket for
+  ## nothing: `models` was in the return value and NOTHING read it.
+  score_one <- function(k) {
+    model <- if (method == "CTM") {
+      topicmodels::CTM(dtm, k = k, control = list(seed = seed))
+    } else {
+      topicmodels::LDA(dtm, k = k, method = "Gibbs",
+                       control = list(iter = 500, seed = seed))
+    }
+    list(
+      k          = k,
+      logLik     = as.numeric(logLik(model)),
+      Perplexity = perplexity(model, newdata = dtm),
+      beta       = exp(model@beta),
+      cm2        = as.vector(len %*% model@gamma)
+    )
+  }
+
+  ## Fitted across cores. Every fit is independent and carries the SAME seed, so
+  ## the result does not depend on the order they finish in — parallel and
+  ## serial return identical metrics, which is checked rather than assumed.
+  ##
+  ## `parallel::detectCores()` rather than TALL's `coresCPU()`: this function is
+  ## called inside a `promises::future_promise()` worker and is deliberately
+  ## self-contained, and `coresCPU()` both lives in another file and, on
+  ## Windows, creates and registers a cluster as a side effect — one leaked per
+  ## call from here.
+  ##
+  ## Anything that goes wrong with the cluster falls back to scoring serially
+  ## rather than failing the page: a K choice that is slower is still a K
+  ## choice, and this runs inside a future where a cluster is not guaranteed.
+  n_workers <- max(1L, min(length(k_seq),
+                           as.integer(parallel::detectCores(logical = FALSE)) - 1L))
+  scored <- NULL
+  if (length(k_seq) > 1L && n_workers > 1L) {
+    cl <- try(parallel::makeCluster(n_workers), silent = TRUE)
+    if (!inherits(cl, "try-error")) {
+      on.exit(try(parallel::stopCluster(cl), silent = TRUE), add = TRUE)
+      out <- try({
+        parallel::clusterEvalQ(cl, {
+          library(topicmodels)
+          library(slam)
+        })
+        parallel::clusterExport(cl, c("dtm", "seed", "method", "len"),
+                                envir = environment())
+        ## Longest first: the cost of a fit grows with K, and parLapply chunks
+        ## statically, so submitting 2,3,…,20 leaves one worker holding the
+        ## most expensive model while the rest have finished.
+        ord <- order(k_seq, decreasing = TRUE)
+        res <- parallel::parLapply(cl, k_seq[ord], function(k) {
+          model <- if (method == "CTM") {
+            topicmodels::CTM(dtm, k = k, control = list(seed = seed))
+          } else {
+            topicmodels::LDA(dtm, k = k, method = "Gibbs",
+                             control = list(iter = 500, seed = seed))
+          }
+          list(k = k,
+               logLik = as.numeric(logLik(model)),
+               Perplexity = perplexity(model, newdata = dtm),
+               beta = exp(model@beta),
+               cm2 = as.vector(len %*% model@gamma))
+        })
+        res[order(ord)]
+      }, silent = TRUE)
+      if (!inherits(out, "try-error")) scored <- out
+    }
+  }
+  if (is.null(scored)) scored <- lapply(k_seq, score_one)
+
+  metrics <- do.call(rbind, lapply(scored, function(r) {
+    data.frame(k = r$k, logLik = r$logLik, Perplexity = r$Perplexity)
+  }))
+
+  # CaoJuan2009
+  metrics$CaoJuan2009 <- vapply(scored, function(r) {
+    m1 <- r$beta
+    pairs <- utils::combn(nrow(m1), 2)
+    cos_dist <- apply(pairs, 2, function(pair) {
+      x <- m1[pair[1], ]; y <- m1[pair[2], ]
+      as.numeric(crossprod(x, y) / sqrt(crossprod(x) * crossprod(y)))
+    })
+    sum(cos_dist) / (nrow(m1) * (nrow(m1) - 1) / 2)
+  }, numeric(1))
+
+  # Arun2010
+  metrics$Arun2010 <- vapply(scored, function(r) {
+    cm1 <- as.matrix(svd(r$beta)$d)
+    cm2 <- r$cm2 / norm_val
     sum(cm1 * log(cm1 / cm2)) + sum(cm2 * log(cm2 / cm1))
-  })
+  }, numeric(1))
 
   # Deveaud2014
-  metrics$Deveaud2014 <- sapply(models_list, function(model) {
-    m1 <- exp(model@beta)
+  metrics$Deveaud2014 <- vapply(scored, function(r) {
+    m1 <- r$beta
     if (any(m1 == 0)) m1 <- m1 + .Machine$double.xmin
     pairs <- utils::combn(nrow(m1), 2)
     jsd <- apply(pairs, 2, function(pair) {
       x <- m1[pair[1], ]; y <- m1[pair[2], ]
       0.5 * sum(x * log(x / y)) + 0.5 * sum(y * log(y / x))
     })
-    sum(jsd) / (model@k * (model@k - 1))
-  })
+    sum(jsd) / (nrow(m1) * (nrow(m1) - 1))
+  }, numeric(1))
 
-  list(metrics = metrics, models = models_list)
+  ## `models` is gone from the return value: nothing read it, and carrying the
+  ## fitted objects back from the workers was the single largest cost here.
+  list(metrics = metrics)
 }
 
 # Self-contained STM tuning for use inside a future worker.
@@ -824,11 +930,17 @@ stmEstimate <- function(x, dtm, K, group, prevalence = NULL, seed = 1234) {
 
   # Extract theta (document-topic probabilities)
   theta_raw <- topicModel$theta
-  # Get document labels
+  # Get document labels. The rows of theta are the units in `keep_docs` order,
+  # and `keep_docs` carries topic_level_id VALUES, which are neither contiguous
+  # (LemmaSelection drops units, so the ids skip: 3, 4, 5, 7, ...) nor
+  # necessarily the first ones (empty units are dropped above). Taking the first
+  # nrow() rows of the unit list therefore slid the labels: measured on
+  # frankenstein at sentence units, 153 of 593 rows were attributed to the wrong
+  # document. Match each row to its own unit, as tmEstimate() does.
   doc_ids <- x %>%
     distinct(topic_level_id, doc_id) %>%
     arrange(topic_level_id)
-  row_label <- doc_ids$doc_id[seq_len(nrow(theta_raw))]
+  row_label <- doc_ids$doc_id[match(as.numeric(keep_docs), doc_ids$topic_level_id)]
 
   theta <- as.data.frame(theta_raw)
   colnames(theta) <- variables

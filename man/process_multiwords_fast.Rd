@@ -14,7 +14,10 @@ process_multiwords_fast(x2, stats, term = c("lemma", "token"))
 \item{term}{Type of term to process: "lemma" or "token"}
 }
 \value{
-Data frame with columns: doc_id, term_id, multiword, upos_multiword, ngram
+Data frame with columns: doc_id, term_id, multiword, upos_multiword,
+ngram, mw_owner (the keyword that absorbed a NGRAM_MERGED position, NA
+elsewhere — \code{applyRake()} needs it to keep the constituents of the
+selected keywords only)
 }
 \description{
 Complete optimized workflow for multiword detection and processing.

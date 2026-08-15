@@ -471,16 +471,26 @@ settingsServer <- function(input, output, session, values, statsValues) {
       selectInput(
         inputId = "gemini_api_model",
         label = "Select the Gemini Model",
-        choices = c(
-          "Gemini 2.5 Flash" = "2.5-flash",
-          "Gemini 2.5 Flash Lite" = "2.5-flash-lite",
-          "Gemini 3.0 Flash" = "3-flash-preview",
-          "Gemini 3.1 Pro" = "3.1-pro-preview",
-          "Gemini Pro Latest" = "pro-latest"
+        ## Two rules, both learned the hard way (2026-08-15):
+        ##  - no PREVIEW ids. "3-flash-preview" and "3.1-pro-preview" were
+        ##    offered here and carry their own expiry date.
+        ##  - the 2.5 pair is no longer anyone's default. Google stopped
+        ##    serving it to newly created API keys, so a new user starting
+        ##    there could not run a single analysis. Keys made before the
+        ##    cut-off still reach it, so it stays selectable under Legacy.
+        ## `-latest` aliases are the only ids that cannot go stale.
+        choices = list(
+          "Gemini 3.5 Flash Lite" = "3.5-flash-lite",
+          "Gemini Flash Latest" = "flash-latest",
+          "Gemini Pro Latest" = "pro-latest",
+          "Legacy (older API keys only)" = c(
+            "Gemini 2.5 Flash" = "2.5-flash",
+            "Gemini 2.5 Flash Lite" = "2.5-flash-lite"
+          )
         ),
         selected = ifelse(
           is.null(values$gemini_api_model),
-          "2.5-flash-lite",
+          "3.5-flash-lite",
           values$gemini_api_model
         )
       ),
@@ -507,18 +517,29 @@ settingsServer <- function(input, output, session, values, statsValues) {
         ))
       ),
       conditionalPanel(
-        condition = "input.gemini_api_model == '3-flash-preview'",
+        condition = "input.gemini_api_model == '3.5-flash-lite'",
+        helpText(strong("Free Tier Rate Limits:")),
+        helpText(em(
+          "Request per Minutes: 15",
+          tags$br(),
+          "Requests per Day: 500",
+          tags$br(),
+          "Latency time: Low"
+        ))
+      ),
+      conditionalPanel(
+        condition = "input.gemini_api_model == 'flash-latest'",
         helpText(strong("Free Tier Rate Limits:")),
         helpText(em(
           "Request per Minutes: 10",
           tags$br(),
-          "Requests per Day: 500",
+          "Requests per Day: 250",
           tags$br(),
           "Latency time: Medium"
         ))
       ),
       conditionalPanel(
-        condition = "input.gemini_api_model == '3.1-pro-preview' || input.gemini_api_model == 'pro-latest'",
+        condition = "input.gemini_api_model == 'pro-latest'",
         helpText(strong(style = "color: #d9534f;", "Paid API Key Required")),
         helpText(em(
           "Pro models require a paid (non-free tier) API key.",
@@ -532,14 +553,18 @@ settingsServer <- function(input, output, session, values, statsValues) {
   observeEvent(input$gemini_api_model, {
     if (!is.null(input$gemini_api_model)) {
       saveGeminiModel(
-        model = c(input$gemini_api_model, input$gemini_output_model),
-        file = paste0(homeFolder(), "/.tall_gemini_model.txt", collapse = "")
+        ## `input$gemini_output_model` does not exist (the control is
+        ## `gemini_output_size`), so this used to write a one-line file and
+        ## drop the output size. And the file went to ~/ while resetValues()
+        ## reads ~/tall/ — so nothing chosen here ever survived a restart.
+        model = c(input$gemini_api_model, input$gemini_output_size),
+        file = geminiModelFile()
       )
       values$gemini_api_model <- input$gemini_api_model
       values$gemini_output_size <- input$gemini_output_size
 
       # Alert for Pro models requiring paid API key
-      if (input$gemini_api_model %in% c("3.1-pro-preview", "pro-latest")) {
+      if (input$gemini_api_model %in% c("pro-latest")) {
         showModal(modalDialog(
           title = "Paid API Key Required",
           tags$p("The selected Pro model requires a ", tags$strong("paid (non-free tier)"), " Google AI API key."),
@@ -556,7 +581,7 @@ settingsServer <- function(input, output, session, values, statsValues) {
     if (!is.null(input$gemini_output_size)) {
       saveGeminiModel(
         model = c(input$gemini_api_model, input$gemini_output_size),
-        file = paste0(homeFolder(), "/.tall_gemini_model.txt", collapse = "")
+        file = geminiModelFile()
       )
       values$gemini_api_model <- input$gemini_api_model
       values$gemini_output_size <- input$gemini_output_size
@@ -586,21 +611,29 @@ settingsServer <- function(input, output, session, values, statsValues) {
       output$status <- renderText("\u231b Validating API key...")
     })
 
-    # Async: validate key via API call in background
+    ## Async: validate the key against the model CATALOGUE, in background.
+    ##
+    ## It used to send a generateContent "Hello" to a hard-coded "2.5-flash"
+    ## and then collapse ANY status from 100 to 599 with
+    ## grepl("HTTP\\s*[1-5][0-9]{2}") into one message — so a retired-model 404,
+    ## a 429 quota, a 503 overload and a genuine bad key all came out as "API
+    ## key seems be not valid". When Google stopped serving 2.5 to new keys,
+    ## that made every new user's perfectly good key look rejected
+    ## (bibliometrix PR #637, same defect).
+    ##
+    ## geminiValidateKey() asks about the KEY (does the catalogue come back?)
+    ## and about the MODEL (is the chosen one in it?) separately, and returns
+    ## Google's own message when it refuses.
+    chosen <- values$gemini_api_model
     promises::future_promise({
-      apiCheck <- gemini_ai(
-        image = NULL, prompt = "Hello", model = "2.5-flash",
-        type = "png", retry_503 = 5, api_key = key
-      )
-      contains_error <- grepl("HTTP\\s*[1-5][0-9]{2}", apiCheck)
-      list(valid = !contains_error, key = key)
+      res <- geminiValidateKey(key, model = chosen)
+      list(valid = res$valid, key = key, message = res$message,
+           model_available = res$model_available)
     }, seed = TRUE) %...>%
       (function(result) {
         if (!result$valid) {
           output$apiStatus <- renderUI({
-            output$status <- renderText(
-              "\u274c API key seems be not valid! Please, check it or your connection."
-            )
+            output$status <- renderText(result$message)
           })
           values$geminiAPI <- FALSE
         } else {
@@ -614,9 +647,20 @@ settingsServer <- function(input, output, session, values, statsValues) {
             paste0(rep("*", nchar(result$key) - 4), collapse = ""),
             last4
           )
+          ## the key is good either way; the model is a separate sentence, so
+          ## a wrong choice is discovered HERE and not as a 404 at the first
+          ## analysis
+          note <- if (isFALSE(result$model_available)) {
+            paste0(
+              "\n\u26a0 The selected model (gemini-", chosen,
+              ") is not available for this API key. Please pick another one above."
+            )
+          } else {
+            ""
+          }
           output$apiStatus <- renderUI({
             output$status <- renderText(
-              paste0("\u2705 API key has been set: ", masked)
+              paste0("\u2705 API key has been set: ", masked, note)
             )
           })
           values$geminiAPI <- TRUE

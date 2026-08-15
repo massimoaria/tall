@@ -336,7 +336,13 @@ switch_docs <- function(m, indices, max_index, max_chisq) {
 
     if (current_max > max_chisq) {
       switched <- TRUE
-      to_switch <- indices[which.max(chisq_values)]
+      # chisq_values positions refer to the CURRENT rows of tab1/tab2, i.e. to
+      # c(group1, group2): after the first switch this differs from `indices`,
+      # so the lookup must use the current group order. Using `indices` here
+      # switched the wrong document and made the result depend on the
+      # arbitrary sign of the SVD in order_docs().
+      current_order <- c(group1, group2)
+      to_switch <- current_order[which.max(chisq_values)]
       if (to_switch %in% group1) {
         group1 <- group1[group1 != to_switch]
         group2 <- c(group2, to_switch)

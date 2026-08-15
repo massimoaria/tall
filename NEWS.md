@@ -1,5 +1,353 @@
 # tall (development version)
 
+* Bug fix (Settings > Tall AI): **a valid Gemini API key was reported as
+  refused, and a new user could not run TALL AI at all.** Key validation sent a
+  real `generateContent` request to a hard-coded `gemini-2.5-flash`
+  (`settings.R`), and Google has stopped serving the 2.5 family to newly created
+  API keys — so the probe returned `404 ... no longer available to new users`
+  and the app said "API key seems be not valid", whatever model was selected.
+  The first-run default was `2.5-flash` too (`loadGeminiModel()`), so even a key
+  that got through had nothing it could call. Same defect as bibliometrix #637,
+  found by carrying that fix across.
+  - **Validation is now model-agnostic**: the new `.geminiAvailableModels()`
+    asks for the model CATALOGUE (`GET /v1beta/models`) instead of invoking a
+    model, so no future retirement can break it. `geminiValidateKey()` returns
+    the key's verdict and the chosen model's availability as two separate
+    answers.
+  - **The selected model is checked**: if it is not in the catalogue for that
+    key, Settings says so — instead of letting the user discover it as an HTTP
+    404 at the first analysis.
+  - **Errors are told apart.** `grepl("HTTP\\s*[1-5][0-9]{2}")` collapsed every
+    status from 100 to 599 into one "invalid key" message; 400/401 now mention
+    the key, 403 a permission, 404 the model, and a transport failure says it is
+    a connection problem. `req_error()` also lets Google's own message through:
+    `resp_body_string()` was being handed a hand-built list, so the real reason
+    was never shown.
+  - **A connection failure no longer crashes the check.** The connection-level
+    branch in `gemini_ai()` was commented out, leaving `status_code = NA`, so
+    `if (resp$status_code == 400)` evaluated `if (NA)` and the user saw
+    *"missing value where TRUE/FALSE needed"* instead of "there is no network".
+  - **Defaults moved off the retired family** to `gemini-3.5-flash-lite`
+    (transport default, first-run default and model selector). A stored
+    `2.5-flash` — which was the old default rather than anyone's choice — is
+    carried forward; a deliberately chosen `2.5-flash-lite` is kept. The 2.5
+    pair stays selectable under a **Legacy** group, since keys created before
+    the cut-off still reach it.
+  - **Preview ids removed from the selector** (`3-flash-preview`,
+    `3.1-pro-preview`): they carry their own expiry date. `gemini-flash-latest`
+    added.
+  - `setGeminiAPI()` removed: unreachable (no callers anywhere in the package)
+    and a duplicate of the same faulty probe. `abstractive_summary()`, also
+    unreachable and superseded by the inline block in `documents.R`, had its own
+    stale `2.0-flash` default corrected and is now marked as superseded.
+
+* Bug fix (Documents > Topic Modeling > Find optimal K): **the page tuned LDA
+  with a different algorithm from the one that then estimates the model.**
+  `tmTuningAsync()` fitted `LDA(dtm, k, method = "VEM")` while `tmEstimate()`
+  fits `LDA(dtm, K, method = "Gibbs", control = list(iter = 500, seed = seed))`,
+  so the number of topics a user was shown had been chosen for a model class
+  they never fitted — two different inference algorithms, one picking K for the
+  other. CTM was never affected (the same `CTM()` runs on both pages) and STM
+  tunes through `stm::searchK`, which fits stm models. The tuning now uses
+  `method = "Gibbs"` with `tmEstimate()`'s own control list, iterations
+  included, so the model that is scored and the model that is estimated are the
+  same fit. ⚠ **The recommended K will change on existing corpora** — that is
+  the point of the fix, not a side effect. `evaluate_single_k()` is kept in
+  step for the same reason, although nothing calls it.
+
+* Performance (Documents > Topic Modeling > Find optimal K): the grid is fitted
+  **across cores** instead of one model after another, and each worker now also
+  computes its own model's `logLik` and `perplexity` — which were half the wall
+  clock when they were left to the calling process — returning only the numbers
+  the metrics need (`exp(beta)` and `len %*% gamma`, a vector of length K)
+  rather than the fitted model. Measured on a 22,053-unit corpus over the
+  default grid K = 2..20: **36.7s to 5.8s, 6.4x**. The metrics come back
+  bit-identical, which is what makes the change safe to describe as
+  performance: every fit is independent and carries the same seed, so the
+  result cannot depend on the order the workers finish in. If a cluster cannot
+  be created the grid is fitted serially rather than the page failing, and on a
+  grid small enough to finish instantly the cluster's own start-up dominates
+  (0.2s to 0.4s on a 593-unit corpus over K = 2..6). `tmTuningAsync()` no
+  longer returns the fitted `models`: nothing read them, and carrying them back
+  through the socket was the single largest cost.
+
+* Bug fix (Documents > Topic Modeling > Find optimal K): on the "Multi-Metric
+  Comparison" chart, two of the four curves were drawn upside down against the
+  chart's own y axis, which reads "Normalized Score (0 = worst, 1 = best)".
+  `tmMultiMetricPlot()` carried a per-metric flag named `decreasing` and its
+  normalisation branch treated that flag as "higher is better", while the flags
+  themselves had been assigned as though it meant "lower is better". Under LDA
+  and CTM this put the best K of **CaoJuan2009** and of **Perplexity** — both
+  minimised — at the BOTTOM of a chart that says the bottom is worst; under STM
+  it did the same to **Semantic Coherence** and to the **Lower Bound**, both of
+  which are maximised. A reader comparing curves was therefore reading two of
+  them backwards. The flag is now `higher_better`, set from what each metric
+  actually wants, and 1 is the good end for every curve on both branches
+  (verified by execution: all eight metrics now plot their optimum at y = 1).
+
+  The recommended K values do not change, and could not have: `find_elbow()`
+  ignores its `decreasing` argument. Negating the metric reflects the whole
+  configuration about the x axis, and the distance from a point to a line is
+  invariant under reflection, so `which.max(distances)` returns the same index
+  either way — confirmed on 2000 random metric shapes, identical 2000/2000, and
+  on the patch itself, where every K came back unchanged. The argument is kept,
+  because it documents which way a metric runs, but it is now labelled as
+  having no effect so that nobody "fixes" the flags expecting a different K.
+
+* Documentation fix (Documents > Topic Modeling > Find optimal K): the
+  "K Recommendation" tab described Deveaud 2014 as "Jensen-Shannon divergence
+  between topic pairs. Lower = more separated topics." A divergence is larger
+  when distributions are further apart, which is why Deveaud 2014 is maximised;
+  the sentence said the opposite of both the statistic and the code beside it.
+
+* Bug fix (Documents > Topic Modeling > Model Estimation): the document labels
+  of `theta` were wrong under every estimation method, and the two branches were
+  wrong in two different ways. `tmEstimate()` (LDA and CTM) labelled each row
+  with `unique(x$doc_id)[as.numeric(row.names(tmResult$topics))]`, but those row
+  names are `topic_level_id` values — the ANALYSIS UNIT, a sentence whenever
+  `group` includes `sentence_id` — not positions in the list of documents, so
+  indexing the document vector with a unit id returned `NA` for every unit past
+  the number of documents and misattributed the few that did resolve. Measured
+  on `mobydick` at sentence units (836 units, 10 documents): 826 of 836 labels
+  were `NA`, and of the 10 that were not, only ONE was right. `stmEstimate()`
+  took the first `nrow(theta)` entries of the unit list instead, which slides the
+  labels as soon as the unit ids are not the leading ones — they are neither
+  contiguous (`LemmaSelection()` drops units, so the ids skip: 3, 4, 5, 7, …) nor
+  guaranteed to start at 1 (empty units are dropped before the fit). Measured on
+  `frankenstein` at sentence units, 153 of 593 rows were attributed to the wrong
+  document — silently, since no label came back `NA`. The visible symptom of both
+  is "Topic by Docs Plot", whose y axis became a column of `NA` under LDA/CTM and
+  a plausible but wrong set of documents under STM. It went unnoticed because the
+  "Topics" selector defaults to Docs, where unit ids and document positions
+  coincide. Each row is now matched back to its own unit.
+
+* Bug fix (Import > Wikipedia pages): nothing on this path was URL-encoded, and
+  each of the three consequences was reachable from the ordinary use of the
+  menu. A page whose title contains a non-ASCII character — `Zürich`, `Café`,
+  `Pokémon` — made the API answer *400 Bad Request*, and because one failing
+  page stops the extraction loop, a single such hit among the results left the
+  import with nothing. A search phrase containing `&` had everything after it
+  read as a new API parameter, so the query silently ran on the truncated
+  phrase. And a phrase containing an en dash was turned into one containing a
+  literal space by `wikiSearch()`'s own `gsub("–", " ", …)`, which makes the URL
+  illegal and aborts the import with a connection error rather than the
+  "No results found!" message. Both the search phrase and the page title are now
+  passed through `URLencode(reserved = TRUE)`.
+
+* Bug fix (Documents > Summarization > Extractive): `textrankDocument()` joined
+  the ranked sentences back to the corpus by the TEXT of the sentence
+  (`by = c("sentence")`), not by its id. Any document that repeats a sentence
+  therefore produced a many-to-many join: a text said k times contributed k^2
+  rows instead of k, and every copy inherited every paragraph that carries that
+  text. Because `nrow(s)` is what `abstractingDocument()` takes its slider
+  percentages of, the summary length moved with the duplication as well. On the
+  `usairlines` collection a four-sentence tweet whose text repeats three times
+  was rendered as ten sentences; `mobydick_ita` repeats 819 of its 12,356. The
+  join now uses the sentence id, as the neighbouring `highlightSentences()`
+  already did.
+
+* Bug fix (Documents > Summarization > Extractive): the view failed on a grouped
+  corpus, on its own default setting. "Summarize: Documents" lists original
+  document ids (`ids()` un-groups before listing), while the summary ran on
+  `values$dfTag`, still keyed by group — so the selected id was absent from the
+  data and the view stopped inside `textrank_sentences()` with
+  `nrow(data) > 1 is not TRUE`. Grouping under FEATURES and pressing Run was
+  enough to reach it. The frame is now un-grouped whenever the unit is not
+  "Groups".
+
+* Bug fix (Settings > Tall AI): the chosen Gemini model and output size were
+  never remembered. They were written to `~/.tall_gemini_model.txt` and read
+  back from `~/tall/.tall_gemini_model.txt` — a different file — so every
+  session started on `2.5-flash` / `medium` whatever the user had picked. Two
+  further defects in the same path: the model observer saved
+  `input$gemini_output_model`, an input that does not exist (the control is
+  `gemini_output_size`), so choosing a model also dropped the output size; and
+  `loadGeminiModel()` tested `length(model == 1)` — the length of a *logical*
+  vector, hence always at least 1 — so it appended a third element to an
+  already complete pair. There is now a single `geminiModelFile()` used by both
+  the writer and the reader.
+
+* Bug fix (Settings > Working Folder): "Clean Model Cache" removed the whole
+  `~/tall` folder, not the model cache. It took the Gemini API key
+  (`.tall_gemini_key.txt`), the graph-export settings
+  (`.tall_graph_settings.txt`), the working-folder pointer (`tallWD.tall`) and
+  any `.tall` project the user had saved in that folder — none of which can be
+  downloaded again — under a button that names only the models. It now removes
+  `~/tall/language_models` and says so, and the alert states what has been kept.
+
+* Bug fix (start-up): an empty or blank `~/tall/tallWD.tall` aborted the session
+  with `argument is of length zero`. `readLines()` of an empty file returns
+  `character(0)`, and `file.exists(character(0))` returns `logical(0)`, which
+  `if` cannot evaluate — and `wdFolder()` is called from `resetValues()` before
+  there is any UI to report the error in. A blank pointer file is now treated as
+  no working folder, and removed.
+
+* Bug fix (Words > Word Embeddings > Similarity): the community-detection step
+  built its lookup table with `data.frame(as.list(membership(cluster)))`, which
+  runs `make.names()` over the vertex names. Every term that is not a syntactic
+  R name therefore lost the join that follows and was **silently dropped from
+  the network** — no warning, no gap, just a smaller plot. This is not an exotic
+  case: it covers hyphens and apostrophes (`e-mail`), a leading digit (`3d`,
+  `30`), everything TALL's own entity tagging produces (hashtags, mentions,
+  emoji, URLs) and R's reserved words, so ordinary English terms such as `next`,
+  `break`, `in` and `for` disappeared too. On the US-airlines corpus 6,789 of
+  the 16,537 selected lemmas were affected, including 2 of the 100 words the
+  view is asked to plot. The table is now built directly from the membership
+  names and every node reaches the canvas.
+
+* Bug fix (Words > Word Embeddings > Similarity): when no pair of words reached
+  the hard-coded 0.5 similarity cutoff the empty edge list reached
+  `graph_from_data_frame()`, and the view died with `Can't rename columns that
+  don't exist. Column 'V1' doesn't exist.` — a `dplyr` message with nothing to
+  connect it to the cutoff. The network now renders a single label saying that
+  no pair reaches the threshold.
+
+* Bug fix (Words > Word Embeddings > Similarity > UMAP): with a single word to
+  place, the label de-overlap routine ran `1:(nrow(df) - 1)`, which counts
+  **down** to 0, so it compared row 0 with row 1 and stopped on `missing value
+  where TRUE/FALSE needed`. Nothing can overlap with itself, and the loop is now
+  skipped in that case.
+
+* Bug fix (Words > Word Embeddings): `word2vec` keeps a `</s>` sentence-boundary
+  sentinel in its model matrix. It is not a word of the corpus and its vector is
+  essentially untrained, but every consumer read the matrix with `as.matrix()`
+  and included it: on Frankenstein its norm is 4.47 against a mean absolute
+  component of 0.81 for real terms, which made it the Min or the Max in 10 of
+  the 20 dimensions of the Training tab, shifted Kurtosis by up to 183 and
+  dropped the variance explained by PC1 from 0.591 to 0.501 — in the very chart
+  that tab exists to show. It could also surface as a neighbour in the
+  similarity network and as a row of the exported matrix. A new `w2vMatrix()`
+  accessor drops it, and all consumers go through it.
+
+* Bug fix (Documents > Supervised Classification > Download Results): the
+  export read `test_data$target`, but the model frame names that column
+  `.target_class`, and "target" is not a prefix of it, so `$` could not reach it
+  either. Two outcomes, both reproduced on a real corpus: normally `$target`
+  returned `NULL` and `tibble()` raised a recycling error **inside the download
+  handler**, so the whole .xlsx failed and none of its five sheets was written;
+  and on a corpus that happens to contain a term whose sanitised column name is
+  exactly `target` — the US-airlines tweets do — `$` resolved to that TF-IDF
+  column instead, and the file was written with numbers in the `Actual` column
+  and `Correct` false on every row. The lookup is now `[[".target_class"]]`,
+  which also cannot fall back to partial matching.
+
+* Bug fix (Documents > Supervised Classification): `ranger`'s
+  `prediction.error` was displayed as "OOB Prediction Error (%)" in the training
+  summary, the success dialog and the exported workbook. For a `probability =
+  TRUE` forest that field is the out-of-bag **Brier score**, not a
+  misclassification rate — 0.21 on the reference run, which invited reading it
+  as "21% of documents misclassified". It is now labelled and formatted as a
+  Brier score.
+
+* Bug fix (Documents > Supervised Classification): the training-set accuracy was
+  computed from **in-sample** predictions, so it is optimistically biased by
+  construction (0.92 against 0.75 on the held-out set in the reference run) and
+  read like a second, reassuring validation score. It is now labelled
+  "Train Set Accuracy (in-sample)".
+
+* Bug fix (Documents > Supervised Classification): training word embeddings from
+  this menu overwrote the shared `values$w2v_model` used by Words > Embeddings
+  with a differently parameterised, stopword-free model, while leaving
+  `values$w2v_stats` and `values$df_EmbeddingDims` describing the previous one —
+  so the embedding views silently changed under the user. The model trained here
+  is now kept inside the classification menu and the shared one is only read.
+
+* Bug fix (Documents > Supervised Classification): a failed training run left
+  the results panel showing the previous model, because the error handler did
+  not clear the `trained` flag.
+
+* Bug fix (Documents > Supervised Classification): the prerequisite check
+  aborted with "missing value where TRUE/FALSE needed" when `docSelected`
+  contained any `NA`, since `sum()` then returns `NA` and `if (NA)` is an error.
+
+* Bug fix (Features > Feature Roles): applying a keyness role to a **binary
+  variable that contains missing values** aborted with "the condition has length
+  > 1", after `keyness_group` had already been written to the corpus — so the
+  roles were applied but the confirmation never appeared. The per-group document
+  count did not drop the `NA` group, so `doc_groups$n[doc_groups$keyness_group ==
+  1]` returned two elements, the success message became a length-2 vector and the
+  final `if (success_message == "")` threw. The count now filters the missing
+  group and guards an empty one, as the multi-category branch already did.
+
+* Bug fix (Features > Feature Roles): the time and label roles were assigned
+  **before** the keyness groups were validated, and the validation aborts with
+  `return()`. Rejecting an Apply for missing or overlapping group assignments
+  therefore left a half-applied state (time and label silently assigned, keyness
+  not). The group checks now run first, so a rejected Apply changes nothing.
+
+* Bug fix (Features > Feature Roles): the category list of the keyness variable
+  was read from the raw token-level column, while the Group 1 / Group 2 pickers
+  offer the categories of the *selected* documents. With a filter active the two
+  could disagree — a variable reduced to two categories by the filter still took
+  the "more than 2 categories" branch and demanded an assignment the pickers
+  could not offer. Both now use the same document-level, filtered set.
+
+* Bug fix (Features > Feature Roles > Preview): the "Documents per period" table
+  of a date variable was ordered by ascending document count (`sort()` on a
+  `table()` sorts the counts), not chronologically.
+
+* Bug fix (Features > Feature Roles): aggregating a date-time variable by **Day**
+  did not aggregate at all — `as.character()` on a `POSIXct` keeps the clock
+  time, so every distinct second became its own period. It now formats to the
+  calendar day.
+
+* Bug fix (Features): `noGroupLabels()` did not reserve `time_agg`, the column
+  the time role derives, although it reserves `keyness_group`. After assigning a
+  date time role, tall's own aggregation key appeared as a user feature in
+  Filters, Groups (where grouping by it would re-key the documents), the topic
+  model covariates and Feature Roles itself, and its presence alone could unlock
+  the FEATURES menu.
+
+* Bug fix (Pre-processing > Multi-Word Creation / Multi-Word by a List): the
+  words absorbed into a multi-word were left in the corpus as separate tokens.
+  Merging "natural philosophy" produced the multi-word AND kept `philosophy` as
+  its own selected NOUN, so every downstream count (vocabulary, keyness,
+  networks, topic models) saw the constituents twice. Two chained causes, both
+  fixed: (1) the vectorised rewrite of the tagging step nested what used to be
+  two sequential `ifelse()` calls, and on an absorbed position `multiword` is
+  `NA`, so the outer test evaluated to `NA` and the `NGRAM_MERGED` branch became
+  unreachable — the tags now come from an explicit "was absorbed" flag, which
+  also leaves a genuinely `NA` term alone; (2) `applyRake()` kept a
+  `NGRAM_MERGED` row only when its own `multiword` was among the selected
+  keywords, but that value is `NA` on those rows by construction, so they were
+  always dropped and the join restored the original tags. The tagging step now
+  reports which keyword absorbed each position (`mw_owner`) and `applyRake()`
+  matches the constituents through it, so a partial selection keeps exactly the
+  constituents of the keywords you ticked. Constituents are now tagged
+  `NGRAM_MERGED` with `POSSelected = FALSE` — their text stays in the sentence,
+  they are only excluded from the analyses — and `rakeReset()` ("Back") restores
+  the previous selection from `POSSelected_original_nomultiwords`.
+
+* Bug fix (KWIC > In-Document Plot > View): clicking the "View" button of a
+  document whose annotation contains an unresolved lemma (`NA`) aborted the
+  document modal with "missing value where TRUE/FALSE needed". Comparing an NA
+  term with the query yields NA rather than FALSE, and `buildDocumentHTML()`
+  branches on that value once per token. The match flag now treats an
+  unresolvable term as a non-match, and the token branch uses `isTRUE()` so the
+  helper stays total for any caller. Documents without NA terms render exactly
+  as before, byte for byte. Note the table lists every selected document,
+  including those whose frequency is NA, so the button was reachable on any
+  corpus with an unresolved lemma (e.g. a single `upos = "X"` token).
+
+* Bug fix (Overview > Morphological Features): `parseMorphFeatures()` built its
+  match mask from the vector returned by `regmatches()`, which is *compacted* to
+  the matching elements only. Being all-TRUE and shorter than the input, the mask
+  was recycled when used to index the full-length result, so the extracted values
+  were sprayed cyclically across every token instead of landing on the tokens
+  that actually carry the feature. As a consequence no row was dropped as NA:
+  the feature distribution bar chart reported counts inflated to the whole
+  corpus token count (percentages were approximately right, absolute counts were
+  not) and the feature x part-of-speech cross-tabulation was meaningless. The
+  mask is now derived from `regexpr()` over the full column, so non-matching
+  tokens correctly stay NA.
+
+* Bug fix (Reinert clustering): in the greedy reallocation step (`switch_docs`),
+  the document to move was looked up in the original CA ordering instead of the
+  current group order. After the first switch this could move the wrong segment
+  and made the clustering depend on the arbitrary sign of the SVD first axis
+  (i.e., results could differ across platforms/LAPACK builds on the same data).
+  Partitions computed with previous versions may change slightly.
+
 # tall 1.0.0
 * Changelog:                                      
                                          

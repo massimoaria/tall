@@ -629,7 +629,9 @@ featureRolesServer <- function(input, output, session, values) {
   aggregateTimeVar <- function(date_values, aggregation) {
     switch(
       aggregation,
-      "day" = as.character(date_values),
+      ## as.character() on a POSIXct keeps the clock time, so "Day" produced
+      ## one period per second instead of one per day
+      "day" = format(date_values, "%Y-%m-%d"),
       "week" = format(date_values, "%Y-W%V"),
       "month" = format(date_values, "%Y-%m"),
       "quarter" = paste0(format(date_values, "%Y"), "-", quarters(date_values)),
@@ -666,7 +668,9 @@ featureRolesServer <- function(input, output, session, values) {
       )
 
       agg_values <- aggregateTimeVar(var_data, aggregation)
-      freq_table <- sort(table(agg_values, useNA = "ifany"))
+      ## table() keeps the period keys in chronological order (they are
+      ## zero-padded); sort() would have re-ordered them by document count
+      freq_table <- table(agg_values, useNA = "ifany")
       unique_periods <- length(freq_table)
 
       # Create table rows for time periods
@@ -1082,6 +1086,61 @@ featureRolesServer <- function(input, output, session, values) {
   observeEvent(input$applyVarRoles, {
     success_message <- ""
 
+    # Validate the keyness groups BEFORE assigning any role: the checks below
+    # abort with return(), and they used to run after the time and label roles
+    # had already been written, leaving a half-applied assignment behind.
+    # The categories come from the same doc-level, docSelected-filtered set the
+    # group pickers offer (output$keynessGroupAssignment), so the branch taken
+    # here and the choices shown there cannot disagree under an active filter.
+    keyness_categories <- NULL
+    if (!is.null(input$keynessVarInput) && input$keynessVarInput != "") {
+      keyness_doc_data <- values$dfTag %>%
+        filter(docSelected) %>%
+        group_by(doc_id) %>%
+        summarise(
+          var_value = first(.data[[input$keynessVarInput]]),
+          .groups = "drop"
+        )
+      keyness_categories <- sort(unique(keyness_doc_data$var_value[
+        !is.na(keyness_doc_data$var_value)
+      ]))
+
+      if (length(keyness_categories) > 2) {
+        if (
+          is.null(input$keynessGroup1Categories) ||
+            length(input$keynessGroup1Categories) == 0 ||
+            is.null(input$keynessGroup2Categories) ||
+            length(input$keynessGroup2Categories) == 0
+        ) {
+          sendSweetAlert(
+            session = session,
+            title = "Group Assignment Required",
+            text = "Please assign categories to both Group 1 and Group 2 before applying roles.",
+            type = "warning"
+          )
+          return()
+        }
+
+        overlap <- intersect(
+          input$keynessGroup1Categories,
+          input$keynessGroup2Categories
+        )
+
+        if (length(overlap) > 0) {
+          sendSweetAlert(
+            session = session,
+            title = "Error",
+            text = paste(
+              "Categories cannot belong to both groups. Overlapping categories:",
+              paste(overlap, collapse = ", ")
+            ),
+            type = "error"
+          )
+          return()
+        }
+      }
+    }
+
     # Apply Time Variable
     if (!is.null(input$timeVarInput) && input$timeVarInput != "") {
       values$timeVariable <- input$timeVarInput
@@ -1121,18 +1180,33 @@ featureRolesServer <- function(input, output, session, values) {
       values$keynessVariable <- input$keynessVarInput
 
       var_data <- values$dfTag[[input$keynessVarInput]]
-      categories <- unique(var_data[!is.na(var_data)])
+      categories <- keyness_categories
 
       if (length(categories) == 2) {
         # Automatically create keyness_group for binary variables
         keyness_group <- as.numeric(factor(var_data, levels = sort(categories)))
         values$dfTag$keyness_group <- keyness_group
 
-        # Count documents per group
+        # Count documents per group. drop_na + the guards below matter when the
+        # variable has missing values: without them the NA group adds a row,
+        # `doc_groups$n[doc_groups$keyness_group == 1]` returns c(n, NA), and
+        # the length-2 success_message makes the final if() throw.
         doc_groups <- values$dfTag %>%
+          filter(!is.na(keyness_group)) %>%
           group_by(doc_id, keyness_group) %>%
           summarise(.groups = "drop") %>%
           count(keyness_group)
+
+        n_group1 <- ifelse(
+          1 %in% doc_groups$keyness_group,
+          doc_groups$n[doc_groups$keyness_group == 1],
+          0
+        )
+        n_group2 <- ifelse(
+          2 %in% doc_groups$keyness_group,
+          doc_groups$n[doc_groups$keyness_group == 2],
+          0
+        )
 
         success_message <- paste0(
           success_message,
@@ -1140,49 +1214,16 @@ featureRolesServer <- function(input, output, session, values) {
           "<small>Group 1: ",
           sort(categories)[1],
           " (",
-          doc_groups$n[doc_groups$keyness_group == 1],
+          n_group1,
           " documents)<br>",
           "Group 2: ",
           sort(categories)[2],
           " (",
-          doc_groups$n[doc_groups$keyness_group == 2],
+          n_group2,
           " documents)</small><br>"
         )
       } else if (length(categories) > 2) {
-        # Check if groups have been assigned
-        if (
-          is.null(input$keynessGroup1Categories) ||
-            length(input$keynessGroup1Categories) == 0 ||
-            is.null(input$keynessGroup2Categories) ||
-            length(input$keynessGroup2Categories) == 0
-        ) {
-          sendSweetAlert(
-            session = session,
-            title = "Group Assignment Required",
-            text = "Please assign categories to both Group 1 and Group 2 before applying roles.",
-            type = "warning"
-          )
-          return()
-        }
-
-        # Check for overlap
-        overlap <- intersect(
-          input$keynessGroup1Categories,
-          input$keynessGroup2Categories
-        )
-
-        if (length(overlap) > 0) {
-          sendSweetAlert(
-            session = session,
-            title = "Error",
-            text = paste(
-              "Categories cannot belong to both groups. Overlapping categories:",
-              paste(overlap, collapse = ", ")
-            ),
-            type = "error"
-          )
-          return()
-        }
+        # the group assignment was validated at the top of the observer
 
         # Check if all categories are assigned
         assigned_categories <- c(
