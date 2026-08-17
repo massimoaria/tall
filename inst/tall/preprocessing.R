@@ -2869,7 +2869,14 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
       file_path <- destFolder(file, values$wdTall)
       saveTall(
         values$dfTag,
-        values$stats,
+        ## values$custom_lists, like every other saveTall call site. This read
+        ## values$stats — the RAKE multiword candidate table — which went into
+        ## the `custom_lists` slot of the archive: reloading such a file put a
+        ## 4-column (Multi-Words, Freq, Length, method) frame where the custom
+        ## term list belongs, and the real list was lost. The Custom PoS preview
+        ## only checks ncol >= 2 before showing columns 1:2, so it displayed
+        ## multiwords and frequencies as terms and PoS tags.
+        values$custom_lists,
         values$language,
         values$treebank,
         values$menu,
