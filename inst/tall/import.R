@@ -635,6 +635,18 @@ importServer <- function(input, output, session, values, statsValues) {
         cd <- get0("corpus_description", ifnotfound = "")
         values$corpus_description <- if (is.null(cd) || cd == "") "" else cd
 
+        ## The two Normalization switches this corpus was tagged with. Absent
+        ## means a file written before they were saved, and every such file was
+        ## tagged with both foldings on — so TRUE is the historical value, not
+        ## a guess. Same defaulting on the TALL desktop app's side.
+        values$token_lowercase <- isTRUE(get0("token_lowercase", ifnotfound = TRUE))
+        values$lemma_lowercase <- isTRUE(get0("lemma_lowercase", ifnotfound = TRUE))
+        ## …and the switches must show what the corpus HAS, not what they were
+        ## left on before the load: the dfTag is already folded (or not), and
+        ## re-tagging is the only thing that could change it.
+        updateMaterialSwitch(session, "token_lowercase", value = values$token_lowercase)
+        updateMaterialSwitch(session, "lemma_lowercase", value = values$lemma_lowercase)
+
         statsValues <- updateStats(
           values$dfTag,
           term = values$generalTerm,
@@ -668,6 +680,10 @@ importServer <- function(input, output, session, values, statsValues) {
             values$language <- language
             values$D <- D
             values$where <- where
+            values$token_lowercase <- isTRUE(get0("token_lowercase", ifnotfound = TRUE))
+            values$lemma_lowercase <- isTRUE(get0("lemma_lowercase", ifnotfound = TRUE))
+            updateMaterialSwitch(session, "token_lowercase", value = values$token_lowercase)
+            updateMaterialSwitch(session, "lemma_lowercase", value = values$lemma_lowercase)
             values$corpus_description <- "The dataset is composed of a collection of 444 scientific articles written in English in which the authors used the Bibliometrix R package to perform systematic literature reviews.\n The textual data consists of the article abstracts, while the additional information includes metadata such as the list of co-authors, the first author, the year of publication, and the journal name."
             values$resetNeed <- TRUE
             statsValues <- updateStats(

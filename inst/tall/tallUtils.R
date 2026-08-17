@@ -581,6 +581,13 @@ To ensure the functionality of Biblioshiny,
   values$posMwSel <- c("ADJ", "NOUN", "PROPN") # POS selected by default for multiword creation
   values$myChoices <- "Empty Report"
   values$generalTerm <- "lemma"
+  ## the two Normalization switches AS APPLIED at tagging. They mirror
+  ## input$token_lowercase / input$lemma_lowercase, but only at the moment
+  ## posTagging() runs: moving a switch afterwards does not re-tag, so the
+  ## input and what the dfTag actually holds can differ. What travels in the
+  ## .tall must be the latter.
+  values$token_lowercase <- TRUE
+  values$lemma_lowercase <- TRUE
 
   accuracy <- model_accuracy()
   values$accuracy <- accuracy
@@ -702,7 +709,12 @@ saveTall <- function(
   where,
   file,
   generalTerm,
-  corpus_description
+  corpus_description,
+  ## Defaulted so that a caller written before these existed still saves a
+  ## readable file — and TRUE/TRUE is what such a session was tagged with,
+  ## since it was the only behaviour available.
+  token_lowercase = TRUE,
+  lemma_lowercase = TRUE
 ) {
   D <- date()
   D <- strsplit(gsub("\\s+", " ", D), " ")
@@ -717,7 +729,9 @@ saveTall <- function(
     where,
     file = file,
     generalTerm,
-    corpus_description
+    corpus_description,
+    token_lowercase,
+    lemma_lowercase
   )
 }
 
