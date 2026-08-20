@@ -206,8 +206,14 @@ read_files <- function(
       for (i in seq_len(length(file))) {
         # listdf[[i]] <- readtext::readtext(file[i], fill=TRUE, text_field="text", quote='"') %>%
         #   mutate(doc_id = doc_id[i])
+        ## `.env$` is load-bearing: `doc_id` here is the vector of UPLOADED FILE
+        ## NAMES set above, but mutate() resolves names in the data mask first,
+        ## and the documented corpus format has a `doc_id` COLUMN. Without the
+        ## pronoun the name binds to that column and `filename` gets its i-th
+        ## cell instead of the file name -- silently, and only for the sheets
+        ## that carry the documented format.
         listdf[[i]] <- read_delim(file[i], delim = line_sep, quote = '"') %>%
-          mutate(filename = doc_id[i])
+          mutate(filename = .env$doc_id[i])
       }
 
       df <- do.call(rbind, listdf)
@@ -217,8 +223,10 @@ read_files <- function(
       for (i in seq_len(length(file))) {
         # listdf[[i]] <- readtext::readtext(file[i], fill=TRUE, text_field="text", quote='"') %>%
         #   mutate(doc_id = doc_id[i])
+        ## `.env$`: see the csv branch above -- a sheet with a `doc_id` column
+        ## shadows the file-name vector inside mutate().
         listdf[[i]] <- readxl::read_excel(file[i], col_types = "text") %>%
-          mutate(filename = doc_id[i])
+          mutate(filename = .env$doc_id[i])
       }
       df <- do.call(rbind, listdf)
     },
