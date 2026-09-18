@@ -1406,6 +1406,11 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
             lemma = tolower(lemma)
           )
       }
+      ## Record what was applied, HERE and not at save time: this is the only
+      ## moment the switches touch the data, so from now on the dfTag carries
+      ## these foldings whatever the switches are later moved to.
+      values$token_lowercase <- isTRUE(input$token_lowercase)
+      values$lemma_lowercase <- isTRUE(input$lemma_lowercase)
 
       values$dfTag$docSelected <- TRUE
       values$menu <- 1
@@ -1498,7 +1503,9 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
         "Custom Term Lists",
         file_path,
         values$generalTerm,
-        values$corpus_description
+        values$corpus_description,
+        values$token_lowercase,
+        values$lemma_lowercase
       )
       popUp(title = "Saved in your working folder", type = "saved")
     }
@@ -1983,7 +1990,9 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
         "POS Tag Selection",
         file_path,
         values$generalTerm,
-        values$corpus_description
+        values$corpus_description,
+        values$token_lowercase,
+        values$lemma_lowercase
       )
       popUp(title = "Saved in your working folder", type = "saved")
     }
@@ -2180,7 +2189,9 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
         "Custom PoS Lists",
         file_path,
         values$generalTerm,
-        values$corpus_description
+        values$corpus_description,
+        values$token_lowercase,
+        values$lemma_lowercase
       )
       popUp(title = "Saved in your working folder", type = "saved")
     }
@@ -2245,7 +2256,9 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
         "Synonyms Merging",
         file_path,
         values$generalTerm,
-        values$corpus_description
+        values$corpus_description,
+        values$token_lowercase,
+        values$lemma_lowercase
       )
       popUp(title = "Saved in your working folder", type = "saved")
     }
@@ -2856,14 +2869,23 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
       file_path <- destFolder(file, values$wdTall)
       saveTall(
         values$dfTag,
-        values$stats,
+        ## values$custom_lists, like every other saveTall call site. This read
+        ## values$stats — the RAKE multiword candidate table — which went into
+        ## the `custom_lists` slot of the archive: reloading such a file put a
+        ## 4-column (Multi-Words, Freq, Length, method) frame where the custom
+        ## term list belongs, and the real list was lost. The Custom PoS preview
+        ## only checks ncol >= 2 before showing columns 1:2, so it displayed
+        ## multiwords and frequencies as terms and PoS tags.
+        values$custom_lists,
         values$language,
         values$treebank,
         values$menu,
         "Multi-Word Creation",
         file_path,
         values$generalTerm,
-        values$corpus_description
+        values$corpus_description,
+        values$token_lowercase,
+        values$lemma_lowercase
       )
       popUp(title = "Saved in your working folder", type = "saved")
     }
@@ -3004,7 +3026,9 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
         "Multi-Word by a List",
         file_path,
         values$generalTerm,
-        values$corpus_description
+        values$corpus_description,
+        values$token_lowercase,
+        values$lemma_lowercase
       )
       popUp(title = "Saved in your working folder", type = "saved")
     }
@@ -3339,7 +3363,9 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
         "POS Tag Selection",
         file_path,
         values$generalTerm,
-        values$corpus_description
+        values$corpus_description,
+        values$token_lowercase,
+        values$lemma_lowercase
       )
       popUp(title = "Saved in your working folder", type = "saved")
     }

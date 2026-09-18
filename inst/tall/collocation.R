@@ -498,25 +498,25 @@ collocationUI <- function() {
                     br(),
                     HTML(
                       "<h3 style='color: #4F7942;'>Collocation Analysis</h3>
-                        <p>This module implements collocation analysis features inspired by AntConc:</p>
+                        <p>This module offers collocation analysis features inspired by AntConc:</p>
                         <ul>
-                          <li><b>Plot:</b> Visualizes the distribution of a target word across documents
-                          in a 'barcode' format, showing where hits appear in each document. Click 'View' button
-                          to see the full document with highlighted target words.</li>
+                          <li><b>Plot:</b> Shows how a target word is distributed across documents
+                          in a 'barcode' format, marking where hits appear in each document. Click the 'View'
+                          button to see the full document with the target words highlighted.</li>
                           <li><b>Collocate:</b> Identifies words that frequently appear near the target
-                          word, using multiple statistical measures (MI score, Log-Likelihood, and T-Score)
-                          displayed simultaneously in the results table.</li>
+                          word, using several statistical measures (MI score, Log-Likelihood, and T-Score)
+                          displayed together in the results table.</li>
                         </ul>
 
                         <h4 style='color: #4F7942;'>Statistical Measures</h4>
                         <ul>
                           <li><b>MI Score (Mutual Information):</b> Measures the strength of association
-                          between words. Higher values indicate stronger collocations. Values > 3 are typically
+                          between two words. Higher values indicate stronger collocations. Values > 3 are usually
                           considered significant.</li>
-                          <li><b>Log-Likelihood:</b> Statistical test for significance of co-occurrence.
-                          Values > 3.84 are significant (p < 0.05), values > 15.13 are highly significant (p < 0.0001).</li>
-                          <li><b>T-Score:</b> Measures the confidence in the collocation. Values > 2
-                          are generally considered significant. Unlike MI, T-Score is less sensitive to low frequencies.</li>
+                          <li><b>Log-Likelihood:</b> A statistical test for the significance of co-occurrence.
+                          Values > 3.84 are significant (p < 0.05), and values > 15.13 are highly significant (p < 0.0001).</li>
+                          <li><b>T-Score:</b> Measures the confidence in a collocation. Values > 2
+                          are generally considered significant. Unlike MI, the T-Score is less sensitive to low frequencies.</li>
                         </ul>
 
                         <h4 style='color: #4F7942;'>References</h4>

@@ -36,51 +36,67 @@ import(tidyr)
 import(topicmodels)
 import(udpipe)
 import(visNetwork)
-importFrom(DT,DTOutput)
-importFrom(DT,datatable)
-importFrom(DT,formatRound)
-importFrom(DT,formatStyle)
-importFrom(DT,renderDT)
+importFrom(DT,
+  DTOutput,
+  datatable,
+  formatRound,
+  formatStyle,
+  renderDT
+)
 importFrom(Matrix,Matrix)
 importFrom(RSpectra,svds)
-importFrom(Rcpp,evalCpp)
-importFrom(Rcpp,sourceCpp)
+importFrom(Rcpp,
+  evalCpp,
+  sourceCpp
+)
 importFrom(base64enc,dataURI)
 importFrom(ca,ca)
 importFrom(chromote,default_chromote_object)
 importFrom(future,plan)
-importFrom(ggplot2,ggplot)
-importFrom(ggplot2,ggsave)
-importFrom(httr2,req_perform)
-importFrom(httr2,request)
-importFrom(httr2,resp_body_json)
-importFrom(igraph,centr_betw)
-importFrom(igraph,cluster_walktrap)
-importFrom(igraph,graph_from_data_frame)
-importFrom(igraph,membership)
+importFrom(ggplot2,
+  ggplot,
+  ggsave
+)
+importFrom(httr2,
+  req_perform,
+  request,
+  resp_body_json
+)
+importFrom(igraph,
+  centr_betw,
+  cluster_walktrap,
+  graph_from_data_frame,
+  membership
+)
 importFrom(jsonlite,fromJSON)
 importFrom(later,later)
-importFrom(plotly,add_annotations)
-importFrom(plotly,add_markers)
-importFrom(plotly,add_polygons)
-importFrom(plotly,add_trace)
-importFrom(plotly,config)
-importFrom(plotly,event_data)
-importFrom(plotly,event_register)
-importFrom(plotly,layout)
-importFrom(plotly,plot_ly)
-importFrom(plotly,plotlyOutput)
-importFrom(plotly,renderPlotly)
+importFrom(plotly,
+  add_annotations,
+  add_markers,
+  add_polygons,
+  add_trace,
+  config,
+  event_data,
+  event_register,
+  layout,
+  plot_ly,
+  plotlyOutput,
+  renderPlotly
+)
 importFrom(promises,promise_all)
 importFrom(ranger,ranger)
 importFrom(readr,write_csv)
 importFrom(rlang,sym)
-importFrom(shinyWidgets,alert)
-importFrom(shinyWidgets,prettyCheckboxGroup)
-importFrom(shinyWidgets,updatePrettyCheckboxGroup)
+importFrom(shinyWidgets,
+  alert,
+  prettyCheckboxGroup,
+  updatePrettyCheckboxGroup
+)
 importFrom(shinyjs,useShinyjs)
-importFrom(sparkline,sparkline)
-importFrom(sparkline,spk_chr)
+importFrom(sparkline,
+  sparkline,
+  spk_chr
+)
 importFrom(strucchange,breakpoints)
 importFrom(textrank,textrank_sentences)
 importFrom(umap,umap)
