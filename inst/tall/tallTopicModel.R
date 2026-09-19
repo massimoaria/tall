@@ -64,68 +64,18 @@ Deveaud2014 <- function(models) {
   return(metrics)
 }
 
-# Funzione per valutare un singolo modello
+# NOTE: the K tuning the Shiny app runs is tmTuningAsync() below.
 #
-# NOTE: this and evaluate_tm_parallel()/tmTuning() below have no callers — the
-# Shiny app tunes through tmTuningAsync(). The estimator is kept in step with it
-# anyway so that reviving this path cannot quietly reintroduce VEM tuning of a
-# model that is estimated with Gibbs. Its own defects are NOT repaired here:
-# tmTuning()'s `top_by` default is a length-2 vector that switch() refuses, and
-# Arun2010() calls Matrix::rowSums() on the simple_triplet_matrix that tmTuning()
-# builds. Both are reachable the moment anyone calls it.
-evaluate_single_k <- function(k, dtm, seed = 1234, method = "LDA") {
-  if (method == "CTM") {
-    model <- CTM(dtm, k = k, control = list(seed = seed))
-  } else {
-    model <- LDA(dtm, k = k, method = "Gibbs", control = list(iter = 500, seed = seed))
-  }
-  log_lik <- logLik(model)
-  perp <- perplexity(model, newdata = dtm)
-  return(list(k = k, logLik = log_lik, Perplexity = perp, model = model))
-}
-
-# Funzione parallela completa
-evaluate_tm_parallel <- function(
-  dtm,
-  k_seq = 2:20,
-  seed = 1234,
-  n_cores = detectCores() - 1,
-  method = "LDA"
-) {
-  cl <- parallel::makeCluster(n_cores)
-  parallel::clusterEvalQ(cl, {
-    library(topicmodels)
-  })
-  parallel::clusterExport(
-    cl,
-    varlist = c("dtm", "seed", "method", "evaluate_single_k"),
-    envir = environment()
-  )
-
-  results <- parallel::parLapply(cl, k_seq, function(k) {
-    evaluate_single_k(k, dtm, seed, method)
-  })
-  parallel::stopCluster(cl)
-
-  # Estrai metriche e modelli
-  metrics <- do.call(
-    rbind,
-    lapply(results, function(l) {
-      data.frame(
-        k = l$k,
-        logLik = as.numeric(l$logLik),
-        Perplexity = l$Perplexity
-      )
-    })
-  )
-  models <- setNames(lapply(results, function(x) x$model), paste0("k_", k_seq))
-
-  metrics$CaoJuan2009 <- CaoJuan2009(models)
-  metrics$Arun2010 <- Arun2010(models, dtm)
-  metrics$Deveaud2014 <- Deveaud2014(models)
-
-  return(list(metrics = metrics, models = models))
-}
+# `tmTuning()`, `evaluate_tm_parallel()` and `evaluate_single_k()` used to sit
+# here as a second, parallel implementation of the same thing. They had no
+# callers, were not in NAMESPACE, and could not be run: `tmTuning()`'s `top_by`
+# defaulted to a length-2 vector that switch() refuses, and past that Arun2010()
+# ran Matrix::rowSums() on the simple_triplet_matrix tmTuning() itself built.
+# Removed rather than repaired — an entry point that has never executed is not
+# an API, and keeping it in step with the live path (so that reviving it could
+# not reintroduce VEM tuning of a Gibbs-estimated model) was maintenance paid
+# for fiction. See the git history if the parallel-evaluation shape is ever
+# wanted back.
 
 ## NOTE: `decreasing` does not change the result, and is kept only so that
 ## callers can state which way a metric runs. Negating the metric reflects the
@@ -174,80 +124,6 @@ find_elbow <- function(k, metric, decreasing = TRUE, plot = TRUE) {
   }
 
   return(elbow_k)
-}
-
-tmTuning <- function(
-  x,
-  group = c("doc_id", "sentence_id"),
-  term = "lemma",
-  metric = c("CaoJuan2009", "Deveaud2014", "Arun2010", "Perplexity"),
-  n = 100,
-  top_by = c("freq", "tfidf"),
-  minK = 2,
-  maxK = 20,
-  Kby = 1,
-  method = "LDA",
-  prevalence = NULL,
-  seed = 1234
-) {
-  ## check min and max K
-  ClusterRange <- sort(c(minK, maxK))
-  minK <- ClusterRange[1]
-  maxK <- ClusterRange[2]
-  minK <- max(minK, 1)
-  maxK <- min(maxK, length(unique(x$doc_id)))
-  ###
-
-  x$topic_level_id <- unique_identifier(x, fields = group)
-
-  dtf <- document_term_frequencies(
-    x,
-    document = "topic_level_id",
-    term = "lemma"
-  )
-
-  dtm <- document_term_matrix(x = dtf)
-
-  if (method == "STM") {
-    ## STM tuning using stm::searchK
-    switch(
-      top_by,
-      freq = {
-        dtm <- dtm_remove_lowfreq(dtm, minfreq = 1, maxterms = n)
-      },
-      tfidf = {
-        dtm <- dtm_remove_tfidf(dtm, top = n)
-      }
-    )
-    result <- stmTuning(
-      x = x, dtm = dtm, group = group,
-      prevalence = prevalence,
-      minK = minK, maxK = maxK, Kby = Kby,
-      seed = seed
-    )
-  } else {
-    ## LDA / CTM tuning
-    switch(
-      top_by,
-      freq = {
-        dtm <- dtm_remove_lowfreq(dtm, minfreq = 1, maxterms = n)
-        dtm <- tm::as.DocumentTermMatrix(dtm, weighting = tm::weightTf)
-      },
-      tfidf = {
-        dtm <- dtm_remove_tfidf(dtm, top = n)
-        dtm <- tm::as.DocumentTermMatrix(dtm, weighting = tm::weightTfIdf)
-      }
-    )
-    result <- evaluate_tm_parallel(
-      dtm,
-      k_seq = seq(from = minK, to = maxK, by = Kby),
-      seed = seed,
-      n_cores = coresCPU(),
-      method = method
-    )
-  }
-
-  return(result)
 }
 
 tmTuningPlot <- function(result, metric) {
@@ -661,8 +537,10 @@ tmTuningAsync <- function(dtm, k_seq, seed, method) {
   library(topicmodels, quietly = TRUE)
 
   ## Document lengths, needed by Arun2010 and by the workers' own scoring.
-  ## The guard matters: tmTuning() builds a `simple_triplet_matrix`, which
-  ## Matrix::rowSums() cannot take (see the note on evaluate_single_k).
+  ## The guard matters and stays: a DTM built by `document_term_matrix()` is a
+  ## `simple_triplet_matrix`, which Matrix::rowSums() cannot take — that is the
+  ## error the deleted tmTuning() died on, and this is the branch that avoids
+  ## it. Callers hand this function its DTM ready-made, so both shapes arrive.
   len <- if (inherits(dtm, "simple_triplet_matrix")) {
     slam::row_sums(dtm)
   } else {
@@ -795,33 +673,21 @@ tmTuningAsync <- function(dtm, k_seq, seed, method) {
 
 # Self-contained STM tuning for use inside a future worker.
 # Only depends on package functions: stm, tm.
-stmTuningAsync <- function(dtm, minK, maxK, Kby, seed) {
-  dtm_tm <- tm::as.DocumentTermMatrix(dtm, weighting = tm::weightTf)
-  stm_data <- stm::readCorpus(dtm_tm, type = "dtm")
-  k_seq <- seq(from = minK, to = maxK, by = Kby)
-
-  search_result <- stm::searchK(
-    documents = stm_data$documents,
-    vocab = stm_data$vocab,
-    K = k_seq,
-    seed = seed,
-    verbose = FALSE
-  )
-
-  sr <- search_result$results
-  metrics <- data.frame(
-    k = unlist(sr$K),
-    logLik = unlist(sr$lbound),
-    Perplexity = -unlist(sr$lbound),
-    CaoJuan2009 = unlist(sr$exclus),
-    Arun2010 = -unlist(sr$semcoh),
-    Deveaud2014 = unlist(sr$exclus) + unlist(sr$semcoh)
-  )
-
-  list(metrics = metrics, models = NULL)
-}
-
-# STM tuning: uses stm::searchK
+# STM tuning: uses stm::searchK.
+#
+# This is what the "Find optimal K" page runs for STM, inside a future worker
+# (documents.R). It replaced stmTuningAsync(), which was identical except that
+# it never passed `prevalence` — so K was tuned on a model without covariates
+# and then estimated with them (#59, fixed 2026-09-19).
+#
+# Two things it does that the deleted version did not, and both matter:
+#   * it drops empty documents BEFORE readCorpus() and keeps `meta` aligned to
+#     the survivors, because stm matches documents to metadata by position;
+#   * it builds the prevalence formula with backticks, so a covariate named
+#     like a metadata column with spaces still parses.
+#
+# `x` needs only `topic_level_id` and the covariate columns — the caller sends
+# exactly those, not the corpus.
 stmTuning <- function(
   x, dtm, group,
   prevalence = NULL,

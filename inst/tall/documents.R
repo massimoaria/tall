@@ -141,6 +141,21 @@ documentsUI <- function() {
                 ),
                 selected = "LDA"
               ),
+              ## Prevalence covariates are part of the MODEL SPECIFICATION, so
+              ## they belong to the page that chooses K *for* that model. They
+              ## used to sit only on the estimation page, one step later, which
+              ## is why K was tuned without them and fitted with them (#59).
+              ## One selector, one input, read by both pages.
+              conditionalPanel(
+                "input.tmMethodK == 'STM'",
+                uiOutput("stmPrevalenceSelect"),
+                helpText(
+                  "Prevalence covariates affect topic proportions across documents.",
+                  " K is tuned with the covariates you pick here, and Model",
+                  " Estimation fits with the same ones.",
+                  style = "font-size: 11px; color: #888; margin-top: -5px;"
+                )
+              ),
               selectInput(
                 inputId = "groupTm",
                 label = "Topics",
@@ -304,13 +319,13 @@ documentsUI <- function() {
                   ),
                   selected = "LDA"
                 ),
+                ## Read-only on purpose: a second selector bound to a second
+                ## input is how the two pages came to disagree in the first
+                ## place (#59). This states what will be fitted; the control
+                ## that changes it lives on "Optimal selection of topic number".
                 conditionalPanel(
                   "input.tmMethod == 'STM'",
-                  uiOutput("stmPrevalenceSelect"),
-                  helpText(
-                    "Prevalence covariates affect topic proportions across documents.",
-                    style = "font-size: 11px; color: #888; margin-top: -5px;"
-                  )
+                  uiOutput("stmPrevalenceEcho")
                 ),
                 uiOutput("tmKSelectionUI"),
                 selectInput(
@@ -1554,6 +1569,33 @@ documentsServer <- function(input, output, session, values, statsValues) {
     )
   })
 
+  ## The selector is rendered on the K page, but `input$stmPrevalence` is read
+  ## by the estimation page too. A hidden output is suspended by default, so
+  ## without this the input would not exist until the user had opened the K
+  ## page — and the estimation page would silently fit with no covariates,
+  ## which is #59 again from the other end.
+  outputOptions(output, "stmPrevalenceSelect", suspendWhenHidden = FALSE)
+
+  ## What Model Estimation shows in place of the control it used to own.
+  output$stmPrevalenceEcho <- renderUI({
+    prev <- input$stmPrevalence
+    if (is.null(prev) || length(prev) == 0) {
+      helpText(
+        strong("Prevalence covariates: "), "none.",
+        " Pick them on ", em("Optimal selection of topic number"),
+        " so that K is tuned for the same model this page fits.",
+        style = "font-size: 11px; color: #888;"
+      )
+    } else {
+      helpText(
+        strong("Prevalence covariates: "), paste(prev, collapse = ", "),
+        " (chosen on ", em("Optimal selection of topic number"),
+        ", and used both to tune K and to fit)",
+        style = "font-size: 11px; color: #888;"
+      )
+    }
+  })
+
   ## K selection UI for Model Estimation panel ----
   output$tmKSelectionUI <- renderUI({
     # Check if K estimation was already performed
@@ -1677,14 +1719,38 @@ documentsServer <- function(input, output, session, values, statsValues) {
           dtm <- dtm_remove_tfidf(dtm, top = n)
         }
       )
-      # Async: STM model fitting in background
-      stmTuningAsync_fn <- stmTuningAsync
+      # Async: STM model fitting in background.
+      #
+      # stmTuning(), not the old stmTuningAsync(): the latter called
+      # stm::searchK() with no `prevalence` while stmEstimate() fits WITH the
+      # covariates the user picked, so the recommended K had been chosen for a
+      # different model specification from the one estimated (#59). This is the
+      # only tuning function that builds the prevalence formula and passes it.
+      #
+      # ⚠ Only the columns stmBuildMeta() actually reads are sent to the
+      # worker — `topic_level_id` plus the covariates. The whole dfTag would be
+      # serialised into the future otherwise, and it is the corpus.
+      stmPrevalence <- input$stmPrevalence
+      if (is.null(stmPrevalence) || length(stmPrevalence) == 0) {
+        stmPrevalence <- NULL
+      }
+      stmMetaCols <- unique(c("topic_level_id", stmPrevalence))
+      stmMetaSrc <- filtered[, intersect(stmMetaCols, names(filtered)), drop = FALSE]
+      stmTuning_fn <- stmTuning
+      stmBuildMeta_fn <- stmBuildMeta
       promises::future_promise({
-        stmTuningAsync_fn(dtm, minK, maxK, Kby, seed)
+        # stmTuning() calls stmBuildMeta() by name, so the worker needs it bound
+        stmBuildMeta <- stmBuildMeta_fn
+        stmTuning_fn(
+          x = stmMetaSrc, dtm = dtm, group = "topic_level_id",
+          prevalence = stmPrevalence,
+          minK = minK, maxK = maxK, Kby = Kby, seed = seed
+        )
       }, globals = list(
-        stmTuningAsync_fn = stmTuningAsync_fn,
+        stmTuning_fn = stmTuning_fn, stmBuildMeta_fn = stmBuildMeta_fn,
+        stmMetaSrc = stmMetaSrc, stmPrevalence = stmPrevalence,
         dtm = dtm, minK = minK, maxK = maxK, Kby = Kby, seed = seed
-      ), packages = c("stm", "tm"), seed = TRUE) %...>%
+      ), packages = c("stm", "tm", "slam", "dplyr"), seed = TRUE) %...>%
         (function(result) {
           removeNotification("tmk_computing")
           values$TMKresult <- result
@@ -2728,7 +2794,20 @@ documentsServer <- function(input, output, session, values, statsValues) {
       input$d_svoApply
     },
     valueExpr = {
-      filtered <- LemmaSelection(values$dfTag) %>% dplyr::filter(docSelected)
+      ## The FULL dfTag, filtered only by document.
+      ##
+      ## This used to be `LemmaSelection(values$dfTag)`, and that broke the
+      ## extraction it feeds: extractSVO() walks the dependency tree through
+      ## `head_token_id`, so removing rows from inside a sentence orphans the
+      ## children of every token that went. Almost every `nsubj` child is a
+      ## PRON, which the default PoS selection drops — measured on the golden
+      ## frankenstein, the selected frame yields **1 triplet where the complete
+      ## dfTag yields 48**, identical triplet for triplet.
+      ##
+      ## `docSelected` stays: it removes whole documents, never a token from
+      ## inside a sentence, so it cannot orphan anything — and the Filter page
+      ## is meant to apply here as it does everywhere else.
+      filtered <- values$dfTag %>% dplyr::filter(docSelected)
 
       values$svoResults <- extractSVO(
         filtered,
