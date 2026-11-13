@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TALL AI · Context‑aware interpretation for text analysis</title>
-  <meta name="description" content="TALL AI — a privacy-preserving AI assistant integrated with Google Gemini that generates natural-language explanations of TALL's statistical outputs without ever transmitting raw textual content.">
+  <meta name="description" content="TALL AI — a privacy-preserving AI assistant integrated with Google Gemini that generates natural-language explanations of TALL's statistical outputs; your corpus is never uploaded as a whole, and only what you send to the AI leaves your machine.">
   <link rel="icon" type="image/png" href="./images/tall-logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -151,10 +151,10 @@
     <div class="text-center mb-12" style="max-width: 50em; margin: 0 auto;">
       <span class="kicker" style="color: var(--tall);">§ 3 · Privacy by architecture</span>
       <h2 class="display-lg mt-4" style="color: var(--paper);">
-        Your <em class="italic-display" style="font-weight:400; color: var(--tall)">raw text</em> never leaves your machine.
+        Your <em class="italic-display" style="font-weight:400; color: var(--tall)">corpus</em> stays on your machine.
       </h2>
       <p class="lede mt-4" style="color: rgba(250,247,239,.8);">
-        TALL AI implements strict data minimisation. Only metadata and aggregated statistical results are transmitted to the Gemini API for interpretation — raw textual content stays in your R session.
+        TALL AI implements data minimisation. The corpus is analysed in your R session and is never uploaded as a whole: Gemini receives only what you send it, when you ask for it. To interpret a result, that is the plot or table on screen, plus your prompt and corpus description. The one exception is <strong>abstractive summarization</strong>, which sends the full text of the document you choose to summarise.
       </p>
     </div>
 
@@ -164,7 +164,7 @@
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--tall)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         </div>
         <h3 style="color: var(--paper); font-size: 1.3rem; font-family: var(--font-display); font-variation-settings: 'opsz' 30;">Data minimisation</h3>
-        <p class="mt-3" style="color: rgba(250,247,239,.75);">Only metadata and aggregated statistics are transmitted. The Gemini API receives summaries — counts, topic labels, cluster structures — never the underlying documents.</p>
+        <p class="mt-3" style="color: rgba(250,247,239,.75);">For interpretation, Gemini receives the rendered output (counts, topic labels, cluster structures, the words shown in a plot) and never the underlying documents. Abstractive summarization is the only feature that sends a document’s text, one document at a time and only on request.</p>
       </div>
       <div style="padding: 2rem; background: rgba(250,247,239,.04); border: 1px solid rgba(77,178,128,.25); border-radius: 8px;" class="fade-in fade-in-delay-1">
         <div style="display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; background: var(--tall-deep); border-radius: 50%; margin-bottom: 1rem;">
