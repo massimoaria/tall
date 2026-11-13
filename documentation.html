@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentation · TALL — paper, tutorials, and release notes</title>
+  <meta name="description" content="TALL documentation: the SoftwareX paper, supplementary material, an interactive step-by-step tutorial, changelog and release notes.">
+  <link rel="icon" type="image/png" href="./images/tall-logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,0..100;1,9..144,300..700,0..100&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="site-nav" aria-label="Primary">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">
+      <img src="./images/tall-logo.png" alt="TALL logo">
+      <span class="wordmark">TALL<sup>1.0.1</sup></span>
+    </a>
+    <div class="nav-links">
+      <a href="features.html">Features</a>
+      <a href="tall-ai.html">TALL AI</a>
+      <a href="usecases.html">Use cases</a>
+      <a href="tutorial.html">Tutorial</a>
+      <a href="documentation.html">Docs</a>
+      <a href="about.html">About</a>
+    </div>
+    <a href="download.html" class="nav-cta">Install
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+    </a>
+    <button class="nav-burger" aria-label="Open menu" aria-expanded="false">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+  <div class="mobile-menu" style="display:none">
+    <a href="features.html">Features</a>
+    <a href="tall-ai.html">TALL AI</a>
+    <a href="usecases.html">Use cases</a>
+    <a href="tutorial.html">Tutorial</a>
+    <a href="documentation.html">Documentation</a>
+    <a href="download.html">Install</a>
+    <a href="about.html">About</a>
+  </div>
+  <div class="nav-rule"></div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" style="padding-bottom: clamp(3rem, 5vw, 4rem);">
+  <div class="container-narrow text-center">
+    <span class="kicker fade-in" style="margin: 0 auto;">Documentation</span>
+    <h1 class="display-xl mt-4 fade-in">
+      Everything, <em class="italic-display" style="font-weight:400; color:var(--tall-deep)">written&nbsp;down</em>.
+    </h1>
+    <p class="lede mt-6 fade-in fade-in-delay-1">
+      The SoftwareX paper, supplementary material, interactive tutorial, and release notes — everything you need to use TALL rigorously and cite it correctly.
+    </p>
+  </div>
+</section>
+
+<!-- PAPER -->
+<section style="background: var(--paper-warm);">
+  <div class="container">
+    <div class="fade-in" style="background: var(--surface); border:1px solid var(--rule); border-radius: 10px; padding: clamp(1.75rem, 3vw, 2.5rem); max-width: 980px; margin: 0 auto;">
+      <div class="flex items-center gap-3 mb-4" style="flex-wrap:wrap;">
+        <span class="badge badge-ink">Peer‑reviewed · 2026</span>
+        <span class="badge badge-soft">Open access · Elsevier SoftwareX</span>
+      </div>
+      <h2 class="display-sm">The SoftwareX paper</h2>
+      <p class="lede mt-3" style="font-size: 1.05rem; font-variation-settings: 'opsz' 30;">
+        Aria, Spano, D'Aniello, Cuccurullo, Misuraca — <em>TALL: Text Analysis for All — an interactive R‑Shiny application for exploring, modeling, and visualizing textual data.</em>
+      </p>
+      <p class="mt-3" style="max-width: 60em;">
+        Introduces the architecture, details every analytical module, and benchmarks performance across corpora spanning four orders of magnitude. Open‑access, reproducible, and the primary reference for citing TALL.
+      </p>
+
+      <div class="doi-block mt-4">
+        <div class="doi-label">Digital Object Identifier</div>
+        <a href="https://doi.org/10.1016/j.softx.2026.102590" target="_blank" rel="noopener" class="doi-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+          <span>10.1016/j.softx.2026.102590</span>
+        </a>
+      </div>
+
+      <div class="flex gap-3 mt-6" style="flex-wrap: wrap;">
+        <a href="https://doi.org/10.1016/j.softx.2026.102590" target="_blank" rel="noopener" class="btn btn-primary">
+          Read on SoftwareX
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg>
+        </a>
+        <a href="index.html#paper" class="btn btn-ghost">Citation &amp; BibTeX</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SUPPLEMENTARY MATERIAL ACCORDION -->
+<section>
+  <div class="container">
+    <div class="grid grid-12" style="gap: 3rem; align-items: start;">
+      <div style="grid-column: span 4;" class="fade-in">
+        <span class="kicker">Supplementary material</span>
+        <h2 class="display-md mt-4">
+          Six sections of <em class="italic-display" style="font-weight:400">technical detail</em>.
+        </h2>
+        <p class="mt-6">
+          The supplementary appendix complements the paper with complete dependency lists, the FAIR‑principles audit, architecture diagrams, benchmark protocols, adoption analytics, and a step‑by‑step worked example.
+        </p>
+        <p class="small muted">Click any section below to expand its contents.</p>
+      </div>
+
+      <div style="grid-column: span 8;" class="fade-in fade-in-delay-1">
+        <div class="accordion">
+          <!-- A -->
+          <details class="acc-item">
+            <summary class="acc-head">
+              <span class="acc-letter">A</span>
+              <span class="acc-title">TALL application dependencies</span>
+              <span class="acc-meta">42 R packages</span>
+              <svg class="acc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            </summary>
+            <div class="acc-body">
+              <p>TALL is built on a curated stack of 42 open‑source R packages covering UI, data I/O, NLP, analytics, network science, async execution, and export. All dependencies are MIT‑ or similarly permissively‑licensed and declared explicitly in the <code>DESCRIPTION</code> file.</p>
+
+              <div class="pkg-grid mt-4">
+                <div>
+                  <div class="pkg-cat">Shiny UI &amp; widgets</div>
+                  <div class="pkg-list">
+                    <span class="pill">shinycssloaders</span><span class="pill">shinydashboardPlus</span><span class="pill">shinyFiles</span><span class="pill">shinyjs</span><span class="pill">shinyWidgets</span><span class="pill">fontawesome</span><span class="pill">DT</span><span class="pill">sparkline</span>
+                  </div>
+                </div>
+                <div>
+                  <div class="pkg-cat">NLP &amp; text mining</div>
+                  <div class="pkg-list">
+                    <span class="pill">udpipe</span><span class="pill">topicmodels</span><span class="pill">word2vec</span><span class="pill">textrank</span><span class="pill">readtext</span><span class="pill">stringr</span>
+                  </div>
+                </div>
+                <div>
+                  <div class="pkg-cat">Networks &amp; graphics</div>
+                  <div class="pkg-list">
+                    <span class="pill">igraph</span><span class="pill">tidygraph</span><span class="pill">ggraph</span><span class="pill">visNetwork</span><span class="pill">plotly</span><span class="pill">umap</span>
+                  </div>
+                </div>
+                <div>
+                  <div class="pkg-cat">Statistics</div>
+                  <div class="pkg-list">
+                    <span class="pill">ca</span><span class="pill">RSpectra</span><span class="pill">strucchange</span>
+                  </div>
+                </div>
+                <div>
+                  <div class="pkg-cat">Data I/O &amp; formats</div>
+                  <div class="pkg-list">
+                    <span class="pill">readr</span><span class="pill">readxl</span><span class="pill">openxlsx</span><span class="pill">pdftools</span><span class="pill">jsonlite</span><span class="pill">pagedown</span><span class="pill">base64enc</span>
+                  </div>
+                </div>
+                <div>
+                  <div class="pkg-cat">Async &amp; performance</div>
+                  <div class="pkg-list">
+                    <span class="pill">Rcpp</span><span class="pill">promises</span><span class="pill">later</span><span class="pill">parallel</span><span class="pill">doParallel</span>
+                  </div>
+                </div>
+                <div>
+                  <div class="pkg-cat">Data wrangling &amp; HTTP</div>
+                  <div class="pkg-list">
+                    <span class="pill">dplyr</span><span class="pill">tidyr</span><span class="pill">purrr</span><span class="pill">rlang</span><span class="pill">curl</span><span class="pill">httr2</span><span class="pill">chromote</span>
+                  </div>
+                </div>
+              </div>
+
+              <p class="small muted mt-4">Full alphabetical table with repository URLs and descriptions in the supplementary PDF, Table S1.</p>
+            </div>
+          </details>
+
+          <!-- B -->
+          <details class="acc-item">
+            <summary class="acc-head">
+              <span class="acc-letter">B</span>
+              <span class="acc-title">FAIR principles for research software</span>
+              <span class="acc-meta">audit · 13 criteria</span>
+              <svg class="acc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            </summary>
+            <div class="acc-body">
+              <p>TALL aligns with the FAIR Guiding Principles for research software (Wilkinson et al., 2016). Table S2 of the supplementary material maps each of the 13 criteria to a concrete TALL implementation.</p>
+
+              <div class="fair-grid mt-4">
+                <div class="fair-card">
+                  <div class="fair-letter">F</div>
+                  <div>
+                    <div class="fair-title">Findable</div>
+                    <div class="fair-desc">
+                      <strong>F1</strong> — Persistent identifiers on CRAN and tagged GitHub releases.<br>
+                      <strong>F2</strong> — Rich metadata via <code>DESCRIPTION</code>, <code>CITATION.cff</code>, <code>codemeta.json</code>.<br>
+                      <strong>F3</strong> — Metadata links directly to CRAN and GitHub identifiers.<br>
+                      <strong>F4</strong> — Indexed on CRAN, GitHub, and RDocumentation.
+                    </div>
+                  </div>
+                </div>
+                <div class="fair-card">
+                  <div class="fair-letter">A</div>
+                  <div>
+                    <div class="fair-title">Accessible</div>
+                    <div class="fair-desc">
+                      <strong>A1</strong> — Open HTTPS retrieval via <code>install.packages("tall")</code>.<br>
+                      <strong>A1.1</strong> — Protocol is open, free, and universal.<br>
+                      <strong>A1.2</strong> — Authentication supported where needed (developer access).<br>
+                      <strong>A2</strong> — Historical metadata preserved via CRAN archive and GitHub history.
+                    </div>
+                  </div>
+                </div>
+                <div class="fair-card">
+                  <div class="fair-letter">I</div>
+                  <div>
+                    <div class="fair-title">Interoperable</div>
+                    <div class="fair-desc">
+                      <strong>I1</strong> — R &amp; CRAN packaging conventions (<code>DESCRIPTION</code>, <code>NAMESPACE</code>).<br>
+                      <strong>I2</strong> — <code>Authors@R</code>, SPDX license identifiers, CRAN controlled vocabulary.<br>
+                      <strong>I3</strong> — Dependencies explicitly declared via <code>Imports</code>; environment requirements in <code>README</code>.
+                    </div>
+                  </div>
+                </div>
+                <div class="fair-card">
+                  <div class="fair-letter">R</div>
+                  <div>
+                    <div class="fair-title">Reusable</div>
+                    <div class="fair-desc">
+                      <strong>R1</strong> — Comprehensive manual, vignettes, and example workflows.<br>
+                      <strong>R1.1</strong> — MIT license (SPDX identifier declared).<br>
+                      <strong>R1.2</strong> — Full provenance through Git history, release notes, ORCIDs.<br>
+                      <strong>R1.3</strong> — Compliant with CRAN and tidyverse community standards.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <!-- C -->
+          <details class="acc-item">
+            <summary class="acc-head">
+              <span class="acc-letter">C</span>
+              <span class="acc-title">Software architecture</span>
+              <span class="acc-meta">5‑layer pipeline</span>
+              <svg class="acc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            </summary>
+            <div class="acc-body">
+              <p>TALL adopts a modular, stratified design organised into five sequential layers — each autonomous yet contributing to a coherent end‑to‑end analytical workflow.</p>
+
+              <ol class="arch-layers mt-4">
+                <li>
+                  <div>
+                    <span class="arch-head">Data Import &amp; Management</span>
+                    <p class="arch-desc">Ingests TXT / CSV / XLSX / PDF through <code>readtext</code>, <code>pdftools</code>, <code>readxl</code>. Performs automatic encoding detection, metadata integration, and structured integrity checks to prevent downstream failures.</p>
+                  </div>
+                </li>
+                <li>
+                  <div>
+                    <span class="arch-head">Text Pre‑processing</span>
+                    <p class="arch-desc">Tokenisation, PoS tagging, lemmatisation, and special‑entity recognition via the <code>udpipe</code> framework, using 87 pre‑trained models spanning 56 languages derived from Universal Dependencies Treebanks.</p>
+                  </div>
+                </li>
+                <li>
+                  <div>
+                    <span class="arch-head">Analysis</span>
+                    <p class="arch-desc">Three complementary module families: <em>Overview</em> (descriptive stats, TF‑IDF, word clouds), <em>Words</em> (concordances, Reinert clustering, correspondence analysis, networks via <code>ca</code>/<code>igraph</code>/<code>word2vec</code>), <em>Documents</em> (topic modelling, polarity, summarisation via <code>topicmodels</code>/<code>textrank</code>).</p>
+                  </div>
+                </li>
+                <li>
+                  <div>
+                    <span class="arch-head">TALL AI Assistant</span>
+                    <p class="arch-desc">Interpretive layer built on the Google Gemini API. Generates context‑aware natural‑language explanations alongside statistical outputs, enabling hybrid quantitative + qualitative analysis.</p>
+                  </div>
+                </li>
+                <li>
+                  <div>
+                    <span class="arch-head">Output &amp; Visualisation</span>
+                    <p class="arch-desc">Interactive dashboards via <code>plotly</code> and <code>visNetwork</code>, reproducible XLSX reports via <code>openxlsx</code>. Captures imported data, preprocessing steps, parameters, and outputs in a structured archival format.</p>
+                  </div>
+                </li>
+              </ol>
+
+              <figure class="figure mt-4">
+                <img src="./paper/figure_diagram.webp" alt="TALL five-layer architecture diagram">
+                <figcaption class="figcaption"><strong>Figure S1</strong> TALL's layered architecture. Each layer processes the output of the previous one while enriching metadata for downstream stages.</figcaption>
+              </figure>
+            </div>
+          </details>
+
+          <!-- D -->
+          <details class="acc-item">
+            <summary class="acc-head">
+              <span class="acc-letter">D</span>
+              <span class="acc-title">Computational performance benchmarks</span>
+              <span class="acc-meta">78 → 5.3M tokens</span>
+              <svg class="acc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            </summary>
+            <div class="acc-body">
+              <p>Comprehensive benchmarking of seven core operations across 14 corpus configurations spanning four orders of magnitude. All tests conducted on a standardised research workstation with corpora sampled with replacement from Herman Melville's <em>Moby Dick</em>.</p>
+
+              <div class="grid grid-2 mt-4" style="gap: 1rem;">
+                <div class="card-outline">
+                  <div class="eyebrow" style="color: var(--tall-deep);">Hardware</div>
+                  <p class="small mt-2" style="margin:0;">Apple M4 Pro · 14 cores (10P + 4E) · ARM<br>48 GB unified memory · macOS 15.3<br>R 4.5.2 · TALL 0.5.1</p>
+                </div>
+                <div class="card-outline">
+                  <div class="eyebrow" style="color: var(--tall-deep);">Protocol</div>
+                  <p class="small mt-2" style="margin:0;">10 iterations per config · median time<br>mean peak memory · <code>bench</code> package<br>14 corpus configurations · 7 operations</p>
+                </div>
+              </div>
+
+              <div class="mt-4" style="overflow-x:auto;">
+                <table class="cmp-table" style="font-size:.85rem;">
+                  <thead><tr>
+                    <th>Operation</th><th class="text-center">Scaling</th><th class="text-center">5.3M tokens · time</th><th class="text-center">Peak memory</th>
+                  </tr></thead>
+                  <tbody>
+                    <tr><td><strong>Preprocessing</strong> <span class="small muted">(tokenize · lemmatize · PoS)</span></td><td class="text-center">O(n)</td><td class="text-center cell-tall">398.78 s</td><td class="text-center">678 MB</td></tr>
+                    <tr><td><strong>Multiword</strong> <span class="small muted">(RAKE, Rcpp)</span></td><td class="text-center">sub‑linear</td><td class="text-center cell-tall">7.77 s</td><td class="text-center">2.7 GB</td></tr>
+                    <tr><td><strong>Keyness</strong> <span class="small muted">(reference χ²)</span></td><td class="text-center">vocab‑bound</td><td class="text-center cell-tall">5.59 s</td><td class="text-center">4.4 GB</td></tr>
+                    <tr><td><strong>Topic modelling</strong> <span class="small muted">(LDA, k=5)</span></td><td class="text-center">parallelised</td><td class="text-center cell-tall">23.98 s</td><td class="text-center">1.7 GB</td></tr>
+                    <tr><td><strong>Word embeddings</strong> <span class="small muted">(Word2Vec)</span></td><td class="text-center">parallelised</td><td class="text-center cell-tall">11.61 s</td><td class="text-center">1.2 GB</td></tr>
+                    <tr><td><strong>Network</strong> <span class="small muted">(Louvain)</span></td><td class="text-center">linear</td><td class="text-center cell-tall">5.14 s</td><td class="text-center">2.4 GB</td></tr>
+                    <tr><td><strong>Polarity</strong> <span class="small muted">(Hu‑Liu)</span></td><td class="text-center">linear</td><td class="text-center cell-tall">16.48 s</td><td class="text-center">5.6 GB</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <p class="mt-4"><strong style="color: var(--tall-deep);">Key findings.</strong> Preprocessing processes ~14,500 tokens/sec with stable linear scaling. Rcpp‑optimised modules (multi‑word, Reinert) remain fast at all scales. Keyness analysis is the memory bottleneck on large corpora, driven by reference vocabulary size rather than token count.</p>
+
+              <p class="small muted mt-2">Small corpora (&lt;10⁵ tokens) fit comfortably in 1–2 GB RAM. Medium corpora require ~5 GB. Large corpora (&gt;10⁶ tokens) benefit from institutional server deployment.</p>
+            </div>
+          </details>
+
+          <!-- E -->
+          <details class="acc-item">
+            <summary class="acc-head">
+              <span class="acc-letter">E</span>
+              <span class="acc-title">Adoption &amp; CRAN downloads</span>
+              <span class="acc-meta">4,000+ installs</span>
+              <svg class="acc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            </summary>
+            <div class="acc-body">
+              <p>Since its initial CRAN release in February&nbsp;2025, TALL has exceeded <strong style="color: var(--tall-deep);">4,000 cumulative downloads</strong> by November&nbsp;2025 (source: CRANlogs). Download curve shows marked acceleration between April and June&nbsp;2025 during the early‑adoption phase, followed by sustained near‑linear growth through the rest of the year.</p>
+
+              <figure class="figure mt-4">
+                <img src="./paper/tall_download_nov2025.png" alt="CRAN download trajectory, February to November 2025">
+                <figcaption class="figcaption"><strong>Figure S2</strong> Cumulative daily downloads of the <code>tall</code> package from CRAN, February — November 2025.</figcaption>
+              </figure>
+
+              <p class="mt-4">The trajectory confirms both early visibility and continued integration into analytical workflows within the R research ecosystem. TALL is currently used in postgraduate and doctoral programs at several Italian universities.</p>
+            </div>
+          </details>
+
+          <!-- F -->
+          <details class="acc-item">
+            <summary class="acc-head">
+              <span class="acc-letter">F</span>
+              <span class="acc-title">Step‑by‑step worked example</span>
+              <span class="acc-meta">US Airline Tweets · 7 steps</span>
+              <svg class="acc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            </summary>
+            <div class="acc-body">
+              <p>A practical demonstration on the built‑in <em>US Airline Tweets</em> corpus — 14,640 tweets directed at six major US airlines in February&nbsp;2015. Illustrates social‑media analytics, sentiment detection, and customer‑feedback analysis without requiring programming expertise.</p>
+
+              <ol class="step-list mt-4">
+                <li>
+                  <div class="step-num">1</div>
+                  <div>
+                    <div class="step-head">Import &amp; AI context</div>
+                    <p class="step-desc">Built‑in dataset loaded; TALL AI automatically receives a pre‑configured context so every subsequent interpretation is dataset‑aware.</p>
+                  </div>
+                </li>
+                <li>
+                  <div class="step-num">2</div>
+                  <div>
+                    <div class="step-head">Tokenisation &amp; PoS tagging</div>
+                    <p class="step-desc">English selected as source language; pre‑trained <em>EN GUM</em> model employed. Unit of analysis set to lemma.</p>
+                  </div>
+                </li>
+                <li>
+                  <div class="step-num">3</div>
+                  <div>
+                    <div class="step-head">Special‑entity recognition</div>
+                    <p class="step-desc">Automatic tagging of <b>127 unique emojis</b>, <b>1,990 unique hashtags</b>, and <b>930 user mentions</b> as first‑class lexical units.</p>
+                  </div>
+                </li>
+                <li>
+                  <div class="step-num">4</div>
+                  <div>
+                    <div class="step-head">Multi‑word detection</div>
+                    <p class="step-desc">RAKE algorithm surfaces collocations like <em>"customer service"</em>, <em>"late flight"</em>, <em>"flight attendant"</em>. Frequency‑ranked and manually curated.</p>
+                  </div>
+                </li>
+                <li>
+                  <div class="step-num">5</div>
+                  <div>
+                    <div class="step-head">PoS selection</div>
+                    <p class="step-desc">Retained categories: <code>NOUN</code>, <code>PROPN</code>, <code>ADJ</code>, <code>HASH</code>, <code>MULTIWORD</code> — unified mechanism lets standard and custom categories coexist.</p>
+                  </div>
+                </li>
+                <li>
+                  <div class="step-num">6</div>
+                  <div>
+                    <div class="step-head">Overview + Words in Context</div>
+                    <p class="step-desc">Descriptive statistics; TALL AI recommends Word‑in‑Context and Polarity Detection as next steps. Concordances for <code>@AmericanAirlines</code> reveal customer‑service discourse.</p>
+                  </div>
+                </li>
+                <li>
+                  <div class="step-num">7</div>
+                  <div>
+                    <div class="step-head">Polarity detection</div>
+                    <p class="step-desc">Hu‑Liu lexicon · <b>48.6% neutral</b>, <b>28.0% negative</b> (dominated by <em>delay</em>, <em>cancel</em>, <em>miss</em>), <b>23.4% positive</b> (<em>thank</em>, <em>good</em>, <em>great</em>, <em>appreciate</em>).</p>
+                  </div>
+                </li>
+              </ol>
+
+              <div class="mt-4" style="padding: 1.25rem 1.5rem; border-radius: 6px; background: var(--paper-warm); border-left: 3px solid var(--tall-deep);">
+                <div class="eyebrow" style="color: var(--tall-deep);">TALL AI · Key takeaway</div>
+                <p class="mt-2" style="font-family: var(--font-display); font-style: italic; font-variation-settings: 'opsz' 30; color: var(--ink); margin:0;">
+                  "The dominance of <em>delay</em> and <em>cancel</em> in negative tweets suggests airlines should focus on improving their processes for handling flight disruptions."
+                </p>
+              </div>
+
+              <p class="mt-4">
+                <a href="usecases.html#airline" class="btn btn-ghost" style="padding: .5rem 1rem; font-size: .85rem;">See the full walkthrough →</a>
+              </p>
+            </div>
+          </details>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TUTORIAL SLIDES -->
+<section>
+  <div class="container">
+    <div class="grid grid-12" style="gap: 3rem; align-items: center;">
+      <div style="grid-column: span 5;" class="fade-in">
+        <span class="kicker">§ 1 · Learn</span>
+        <h2 class="display-lg mt-4">
+          <em class="italic-display" style="font-weight:400">119 steps</em><br>
+          of hands‑on tutorial.
+        </h2>
+        <p class="mt-6">
+          The official TALL tutorial, updated for version 1.0.1, walks through every module — the logic behind each analytical choice, pre‑processing steps, statistical and semantic methods, and interpretation strategies — with worked examples on the sample collections. It runs in the browser, is searchable, and each screen has its own link.
+        </p>
+        <ul class="mt-4" style="list-style:none; padding:0;">
+          <li style="padding:.5rem 0; border-top:1px solid var(--rule-soft);">· Module‑by‑module walkthrough</li>
+          <li style="padding:.5rem 0; border-top:1px solid var(--rule-soft);">· Pre‑processing &amp; NLP technique deep dives</li>
+          <li style="padding:.5rem 0; border-top:1px solid var(--rule-soft);">· Keyness, CA, Reinert, networks, embeddings, SVO</li>
+          <li style="padding:.5rem 0; border-top:1px solid var(--rule-soft);">· LDA/CTM/STM, classification, polarity, emotions, summarization</li>
+          <li style="padding:.5rem 0; border-top:1px solid var(--rule-soft); border-bottom:1px solid var(--rule-soft);">· Example outputs &amp; interpretation strategies</li>
+        </ul>
+        <div class="flex gap-4 mt-6" style="flex-wrap: wrap;">
+          <a href="tutorial/" class="btn btn-leaf">
+            Open the tutorial
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg>
+          </a>
+          <a href="tutorial.html" class="btn btn-ghost">Chapters</a>
+        </div>
+      </div>
+      <div style="grid-column: span 7;" class="fade-in fade-in-delay-1">
+        <figure class="figure">
+          <img src="./images/tutorial/slide-008.webp" alt="The TALL workflow, from the interactive tutorial">
+          <figcaption class="figcaption"><strong>Figure</strong> The end‑to‑end workflow, one of the 119 steps of the interactive tutorial.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RELEASE NOTES -->
+<section style="background: var(--paper-warm);">
+  <div class="container">
+    <div class="text-center mb-12" style="max-width: 50em; margin: 0 auto;">
+      <span class="kicker fade-in" style="margin: 0 auto;">§ 2 · Release notes</span>
+      <h2 class="display-lg mt-4 fade-in">
+        <em class="italic-display" style="font-weight:400">v1.0</em> changelog.
+      </h2>
+      <p class="lede mt-4 fade-in fade-in-delay-1">Version 1.0.0 is the milestone release accompanying the SoftwareX publication; 1.0.1 (September 2026) is a maintenance release. The <a href="https://github.com/massimoaria/tall/blob/master/NEWS.md" target="_blank" rel="noopener" style="color: var(--tall-deep); border-bottom: 1px dotted currentColor;">full NEWS file</a> lists every change.</p>
+    </div>
+
+    <h3 class="fade-in" style="font-family: var(--font-display); font-size: 1.4rem; margin-bottom: 1.25rem;">1.0.1 · September 2026</h3>
+    <div class="grid grid-3" style="margin-bottom: 3rem;">
+      <div class="card fade-in">
+        <span class="badge badge-updated">Fixed</span>
+        <h3 class="mt-4" style="font-family: var(--font-display); font-size: 1.2rem; font-variation-settings:'opsz' 30;">TALL AI and new Gemini keys</h3>
+        <p class="mt-2">Model‑agnostic key validation, clear error messages, new default <code>gemini-3.5-flash-lite</code>; 2.5 models kept under “Legacy”.</p>
+      </div>
+      <div class="card fade-in fade-in-delay-1">
+        <span class="badge badge-updated">Faster</span>
+        <h3 class="mt-4" style="font-family: var(--font-display); font-size: 1.2rem; font-variation-settings:'opsz' 30;">Optimal K search</h3>
+        <p class="mt-2">Tunes the same Gibbs LDA that is then estimated, in parallel across cores (36.7 s → 5.8 s on a 22k‑unit corpus).</p>
+      </div>
+      <div class="card fade-in fade-in-delay-2">
+        <span class="badge badge-updated">Fixed</span>
+        <h3 class="mt-4" style="font-family: var(--font-display); font-size: 1.2rem; font-variation-settings:'opsz' 30;">Topic model outputs</h3>
+        <p class="mt-2">Correct document labels in theta for LDA, CTM and STM; multi‑metric chart with 1 = best for every metric.</p>
+      </div>
+      <div class="card fade-in">
+        <span class="badge badge-updated">Fixed</span>
+        <h3 class="mt-4" style="font-family: var(--font-display); font-size: 1.2rem; font-variation-settings:'opsz' 30;">Supervised classification</h3>
+        <p class="mt-2">Correct training accuracy, result download and recovery after a failed run.</p>
+      </div>
+      <div class="card fade-in fade-in-delay-1">
+        <span class="badge badge-updated">Fixed</span>
+        <h3 class="mt-4" style="font-family: var(--font-display); font-size: 1.2rem; font-variation-settings:'opsz' 30;">Embeddings &amp; feature roles</h3>
+        <p class="mt-2">Robust similarity networks and UMAP; binary keyness variables and date aggregation in Feature Roles.</p>
+      </div>
+      <div class="card fade-in fade-in-delay-2">
+        <span class="badge badge-updated">Fixed</span>
+        <h3 class="mt-4" style="font-family: var(--font-display); font-size: 1.2rem; font-variation-settings:'opsz' 30;">Import, summaries &amp; more</h3>
+        <p class="mt-2">URL‑safe Wikipedia import, extractive summaries on grouped corpora, KWIC, morphology and Reinert reallocation.</p>
+      </div>
+    </div>
+
+    <h3 class="fade-in" style="font-family: var(--font-display); font-size: 1.4rem; margin-bottom: 1.25rem;">1.0.0 · April 2026</h3>
+
+    <div class="grid grid-3">
+      <div class="card fade-in">
+        <span class="badge badge-new">New</span>
+        <h3 class="mt-4" style="font-family: var(--font-display); font-size: 1.2rem; font-variation-settings:'opsz' 30;">SVO triplets extraction</h3>
+        <p class="mt-2">Subject‑Verb‑Object structures from dependency trees.</p>
+      </div>
+      <div class="card fade-in fade-in-delay-1">
+        <span class="badge badge-new">New</span>
+        <h3 class="mt-4" style="font-family: var(--font-display); font-size: 1.2rem; font-variation-settings:'opsz' 30;">Syntactic complexity</h3>
+        <p class="mt-2">Metrics for measuring sentence construction across documents.</p>
+      </div>
+      <div class="card fade-in fade-in-delay-2">
+        <span class="badge badge-new">New</span>
+        <h3 class="mt-4" style="font-family: var(--font-display); font-size: 1.2rem; font-variation-settings:'opsz' 30;">NRC emotion analysis</h3>
+        <p class="mt-2">Eight‑dimensional emotion detection: anger, anticipation, disgust, fear, joy, sadness, surprise, trust.</p>
+      </div>
+      <div class="card fade-in">
+        <span class="badge badge-new">New</span>
+        <h3 class="mt-4" style="font-family: var(--font-display); font-size: 1.2rem; font-variation-settings:'opsz' 30;">Noun phrase extraction</h3>
+        <p class="mt-2">Identify and rank noun phrases to complement single‑word analysis.</p>
+      </div>
+      <div class="card fade-in fade-in-delay-1">
+        <span class="badge badge-updated">Updated</span>
+        <h3 class="mt-4" style="font-family: var(--font-display); font-size: 1.2rem; font-variation-settings:'opsz' 30;">Topic modeling</h3>
+        <p class="mt-2">CTM, STM, automatic K selection, coherence &amp; exclusivity diagnostics.</p>
+      </div>
+      <div class="card fade-in fade-in-delay-2">
+        <span class="badge badge-updated">Updated</span>
+        <h3 class="mt-4" style="font-family: var(--font-display); font-size: 1.2rem; font-variation-settings:'opsz' 30;">Network analysis</h3>
+        <p class="mt-2">Dependency‑based word networks with syntactic relation filters.</p>
+      </div>
+      <div class="card fade-in">
+        <span class="badge badge-updated">Updated</span>
+        <h3 class="mt-4" style="font-family: var(--font-display); font-size: 1.2rem; font-variation-settings:'opsz' 30;">Image export</h3>
+        <p class="mt-2">DPI‑aware rendering for publication‑quality figures.</p>
+      </div>
+      <div class="card fade-in fade-in-delay-1">
+        <span class="badge badge-updated">Updated</span>
+        <h3 class="mt-4" style="font-family: var(--font-display); font-size: 1.2rem; font-variation-settings:'opsz' 30;">TALL AI integration</h3>
+        <p class="mt-2">Multiple Gemini model variants; Medium (16k) and Large (32k) context windows.</p>
+      </div>
+      <div class="card fade-in fade-in-delay-2">
+        <span class="badge badge-updated">Updated</span>
+        <h3 class="mt-4" style="font-family: var(--font-display); font-size: 1.2rem; font-variation-settings:'opsz' 30;">Reproducibility pipeline</h3>
+        <p class="mt-2">Cumulative XLSX report export and session state persistence.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESOURCES -->
+<section>
+  <div class="container">
+    <div class="text-center mb-12">
+      <span class="kicker fade-in" style="margin: 0 auto;">§ 3 · Resources</span>
+      <h2 class="display-lg mt-4 fade-in">All the <em class="italic-display" style="font-weight:400">links</em>, in one place.</h2>
+    </div>
+
+    <div class="grid grid-4 mt-8">
+      <a href="https://cran.r-project.org/package=tall" target="_blank" rel="noopener" class="card fade-in" style="text-decoration:none;">
+        <div style="width:42px; height:42px; border-radius: 8px; background: var(--tall-soft); display:flex; align-items:center; justify-content:center; margin-bottom: 1rem;">
+          <span style="font-family: var(--font-display); font-weight:700; color: var(--tall-deep); font-size: 1.1rem;">R</span>
+        </div>
+        <h3 style="font-family: var(--font-display); font-size: 1.15rem; font-variation-settings:'opsz' 30;">CRAN</h3>
+        <p class="mt-2 small">Official stable release · metadata · archive</p>
+      </a>
+      <a href="https://github.com/massimoaria/tall" target="_blank" rel="noopener" class="card fade-in fade-in-delay-1" style="text-decoration:none;">
+        <div style="width:42px; height:42px; border-radius: 8px; background: var(--tall-soft); display:flex; align-items:center; justify-content:center; margin-bottom: 1rem;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="var(--tall-deep)"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.21 11.4.6.1.82-.26.82-.58v-2.17c-3.34.73-4.04-1.42-4.04-1.42-.55-1.39-1.33-1.76-1.33-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5 1 .11-.78.42-1.3.76-1.6-2.66-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.17 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 016 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.65.25 2.87.12 3.17.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.62-5.48 5.92.43.37.82 1.1.82 2.22v3.29c0 .32.22.7.83.58C20.56 21.8 24 17.3 24 12 24 5.37 18.63 0 12 0z"/></svg>
+        </div>
+        <h3 style="font-family: var(--font-display); font-size: 1.15rem; font-variation-settings:'opsz' 30;">GitHub</h3>
+        <p class="mt-2 small">Source code · issue tracker · contributions</p>
+      </a>
+      <a href="https://github.com/massimoaria/tall.language.models" target="_blank" rel="noopener" class="card fade-in fade-in-delay-2" style="text-decoration:none;">
+        <div style="width:42px; height:42px; border-radius: 8px; background: var(--tall-soft); display:flex; align-items:center; justify-content:center; margin-bottom: 1rem;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--tall-deep)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 019 9 9 9 0 01-9 9 9 9 0 01-9-9 9 9 0 019-9zM12 3v18M3 12h18M5.64 5.64l12.72 12.72M5.64 18.36l12.72-12.72"/></svg>
+        </div>
+        <h3 style="font-family: var(--font-display); font-size: 1.15rem; font-variation-settings:'opsz' 30;">Language models</h3>
+        <p class="mt-2 small">87 pre‑trained UD v2.15 models · 56 languages</p>
+      </a>
+      <a href="tutorial.html" class="card fade-in fade-in-delay-3" style="text-decoration:none;">
+        <div style="width:42px; height:42px; border-radius: 8px; background: var(--tall-soft); display:flex; align-items:center; justify-content:center; margin-bottom: 1rem;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--tall-deep)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+        </div>
+        <h3 style="font-family: var(--font-display); font-size: 1.15rem; font-variation-settings:'opsz' 30;">Tutorial</h3>
+        <p class="mt-2 small">Interactive step‑by‑step walkthrough</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section-tight" style="background: var(--paper-warm);">
+  <div class="container text-center">
+    <h2 class="display-md fade-in">Questions? <em class="italic-display" style="font-weight:400; color: var(--tall-deep)">Get in touch</em>.</h2>
+    <p class="lede mt-4 fade-in fade-in-delay-1" style="max-width: 40em; margin: 1rem auto 0;">
+      For bug reports, feature requests and contributions, use the GitHub issue tracker. For general inquiries, email the corresponding author.
+    </p>
+    <div class="flex gap-4 justify-center mt-8 fade-in fade-in-delay-2" style="flex-wrap: wrap;">
+      <a href="https://github.com/massimoaria/tall/issues" target="_blank" rel="noopener" class="btn btn-primary">GitHub issues</a>
+      <a href="mailto:aria@unina.it" class="btn btn-ghost">aria@unina.it</a>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-title">TALL</div>
+        <span class="footer-sub">Text Analysis for All · v1.0.1</span>
+        <p class="mt-6" style="color: rgba(250,247,239,.6); max-width: 28em; font-size: .92rem;">An open‑source R‑Shiny application developed by K‑Synth and academic partners, for reproducible text analytics without code.</p>
+      </div>
+      <div><h4>Product</h4><ul>
+        <li><a href="features.html">Features</a></li>
+        <li><a href="tall-ai.html">TALL AI</a></li>
+        <li><a href="usecases.html">Use cases</a></li>
+        <li><a href="download.html">Install</a></li>
+      </ul></div>
+      <div><h4>Research</h4><ul>
+        <li><a href="tutorial.html">Tutorial</a></li>
+          <li><a href="documentation.html">Documentation</a></li>
+        <li><a href="index.html#paper">Paper</a></li>
+        <li><a href="https://cran.r-project.org/package=tall" target="_blank" rel="noopener">CRAN</a></li>
+        <li><a href="https://github.com/massimoaria/tall" target="_blank" rel="noopener">GitHub</a></li>
+      </ul></div>
+      <div><h4>Team</h4><ul>
+        <li><a href="about.html">About us</a></li>
+        <li><a href="mailto:aria@unina.it">Contact</a></li>
+        <li><a href="https://www.k-synth.com" target="_blank" rel="noopener">K‑Synth</a></li>
+      </ul></div>
+    </div>
+    <div class="footer-meta">
+      <div>© 2026 K‑Synth Srl · Academic Spin‑Off of the University of Naples Federico&nbsp;II. Released under the MIT License.</div>
+      <div class="flex gap-4">
+        <a href="https://github.com/massimoaria/tall" target="_blank" rel="noopener" aria-label="GitHub">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.21 11.4.6.1.82-.26.82-.58v-2.17c-3.34.73-4.04-1.42-4.04-1.42-.55-1.39-1.33-1.76-1.33-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5 1 .11-.78.42-1.3.76-1.6-2.66-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.17 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 016 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.65.25 2.87.12 3.17.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.62-5.48 5.92.43.37.82 1.1.82 2.22v3.29c0 .32.22.7.83.58C20.56 21.8 24 17.3 24 12 24 5.37 18.63 0 12 0z"/></svg>
+        </a>
+        <a href="mailto:aria@unina.it" aria-label="Email">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

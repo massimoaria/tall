@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Use cases · TALL — worked examples from the paper</title>
+  <meta name="description" content="Four end-to-end worked examples from research: BBC News thematic analysis, US Airline Tweets sentiment detection, bibliometric analysis with bibliometrix, and Wikipedia topic modeling.">
+  <link rel="icon" type="image/png" href="./images/tall-logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,0..100;1,9..144,300..700,0..100&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="site-nav" aria-label="Primary">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">
+      <img src="./images/tall-logo.png" alt="TALL logo">
+      <span class="wordmark">TALL<sup>1.0.1</sup></span>
+    </a>
+    <div class="nav-links">
+      <a href="features.html">Features</a>
+      <a href="tall-ai.html">TALL AI</a>
+      <a href="usecases.html">Use cases</a>
+      <a href="tutorial.html">Tutorial</a>
+      <a href="documentation.html">Docs</a>
+      <a href="about.html">About</a>
+    </div>
+    <a href="download.html" class="nav-cta">Install
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+    </a>
+    <button class="nav-burger" aria-label="Open menu" aria-expanded="false">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+  <div class="mobile-menu" style="display:none">
+    <a href="features.html">Features</a>
+    <a href="tall-ai.html">TALL AI</a>
+    <a href="usecases.html">Use cases</a>
+    <a href="tutorial.html">Tutorial</a>
+    <a href="documentation.html">Documentation</a>
+    <a href="download.html">Install</a>
+    <a href="about.html">About</a>
+  </div>
+  <div class="nav-rule"></div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" style="padding-bottom: clamp(3rem, 6vw, 4rem);">
+  <div class="container-narrow text-center">
+    <span class="kicker fade-in" style="margin: 0 auto;">Use cases</span>
+    <h1 class="display-xl mt-4 fade-in">
+      Four corpora.<br>
+      <em class="italic-display" style="font-weight:400; color:var(--tall-deep)">One&nbsp;workflow</em>.
+    </h1>
+    <p class="lede mt-6 fade-in fade-in-delay-1">
+      Four worked examples drawn from the paper and supplementary materials — thematic analysis of news, sentiment detection on social media, science mapping of academic literature, and topic modeling of encyclopedic text. All executed end‑to‑end in TALL, without writing code.
+    </p>
+  </div>
+</section>
+
+<!-- INDEX -->
+<section class="section-tight" style="background: var(--paper-warm);">
+  <div class="container">
+    <div class="grid grid-4">
+      <a href="#bbc" class="card fade-in" style="text-decoration:none">
+        <div class="eyebrow" style="color: var(--tall-deep);">01 · Journalism</div>
+        <h3 class="mt-2" style="font-family: var(--font-display); font-size:1.15rem; font-variation-settings:'opsz' 30; color: var(--ink);">BBC News</h3>
+        <p class="mt-2 small">Thematic analysis · 386 stories · EN GUM model</p>
+      </a>
+      <a href="#airline" class="card fade-in fade-in-delay-1" style="text-decoration:none">
+        <div class="eyebrow" style="color: var(--tall-deep);">02 · Social media</div>
+        <h3 class="mt-2" style="font-family: var(--font-display); font-size:1.15rem; font-variation-settings:'opsz' 30; color: var(--ink);">US Airline Tweets</h3>
+        <p class="mt-2 small">Sentiment detection · 14,640 tweets · 6 airlines</p>
+      </a>
+      <a href="#bibliometrix" class="card fade-in fade-in-delay-2" style="text-decoration:none">
+        <div class="eyebrow" style="color: var(--tall-deep);">03 · Science mapping</div>
+        <h3 class="mt-2" style="font-family: var(--font-display); font-size:1.15rem; font-variation-settings:'opsz' 30; color: var(--ink);">bibliometrix</h3>
+        <p class="mt-2 small">Scientific abstracts · co‑word analysis</p>
+      </a>
+      <a href="#wiki" class="card fade-in fade-in-delay-3" style="text-decoration:none">
+        <div class="eyebrow" style="color: var(--tall-deep);">04 · Reference</div>
+        <h3 class="mt-2" style="font-family: var(--font-display); font-size:1.15rem; font-variation-settings:'opsz' 30; color: var(--ink);">Wikipedia</h3>
+        <p class="mt-2 small">Topic modeling · encyclopedic corpus</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- CASE 1: BBC NEWS -->
+<section id="bbc">
+  <div class="container">
+    <div class="grid grid-12" style="gap: 3rem; align-items: start;">
+      <div style="grid-column: span 4;" class="fade-in">
+        <span class="kicker">Case · 01</span>
+        <h2 class="display-lg mt-4">
+          <em class="italic-display" style="font-weight:400">Thematic</em> analysis on <span style="white-space:nowrap">BBC News</span>.
+        </h2>
+        <p class="mt-6">
+          A collection of 386 short news articles from the BBC News corpus, retrieved from the BBC website (Greene &amp; Cunningham, 2005). After loading, TALL applies standard pre‑processing — tokenisation and lemmatisation via the <em>EN GUM</em> model — retaining adjectives, nouns, proper nouns, and verbs.
+        </p>
+        <div class="flex gap-3 mt-4" style="flex-wrap: wrap;">
+          <span class="pill">English</span>
+          <span class="pill">GUM model</span>
+          <span class="pill">386 docs</span>
+          <span class="pill">Louvain</span>
+        </div>
+      </div>
+
+      <div style="grid-column: span 8;" class="fade-in fade-in-delay-1">
+        <figure class="figure">
+          <img src="./paper/network_mod.webp" alt="Community detection on BBC News corpus">
+          <figcaption class="figcaption"><strong>Figure · Network</strong> Five dense sub‑graphs from community detection on the entertainment sub‑corpus: Awards, Music, Industry, Media, General News.</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <!-- Workflow steps -->
+    <div class="mt-12">
+      <div class="grid grid-3 fade-in">
+        <div>
+          <div class="eyebrow" style="color: var(--amber);">Step 1 · Import</div>
+          <p class="mt-2 small">Built‑in <em>BBC News</em> dataset loaded with TALL AI context automatically populated.</p>
+          <div class="fig-frame mt-3"><img src="./images/usecases/bbc/bbc-import.webp" alt="BBC News import"></div>
+        </div>
+        <div>
+          <div class="eyebrow" style="color: var(--amber);">Step 2 · Tokenise &amp; PoS</div>
+          <p class="mt-2 small">EN GUM model selected. Adjectives, nouns, proper nouns, verbs retained.</p>
+          <div class="fig-frame mt-3"><img src="./images/usecases/bbc/bbc-tok.webp" alt="Tokenisation"></div>
+        </div>
+        <div>
+          <div class="eyebrow" style="color: var(--amber);">Step 3 · Multi‑word</div>
+          <p class="mt-2 small">RAKE extracts salient collocations; manual curation preserves domain phrases.</p>
+          <div class="fig-frame mt-3"><img src="./images/usecases/bbc/bbc-mw.webp" alt="Multi-words"></div>
+        </div>
+      </div>
+
+      <div class="grid grid-3 mt-8 fade-in fade-in-delay-1">
+        <div>
+          <div class="eyebrow" style="color: var(--amber);">Step 4 · Overview</div>
+          <p class="mt-2 small">Descriptive statistics, lexical richness, and TF‑IDF for discriminating terms.</p>
+          <div class="fig-frame mt-3"><img src="./images/usecases/bbc/bbc-wc.webp" alt="Word cloud"></div>
+        </div>
+        <div>
+          <div class="eyebrow" style="color: var(--amber);">Step 5 · Words in Context</div>
+          <p class="mt-2 small">Concordance view surfaces co‑text environments for salient terms.</p>
+          <div class="fig-frame mt-3"><img src="./images/usecases/bbc/bbc-wic.webp" alt="Words in context"></div>
+        </div>
+        <div>
+          <div class="eyebrow" style="color: var(--amber);">Step 6 · Topic modeling</div>
+          <p class="mt-2 small">LDA recovers thematic structure across the full news collection.</p>
+          <div class="fig-frame mt-3"><img src="./images/usecases/bbc/bbc-tm.webp" alt="Topic modeling"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TALL AI insight -->
+    <div class="mt-12 fade-in">
+      <div style="padding: 2rem; border-radius: 8px; background: var(--paper-warm); border-left: 3px solid var(--tall-deep); max-width: 46em; margin: 0 auto;">
+        <div class="eyebrow" style="color: var(--tall-deep);">TALL AI · Interpretation</div>
+        <p class="mt-2" style="font-family: var(--font-display); font-size: 1.15rem; font-style: italic; font-variation-settings: 'opsz' 30; color: var(--ink); line-height: 1.5;">
+          "The entertainment news focuses heavily on film awards and the movie industry. Music‑related news forms a significant portion of the content — organised around performance, industry and sales."
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CASE 2: US AIRLINE TWEETS -->
+<section id="airline" style="background: var(--paper-warm);">
+  <div class="container">
+    <div class="grid grid-12" style="gap: 3rem; align-items: start;">
+      <div style="grid-column: span 8;" class="fade-in">
+        <figure class="figure">
+          <img src="./paper/sentiment_mod.webp" alt="Polarity analysis on US Airline Tweets">
+          <figcaption class="figcaption"><strong>Figure · Polarity</strong> Top word distributions by polarity category. Negative tweets cluster around service disruptions (<em>delay</em>, <em>cancel</em>, <em>miss</em>) while positive tweets express gratitude (<em>thank</em>, <em>appreciate</em>).</figcaption>
+        </figure>
+      </div>
+      <div style="grid-column: span 4;" class="fade-in fade-in-delay-1">
+        <span class="kicker">Case · 02</span>
+        <h2 class="display-lg mt-4">
+          <em class="italic-display" style="font-weight:400">Sentiment</em> on<br>airline tweets.
+        </h2>
+        <p class="mt-6">
+          14,640 tweets directed at six major US airlines during February 2015 (Figure Eight / Kaggle). TALL detects platform‑specific entities — hashtags, mentions, emojis — and runs polarity detection via the Hu‑Liu opinion lexicon.
+        </p>
+        <div class="grid grid-2 mt-6" style="gap: .8rem;">
+          <div><div class="stat-num" style="font-size: 2rem;">127</div><div class="small">unique emojis</div></div>
+          <div><div class="stat-num" style="font-size: 2rem;">1.9k</div><div class="small">hashtags</div></div>
+          <div><div class="stat-num" style="font-size: 2rem;">930</div><div class="small">mentions</div></div>
+          <div><div class="stat-num" style="font-size: 2rem;">28%</div><div class="small">negative sentiment</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-3 mt-12 fade-in">
+      <div>
+        <div class="eyebrow" style="color: var(--amber);">Step 1 · Import</div>
+        <p class="mt-2 small">Built‑in corpus loaded; TALL AI receives pre‑populated dataset context.</p>
+        <div class="fig-frame mt-3"><img src="./images/usecases/airline/air-import.webp" alt="Import"></div>
+      </div>
+      <div>
+        <div class="eyebrow" style="color: var(--amber);">Step 2 · EWT tokenisation</div>
+        <p class="mt-2 small">EN EWT model handles social‑media text. Hashtags, mentions, emojis retained as entities.</p>
+        <div class="fig-frame mt-3"><img src="./images/usecases/airline/air-tok.webp" alt="Tokenisation"></div>
+      </div>
+      <div>
+        <div class="eyebrow" style="color: var(--amber);">Step 3 · Special entities</div>
+        <p class="mt-2 small">Automatic tagging of hashtags, mentions, emojis with frequency ranking.</p>
+        <div class="fig-frame mt-3"><img src="./images/usecases/airline/air-tse.webp" alt="Special entities"></div>
+      </div>
+    </div>
+
+    <div class="grid grid-3 mt-8 fade-in fade-in-delay-1">
+      <div>
+        <div class="eyebrow" style="color: var(--amber);">Step 4 · Words in Context</div>
+        <p class="mt-2 small">Concordance for <code>@AmericanAirlines</code> reveals customer‑service discourse patterns.</p>
+        <div class="fig-frame mt-3"><img src="./images/usecases/airline/air-wic.webp" alt="Words in context"></div>
+      </div>
+      <div>
+        <div class="eyebrow" style="color: var(--amber);">Step 5 · Polarity</div>
+        <p class="mt-2 small">Hu‑Liu lexicon · donut chart with five levels from Very Negative to Very Positive.</p>
+        <div class="fig-frame mt-3"><img src="./images/usecases/airline/air-pol.webp" alt="Polarity"></div>
+      </div>
+      <div>
+        <div class="eyebrow" style="color: var(--amber);">Step 6 · TALL AI</div>
+        <p class="mt-2 small">Automated key takeaways &amp; managerial implications.</p>
+        <div class="fig-frame mt-3"><img src="./images/usecases/airline/air-polai.webp" alt="AI polarity interpretation"></div>
+      </div>
+    </div>
+
+    <div class="mt-12 fade-in">
+      <div style="padding: 2rem; border-radius: 8px; background: var(--surface); border-left: 3px solid var(--tall-deep); max-width: 50em; margin: 0 auto;">
+        <div class="eyebrow" style="color: var(--tall-deep);">TALL AI · Key takeaways</div>
+        <p class="mt-2" style="font-family: var(--font-display); font-size: 1.15rem; font-style: italic; font-variation-settings: 'opsz' 30; color: var(--ink); line-height: 1.5;">
+          "The dominance of <em>delay</em> and <em>cancel</em> in negative tweets suggests airlines should focus on improving their processes for handling flight disruptions. Both positive and negative tweets highlight the importance of customer service — the presence of gratitude‑related terms in positive sentiment indicates that effective customer service responses can mitigate dissatisfaction and generate positive outcomes."
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CASE 3: BIBLIOMETRIX -->
+<section id="bibliometrix">
+  <div class="container">
+    <div class="grid grid-12" style="gap: 3rem; align-items: start;">
+      <div style="grid-column: span 5;" class="fade-in">
+        <span class="kicker">Case · 03</span>
+        <h2 class="display-lg mt-4">
+          <em class="italic-display" style="font-weight:400">Science&nbsp;mapping</em> from abstracts.
+        </h2>
+        <p class="mt-6">
+          TALL natively ingests <em>biblioshiny</em> files from the <a href="https://bibliometrix.org" target="_blank" rel="noopener">bibliometrix</a> package. Scientific abstracts flow into the same pre‑processing pipeline — multilingual tokenisation, lemmatisation, co‑word analysis — and can be layered with citation‑based metrics for hybrid semantic/bibliometric analysis.
+        </p>
+        <p>
+          A natural fit for systematic literature reviews, conceptual‑structure analyses, and policy‑oriented research synthesis.
+        </p>
+        <div class="flex gap-3 mt-4" style="flex-wrap: wrap;">
+          <span class="pill">biblioshiny import</span>
+          <span class="pill">co‑word analysis</span>
+          <span class="pill">citation filters</span>
+        </div>
+      </div>
+      <div style="grid-column: span 7;" class="fade-in fade-in-delay-1">
+        <div class="grid grid-2" style="gap: 1rem;">
+          <div class="fig-frame"><img src="./images/usecases/bibliometrix/bib-import.webp" alt="Bibliometrix import"></div>
+          <div class="fig-frame"><img src="./images/usecases/bibliometrix/bib-filter.webp" alt="Bibliometrix filter"></div>
+          <div class="fig-frame"><img src="./images/usecases/bibliometrix/bib-cw.webp" alt="Bibliometrix co-word analysis"></div>
+          <div class="fig-frame"><img src="./images/usecases/bibliometrix/bib-cwai.webp" alt="Bibliometrix AI interpretation"></div>
+        </div>
+        <p class="figcaption mt-4"><strong>Figure · Bibliometrix</strong> Biblioshiny ingestion, corpus filtering, co‑word analysis, and TALL AI interpretation of the emerging conceptual structure.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CASE 4: WIKIPEDIA -->
+<section id="wiki" style="background: var(--paper-warm);">
+  <div class="container">
+    <div class="grid grid-12" style="gap: 3rem; align-items: start;">
+      <div style="grid-column: span 7;" class="fade-in">
+        <div class="grid grid-2" style="gap: 1rem;">
+          <div class="fig-frame"><img src="./images/usecases/wiki/wiki-import.webp" alt="Wikipedia import"></div>
+          <div class="fig-frame"><img src="./images/usecases/wiki/wiki-ov.png" alt="Wikipedia overview"></div>
+          <div class="fig-frame"><img src="./images/usecases/wiki/wiki-mw.webp" alt="Wikipedia multiwords"></div>
+          <div class="fig-frame"><img src="./images/usecases/wiki/wiki-cw.webp" alt="Wikipedia co-word"></div>
+          <div class="fig-frame" style="grid-column: span 2;"><img src="./images/usecases/wiki/wiki-tm.webp" alt="Wikipedia topic modeling"></div>
+        </div>
+        <p class="figcaption mt-4"><strong>Figure · Wikipedia</strong> An encyclopedic corpus processed through import, overview, multi‑word extraction, co‑word analysis, and topic modeling — ending with TALL AI's topic interpretation.</p>
+      </div>
+      <div style="grid-column: span 5;" class="fade-in fade-in-delay-1">
+        <span class="kicker">Case · 04</span>
+        <h2 class="display-lg mt-4">
+          <em class="italic-display" style="font-weight:400">Topic discovery</em> on Wikipedia.
+        </h2>
+        <p class="mt-6">
+          An encyclopedic corpus pushes TALL through the full analytical narrative: from basic frequency and TF‑IDF to multi‑word extraction, co‑word networks, and finally LDA topic modeling with TALL AI producing concise narrative labels for each topic.
+        </p>
+        <p>
+          Ideal for digital humanities, educational‑content audits, and cross‑linguistic cultural analysis given TALL's 56‑language coverage.
+        </p>
+        <div class="flex gap-3 mt-4" style="flex-wrap: wrap;">
+          <span class="pill">topic modeling</span>
+          <span class="pill">co‑occurrence</span>
+          <span class="pill">multi‑word</span>
+          <span class="pill">AI topic labels</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESEARCH DOMAINS -->
+<section>
+  <div class="container">
+    <div class="text-center mb-12" style="max-width: 48em; margin: 0 auto;">
+      <span class="kicker fade-in">§ · Where TALL is used</span>
+      <h2 class="display-lg mt-4 fade-in">
+        Across disciplines where <em class="italic-display" style="font-weight:400">text is evidence</em>.
+      </h2>
+    </div>
+
+    <div class="grid grid-3 mt-8">
+      <div class="card fade-in">
+        <div class="eyebrow" style="color: var(--tall-deep);">Social &amp; political sciences</div>
+        <p class="mt-3">Large‑scale thematic and sentiment analyses of institutional reports, parliamentary proceedings, and online debates.</p>
+      </div>
+      <div class="card fade-in fade-in-delay-1">
+        <div class="eyebrow" style="color: var(--tall-deep);">Digital humanities</div>
+        <p class="mt-3">Multilingual architecture for cross‑linguistic <em>corpus</em> studies and computational cultural analysis across 56 languages.</p>
+      </div>
+      <div class="card fade-in fade-in-delay-2">
+        <div class="eyebrow" style="color: var(--tall-deep);">Bibliometrics</div>
+        <p class="mt-3">Integration with <em>bibliometrix</em> combines semantic and citation‑based analyses for science mapping and literature reviews.</p>
+      </div>
+      <div class="card fade-in">
+        <div class="eyebrow" style="color: var(--tall-deep);">Healthcare research</div>
+        <p class="mt-3">Analyses of patient feedback, clinical records and satisfaction surveys (Valentino et al., 2025).</p>
+      </div>
+      <div class="card fade-in fade-in-delay-1">
+        <div class="eyebrow" style="color: var(--tall-deep);">Education</div>
+        <p class="mt-3">Currently used in postgraduate and doctoral programs at several Italian universities for teaching data‑driven text methods.</p>
+      </div>
+      <div class="card fade-in fade-in-delay-2">
+        <div class="eyebrow" style="color: var(--tall-deep);">Industry &amp; market research</div>
+        <p class="mt-3">Sentiment tracking and theme discovery across customer feedback, reviews, and social media at scale.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section-tight" style="background: var(--ink); color: var(--paper);">
+  <div class="container text-center">
+    <h2 class="display-md" style="color: var(--paper);">
+      Your corpus is <em class="italic-display" style="font-weight:400; color: var(--tall)">next</em>.
+    </h2>
+    <div class="flex gap-4 justify-center mt-8" style="flex-wrap: wrap;">
+      <a href="download.html" class="btn" style="background: var(--tall); color: var(--ink); border:0;">Install TALL</a>
+      <a href="tutorial.html" class="btn" style="background: transparent; color: var(--paper); border: 1px solid rgba(250,247,239,.3);">Read the tutorial</a>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-title">TALL</div>
+        <span class="footer-sub">Text Analysis for All · v1.0.1</span>
+        <p class="mt-6" style="color: rgba(250,247,239,.6); max-width: 28em; font-size: .92rem;">An open‑source R‑Shiny application developed by K‑Synth and academic partners, for reproducible text analytics without code.</p>
+      </div>
+      <div><h4>Product</h4><ul>
+        <li><a href="features.html">Features</a></li>
+        <li><a href="tall-ai.html">TALL AI</a></li>
+        <li><a href="usecases.html">Use cases</a></li>
+        <li><a href="download.html">Install</a></li>
+      </ul></div>
+      <div><h4>Research</h4><ul>
+        <li><a href="tutorial.html">Tutorial</a></li>
+          <li><a href="documentation.html">Documentation</a></li>
+        <li><a href="index.html#paper">Paper</a></li>
+        <li><a href="https://cran.r-project.org/package=tall" target="_blank" rel="noopener">CRAN</a></li>
+        <li><a href="https://github.com/massimoaria/tall" target="_blank" rel="noopener">GitHub</a></li>
+      </ul></div>
+      <div><h4>Team</h4><ul>
+        <li><a href="about.html">About us</a></li>
+        <li><a href="mailto:aria@unina.it">Contact</a></li>
+        <li><a href="https://www.k-synth.com" target="_blank" rel="noopener">K‑Synth</a></li>
+      </ul></div>
+    </div>
+    <div class="footer-meta">
+      <div>© 2026 K‑Synth Srl · Academic Spin‑Off of the University of Naples Federico&nbsp;II. Released under the MIT License.</div>
+      <div class="flex gap-4">
+        <a href="https://github.com/massimoaria/tall" target="_blank" rel="noopener" aria-label="GitHub">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.21 11.4.6.1.82-.26.82-.58v-2.17c-3.34.73-4.04-1.42-4.04-1.42-.55-1.39-1.33-1.76-1.33-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5 1 .11-.78.42-1.3.76-1.6-2.66-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.17 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 016 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.65.25 2.87.12 3.17.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.62-5.48 5.92.43.37.82 1.1.82 2.22v3.29c0 .32.22.7.83.58C20.56 21.8 24 17.3 24 12 24 5.37 18.63 0 12 0z"/></svg>
+        </a>
+        <a href="mailto:aria@unina.it" aria-label="Email">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

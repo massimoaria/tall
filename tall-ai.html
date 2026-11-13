@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TALL AI · Context‑aware interpretation for text analysis</title>
+  <meta name="description" content="TALL AI — a privacy-preserving AI assistant integrated with Google Gemini that generates natural-language explanations of TALL's statistical outputs without ever transmitting raw textual content.">
+  <link rel="icon" type="image/png" href="./images/tall-logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,0..100;1,9..144,300..700,0..100&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="site-nav" aria-label="Primary">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">
+      <img src="./images/tall-logo.png" alt="TALL logo">
+      <span class="wordmark">TALL<sup>1.0.1</sup></span>
+    </a>
+    <div class="nav-links">
+      <a href="features.html">Features</a>
+      <a href="tall-ai.html">TALL AI</a>
+      <a href="usecases.html">Use cases</a>
+      <a href="tutorial.html">Tutorial</a>
+      <a href="documentation.html">Docs</a>
+      <a href="about.html">About</a>
+    </div>
+    <a href="download.html" class="nav-cta">Install
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+    </a>
+    <button class="nav-burger" aria-label="Open menu" aria-expanded="false">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+  <div class="mobile-menu" style="display:none">
+    <a href="features.html">Features</a>
+    <a href="tall-ai.html">TALL AI</a>
+    <a href="usecases.html">Use cases</a>
+    <a href="tutorial.html">Tutorial</a>
+    <a href="documentation.html">Documentation</a>
+    <a href="download.html">Install</a>
+    <a href="about.html">About</a>
+  </div>
+  <div class="nav-rule"></div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="grid grid-12" style="gap: 3rem; align-items: end;">
+      <div style="grid-column: span 7;">
+        <span class="kicker fade-in">TALL · AI</span>
+        <h1 class="display-xl mt-4 fade-in">
+          Statistics,<br>
+          explained in
+          <em class="italic-display" style="font-weight:400; color: var(--tall-deep)">plain&nbsp;language</em>.
+        </h1>
+        <p class="lede mt-6 fade-in fade-in-delay-1" style="max-width: 38em;">
+          A context‑aware assistant — built on the Google Gemini API — that generates contextualised explanations for every analytical step in TALL. It interprets topic clusters, reads sentiment distributions, suggests next analyses, and comments on network communities in natural language, right alongside the numerical output.
+        </p>
+        <div class="flex gap-4 mt-8 fade-in fade-in-delay-2" style="flex-wrap: wrap;">
+          <a href="download.html" class="btn btn-primary">
+            Enable TALL AI
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </a>
+          <a href="#privacy" class="btn btn-ghost">Read the privacy model</a>
+        </div>
+      </div>
+      <div style="grid-column: span 5;" class="fade-in fade-in-delay-3">
+        <div class="card-paper" style="text-align: center;">
+          <img src="./images/tall-ai.png" alt="TALL AI emblem" style="max-width: 240px; margin: 0 auto; display: block;">
+          <p class="small muted mt-4">Integrated with Google Gemini · Medium (16k tokens) or Large (32k tokens) modes</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRINCIPLES -->
+<section style="background: var(--paper-warm);">
+  <div class="container">
+    <div class="text-center mb-12" style="max-width: 46em; margin: 0 auto;">
+      <span class="kicker fade-in">§ 1 · How it works</span>
+      <h2 class="display-lg mt-4 fade-in">
+        A <em class="italic-display" style="font-weight:400">hybrid analysis</em>:<br>
+        evidence paired with interpretation.
+      </h2>
+      <p class="lede mt-4 fade-in fade-in-delay-1">
+        TALL AI does not replace statistical analysis — it narrates it. Each output comes with a collapsible panel of AI‑generated commentary providing interpretive context, suggesting next analytical steps, and highlighting implications a domain expert would notice.
+      </p>
+    </div>
+
+    <div class="grid grid-3 mt-8">
+      <div class="card fade-in">
+        <div class="eyebrow" style="color: var(--tall-deep);">Interprets</div>
+        <h3 class="mt-2" style="font-family: var(--font-display); font-size: 1.25rem; font-variation-settings: 'opsz' 30;">Contextual explanations</h3>
+        <p class="mt-3">Generates narrative summaries of every output — frequency tables, topic models, network clusters, sentiment distributions — grounded in the specific characteristics of your dataset.</p>
+      </div>
+      <div class="card fade-in fade-in-delay-1">
+        <div class="eyebrow" style="color: var(--tall-deep);">Guides</div>
+        <h3 class="mt-2" style="font-family: var(--font-display); font-size: 1.25rem; font-variation-settings: 'opsz' 30;">Methodological prompts</h3>
+        <p class="mt-3">Suggests the most suitable next analysis for your corpus — from Words in Context to Polarity Detection — turning the platform into a research companion.</p>
+      </div>
+      <div class="card fade-in fade-in-delay-2">
+        <div class="eyebrow" style="color: var(--tall-deep);">Synthesises</div>
+        <h3 class="mt-2" style="font-family: var(--font-display); font-size: 1.25rem; font-variation-settings: 'opsz' 30;">Key takeaways &amp; implications</h3>
+        <p class="mt-3">At the end of the pipeline, assembles "Key Takeaways &amp; Implications" — the kind of narrative distillation that bridges statistical evidence and actionable insight.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- IN CONTEXT EXAMPLE -->
+<section>
+  <div class="container">
+    <div class="grid grid-12" style="gap: 3rem; align-items: start;">
+      <div style="grid-column: span 5;" class="fade-in">
+        <span class="kicker">§ 2 · In practice</span>
+        <h2 class="display-md mt-4">
+          See it alongside <em class="italic-display" style="font-weight:400">real outputs</em>.
+        </h2>
+        <p class="mt-6">
+          TALL AI's responses appear in collapsible panels directly next to each analytical output. In the <em>BBC News</em> example, the assistant interpreted five community‑detection sub‑graphs as topical clusters — Awards/Movies, Music and Performance, Music Industry, Media and Entertainment, General News — and surfaced observations such as <em>"the entertainment news focuses heavily on film awards and the movie industry."</em>
+        </p>
+        <p>
+          For the <em>US Airline Tweets</em> corpus, TALL AI synthesised the sentiment analysis into actionable takeaways: <em>"the dominance of 'delay' and 'cancel' in negative tweets suggests airlines should focus on improving their processes for handling flight disruptions."</em>
+        </p>
+        <blockquote style="margin: 2rem 0; padding-left: 1.5rem; border-left: 3px solid var(--tall-deep); font-family: var(--font-display); font-style: italic; font-size: 1.2rem; color: var(--ink); font-variation-settings: 'opsz' 30;">
+          The model's textual responses are rendered dynamically within the interface, complementing quantitative results with natural‑language commentary.
+          <footer class="small muted" style="font-style: normal; font-family: var(--font-body); margin-top: .8rem;">— Aria et al., <em>SoftwareX</em> 2026</footer>
+        </blockquote>
+      </div>
+
+      <div style="grid-column: span 7;" class="fade-in fade-in-delay-1">
+        <figure class="figure">
+          <img src="./images/ai/tall-aiwic.webp" alt="TALL AI interpretation alongside Words in Context">
+          <figcaption class="figcaption">
+            <strong>Figure</strong> TALL AI panel alongside a Words‑in‑Context analysis — the assistant synthesises concordance lines into interpretive themes.
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRIVACY MODEL -->
+<section id="privacy" style="background: var(--ink); color: var(--paper);">
+  <div class="container">
+    <div class="text-center mb-12" style="max-width: 50em; margin: 0 auto;">
+      <span class="kicker" style="color: var(--tall);">§ 3 · Privacy by architecture</span>
+      <h2 class="display-lg mt-4" style="color: var(--paper);">
+        Your <em class="italic-display" style="font-weight:400; color: var(--tall)">raw text</em> never leaves your machine.
+      </h2>
+      <p class="lede mt-4" style="color: rgba(250,247,239,.8);">
+        TALL AI implements strict data minimisation. Only metadata and aggregated statistical results are transmitted to the Gemini API for interpretation — raw textual content stays in your R session.
+      </p>
+    </div>
+
+    <div class="grid grid-3 mt-8">
+      <div style="padding: 2rem; background: rgba(250,247,239,.04); border: 1px solid rgba(77,178,128,.25); border-radius: 8px;" class="fade-in">
+        <div style="display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; background: var(--tall-deep); border-radius: 50%; margin-bottom: 1rem;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--tall)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3 style="color: var(--paper); font-size: 1.3rem; font-family: var(--font-display); font-variation-settings: 'opsz' 30;">Data minimisation</h3>
+        <p class="mt-3" style="color: rgba(250,247,239,.75);">Only metadata and aggregated statistics are transmitted. The Gemini API receives summaries — counts, topic labels, cluster structures — never the underlying documents.</p>
+      </div>
+      <div style="padding: 2rem; background: rgba(250,247,239,.04); border: 1px solid rgba(77,178,128,.25); border-radius: 8px;" class="fade-in fade-in-delay-1">
+        <div style="display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; background: var(--tall-deep); border-radius: 50%; margin-bottom: 1rem;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--tall)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M4.93 4.93l14.14 14.14"/></svg>
+        </div>
+        <h3 style="color: var(--paper); font-size: 1.3rem; font-family: var(--font-display); font-variation-settings: 'opsz' 30;">Fully opt‑out</h3>
+        <p class="mt-3" style="color: rgba(250,247,239,.75);">The AI assistant can be disabled entirely in the settings — all other functionality remains fully operational. No external calls, no connectivity required.</p>
+      </div>
+      <div style="padding: 2rem; background: rgba(250,247,239,.04); border: 1px solid rgba(77,178,128,.25); border-radius: 8px;" class="fade-in fade-in-delay-2">
+        <div style="display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; background: var(--tall-deep); border-radius: 50%; margin-bottom: 1rem;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--tall)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>
+        </div>
+        <h3 style="color: var(--paper); font-size: 1.3rem; font-family: var(--font-display); font-variation-settings: 'opsz' 30;">Institutional deployment</h3>
+        <p class="mt-3" style="color: rgba(250,247,239,.75);">For regulated data (GDPR, HIPAA), TALL can be deployed on private servers with restricted API access — or without external connectivity at all.</p>
+      </div>
+    </div>
+
+    <div style="margin-top: 4rem; padding: 2rem; border-radius: 8px; border: 1px solid rgba(77,178,128,.25); background: rgba(77,178,128,.05);" class="fade-in">
+      <div class="eyebrow" style="color: var(--tall);">Recommendation</div>
+      <h3 class="mt-2" style="color: var(--paper); font-size: 1.3rem; font-family: var(--font-display); font-variation-settings: 'opsz' 30;">Working with sensitive corpora?</h3>
+      <p class="mt-3" style="color: rgba(250,247,239,.8); max-width: 50em;">
+        For research involving EU‑GDPR or US‑HIPAA regulated data, we recommend one of: <strong>(1)</strong> disabling TALL AI; <strong>(2)</strong> isolated server deployment; or <strong>(3)</strong> data anonymisation prior to analysis. Future versions will support local language models for additional privacy guarantees.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- CONFIGURATION -->
+<section>
+  <div class="container">
+    <div class="grid grid-12" style="gap: 3rem; align-items: center;">
+      <div style="grid-column: span 6; order: 2;" class="fade-in">
+        <figure class="figure">
+          <img src="./images/ai/tall-settings.webp" alt="TALL AI settings interface">
+          <figcaption class="figcaption">
+            <strong>Figure</strong> AI settings panel — pick a Gemini model, select context size, customise default prompts.
+          </figcaption>
+        </figure>
+      </div>
+      <div style="grid-column: span 6; order: 1;" class="fade-in fade-in-delay-1">
+        <span class="kicker">§ 4 · Configuration</span>
+        <h2 class="display-md mt-4">
+          Configurable <em class="italic-display" style="font-weight:400">reasoning depth</em>.
+        </h2>
+        <p class="mt-6">
+          Choose between <strong>Medium</strong> (16,384 tokens) and <strong>Large</strong> (32,768 tokens) configurations, plus alternative Gemini variants via a drop‑down menu. Default prompts are pre‑configured but fully customisable to match your analytical goals and preferred narrative detail.
+        </p>
+        <ul class="mt-4" style="list-style:none; padding:0;">
+          <li style="padding:.5rem 0; border-top:1px solid var(--rule-soft);">· Multiple Gemini models selectable at runtime · default <code>gemini-3.5-flash-lite</code> since 1.0.1</li>
+          <li style="padding:.5rem 0; border-top:1px solid var(--rule-soft);">· Adjustable context window — from 16k to 32k tokens</li>
+          <li style="padding:.5rem 0; border-top:1px solid var(--rule-soft);">· Pre‑configured prompts per analytical module</li>
+          <li style="padding:.5rem 0; border-top:1px solid var(--rule-soft); border-bottom:1px solid var(--rule-soft);">· Full prompt customisation &amp; override</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section-tight" style="background: var(--paper-warm);">
+  <div class="container text-center">
+    <h2 class="display-md fade-in">
+      Give your analysis a <em class="italic-display" style="font-weight:400; color: var(--tall-deep)">narrative voice</em>.
+    </h2>
+    <div class="flex gap-4 justify-center mt-8 fade-in fade-in-delay-1" style="flex-wrap: wrap;">
+      <a href="download.html" class="btn btn-primary">
+        Install TALL
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </a>
+      <a href="usecases.html" class="btn btn-ghost">See TALL AI in use cases</a>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-title">TALL</div>
+        <span class="footer-sub">Text Analysis for All · v1.0.1</span>
+        <p class="mt-6" style="color: rgba(250,247,239,.6); max-width: 28em; font-size: .92rem;">An open‑source R‑Shiny application developed by K‑Synth and academic partners, for reproducible text analytics without code.</p>
+      </div>
+      <div><h4>Product</h4><ul>
+        <li><a href="features.html">Features</a></li>
+        <li><a href="tall-ai.html">TALL AI</a></li>
+        <li><a href="usecases.html">Use cases</a></li>
+        <li><a href="download.html">Install</a></li>
+      </ul></div>
+      <div><h4>Research</h4><ul>
+        <li><a href="tutorial.html">Tutorial</a></li>
+          <li><a href="documentation.html">Documentation</a></li>
+        <li><a href="index.html#paper">Paper</a></li>
+        <li><a href="https://cran.r-project.org/package=tall" target="_blank" rel="noopener">CRAN</a></li>
+        <li><a href="https://github.com/massimoaria/tall" target="_blank" rel="noopener">GitHub</a></li>
+      </ul></div>
+      <div><h4>Team</h4><ul>
+        <li><a href="about.html">About us</a></li>
+        <li><a href="mailto:aria@unina.it">Contact</a></li>
+        <li><a href="https://www.k-synth.com" target="_blank" rel="noopener">K‑Synth</a></li>
+      </ul></div>
+    </div>
+    <div class="footer-meta">
+      <div>© 2026 K‑Synth Srl · Academic Spin‑Off of the University of Naples Federico&nbsp;II. Released under the MIT License.</div>
+      <div class="flex gap-4">
+        <a href="https://github.com/massimoaria/tall" target="_blank" rel="noopener" aria-label="GitHub">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.21 11.4.6.1.82-.26.82-.58v-2.17c-3.34.73-4.04-1.42-4.04-1.42-.55-1.39-1.33-1.76-1.33-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5 1 .11-.78.42-1.3.76-1.6-2.66-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.17 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 016 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.65.25 2.87.12 3.17.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.62-5.48 5.92.43.37.82 1.1.82 2.22v3.29c0 .32.22.7.83.58C20.56 21.8 24 17.3 24 12 24 5.37 18.63 0 12 0z"/></svg>
+        </a>
+        <a href="mailto:aria@unina.it" aria-label="Email">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

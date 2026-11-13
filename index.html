@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TALL — Text Analysis for All · Interactive R‑Shiny application</title>
+  <meta name="description" content="TALL 1.0.1 — an interactive R‑Shiny application for exploring, modeling, and visualizing textual data. 87 pre‑trained models, 56 languages, AI‑assisted interpretation, published in SoftwareX.">
+  <link rel="icon" type="image/png" href="./images/tall-logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,0..100;1,9..144,300..700,0..100&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============ NAVBAR ============ -->
+<nav class="site-nav" aria-label="Primary">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">
+      <img src="./images/tall-logo.png" alt="TALL logo">
+      <span class="wordmark">TALL<sup>1.0.1</sup></span>
+    </a>
+    <div class="nav-links">
+      <a href="features.html">Features</a>
+      <a href="tall-ai.html">TALL AI</a>
+      <a href="usecases.html">Use cases</a>
+      <a href="tutorial.html">Tutorial</a>
+      <a href="documentation.html">Docs</a>
+      <a href="about.html">About</a>
+    </div>
+    <a href="download.html" class="nav-cta">
+      Install
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+    </a>
+    <button class="nav-burger" aria-label="Open menu" aria-expanded="false">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+  <div class="mobile-menu" style="display:none">
+    <a href="features.html">Features</a>
+    <a href="tall-ai.html">TALL AI</a>
+    <a href="usecases.html">Use cases</a>
+    <a href="tutorial.html">Tutorial</a>
+    <a href="documentation.html">Documentation</a>
+    <a href="download.html">Install</a>
+    <a href="about.html">About</a>
+  </div>
+  <div class="nav-rule"></div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <div class="fade-in">
+          <span class="version-tag"><span class="dot"></span>Version 1.0.1 · on CRAN since September 2026</span>
+        </div>
+        <h1 class="display-xl fade-in mt-6">
+          Text analysis,<br>
+          <span class="italic-display" style="color:var(--tall-deep)">for all</span> of us.
+        </h1>
+        <p class="lede fade-in fade-in-delay-1 mt-8" style="max-width: 40em;">
+          An interactive <strong style="color:var(--ink)">R‑Shiny</strong> application that unifies import, cleaning, pre‑processing, statistical analysis and visualisation of textual data &mdash; designed so researchers without programming skills can move from raw text to interpretable results in minutes.
+        </p>
+        <div class="flex gap-4 mt-8 fade-in fade-in-delay-2" style="flex-wrap: wrap;">
+          <a href="download.html" class="btn btn-primary">
+            Install TALL
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
+          </a>
+          <a href="features.html" class="btn btn-ghost">
+            Explore the workflow
+          </a>
+          <a href="#paper" class="btn" style="padding: .85rem 1.2rem; color: var(--ink-soft); gap: .4rem;">
+            Read the paper
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <aside class="hero-stats fade-in fade-in-delay-3" aria-label="At-a-glance">
+        <div class="stat">
+          <div class="stat-num">87</div>
+          <div class="stat-label">Pre-trained models</div>
+          <div class="stat-sub">on Universal Dependencies v2.15</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">56</div>
+          <div class="stat-label">Languages supported</div>
+          <div class="stat-sub">from Arabic to Welsh</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">4k<span style="color:var(--tall);font-size:.6em;letter-spacing:0">+</span></div>
+          <div class="stat-label">CRAN downloads</div>
+          <div class="stat-sub">since February 2025</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">14.5<span style="font-size:.5em;color:var(--ink-muted);margin-left:.1em">k</span></div>
+          <div class="stat-label">Tokens / second</div>
+          <div class="stat-sub">Apple M4 Pro benchmark</div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ABSTRACT / INTRO ============ -->
+<section style="background: var(--paper-warm); padding-top: clamp(3.5rem, 6vw, 5rem); padding-bottom: clamp(3.5rem, 6vw, 5rem);">
+  <div class="container-narrow">
+    <div class="grid" style="grid-template-columns: 1fr; gap: 1.25rem;">
+      <span class="kicker fade-in">§&nbsp;Abstract</span>
+      <h2 class="display-md fade-in">
+        A <em class="italic-display" style="font-weight:400">transparent, code‑free</em> platform for turning unstructured text into structured, reproducible insight.
+      </h2>
+    </div>
+    <div class="grid grid-2 mt-8" style="gap: clamp(1.5rem, 3vw, 3rem);">
+      <div class="fade-in">
+        <p class="drop-cap">
+          Analyzing unstructured textual data is essential across disciplines &mdash; yet often requires programming skills many researchers lack. TALL bridges the gap by integrating data import, cleaning, pre‑processing, statistical analysis, and visualisation into a single Shiny application.
+        </p>
+        <p>
+          It supports tokenisation, lemmatisation, and Part‑of‑Speech tagging across 56 languages, and offers topic modeling, correspondence and cluster analysis, co‑occurrence networks, polarity detection, word embeddings, and text summarisation &mdash; all documented, exportable, and reproducible by design.
+        </p>
+      </div>
+      <div class="fade-in fade-in-delay-1">
+        <p>
+          The framework is FAIR‑compliant, open‑source under the MIT license, and available on CRAN. Performance‑critical routines are implemented in C++ via Rcpp, enabling scalable analysis of corpora spanning four orders of magnitude in size on standard research hardware.
+        </p>
+        <p>
+          A native integration with Google Gemini &mdash; <em>TALL AI</em> &mdash; produces context‑aware natural‑language explanations alongside each numerical output, while preserving strict data minimisation: raw textual content never leaves the user's environment.
+        </p>
+        <div class="flex gap-3 mt-4" style="flex-wrap: wrap;">
+          <span class="pill">#R‑Shiny</span>
+          <span class="pill">#NLP</span>
+          <span class="pill">#text&nbsp;mining</span>
+          <span class="pill">#open&nbsp;science</span>
+          <span class="pill">#FAIR</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WORKFLOW FIGURE ============ -->
+<section>
+  <div class="container">
+    <div class="flex justify-between items-start mb-8" style="flex-wrap: wrap; gap: 1.5rem;">
+      <div class="fade-in" style="max-width: 38em;">
+        <span class="kicker">§ 1 · The workflow</span>
+        <h2 class="display-md mt-4">
+          From raw text to <em class="italic-display" style="font-weight:400">interpretable findings</em> in one continuous pipeline.
+        </h2>
+      </div>
+      <a href="features.html" class="btn btn-ghost fade-in fade-in-delay-1" style="margin-top: 1rem;">
+        Full feature tour
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+
+    <figure class="figure fade-in fade-in-delay-2">
+      <img src="./paper/workflow.webp" alt="TALL end-to-end workflow from data import through pre-processing to analysis and visualization">
+      <figcaption class="figcaption">
+        <strong>Figure 1</strong> TALL's modular architecture organises a complete text‑analytics pipeline into three coherent layers — <em>Data Import &amp; Management</em>, <em>Pre‑processing</em>, and <em>Analysis</em> — connected by a shared data schema and an AI‑assisted interpretation layer.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ============ CORE MODULES ============ -->
+<section style="background: var(--paper-warm);">
+  <div class="container">
+    <div class="grid grid-12" style="gap: 3rem;">
+      <div style="grid-column: span 5;" class="fade-in">
+        <span class="kicker">§ 2 · Modules</span>
+        <h2 class="display-md mt-4">
+          A complete analytical suite &mdash;<br>
+          <em class="italic-display" style="font-weight:400">everything you need</em>, in one place.
+        </h2>
+        <p class="mt-6">
+          Fourteen integrated modules covering exploratory, inferential and interpretive methods. Each can be run independently or chained into a continuous analytical narrative; intermediate results are exportable at every step.
+        </p>
+        <a href="features.html" class="btn btn-leaf mt-6">
+          See all modules
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+      <div style="grid-column: span 7;" class="fade-in fade-in-delay-1">
+        <div class="module">
+          <div class="module-num">01</div>
+          <div>
+            <h3 class="module-title">Tokenisation, PoS tagging &amp; lemmatisation</h3>
+            <p class="module-desc">Universal‑Dependencies‑based pipelines for 56 languages, implemented via <em>udpipe</em>, with models cached locally for offline use.</p>
+            <div class="module-tags">
+              <span class="pill">udpipe</span>
+              <span class="pill">UD v2.15</span>
+              <span class="pill">87 models</span>
+            </div>
+          </div>
+        </div>
+        <div class="module">
+          <div class="module-num">02</div>
+          <div>
+            <h3 class="module-title">Multi‑word expression detection</h3>
+            <p class="module-desc">Six algorithms — dependency‑parsed noun phrases, RAKE, PMI, mutual dependency, LFMD and absorption index — plus user lists, for identifying salient n‑grams and candidate keyphrases. C++‑accelerated.</p>
+            <div class="module-tags">
+              <span class="pill">RAKE</span>
+              <span class="pill">PMI</span>
+              <span class="pill">LFMD</span>
+            </div>
+          </div>
+        </div>
+        <div class="module">
+          <div class="module-num">03</div>
+          <div>
+            <h3 class="module-title">Topic modeling <span class="badge badge-updated" style="font-size:.6rem;padding:.15rem .5rem;vertical-align:middle">v1.0</span></h3>
+            <p class="module-desc">LDA with CTM and STM methods, automatic K selection, coherence &amp; exclusivity diagnostics. Parallelised through <em>future</em>.</p>
+            <div class="module-tags">
+              <span class="pill">LDA</span><span class="pill">CTM</span><span class="pill">STM</span>
+            </div>
+          </div>
+        </div>
+        <div class="module">
+          <div class="module-num">04</div>
+          <div>
+            <h3 class="module-title">Network analysis &amp; community detection</h3>
+            <p class="module-desc">Co‑occurrence networks with Louvain community detection, dependency‑based word graphs, and syntactic relation filters via <em>igraph</em> and <em>visNetwork</em>.</p>
+            <div class="module-tags">
+              <span class="pill">Louvain</span><span class="pill">dependency</span><span class="pill">igraph</span>
+            </div>
+          </div>
+        </div>
+        <div class="module">
+          <div class="module-num">05</div>
+          <div>
+            <h3 class="module-title">Word embeddings</h3>
+            <p class="module-desc">Train Word2Vec representations directly on your corpus; visualise semantic neighbourhoods via UMAP.</p>
+            <div class="module-tags">
+              <span class="pill">Word2Vec</span><span class="pill">UMAP</span>
+            </div>
+          </div>
+        </div>
+        <div class="module">
+          <div class="module-num">06</div>
+          <div>
+            <h3 class="module-title">Polarity &amp; emotion detection <span class="badge badge-new" style="font-size:.6rem;padding:.15rem .5rem;vertical-align:middle">NRC</span></h3>
+            <p class="module-desc">Sentiment dashboards using Hu‑Liu, Loughran‑McDonald, and NRC Emotion Lexicon (8 emotions: anger, anticipation, disgust, fear, joy, sadness, surprise, trust).</p>
+            <div class="module-tags">
+              <span class="pill">Hu‑Liu</span><span class="pill">Loughran‑McDonald</span><span class="pill">NRC EmoLex</span>
+            </div>
+          </div>
+        </div>
+        <div class="module">
+          <div class="module-num">07</div>
+          <div>
+            <h3 class="module-title">Summarisation, SVO triplets &amp; more</h3>
+            <p class="module-desc">Extractive (TextRank) and abstractive summarisation, Subject‑Verb‑Object triplet extraction from dependency trees, syntactic complexity, noun phrase extraction, Reinert clustering, correspondence analysis, keyness.</p>
+            <div class="module-tags">
+              <span class="pill">TextRank</span><span class="pill">SVO</span><span class="pill">Reinert</span><span class="pill">CA</span><span class="pill">keyness</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WHAT'S NEW ============ -->
+<section>
+  <div class="container">
+    <div class="text-center mb-12">
+      <span class="kicker fade-in">§ 3 · Release notes</span>
+      <h2 class="display-lg mt-4 fade-in">
+        What's new in the <em class="italic-display" style="font-weight:400">1.0 series</em>
+      </h2>
+      <p class="lede mt-4 fade-in fade-in-delay-1" style="max-width: 46em; margin-left: auto; margin-right: auto;">
+        The milestone release that accompanies our <a href="#paper" style="color: var(--tall-deep); border-bottom: 1px dotted currentColor;">SoftwareX paper</a>: seven new analytical modules, overhauled AI integration, and a documented performance story. Version&nbsp;1.0.1 follows with a long list of fixes and a faster topic‑model tuning.
+      </p>
+    </div>
+
+    <div class="card fade-in" style="max-width: 980px; margin: 0 auto 2rem; border-left: 3px solid var(--tall);">
+      <span class="badge badge-updated">1.0.1 · September 2026</span>
+      <h3 class="mt-4" style="font-size: 1.3rem;">A maintenance release you will notice</h3>
+      <ul class="mt-2" style="padding-left: 1.1rem; margin-bottom: 0;">
+        <li><strong>TALL AI works with new Gemini keys.</strong> Key validation no longer depends on a retired model; the default is now <code>gemini-3.5-flash-lite</code>, and Settings tells an invalid key apart from an unavailable model or a network problem.</li>
+        <li><strong>Topic modeling: choosing K is consistent and faster.</strong> The optimal‑K search now tunes the same LDA (Gibbs) that is then estimated, runs across cores (about 6× faster on large corpora), and the multi‑metric chart plots every metric with 1 as the best value.</li>
+        <li><strong>Dozens of fixes</strong> across Wikipedia import, extractive summarization, word embeddings, supervised classification, feature roles, KWIC, morphological features and Reinert clustering. See the <a href="https://github.com/massimoaria/tall/blob/master/NEWS.md" target="_blank" rel="noopener" style="color: var(--tall-deep); border-bottom: 1px dotted currentColor;">full changelog</a>.</li>
+      </ul>
+    </div>
+
+    <div class="grid grid-3 mt-8">
+      <div class="card fade-in">
+        <span class="badge badge-new">New</span>
+        <h3 class="mt-4" style="font-size: 1.3rem;">SVO triplets</h3>
+        <p class="mt-2">Extract Subject‑Verb‑Object structures from dependency trees to reveal who does what to whom across your corpus.</p>
+      </div>
+      <div class="card fade-in fade-in-delay-1">
+        <span class="badge badge-new">New</span>
+        <h3 class="mt-4" style="font-size: 1.3rem;">Syntactic complexity</h3>
+        <p class="mt-2">Dependency‑tree metrics for measuring and comparing sentence construction across documents and groups.</p>
+      </div>
+      <div class="card fade-in fade-in-delay-2">
+        <span class="badge badge-new">New</span>
+        <h3 class="mt-4" style="font-size: 1.3rem;">Emotion analysis</h3>
+        <p class="mt-2">Eight‑dimensional emotion profiles via the NRC Emotion Lexicon — well beyond binary polarity.</p>
+      </div>
+      <div class="card fade-in">
+        <span class="badge badge-new">New</span>
+        <h3 class="mt-4" style="font-size: 1.3rem;">Noun phrase extraction</h3>
+        <p class="mt-2">Identify and rank noun phrases to complement single‑word frequency analysis with concept‑level views.</p>
+      </div>
+      <div class="card fade-in fade-in-delay-1">
+        <span class="badge badge-updated">Updated</span>
+        <h3 class="mt-4" style="font-size: 1.3rem;">Topic modeling</h3>
+        <p class="mt-2">CTM and STM methods added, plus automatic K selection and diagnostics based on coherence &amp; exclusivity.</p>
+      </div>
+      <div class="card fade-in fade-in-delay-2">
+        <span class="badge badge-updated">Updated</span>
+        <h3 class="mt-4" style="font-size: 1.3rem;">Network analysis</h3>
+        <p class="mt-2">Dependency‑based word networks with filters over syntactic relations (subject, object, modifier…).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TUTORIAL TEASER ============ -->
+<section style="background: var(--paper-warm);">
+  <div class="container">
+    <div class="grid grid-12" style="gap: 3rem; align-items: center;">
+      <div style="grid-column: span 5;" class="fade-in">
+        <span class="kicker">§ 4 · Learn</span>
+        <h2 class="display-md mt-4">
+          A <em class="italic-display" style="font-weight:400">step‑by‑step</em> interactive tutorial.
+        </h2>
+        <p class="mt-6">
+          119 annotated screens and slides take you from installation to topic models, polarity and TALL AI, with worked examples on the three sample collections shipped with the package: BBC news, Bibliometrix abstracts and US Airlines tweets.
+        </p>
+        <div class="flex gap-4 mt-6" style="flex-wrap: wrap;">
+          <a href="tutorial.html" class="btn btn-leaf">
+            Browse the chapters
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </a>
+          <a href="tutorial/" class="btn btn-ghost">Open the tutorial</a>
+        </div>
+      </div>
+      <div style="grid-column: span 7;" class="fade-in fade-in-delay-1">
+        <figure class="figure">
+          <img src="./images/tutorial/slide-069.webp" alt="Thematic map of the BBC news corpus, from the TALL tutorial" loading="lazy">
+          <figcaption class="figcaption"><strong>Tutorial</strong> The thematic map of the BBC news corpus: themes placed by Callon centrality and density.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ COMPARISON TABLE ============ -->
+<section>
+  <div class="container">
+    <div class="grid grid-12" style="gap: 3rem; align-items: start;">
+      <div style="grid-column: span 4;" class="fade-in">
+        <span class="kicker">§ 5 · Comparison</span>
+        <h2 class="display-md mt-4">
+          Why <em class="italic-display" style="font-weight:400">TALL</em>, specifically.
+        </h2>
+        <p class="mt-6">
+          Commercial platforms are often proprietary and costly; open‑source alternatives are frequently limited by legacy interfaces or rigid data formats. TALL extends the open‑source ecosystem by combining the flexibility of R packages with Shiny's interactivity — every analytical step is documented, reproducible and exportable.
+        </p>
+      </div>
+
+      <div style="grid-column: span 8; overflow-x: auto;" class="fade-in fade-in-delay-1">
+        <table class="cmp-table">
+          <thead>
+            <tr>
+              <th style="min-width: 220px;">Feature</th>
+              <th class="col-tall text-center">TALL</th>
+              <th class="text-center">IRaMuTeQ</th>
+              <th class="text-center">KH Coder</th>
+              <th class="text-center">quanteda</th>
+              <th class="text-center">AntConc</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="section-row"><td colspan="6">Multilingual support</td></tr>
+            <tr>
+              <td>Languages supported</td>
+              <td class="cell-tall text-center">56</td>
+              <td class="text-center cell-no">~10</td>
+              <td class="text-center cell-no">13</td>
+              <td class="text-center cell-no">—</td>
+              <td class="text-center cell-no">—</td>
+            </tr>
+            <tr>
+              <td>Pre‑trained models</td>
+              <td class="cell-tall text-center">87</td>
+              <td class="text-center cell-no">None</td>
+              <td class="text-center cell-no">None</td>
+              <td class="text-center cell-no">None</td>
+              <td class="text-center cell-no">None</td>
+            </tr>
+            <tr>
+              <td>PoS tagging &amp; lemmatisation</td>
+              <td class="cell-tall text-center">✓</td>
+              <td class="text-center cell-yes">✓</td>
+              <td class="text-center cell-yes">✓</td>
+              <td class="text-center cell-no">—</td>
+              <td class="text-center cell-no">—</td>
+            </tr>
+            <tr class="section-row"><td colspan="6">Analytical methods</td></tr>
+            <tr>
+              <td>Topic modeling (LDA/CTM/STM)</td>
+              <td class="cell-tall text-center">✓</td>
+              <td class="text-center cell-no">—</td>
+              <td class="text-center cell-no">—</td>
+              <td class="text-center cell-yes">Partial</td>
+              <td class="text-center cell-no">—</td>
+            </tr>
+            <tr>
+              <td>Word embeddings</td>
+              <td class="cell-tall text-center">✓</td>
+              <td class="text-center cell-no">—</td>
+              <td class="text-center cell-no">—</td>
+              <td class="text-center cell-no">—</td>
+              <td class="text-center cell-no">—</td>
+            </tr>
+            <tr>
+              <td>Sentiment analysis</td>
+              <td class="cell-tall text-center">✓</td>
+              <td class="text-center cell-no">—</td>
+              <td class="text-center cell-no">—</td>
+              <td class="text-center cell-no">—</td>
+              <td class="text-center cell-no">—</td>
+            </tr>
+            <tr>
+              <td>Reinert clustering</td>
+              <td class="cell-tall text-center">✓</td>
+              <td class="text-center cell-yes">✓</td>
+              <td class="text-center cell-no">—</td>
+              <td class="text-center cell-no">—</td>
+              <td class="text-center cell-no">—</td>
+            </tr>
+            <tr class="section-row"><td colspan="6">AI &amp; reproducibility</td></tr>
+            <tr>
+              <td>AI‑assisted interpretation</td>
+              <td class="cell-tall text-center">✓</td>
+              <td class="text-center cell-no">—</td>
+              <td class="text-center cell-no">—</td>
+              <td class="text-center cell-no">—</td>
+              <td class="text-center cell-no">—</td>
+            </tr>
+            <tr>
+              <td>FAIR‑compliant</td>
+              <td class="cell-tall text-center">✓</td>
+              <td class="text-center cell-no">Partial</td>
+              <td class="text-center cell-no">Partial</td>
+              <td class="text-center cell-yes">✓</td>
+              <td class="text-center cell-no">—</td>
+            </tr>
+            <tr>
+              <td>Last major update</td>
+              <td class="cell-tall text-center">2026</td>
+              <td class="text-center cell-no">2020</td>
+              <td class="text-center cell-no">2017</td>
+              <td class="text-center cell-yes">2025</td>
+              <td class="text-center cell-yes">2024</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="small mt-4" style="color:var(--ink-muted);">Adapted from <em>Aria et&nbsp;al. (2026)</em>, Table 1. Full comparison available in the paper.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PAPER / CITATION ============ -->
+<section id="paper" style="background: var(--paper-warm);">
+  <div class="container-narrow">
+    <div class="text-center mb-12">
+      <span class="kicker fade-in">§ 6 · Cite</span>
+      <h2 class="display-lg mt-4 fade-in">
+        <em class="italic-display" style="font-weight:400">Published</em> in SoftwareX
+      </h2>
+      <p class="lede mt-4 fade-in fade-in-delay-1" style="max-width: 42em; margin-left: auto; margin-right: auto;">
+        The full description of TALL &mdash; architecture, benchmarks, illustrative examples &mdash; is published as an open‑access Elsevier SoftwareX article. Please cite it if you use TALL in your research.
+      </p>
+    </div>
+
+    <div class="citation fade-in fade-in-delay-2">
+      <div class="cite-label">Reference · 2026</div>
+      <div class="cite-authors">M. Aria, M. Spano, L. D'Aniello, C. Cuccurullo, M. Misuraca</div>
+      <span class="cite-title">TALL: Text Analysis for All — an interactive R‑Shiny application for exploring, modeling, and visualizing textual data</span>
+      <div class="cite-venue"><em>SoftwareX</em>, 2026 · K‑Synth &amp; University of Naples Federico&nbsp;II</div>
+      <div class="cite-venue mt-2" style="font-family: var(--font-mono); font-size: .85rem;">
+        DOI <a href="https://doi.org/10.1016/j.softx.2026.102590" target="_blank" rel="noopener" style="color: var(--tall-deep); border-bottom: 1px dotted currentColor;">10.1016/j.softx.2026.102590</a>
+      </div>
+      <div class="cite-actions">
+        <a href="https://doi.org/10.1016/j.softx.2026.102590" target="_blank" rel="noopener" class="cite-btn" style="background: var(--tall-deep); color: var(--paper); border-color: var(--tall-deep);">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+          Read on SoftwareX
+        </a>
+        <a href="https://cran.r-project.org/package=tall" target="_blank" rel="noopener" class="cite-btn">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          CRAN
+        </a>
+        <a href="https://github.com/massimoaria/tall" target="_blank" rel="noopener" class="cite-btn">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.21 11.4.6.1.82-.26.82-.58v-2.17c-3.34.73-4.04-1.42-4.04-1.42-.55-1.39-1.33-1.76-1.33-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5 1 .11-.78.42-1.3.76-1.6-2.66-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.17 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 016 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.65.25 2.87.12 3.17.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.62-5.48 5.92.43.37.82 1.1.82 2.22v3.29c0 .32.22.7.83.58C20.56 21.8 24 17.3 24 12 24 5.37 18.63 0 12 0z"/></svg>
+          GitHub
+        </a>
+        <a href="documentation.html" class="cite-btn">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+          Documentation
+        </a>
+      </div>
+    </div>
+
+    <div class="section-divider fade-in mt-12">
+      <span class="glyph">❦</span>
+    </div>
+
+    <div class="text-center fade-in mt-4">
+      <p class="lede">Ready to analyse your first corpus?</p>
+      <div class="flex gap-4 justify-center mt-6" style="flex-wrap: wrap;">
+        <a href="download.html" class="btn btn-primary">
+          Install from CRAN
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+        <a href="usecases.html" class="btn btn-ghost">See worked examples</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-title">TALL</div>
+        <span class="footer-sub">Text Analysis for All · v1.0.1</span>
+        <p class="mt-6" style="color: rgba(250,247,239,.6); max-width: 28em; font-size: .92rem;">
+          An open‑source R‑Shiny application developed by K‑Synth and academic partners, for reproducible text analytics without code.
+        </p>
+      </div>
+      <div>
+        <h4>Product</h4>
+        <ul>
+          <li><a href="features.html">Features</a></li>
+          <li><a href="tall-ai.html">TALL AI</a></li>
+          <li><a href="usecases.html">Use cases</a></li>
+          <li><a href="download.html">Install</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Research</h4>
+        <ul>
+          <li><a href="tutorial.html">Tutorial</a></li>
+          <li><a href="documentation.html">Documentation</a></li>
+          <li><a href="#paper">Paper</a></li>
+          <li><a href="https://cran.r-project.org/package=tall" target="_blank" rel="noopener">CRAN</a></li>
+          <li><a href="https://github.com/massimoaria/tall" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Team</h4>
+        <ul>
+          <li><a href="about.html">About us</a></li>
+          <li><a href="mailto:aria@unina.it">Contact</a></li>
+          <li><a href="https://www.k-synth.com" target="_blank" rel="noopener">K‑Synth</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-meta">
+      <div>© 2026 K‑Synth Srl · Academic Spin‑Off of the University of Naples Federico&nbsp;II. Released under the MIT License.</div>
+      <div class="flex gap-4">
+        <a href="https://github.com/massimoaria/tall" target="_blank" rel="noopener" aria-label="GitHub">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.21 11.4.6.1.82-.26.82-.58v-2.17c-3.34.73-4.04-1.42-4.04-1.42-.55-1.39-1.33-1.76-1.33-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5 1 .11-.78.42-1.3.76-1.6-2.66-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.17 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 016 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.65.25 2.87.12 3.17.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.62-5.48 5.92.43.37.82 1.1.82 2.22v3.29c0 .32.22.7.83.58C20.56 21.8 24 17.3 24 12 24 5.37 18.63 0 12 0z"/></svg>
+        </a>
+        <a href="mailto:aria@unina.it" aria-label="Email">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>
