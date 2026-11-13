@@ -79,7 +79,7 @@ tall()
 
 The development version includes the latest features but may contain occasional bugs.
 
-For detailed installation instructions, visit: **[Download & Install](https://massimoaria.github.io/tall-app/download.html)**
+For detailed installation instructions, visit: **[Download & Install](https://massimoaria.github.io/tall/download.html)**
 
 An interactive tutorial is also available: **[View tutorial](https://www.k-synth.com/tall/TALL_tutorial.html)**
 
