@@ -35,7 +35,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 URL: https://github.com/massimoaria/tall,
-     https://massimoaria.github.io/tall-app/
+     https://massimoaria.github.io/tall/
 BugReports: https://github.com/massimoaria/tall/issues
 Depends: 
     R (>= 3.5.0),

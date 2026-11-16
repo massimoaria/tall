@@ -19,3 +19,4 @@ inst/bbc$
 ^\.claude$
 ^openalex_
 ^tasks(/|$)
+^HANDOFF\.md$
