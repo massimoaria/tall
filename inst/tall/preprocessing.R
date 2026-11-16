@@ -2391,8 +2391,8 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
         text = paste(
           "Synonyms replacement completed!",
           "Modified column:",
-          input$synonymsTermType,
-          "\\nPoS tags (upos) have been updated for replaced terms."
+          paste0(input$synonymsTermType, "."),
+          "PoS tags (upos) have been updated for replaced terms."
         ),
         type = "success",
         btn_labels = "OK",
