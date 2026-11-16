@@ -1677,7 +1677,9 @@ overviewServer <- function(input, output, session, values, statsValues) {
     values <- sub(paste0(".*", feature_name, "="), "", matches)
     # Handle non-matching rows
     result <- rep(NA_character_, length(feats_col))
-    result[m > 0] <- values
+    ## feats is NA on rows merged by Multi-Word: regexpr() gives NA there, and
+    ## an NA in a logical subscript makes the assignment fail.
+    result[!is.na(m) & m > 0] <- values
     return(result)
   }
 
