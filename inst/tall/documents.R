@@ -1735,7 +1735,12 @@ documentsServer <- function(input, output, session, values, statsValues) {
         stmPrevalence <- NULL
       }
       stmMetaCols <- unique(c("topic_level_id", stmPrevalence))
-      stmMetaSrc <- filtered[, intersect(stmMetaCols, names(filtered)), drop = FALSE]
+      ## dplyr::select(), not `[`: document_term_frequencies() above has turned
+      ## `filtered` into a data.table BY REFERENCE, and on a data.table
+      ## `filtered[, intersect(...), drop = FALSE]` evaluates j and returns the
+      ## column NAMES. stmBuildMeta() then got a character vector and every K
+      ## choice with a covariate failed at once.
+      stmMetaSrc <- as.data.frame(dplyr::select(filtered, dplyr::any_of(stmMetaCols)))
       stmTuning_fn <- stmTuning
       stmBuildMeta_fn <- stmBuildMeta
       promises::future_promise({
@@ -1771,7 +1776,7 @@ documentsServer <- function(input, output, session, values, statsValues) {
           values$TMKcomputing <- FALSE
           showNotification(
             paste("K choice error:", conditionMessage(err)),
-            type = "error", duration = 10
+            type = "error", duration = NULL
           )
         })
     } else {
@@ -1815,7 +1820,7 @@ documentsServer <- function(input, output, session, values, statsValues) {
           values$TMKcomputing <- FALSE
           showNotification(
             paste("K choice error:", conditionMessage(err)),
-            type = "error", duration = 10
+            type = "error", duration = NULL
           )
         })
     }
