@@ -163,6 +163,16 @@ readTermList <- function(path, name = path) {
   )
 }
 
+## TRUE when the file's bytes are valid UTF-8 (plain ASCII included). NUL bytes
+## mean UTF-16/32 or binary, never UTF-8 text, so the detected encoding is kept.
+isUTF8File <- function(path) {
+  bytes <- readBin(path, "raw", n = file.size(path))
+  if (any(bytes == as.raw(0))) {
+    return(FALSE)
+  }
+  validUTF8(rawToChar(bytes))
+}
+
 read_files <- function(
   files,
   ext = c("txt", "csv", "xlsx", "pdf"),
@@ -200,9 +210,28 @@ read_files <- function(
   switch(
     ext,
     txt = {
-      ## detect text encoding for each file
-      df <- readtext::readtext(file)
-      encod <- suppressMessages(readtext::encoding(df, verbose = FALSE)$all)
+      ## Detect the encoding of each file ON THAT FILE. It used to be detected on
+      ## readtext::readtext(file) as a batch, whose rows come back sorted by file
+      ## name while `file` is in upload/zip order, so the encodings were paired
+      ## with the wrong files: UTF-8 text decoded as Latin-1 ("£" -> "Â£" in 86
+      ## of the 386 BBC sample documents) and vice versa.
+      ## A file whose bytes are valid UTF-8 is read as UTF-8 without guessing:
+      ## readtext's detector labels some UTF-8 files ISO-8859-1 (6 in the BBC
+      ## sample). Latin-1 text with accented letters is almost never valid
+      ## UTF-8, so the detector is still asked about those.
+      encod <- vapply(file, function(f) {
+        if (isUTF8File(f)) {
+          return("UTF-8")
+        }
+        enc <- NA_character_
+        utils::capture.output(suppressMessages(
+          enc <- readtext::encoding(
+            readtext::readtext(f, verbosity = 0),
+            verbose = FALSE
+          )$all
+        ))
+        enc
+      }, character(1), USE.NAMES = FALSE)
       ## read txt files using the right encoding
       df <- data.frame(
         doc_id = doc_id,
