@@ -147,6 +147,22 @@ getFileNameExtension <- function(fn) {
   ext
 }
 
+## Read an uploaded term list (.csv, .xls, .xlsx) as a data frame.
+## `name` is the original file name (fileInput's `name`), used for the
+## extension; `path` is where Shiny stored the upload. The lists used to be read
+## with read_excel() whatever their extension, so a .csv, which the file inputs
+## accept, raised an error inside the observer and closed the session.
+readTermList <- function(path, name = path) {
+  ext <- tolower(tools::file_ext(name))
+  switch(
+    ext,
+    csv = readr::read_csv(path, show_col_types = FALSE, progress = FALSE),
+    xls = ,
+    xlsx = readxl::read_excel(path),
+    stop("Unsupported file format \".", ext, "\". Please use a CSV or Excel file.")
+  )
+}
+
 read_files <- function(
   files,
   ext = c("txt", "csv", "xlsx", "pdf"),

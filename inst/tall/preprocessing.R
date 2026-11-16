@@ -2064,8 +2064,8 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
       req(file$datapath[1])
       custom_lists <- tryCatch(
         {
-          parts <- lapply(file$datapath, function(x) {
-            df <- read_excel(x)
+          parts <- lapply(seq_len(nrow(file)), function(i) {
+            df <- readTermList(file$datapath[i], file$name[i])
             if (ncol(df) < 2) {
               stop("needs_two_cols")
             }
@@ -2081,7 +2081,11 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
         shinyWidgets::sendSweetAlert(
           session = session,
           title = "Invalid file",
-          text = "The uploaded file must have at least two columns: term and POS tag. Please download and use the Custom POS List template (not the Multi-Word template).",
+          text = if (identical(conditionMessage(custom_lists), "needs_two_cols")) {
+            "The uploaded file must have at least two columns: term and POS tag. Please download and use the Custom POS List template (not the Multi-Word template)."
+          } else {
+            paste("The Custom POS list could not be read:", conditionMessage(custom_lists))
+          },
           type = "error"
         )
         return()
@@ -2920,12 +2924,30 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
     handlerExpr = {
       file <- input$multiword_lists
       req(file$datapath[1])
-      keyword_lists <- lapply(file$datapath, function(x) {
-        x <- read_excel(x) %>% select(1)
-        names(x) <- "keyword"
-        return(x)
-      })
-      keywordList <- do.call(rbind, keyword_lists)
+      keywordList <- tryCatch(
+        {
+          keyword_lists <- lapply(seq_len(nrow(file)), function(i) {
+            x <- readTermList(file$datapath[i], file$name[i]) %>% select(1)
+            names(x) <- "keyword"
+            x
+          })
+          do.call(rbind, keyword_lists)
+        },
+        error = function(e) e
+      )
+      if (inherits(keywordList, "error")) {
+        values$keywordList <- NULL
+        shinyWidgets::sendSweetAlert(
+          session = session,
+          title = "Invalid file",
+          text = paste(
+            "The Multi-Word list could not be read:",
+            conditionMessage(keywordList)
+          ),
+          type = "error"
+        )
+        return()
+      }
       values$keywordList <- keywordList
     }
   )
@@ -2935,7 +2957,7 @@ preprocessingServer <- function(input, output, session, values, statsValues) {
       input$multiwordListRun
     },
     {
-      req(input$multiword_lists)
+      req(input$multiword_lists, values$keywordList)
       # to replace with input values
       term <- values$generalTerm
 
