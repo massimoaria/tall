@@ -1195,38 +1195,49 @@ geminiPrepareImage <- function(
   on.exit(setwd(owd))
   file_path <- paste0(tempfile(), ".png", collapse = "")
 
-  switch(
-    type,
-    "vis" = {
-      suppressWarnings(plot2png(
-        obj, filename = file_path, type = "vis", dpi = 150, height = 7
-      ))
-    },
-    "plotly" = {
-      suppressWarnings(plot2png(
-        obj, filename = file_path, type = "plotly", dpi = 150, height = 7
-      ))
-    },
-    "text" = {
-      file_path <- NULL
-    },
-    "multi" = {
-      file_path <- obj
-    },
-    "html" = {
-      html_name <- tempfile(fileext = ".html")
-      htmltools::save_html(obj, html_name)
-      tallShot(html_name, zoom = 150 / 96, file = file_path)
-      unlink(html_name)
-      unlink(paste0(tools::file_path_sans_ext(html_name), "_files"), recursive = TRUE)
-    },
-    "ggplot2" = {
-      ggsave(
-        filename = file_path, plot = obj,
-        dpi = 72, height = 7, width = 14, bg = "transparent"
-      )
-    }
-  )
+  ## A failed capture is reported in the TALL AI box. It runs in the Ask TALL
+  ## AI observer, where an uncaught error closes the session; and plot2png()
+  ## must not hand Gemini a placeholder as if it were the plot.
+  captured <- tryCatch({
+    switch(
+      type,
+      "vis" = {
+        suppressWarnings(plot2png(
+          obj, filename = file_path, type = "vis", dpi = 150, height = 7,
+          on_error = "stop"
+        ))
+      },
+      "plotly" = {
+        suppressWarnings(plot2png(
+          obj, filename = file_path, type = "plotly", dpi = 150, height = 7,
+          on_error = "stop"
+        ))
+      },
+      "text" = {
+        file_path <- NULL
+      },
+      "multi" = {
+        file_path <- obj
+      },
+      "html" = {
+        html_name <- tempfile(fileext = ".html")
+        htmltools::save_html(obj, html_name)
+        tallShot(html_name, zoom = 150 / 96, file = file_path)
+        unlink(html_name)
+        unlink(paste0(tools::file_path_sans_ext(html_name), "_files"), recursive = TRUE)
+      },
+      "ggplot2" = {
+        ggsave(
+          filename = file_path, plot = obj,
+          dpi = 72, height = 7, width = 14, bg = "transparent"
+        )
+      }
+    )
+    NULL
+  }, error = function(e) e)
+  if (inherits(captured, "error")) {
+    return(list(error = paste("\u26a0\ufe0f", conditionMessage(captured))))
+  }
 
   return(list(
     image = file_path,
