@@ -192,8 +192,25 @@ gemini_ai <- function(
     }
 
     # Successful response
+    ## Always ONE string. unlist() on the parts used to flatten every field of
+    ## every part (text, thought, thoughtSignature, ...) into a vector longer
+    ## than 1, and an empty answer (no candidates, e.g. a safety block) into
+    ## NULL; both made string_to_sentence_df() fail and Add to Report close the
+    ## app. Thought-summary parts are not part of the answer.
     candidates <- httr2::resp_body_json(resp)$candidates
-    outputs <- unlist(lapply(candidates, \(c) c$content$parts))
+    parts <- unlist(lapply(candidates, \(c) c$content$parts), recursive = FALSE)
+    texts <- vapply(parts, function(p) {
+      if (isTRUE(p$thought) || !is.character(p$text)) "" else paste(p$text, collapse = "")
+    }, character(1))
+    outputs <- paste(texts[nzchar(texts)], collapse = "\n")
+    if (!nzchar(outputs)) {
+      reason <- if (length(candidates) > 0 && is.character(candidates[[1]]$finishReason)) {
+        candidates[[1]]$finishReason
+      } else {
+        "no candidates returned"
+      }
+      return(paste0("❌ Gemini returned no text (", reason, "). Please try again."))
+    }
     return(outputs)
   }
 }
@@ -1596,8 +1613,11 @@ copy_to_clipboard <- function(x) {
 }
 
 string_to_sentence_df <- function(input_string) {
-  # Validate that the input is a character string of length 1
-  if (!is.character(input_string) || nchar(input_string) < 2) {
+  # Validate that the input is a character string of length 1. The length/NA
+  # checks come first: `||` errors on a condition of length != 1, which closed
+  # the app when a Gemini value was NULL or a vector.
+  if (!is.character(input_string) || length(input_string) != 1 ||
+      is.na(input_string) || nchar(input_string) < 2) {
     return(data.frame(
       TALL_AI = "TALL AI was not performed",
       stringsAsFactors = FALSE,
