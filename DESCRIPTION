@@ -94,4 +94,4 @@ Suggests:
 Config/testthat/edition: 3
 LazyData: true
 LinkingTo: Rcpp
-Config/roxygen2/version: 8.1.0
+Config/roxygen2/version: 8.1.1
