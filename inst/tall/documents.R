@@ -1785,13 +1785,17 @@ documentsServer <- function(input, output, session, values, statsValues) {
         top_by,
         freq = {
           dtm <- dtm_remove_lowfreq(dtm, minfreq = 1, maxterms = n)
-          dtm <- tm::as.DocumentTermMatrix(dtm, weighting = tm::weightTf)
         },
         tfidf = {
           dtm <- dtm_remove_tfidf(dtm, top = n)
-          dtm <- tm::as.DocumentTermMatrix(dtm, weighting = tm::weightTfIdf)
         }
       )
+      ## Counts in both cases: TF-IDF only SELECTS the terms, as in
+      ## tmEstimate(). topicmodels::LDA()/CTM() refuse a TF-IDF weighted DTM
+      ## ("needs to have a term frequency weighting"), so weighting it here made
+      ## every TF-IDF K choice fail, and would have tuned K on a different
+      ## matrix from the one the model is estimated on.
+      dtm <- tm::as.DocumentTermMatrix(dtm, weighting = tm::weightTf)
       # Async: LDA/CTM model fitting in background
       tmTuningAsync_fn <- tmTuningAsync
       promises::future_promise({
