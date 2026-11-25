@@ -1,4 +1,4 @@
-# tall (development version)
+# tall 1.0.1
 
 * Bug fix (Settings > Tall AI): **a valid Gemini API key was reported as
   refused, and a new user could not run TALL AI at all.** Key validation sent a

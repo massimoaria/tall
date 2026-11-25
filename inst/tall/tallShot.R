@@ -111,6 +111,23 @@ tallShot <- function(
   )
 
   p <- promises::promise_all(.list = res)
+  ## Overall time limit. wait_for() blocks the R process (and so the whole
+  ## Shiny session) until the promise settles, and has no timeout of its own.
+  ## The timer must run on chromote's child loop: that is the loop wait_for()
+  ## turns.
+  timeout <- getOption("tallShot.timeout", default = 60)
+  if (is.numeric(timeout) && timeout > 0) {
+    p_timeout <- promises::promise(function(resolve, reject) {
+      later::later(
+        function() reject(simpleError(sprintf(
+          "the plot could not be captured within %d seconds", round(timeout)
+        ))),
+        delay = timeout,
+        loop = cm$get_child_loop()
+      )
+    })
+    p <- promises::promise_race(p, p_timeout)
+  }
   res <- cm$wait_for(p)
   res <- structure(unlist(res), class = "webshot")
   res

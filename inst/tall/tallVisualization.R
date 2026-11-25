@@ -1385,29 +1385,72 @@ DTformat <- function(
 ### FUNCTIONS FOR EXPORTING PLOTS ----
 
 
-plot2png <- function(p, filename, type = "vis", dpi = 300, height = 7) {
+## on_error = "placeholder" (report, export): if the browser capture fails, write
+## a PNG that says so and show a notification, instead of raising the error.
+## These calls run inside observers, where an error closes the Shiny session —
+## and a capture that never ended left "Please wait... Adding results to
+## report" on screen for good. on_error = "stop" (TALL AI) raises the error, so
+## a placeholder is never sent to Gemini as if it were the plot.
+plot2png <- function(p, filename, type = "vis", dpi = 300, height = 7,
+                     on_error = c("placeholder", "stop")) {
+  on_error <- match.arg(on_error)
   zoom <- dpi / 96
   vwidth  <- round(height * 2 * 96)
   vheight <- round(height * 96)
 
   filename_html <- tools::file_path_sans_ext(filename)
   html_name <- paste0(filename_html, ".html")
-  switch(
-    type,
-    vis = {
-      visSave(p, html_name)
-    },
-    plotly = {
-      htmlwidgets::saveWidget(p, file = html_name, selfcontained = FALSE)
-    }
-  )
-  tallShot(url = html_name, zoom = zoom, vwidth = vwidth, vheight = vheight, file = filename)
+  # Clean up temporary HTML and associated files, also on error
+  on.exit({
+    unlink(html_name)
+    unlink(paste0(filename_html, "_files"), recursive = TRUE)
+  }, add = TRUE)
 
-  # Clean up temporary HTML and associated files
-  unlink(html_name)
-  unlink(paste0(filename_html, "_files"), recursive = TRUE)
+  shot <- tryCatch(
+    {
+      switch(
+        type,
+        vis = {
+          visSave(p, html_name)
+        },
+        plotly = {
+          htmlwidgets::saveWidget(p, file = html_name, selfcontained = FALSE)
+        }
+      )
+      tallShot(url = html_name, zoom = zoom, vwidth = vwidth, vheight = vheight, file = filename)
+      NULL
+    },
+    error = function(e) e
+  )
+
+  if (inherits(shot, "error")) {
+    if (on_error == "stop") {
+      stop("The plot could not be captured as an image: ", conditionMessage(shot), call. = FALSE)
+    }
+    placeholderPng(filename, conditionMessage(shot), width = vwidth, height = vheight)
+    if (!is.null(shiny::getDefaultReactiveDomain())) {
+      shiny::showNotification(
+        paste(
+          "A plot could not be captured as an image and was replaced by a placeholder:",
+          conditionMessage(shot)
+        ),
+        type = "warning", duration = 10
+      )
+    }
+  }
 
   invisible(normalizePath(filename, mustWork = FALSE))
+}
+
+## A PNG with a short message, used where a plot capture failed
+placeholderPng <- function(filename, reason, width = 1344, height = 672) {
+  grDevices::png(filename, width = width, height = height)
+  on.exit(grDevices::dev.off())
+  graphics::par(mar = c(0, 0, 0, 0))
+  graphics::plot.new()
+  graphics::text(0.5, 0.55, "This plot could not be captured as an image.", cex = 2)
+  graphics::text(0.5, 0.42, paste(strwrap(reason, 90), collapse = "\n"), cex = 1.2, col = "grey40")
+  invisible(filename)
 }
 
 ## freqGgplot ----

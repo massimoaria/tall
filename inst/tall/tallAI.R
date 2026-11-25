@@ -192,8 +192,25 @@ gemini_ai <- function(
     }
 
     # Successful response
+    ## Always ONE string. unlist() on the parts used to flatten every field of
+    ## every part (text, thought, thoughtSignature, ...) into a vector longer
+    ## than 1, and an empty answer (no candidates, e.g. a safety block) into
+    ## NULL; both made string_to_sentence_df() fail and Add to Report close the
+    ## app. Thought-summary parts are not part of the answer.
     candidates <- httr2::resp_body_json(resp)$candidates
-    outputs <- unlist(lapply(candidates, \(c) c$content$parts))
+    parts <- unlist(lapply(candidates, \(c) c$content$parts), recursive = FALSE)
+    texts <- vapply(parts, function(p) {
+      if (isTRUE(p$thought) || !is.character(p$text)) "" else paste(p$text, collapse = "")
+    }, character(1))
+    outputs <- paste(texts[nzchar(texts)], collapse = "\n")
+    if (!nzchar(outputs)) {
+      reason <- if (length(candidates) > 0 && is.character(candidates[[1]]$finishReason)) {
+        candidates[[1]]$finishReason
+      } else {
+        "no candidates returned"
+      }
+      return(paste0("❌ Gemini returned no text (", reason, "). Please try again."))
+    }
     return(outputs)
   }
 }
@@ -698,259 +715,6 @@ gemini2clip <- function(values, activeTab) {
   )
 }
 
-geminiGenerate <- function(
-  values,
-  activeTab,
-  gemini_additional,
-  gemini_model_parameters,
-  input
-) {
-  if (gemini_additional != "") {
-    desc <- paste0(
-      values$corpus_description,
-      gemini_additional,
-      gemini_model_parameters,
-      collapse = ". "
-    )
-  } else {
-    desc <- paste0(
-      values$corpus_description,
-      gemini_model_parameters,
-      collapse = ". "
-    )
-  }
-  prompt <- tallAiPrompts(values, activeTab)
-  switch(
-    activeTab,
-    "overview" = {
-      req(values$VbData)
-      values$overviewGemini <- geminiPromptImage(
-        obj = values$VbData,
-        type = "text",
-        prompt = prompt,
-        key = values$geminiAPI,
-        desc = desc,
-        values = values
-      )
-    },
-    "kwic" = {
-      req(values$contextNetwork)
-      values$contextGemini <- geminiPromptImage(
-        obj = values$contextNetwork,
-        type = "vis",
-        prompt = prompt,
-        key = values$geminiAPI,
-        desc = desc,
-        values = values
-      )
-    },
-    "w_reinclustering" = {
-      "Not yet implemented"
-    },
-    "ca" = {
-      req(values$plotCA)
-      values$caGemini <- geminiPromptImage(
-        obj = values$plotCA,
-        type = "plotly",
-        prompt = prompt,
-        key = values$geminiAPI,
-        desc = desc,
-        values = values
-      )
-    },
-    "w_networkCooc" = {
-      req(values$netVis)
-      values$w_networkGemini <- geminiPromptImage(
-        obj = values$netVis,
-        type = "vis",
-        prompt = prompt,
-        key = values$geminiAPI,
-        desc = desc,
-        values = values
-      )
-    },
-    "w_networkTM" = {
-      req(values$TMmap)
-      values$w_networkTMGemini <- geminiPromptImage(
-        obj = plotTM(values$TM$df, size = 0.5, gemini = TRUE),
-        type = "plotly",
-        prompt = prompt,
-        key = values$geminiAPI,
-        desc = desc,
-        values = values
-      )
-    },
-    "w_w2v_similarity" = {
-      req(values$w2vNetworkPlot)
-      p1 <- values$w2vNetworkPlot
-      p2 <- values$w2vUMAPplot
-      files <- unlist(lapply(c("similarity", "umqp"), function(x) {
-        paste0(tempdir(), "/", x, ".png")
-      }))
-      suppressWarnings(plot2png(
-        p1,
-        filename = files[1],
-        type = "vis",
-        dpi = 150, height = 7
-      ))
-      suppressWarnings(plot2png(
-        p2,
-        filename = files[2],
-        type = "plotly",
-        dpi = 150, height = 7
-      ))
-      values$w_w2vGemini <- geminiPromptImage(
-        obj = files,
-        type = "multi",
-        prompt = prompt,
-        key = values$geminiAPI,
-        desc = desc,
-        values = values
-      )
-    },
-    "d_tm_estim" = {
-      req(values$TMestim_result)
-      tmPlot <- topicGplot(
-        values$TMestim_result$beta,
-        nPlot = 10,
-        type = "beta"
-      )
-      values$tmGemini <- geminiPromptImage(
-        obj = tmPlot,
-        type = "ggplot2",
-        prompt = prompt,
-        key = values$geminiAPI,
-        desc = desc,
-        values = values
-      )
-    },
-    "d_polDet" = {
-      req(values$docPolPlots)
-      p1 <- values$sentimentPieChart
-      p2 <- values$docPolPlots$positive %>% layout(showlegend = FALSE)
-      p3 <- values$docPolPlots$negative %>% layout(showlegend = FALSE)
-
-      files <- unlist(lapply(c("topic1", "topic2", "topic3"), function(x) {
-        paste0(tempdir(), "/", x, ".png")
-      }))
-
-      suppressWarnings(plot2png(
-        p1,
-        filename = files[1],
-        type = "plotly",
-        dpi = 150, height = 7
-      ))
-      suppressWarnings(plot2png(
-        p2,
-        filename = files[2],
-        type = "plotly",
-        dpi = 150, height = 7
-      ))
-      suppressWarnings(plot2png(
-        p3,
-        filename = files[3],
-        type = "plotly",
-        dpi = 150, height = 7
-      ))
-
-      values$d_polDet_Gemini <- geminiPromptImage(
-        obj = files,
-        type = "multi",
-        prompt = prompt,
-        key = values$geminiAPI,
-        desc = desc,
-        values = values
-      )
-    },
-    "d_emo" = {
-      req(values$emotionBarChart)
-      p1 <- values$emotionBarChart
-      p2 <- values$emotionRadarPlot
-      p3 <- values$emotionHeatmap
-
-      files <- unlist(lapply(c("emo1", "emo2", "emo3"), function(x) {
-        paste0(tempdir(), "/", x, ".png")
-      }))
-
-      suppressWarnings(plot2png(
-        p1,
-        filename = files[1],
-        type = "plotly",
-        dpi = 150, height = 7
-      ))
-      suppressWarnings(plot2png(
-        p2,
-        filename = files[2],
-        type = "plotly",
-        dpi = 150, height = 7
-      ))
-      suppressWarnings(plot2png(
-        p3,
-        filename = files[3],
-        type = "plotly",
-        dpi = 150, height = 7
-      ))
-
-      values$d_emo_Gemini <- geminiPromptImage(
-        obj = files,
-        type = "multi",
-        prompt = prompt,
-        key = values$geminiAPI,
-        desc = desc,
-        values = values
-      )
-    },
-    "d_syntactic" = {
-      req(values$syntacticResults)
-      prompt <- paste0(
-        prompt,
-        " Syntactic complexity metrics (corpus-level averages): ",
-        "Mean Sentence Length: ", round(mean(values$syntacticResults$mean_sent_length), 2),
-        "; Mean Tree Depth: ", round(mean(values$syntacticResults$mean_tree_depth), 2),
-        "; Mean Dependency Distance: ", round(mean(values$syntacticResults$mean_dep_distance), 2),
-        "; Mean Clauses per Sentence: ", round(mean(values$syntacticResults$mean_clauses_per_sent), 2),
-        "; Subordination Ratio: ", round(mean(values$syntacticResults$subordination_ratio), 2),
-        "; Mean Branching Factor: ", round(mean(values$syntacticResults$mean_branching_factor), 2),
-        ". Per-document metrics: ",
-        merge_df_to_string(head(values$syntacticResults, 20))
-      )
-      values$d_syntactic_Gemini <- geminiPromptImage(
-        obj = NULL,
-        type = "text",
-        prompt = prompt,
-        key = values$geminiAPI,
-        desc = desc,
-        values = values
-      )
-    },
-    "d_svo" = {
-      req(values$svoResults)
-      top_svo <- head(values$svoResults, 30)
-      verb_freq <- values$svoResults %>%
-        dplyr::group_by(verb) %>%
-        dplyr::summarise(freq = sum(freq), .groups = "drop") %>%
-        dplyr::arrange(dplyr::desc(freq)) %>%
-        head(15)
-      prompt <- paste0(
-        prompt,
-        " Top SVO triplets (subject-verb-object with frequency): ",
-        merge_df_to_string(top_svo),
-        ". Most frequent verbs: ",
-        paste(paste0(verb_freq$verb, " (", verb_freq$freq, ")"), collapse = ", ")
-      )
-      values$d_svo_Gemini <- geminiPromptImage(
-        obj = NULL,
-        type = "text",
-        prompt = prompt,
-        key = values$geminiAPI,
-        desc = desc,
-        values = values
-      )
-    }
-  )
-  return(values)
-}
-
 geminiParameterPrompt <- function(values, activeTab, input) {
   txt <- paste0(
     "The analysis was perfomed on ",
@@ -1058,92 +822,7 @@ geminiParameterPrompt <- function(values, activeTab, input) {
   return(txt)
 }
 
-## gemini prompt for images
-geminiPromptImage <- function(
-  obj,
-  type = "vis",
-  prompt = "Explain the topics in this map",
-  key,
-  desc = NULL,
-  values
-) {
-  ## Check Computer configuration to work with TALL AI
-  ### Internet Connection
-  if (!is_online()) {
-    res <- '⚠️ **Note**: TALL AI requires an active internet connection to work.'
-    return(res)
-  }
-  ### Chromium Browser
-  if (is.null(values$Chrome_url)) {
-    res <- '⚠️ **Note**: TALL AI requires a **Chrome-based browser** (such as Google Chrome or Microsoft Edge) installed on your computer to work correctly.'
-    return(res)
-  }
-  ### Gemini API key
-  if (key) {
-    if (!is.null(desc)) {
-      prompt <- paste0(prompt, desc, collapse = ". ")
-    }
-    tmpdir <- tempdir()
-    owd <- setwd(tmpdir)
-    on.exit(setwd(owd))
-    file_path <- paste0(tempfile(), ".png", collapse = "")
-    switch(
-      type,
-      "vis" = {
-        suppressWarnings(plot2png(
-          obj,
-          filename = file_path,
-          type = "vis",
-          dpi = 150, height = 7
-        ))
-      },
-      "plotly" = {
-        suppressWarnings(plot2png(
-          obj,
-          filename = file_path,
-          type = "plotly",
-          dpi = 150, height = 7
-        ))
-      },
-      "text" = {
-        file_path <- NULL
-      },
-      "multi" = {
-        file_path <- obj
-      },
-      "html" = {
-        html_name <- tempfile(fileext = ".html")
-        htmltools::save_html(obj, html_name)
-        tallShot(html_name, zoom = 150 / 96, file = file_path)
-        unlink(html_name)
-        unlink(paste0(tools::file_path_sans_ext(html_name), "_files"), recursive = TRUE)
-      },
-      "ggplot2" = {
-        ggsave(
-          filename = file_path,
-          plot = obj,
-          dpi = 72,
-          height = 7,
-          width = 14,
-          bg = "transparent"
-        )
-      }
-    )
-
-    res <- gemini_ai(
-      image = file_path,
-      prompt = prompt,
-      model = values$gemini_api_model,
-      outputSize = values$gemini_output_size
-    )
-  } else {
-    res <- 'To access this feature, please provide a valid Gemini AI API key. You can obtain your API key by visiting the official <a href="https://aistudio.google.com/" target="_blank">Google AI Studio website</a>.'
-  }
-
-  return(res)
-}
-
-## Async-ready preparation: does everything geminiPromptImage does EXCEPT calling gemini_ai
+## Async-ready preparation: captures the plot and builds the prompt; gemini_ai() runs in a future worker
 geminiPrepareImage <- function(
   obj,
   type = "vis",
@@ -1178,38 +857,49 @@ geminiPrepareImage <- function(
   on.exit(setwd(owd))
   file_path <- paste0(tempfile(), ".png", collapse = "")
 
-  switch(
-    type,
-    "vis" = {
-      suppressWarnings(plot2png(
-        obj, filename = file_path, type = "vis", dpi = 150, height = 7
-      ))
-    },
-    "plotly" = {
-      suppressWarnings(plot2png(
-        obj, filename = file_path, type = "plotly", dpi = 150, height = 7
-      ))
-    },
-    "text" = {
-      file_path <- NULL
-    },
-    "multi" = {
-      file_path <- obj
-    },
-    "html" = {
-      html_name <- tempfile(fileext = ".html")
-      htmltools::save_html(obj, html_name)
-      tallShot(html_name, zoom = 150 / 96, file = file_path)
-      unlink(html_name)
-      unlink(paste0(tools::file_path_sans_ext(html_name), "_files"), recursive = TRUE)
-    },
-    "ggplot2" = {
-      ggsave(
-        filename = file_path, plot = obj,
-        dpi = 72, height = 7, width = 14, bg = "transparent"
-      )
-    }
-  )
+  ## A failed capture is reported in the TALL AI box. It runs in the Ask TALL
+  ## AI observer, where an uncaught error closes the session; and plot2png()
+  ## must not hand Gemini a placeholder as if it were the plot.
+  captured <- tryCatch({
+    switch(
+      type,
+      "vis" = {
+        suppressWarnings(plot2png(
+          obj, filename = file_path, type = "vis", dpi = 150, height = 7,
+          on_error = "stop"
+        ))
+      },
+      "plotly" = {
+        suppressWarnings(plot2png(
+          obj, filename = file_path, type = "plotly", dpi = 150, height = 7,
+          on_error = "stop"
+        ))
+      },
+      "text" = {
+        file_path <- NULL
+      },
+      "multi" = {
+        file_path <- obj
+      },
+      "html" = {
+        html_name <- tempfile(fileext = ".html")
+        htmltools::save_html(obj, html_name)
+        tallShot(html_name, zoom = 150 / 96, file = file_path)
+        unlink(html_name)
+        unlink(paste0(tools::file_path_sans_ext(html_name), "_files"), recursive = TRUE)
+      },
+      "ggplot2" = {
+        ggsave(
+          filename = file_path, plot = obj,
+          dpi = 72, height = 7, width = 14, bg = "transparent"
+        )
+      }
+    )
+    NULL
+  }, error = function(e) e)
+  if (inherits(captured, "error")) {
+    return(list(error = paste("\u26a0\ufe0f", conditionMessage(captured))))
+  }
 
   return(list(
     image = file_path,
@@ -1228,7 +918,7 @@ geminiPrepare <- function(
   gemini_model_parameters,
   input
 ) {
-  # Build desc (same logic as geminiGenerate)
+  # Build desc
   if (gemini_additional != "") {
     desc <- paste0(
       values$corpus_description,
@@ -1596,8 +1286,11 @@ copy_to_clipboard <- function(x) {
 }
 
 string_to_sentence_df <- function(input_string) {
-  # Validate that the input is a character string of length 1
-  if (!is.character(input_string) || nchar(input_string) < 2) {
+  # Validate that the input is a character string of length 1. The length/NA
+  # checks come first: `||` errors on a condition of length != 1, which closed
+  # the app when a Gemini value was NULL or a vector.
+  if (!is.character(input_string) || length(input_string) != 1 ||
+      is.na(input_string) || nchar(input_string) < 2) {
     return(data.frame(
       TALL_AI = "TALL AI was not performed",
       stringsAsFactors = FALSE,

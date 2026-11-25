@@ -1,6 +1,6 @@
 Package: tall
 Title: Text Analysis for All
-Version: 1.0.0.9000
+Version: 1.0.1
 Authors@R: c(
     person(given = "Massimo", 
            family = "Aria",
@@ -89,8 +89,9 @@ Imports:
     visNetwork,
     word2vec
 Suggests:
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    tm
 Config/testthat/edition: 3
 LazyData: true
 LinkingTo: Rcpp
-Config/roxygen2/version: 8.1.0
+Config/roxygen2/version: 8.1.1
