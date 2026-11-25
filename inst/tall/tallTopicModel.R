@@ -902,6 +902,21 @@ tmNetwork <- function(beta, minEdge) {
   return(results)
 }
 
+# Beta table for the report: one word/probability column pair per topic, each
+# sorted by decreasing probability. The word x topic table (`values$beta`) has
+# a single row per word, so with words shared by several topics no column
+# could be in order in Excel: rows came out alphabetical.
+betaByTopic <- function(beta) {
+  topics <- setdiff(names(beta), "word")
+  cols <- lapply(topics, function(tp) {
+    ord <- order(beta[[tp]], decreasing = TRUE)
+    out <- data.frame(beta$word[ord], beta[[tp]][ord])
+    names(out) <- paste(tp, c("word", "beta"))
+    out
+  })
+  do.call(cbind, cols)
+}
+
 tmHeatmap <- function(beta) {
   # Calculate correlation matrix
   data <- cor(as.matrix(beta[, -1]))
