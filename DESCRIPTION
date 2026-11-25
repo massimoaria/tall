@@ -89,7 +89,8 @@ Imports:
     visNetwork,
     word2vec
 Suggests:
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    tm
 Config/testthat/edition: 3
 LazyData: true
 LinkingTo: Rcpp
