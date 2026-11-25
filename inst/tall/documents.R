@@ -2597,7 +2597,7 @@ documentsServer <- function(input, output, session, values, statsValues) {
       Gem <- values$tmGemini %>% string_to_sentence_df()
       list_df <- list(
         values$tmGemini %>% string_to_sentence_df(),
-        values$beta,
+        betaByTopic(values$beta),
         values$theta
       )
       list_plot <- list(
