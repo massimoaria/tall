@@ -29,6 +29,7 @@ test_that("betaByTopic sorts every topic on its own, shared words included", {
 test_that("LDA K tuning runs on a TF-IDF selected vocabulary", {
   skip_on_cran()
   skip_if_not_installed("topicmodels")
+  skip_if_not_installed("tm")
   env <- app_env("tallTopicModel.R")
   data(brussels_reviews_anno, package = "udpipe", envir = environment())
   x <- subset(brussels_reviews_anno, language == "fr" & upos == "NOUN")
