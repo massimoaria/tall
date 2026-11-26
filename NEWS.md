@@ -1,3 +1,5 @@
+# tall 1.1.0
+
 # tall 1.0.2
 
 * Bug fix (Topic Model > K selection): **a K choice with LDA or CTM failed
