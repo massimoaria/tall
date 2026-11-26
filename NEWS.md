@@ -1,3 +1,64 @@
+# tall 1.0.2
+
+* Bug fix (Topic Model > K selection): **a K choice with LDA or CTM failed
+  whenever the terms were selected by TF-IDF.** The document-term matrix was
+  weighted with `tm::weightTfIdf`, which `topicmodels::LDA()`/`CTM()` refuse
+  ("needs to have a term frequency weighting"). TF-IDF now only selects the
+  terms and the models are tuned on counts, as `tmEstimate()` already fits
+  them — so K is also chosen on the same matrix the model is estimated on.
+
+* Bug fix (Topic Model > Model Estimation, report): the beta table in the
+  `ModelEstim` sheet was the word x topic table in alphabetical order, so with
+  words shared by several topics no topic's distribution was in order. The sheet
+  now has a word/beta column pair per topic, each sorted by decreasing
+  probability (`betaByTopic()`). The on-screen table is unchanged.
+
+* Bug fix (Topic Model > K selection, STM with covariates): every K choice with
+  a covariate failed at once. `document_term_frequencies()` turns its input into
+  a data.table by reference, after which `filtered[, cols, drop = FALSE]`
+  returned the column NAMES instead of the columns. The covariate columns are
+  now taken with `dplyr::select()`, and K-choice errors stay on screen.
+
+* STM K selection is tuned with the prevalence covariates the model is then
+  estimated with (#59). It used to tune without them, so the recommended K came
+  from a different model specification. The covariate selector moves to the K
+  selection page and is shared with Model Estimation.
+
+* Bug fix (SVO Triplets): the extraction ran on the PoS-filtered
+  tokens, which removes tokens from inside sentences and orphans their children
+  in the dependency tree (most subjects are pronouns, which the default
+  selection drops). It now runs on the whole tree of the selected documents.
+
+* Bug fix (Import > TXT/ZIP): **UTF-8 text could be decoded as Latin-1**
+  (e.g. `£` shown as `Â£`). The encodings guessed by `readtext` were assigned
+  to the files in zip order while the texts came back sorted by name, so files
+  got another file's encoding. The encoding is now detected on each file, and
+  valid UTF-8 is read as UTF-8.
+
+* Bug fix (Pre-processing > Multi-Word by a List, Custom PoS lists): a `.csv`
+  list closed the app. Lists are now read by extension (`.csv`, `.xls`,
+  `.xlsx`), and a file that cannot be read shows an error instead.
+
+* Bug fix (Overview > Morphological Features): tokens with no morphological
+  features (`feats` NA) made `parseMorphFeatures()` fail, and with it the
+  Overview report.
+
+* Bug fix (TALL AI): a Gemini response with no candidate, or split into several
+  parts (thought parts included), made "Add to Report" close the app.
+  `gemini_ai()` now always returns one string. The unused synchronous path
+  (`geminiGenerate()`, `geminiPromptImage()`) is removed.
+
+* Bug fix (Add to Report): plot capture has an overall time limit (60 s,
+  option `tallShot.timeout`); a failed capture adds a placeholder and a
+  notification instead of closing the app or leaving "Please wait" on screen.
+
+* Bug fix (Synonyms): the popup showed a literal `\n` before "PoS tags".
+
+* Removed `tmTuning()`, `evaluate_tm_parallel()` and `evaluate_single_k()`:
+  internal, without callers, and not runnable.
+
+* Website moved to <https://massimoaria.github.io/tall/>; citation updated.
+
 # tall 1.0.1
 
 * Bug fix (Settings > Tall AI): **a valid Gemini API key was reported as
